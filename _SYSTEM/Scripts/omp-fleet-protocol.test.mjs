@@ -27,6 +27,7 @@ import {
   octoberNodeLeaseId,
   isWorkerPeerId,
   destinationMatchesPeer,
+  electFleetIdentity,
 } from './omp-fleet-protocol.mjs';
 
 // ── isolated temp root ──────────────────────────────────────────────────
@@ -339,6 +340,113 @@ test('buildFleetEvent enforces UTF-8 byte and count bounds for bodies, artifact 
   );
 });
 
+// ── closed schema: reject unknown keys (Gap A) ────────────────────────────
+
+test('validateFleetEvent rejects an unknown top-level key and accepts the closed event shape', () => {
+  const base = buildFleetEvent(
+    'fleet.message.sent',
+    {
+      projectId: PROJECT_ID,
+      traceId: 'trace-topkey',
+      from: 'captain',
+      to: 'worker',
+      payload: {
+        messageId: 'msg-topkey',
+        body: 'hello',
+        replyTo: null,
+        artifactUris: [],
+        authority: 'peer',
+      },
+    },
+    { id: 'fleet_topkey', ts: '2026-01-01T00:00:00.000Z' },
+  );
+
+  // Exact closed top-level shape is accepted unchanged.
+  assert.equal(validateFleetEvent(base), base);
+
+  // A single extra top-level key is rejected even when every declared field is valid.
+  const withExtra = { ...base, extra: 'sneaky' };
+  assert.throws(() => validateFleetEvent(withExtra), /Unknown fleet event key/);
+});
+
+test('validateFleetEvent rejects unknown payload keys for every event kind', () => {
+  const captainOwner = buildProcessOwnerId({
+    fleetId: 'captain', pid: 1, processUuid: '11111111-1111-4111-8111-111111111111',
+  });
+  const workerOwner = buildProcessOwnerId({
+    fleetId: 'worker', pid: 2, processUuid: '22222222-2222-4222-8222-222222222222',
+  });
+
+  const cases = [
+    {
+      kind: 'fleet.peer.joined',
+      from: 'captain', to: 'worker',
+      payload: { ownerId: captainOwner },
+    },
+    {
+      kind: 'fleet.peer.left',
+      from: 'worker', to: 'captain',
+      payload: { ownerId: workerOwner },
+    },
+    {
+      kind: 'fleet.message.sent',
+      from: 'captain', to: 'worker',
+      payload: { messageId: 'm', body: 'b', replyTo: null, artifactUris: [], authority: 'peer' },
+    },
+    {
+      kind: 'fleet.message.acknowledged',
+      from: 'worker', to: 'captain',
+      payload: { messageId: 'm', recipient: 'worker', disposition: 'injected' },
+    },
+    {
+      kind: 'fleet.task.offered',
+      from: 'captain', to: 'worker',
+      payload: { taskId: 'task-x', contract: { goal: 'g', acceptance: ['a'] } },
+    },
+    {
+      kind: 'fleet.task.claimed',
+      from: 'worker', to: 'captain',
+      payload: { taskId: 'task-x', attemptId: 'task-x-1', ownerId: workerOwner },
+    },
+    {
+      kind: 'fleet.task.completed',
+      from: 'worker', to: 'captain',
+      payload: { taskId: 'task-x', attemptId: 'task-x-1', summary: 'done', artifactUris: [] },
+    },
+    {
+      kind: 'fleet.task.failed',
+      from: 'worker', to: 'captain',
+      payload: { taskId: 'task-x', attemptId: 'task-x-1', summary: 'nope', artifactUris: [] },
+    },
+    {
+      kind: 'fleet.task.recovered',
+      from: 'worker', to: 'captain',
+      payload: {
+        taskId: 'task-x', attemptId: 'task-x-2',
+        priorAttemptId: 'task-x-1', ownerId: workerOwner, reason: 'dead',
+      },
+    },
+  ];
+
+  for (const { kind, from, to, payload } of cases) {
+    const valid = buildFleetEvent(
+      kind,
+      { projectId: PROJECT_ID, traceId: 'trace-payloadkey', from, to, payload },
+      { id: `fleet_payloadkey-${kind}`, ts: '2026-01-01T00:00:00.000Z' },
+    );
+    // Exact closed payload shape is accepted.
+    assert.equal(validateFleetEvent(valid), valid);
+
+    // A single extra payload key is rejected for this kind.
+    const poisoned = { ...valid, payload: { ...valid.payload, rogueField: 1 } };
+    assert.throws(
+      () => validateFleetEvent(poisoned),
+      /Invalid fleet event payload/,
+      `kind ${kind} should reject an unknown payload key`,
+    );
+  }
+});
+
 // ── fleet operation authorization ─────────────────────────────────────────
 
 test('authorizeFleetOperation is closed by role and throws on an unknown operation', () => {
@@ -461,6 +569,44 @@ test('foldFleetEvents applies the offered→claimed→completed task lifecycle a
   assert.deepStrictEqual(state.recentEventIdSet, postClaimSnapshot.recentEventIdSet);
   assert.deepStrictEqual(state.cursor, postClaimSnapshot.cursor);
   assert.deepStrictEqual(state.errors, postClaimSnapshot.errors);
+
+  const forgedCompletion = buildFleetEvent(
+    'fleet.task.completed',
+    {
+      projectId,
+      traceId: 'trace-lifecycle',
+      from: 'worker-intruder',
+      to: 'captain',
+      payload: {
+        taskId: 'task-lifecycle',
+        attemptId: 'attempt-1',
+        summary: 'forged',
+        artifactUris: [],
+      },
+    },
+    { id: 'fleet_lifecycle-forged-completed', ts: '2026-01-01T00:01:30.000Z' },
+  );
+  const preForgedCompletionSnapshot = structuredClone({
+    peers: state.peers,
+    messages: state.messages,
+    tasks: state.tasks,
+    recentEventIds: state.recentEventIds,
+    recentEventIdSet: state.recentEventIdSet,
+    cursor: state.cursor,
+    errors: state.errors,
+  });
+
+  assert.throws(
+    () => reduceFleetEvent(state, forgedCompletion),
+    /sender "worker-intruder" does not own task "task-lifecycle"/,
+  );
+  assert.deepStrictEqual(state.peers, preForgedCompletionSnapshot.peers);
+  assert.deepStrictEqual(state.messages, preForgedCompletionSnapshot.messages);
+  assert.deepStrictEqual(state.tasks, preForgedCompletionSnapshot.tasks);
+  assert.deepStrictEqual(state.recentEventIds, preForgedCompletionSnapshot.recentEventIds);
+  assert.deepStrictEqual(state.recentEventIdSet, preForgedCompletionSnapshot.recentEventIdSet);
+  assert.deepStrictEqual(state.cursor, preForgedCompletionSnapshot.cursor);
+  assert.deepStrictEqual(state.errors, preForgedCompletionSnapshot.errors);
 
   reduceFleetEvent(state, completed);
 
@@ -914,6 +1060,65 @@ test('recovery is safe only for nonterminal task owned by dead prior process, an
   })[0].status, 'needs-review');
 });
 
+test('deriveRecoveryActions returns needs-review when a claimed record has missing, non-string, or empty ownership fields', () => {
+  const state = createFleetState('project_deadbeef');
+  // Well-formed control: a dead prior owner on a complete record must still recover.
+  state.tasks.set('well-formed', {
+    status: 'claimed', to: 'worker',
+    ownerId: 'worker:7:123e4567-e89b-12d3-a456-426614174000:',
+    attemptId: 'well-formed-1', attempt: 1,
+  });
+  // ownerId omitted entirely.
+  state.tasks.set('missing-owner', {
+    status: 'claimed', to: 'worker', attemptId: 'missing-owner-1', attempt: 1,
+  });
+  // attemptId omitted entirely.
+  state.tasks.set('missing-attempt', {
+    status: 'claimed', to: 'worker',
+    ownerId: 'worker:7:123e4567-e89b-12d3-a456-426614174000:', attempt: 1,
+  });
+  // ownerId present but not a string.
+  state.tasks.set('null-owner', {
+    status: 'claimed', to: 'worker', ownerId: null, attemptId: 'null-owner-1', attempt: 1,
+  });
+  // attemptId present but not a string.
+  state.tasks.set('numeric-attempt', {
+    status: 'claimed', to: 'worker',
+    ownerId: 'worker:7:123e4567-e89b-12d3-a456-426614174000:', attemptId: 42, attempt: 1,
+  });
+  state.tasks.set('empty-owner', {
+    status: 'claimed', to: 'worker', ownerId: '', attemptId: 'empty-owner-1', attempt: 1,
+  });
+  state.tasks.set('blank-attempt', {
+    status: 'claimed', to: 'worker',
+    ownerId: 'worker:7:123e4567-e89b-12d3-a456-426614174000:', attemptId: '   ', attempt: 1,
+  });
+
+  const actions = deriveRecoveryActions(state, {
+    fleetId: 'worker',
+    ownerAlive: () => false, // dead — would recover if the record were well-formed
+    newOwnerId: 'worker:8:223e4567-e89b-12d3-a456-426614174000:',
+  });
+  const byTask = new Map(actions.map((a) => [a.taskId, a]));
+
+  // Control: the well-formed dead task still recovers.
+  assert.equal(byTask.get('well-formed').status, 'recover');
+
+  // Every ill-formed claimed record is flagged for human review, never auto-recovered.
+  for (const taskId of [
+    'missing-owner',
+    'missing-attempt',
+    'null-owner',
+    'numeric-attempt',
+    'empty-owner',
+    'blank-attempt',
+  ]) {
+    const action = byTask.get(taskId);
+    assert.equal(action.status, 'needs-review', `${taskId} should be needs-review`);
+    assert.ok(action.reason && action.reason.length > 0, `${taskId} should carry a reason`);
+  }
+});
+
 // ── October worker identity ──────────────────────────────────────────────
 
 test('deriveOctoberWorkerId produces worker-<slug>-<hash8>, deterministic, <=48 chars', () => {
@@ -1150,4 +1355,454 @@ test('a direct to:worker-* task offer selects only for that exact peer', () => {
     selectPendingTaskDeliveries(state, 'worker-b', dynOwnerId('worker-b')),
     [],
   );
+});
+
+// ── October fleet identity election (electFleetIdentity) ─────────────────
+
+const ELECTION_PROJECT = 'project_election';
+const ELECTION_OWNER = buildProcessOwnerId({
+  fleetId: 'election-fixture', pid: 7,
+  processUuid: '11111111-1111-4111-8111-111111111111',
+});
+const OTHER_OWNER = buildProcessOwnerId({
+  fleetId: 'other-process', pid: 99,
+  processUuid: '22222222-2222-4222-8222-222222222222',
+});
+
+// In-memory lease substrate: tracks held leases and an ordered op log so
+// tests assert not only outcomes but also that no lease was touched when
+// validation should have short-circuited.
+function makeLeaseSubstrate() {
+  const held = new Map();
+  const ops = [];
+  return {
+    ops,
+    acquire(id, owner, { ttlMs } = {}) {
+      ops.push({ op: 'acquire', id, owner });
+      const existing = held.get(id);
+      if (existing && existing.owner !== owner) {
+        return { ok: false, reason: 'live-holder', heldBy: existing.owner, since: existing.since };
+      }
+      held.set(id, { owner, since: Date.now(), ttlMs });
+      return { ok: true };
+    },
+    release(id, owner) {
+      ops.push({ op: 'release', id, owner });
+      const existing = held.get(id);
+      if (existing && existing.owner === owner) held.delete(id);
+      return true;
+    },
+  };
+}
+
+test('electFleetIdentity explicit override wins and skips October leases entirely', () => {
+  const substrate = makeLeaseSubstrate();
+  const result = electFleetIdentity({
+    projectId: ELECTION_PROJECT,
+    ownerId: ELECTION_OWNER,
+    explicitFleetId: 'my-explicit-fleet',
+    octoberNode: 'backend',
+    acquireLease: substrate.acquire,
+    releaseLease: substrate.release,
+  });
+  assert.equal(result.fleetId, 'my-explicit-fleet');
+  assert.equal(result.identitySource, 'explicit');
+  assert.equal(result.peerLeaseId, peerLeaseId(ELECTION_PROJECT, 'my-explicit-fleet'));
+  assert.equal(result.nodeLeaseId, undefined);
+  // Only the explicit peer lease was acquired — October never touched.
+  const acquireIds = substrate.ops.filter(o => o.op === 'acquire').map(o => o.id);
+  assert.deepEqual(acquireIds, [peerLeaseId(ELECTION_PROJECT, 'my-explicit-fleet')]);
+});
+
+test('electFleetIdentity auto captain acquires node then captain lease', () => {
+  const substrate = makeLeaseSubstrate();
+  const result = electFleetIdentity({
+    projectId: ELECTION_PROJECT,
+    ownerId: ELECTION_OWNER,
+    octoberNode: 'backend',
+    acquireLease: substrate.acquire,
+    releaseLease: substrate.release,
+  });
+  assert.equal(result.fleetId, 'captain');
+  assert.equal(result.identitySource, 'october-auto');
+  assert.equal(result.nodeLeaseId, octoberNodeLeaseId(ELECTION_PROJECT, 'backend'));
+  assert.equal(result.peerLeaseId, peerLeaseId(ELECTION_PROJECT, 'captain'));
+});
+
+test('electFleetIdentity auto worker derives worker ID when captain is live-held', () => {
+  const substrate = makeLeaseSubstrate();
+  // Pre-hold the captain lease by another owner.
+  substrate.acquire(
+    peerLeaseId(ELECTION_PROJECT, 'captain'), OTHER_OWNER,
+    { ttlMs: FLEET_LIMITS.peerLeaseTtlMs },
+  );
+
+  const result = electFleetIdentity({
+    projectId: ELECTION_PROJECT,
+    ownerId: ELECTION_OWNER,
+    octoberNode: 'frontend',
+    acquireLease: substrate.acquire,
+    releaseLease: substrate.release,
+  });
+  const expectedWorker = deriveOctoberWorkerId('frontend');
+  assert.equal(result.fleetId, expectedWorker);
+  assert.equal(result.identitySource, 'october-auto');
+  assert.equal(result.nodeLeaseId, octoberNodeLeaseId(ELECTION_PROJECT, 'frontend'));
+  assert.equal(result.peerLeaseId, peerLeaseId(ELECTION_PROJECT, expectedWorker));
+});
+
+test('electFleetIdentity duplicate node throws without attempting captain', () => {
+  const substrate = makeLeaseSubstrate();
+  const nodeLease = octoberNodeLeaseId(ELECTION_PROJECT, 'backend');
+  // Pre-hold the node lease by another process.
+  substrate.acquire(nodeLease, OTHER_OWNER, { ttlMs: FLEET_LIMITS.peerLeaseTtlMs });
+
+  assert.throws(
+    () => electFleetIdentity({
+      projectId: ELECTION_PROJECT,
+      ownerId: ELECTION_OWNER,
+      octoberNode: 'backend',
+      acquireLease: substrate.acquire,
+      releaseLease: substrate.release,
+    }),
+    (err) => err.message.includes(nodeLease) && err.message.includes('live-holder'),
+  );
+  // Captain was never attempted — the election's own acquire log is
+  // exactly [nodeLease] (the pre-hold setup call is by OTHER_OWNER).
+  const acquireIds = substrate.ops
+    .filter(o => o.op === 'acquire' && o.owner === ELECTION_OWNER)
+    .map(o => o.id);
+  assert.deepEqual(acquireIds, [nodeLease]);
+});
+
+test('electFleetIdentity neither explicit nor October throws Invalid fleet ID', () => {
+  const substrate = makeLeaseSubstrate();
+  assert.throws(
+    () => electFleetIdentity({
+      projectId: ELECTION_PROJECT,
+      ownerId: ELECTION_OWNER,
+      acquireLease: substrate.acquire,
+      releaseLease: substrate.release,
+    }),
+    { message: 'Invalid fleet ID' },
+  );
+  assert.equal(substrate.ops.length, 0);
+});
+
+test('electFleetIdentity invalid node with free captain throws before any lease acquisition', () => {
+  const substrate = makeLeaseSubstrate();
+  // '!!!' trims to non-empty but slug-normalizes to empty — invalid, yet
+  // octoberNodeLeaseId alone would accept it (only checks trim). The fix
+  // ensures deriveOctoberWorkerId validates BEFORE the node lease is acquired.
+  assert.throws(
+    () => electFleetIdentity({
+      projectId: ELECTION_PROJECT,
+      ownerId: ELECTION_OWNER,
+      octoberNode: '!!!',
+      acquireLease: substrate.acquire,
+      releaseLease: substrate.release,
+    }),
+    { message: 'Invalid October node' },
+  );
+  // Validation short-circuited BEFORE any lease acquisition — zero ops.
+  assert.equal(substrate.ops.length, 0);
+});
+
+test('electFleetIdentity non-live captain contention throws without worker fallback', () => {
+  const substrate = makeLeaseSubstrate();
+  const nodeLease = octoberNodeLeaseId(ELECTION_PROJECT, 'backend');
+  const captainLease = peerLeaseId(ELECTION_PROJECT, 'captain');
+
+  // Custom acquire: node succeeds, captain fails with a NON-live reason.
+  const acquireCalls = [];
+  const acquireLease = (id, owner, opts) => {
+    acquireCalls.push(id);
+    if (id === captainLease) {
+      return { ok: false, reason: 'reacquire-race', heldBy: 'unknown' };
+    }
+    return substrate.acquire(id, owner, opts);
+  };
+
+  assert.throws(
+    () => electFleetIdentity({
+      projectId: ELECTION_PROJECT,
+      ownerId: ELECTION_OWNER,
+      octoberNode: 'backend',
+      acquireLease,
+      releaseLease: substrate.release,
+    }),
+    (err) => err.message.includes(captainLease) && err.message.includes('reacquire-race'),
+  );
+  // Worker lease was never attempted.
+  const workerLease = peerLeaseId(ELECTION_PROJECT, deriveOctoberWorkerId('backend'));
+  assert.ok(!acquireCalls.includes(workerLease), 'worker lease was never attempted');
+  // Node lease was rolled back on failure.
+  assert.ok(
+    substrate.ops.some(o => o.op === 'release' && o.id === nodeLease),
+    'node lease was released on failure',
+  );
+});
+
+// ── reducer resource authorization (Sentinel gaps) ──────────────────────
+
+const RES_PROJECT = 'project_deadbeef';
+const resOwner = (fleetId, pid) =>
+  buildProcessOwnerId({ fleetId, pid, processUuid: '11111111-1111-4111-8111-111111111111' });
+
+test('applyMessageAcknowledged rejects a forged cross-recipient ack and preserves state', () => {
+  const sent = buildFleetEvent('fleet.message.sent', {
+    projectId: RES_PROJECT, traceId: 't1', from: 'captain', to: 'worker',
+    payload: { messageId: 'm-forged', body: 'b', replyTo: null, artifactUris: [], authority: 'peer' },
+  }, { id: 'e-forged-sent', ts: '2026-07-16T00:00:00.000Z' });
+  const state = foldFleetEvents([sent], { projectId: RES_PROJECT });
+
+  // worker-b forges an ack claiming worker-a acknowledged the message.
+  const forgedAck = buildFleetEvent('fleet.message.acknowledged', {
+    projectId: RES_PROJECT, traceId: 't1', from: 'worker-b', to: 'captain',
+    payload: { messageId: 'm-forged', recipient: 'worker-a', disposition: 'injected' },
+  }, { id: 'e-forged-ack', ts: '2026-07-16T00:00:01.000Z' });
+
+  const snapshot = structuredClone(state.messages);
+  assert.throws(() => reduceFleetEvent(state, forgedAck), /is not recipient/);
+  assert.deepStrictEqual(state.messages, snapshot);
+  assert.equal(state.cursor.afterId, 'e-forged-sent');
+  assert.equal(state.recentEventIdSet.has('e-forged-ack'), false);
+});
+
+test('applyMessageSent rejects a duplicate messageId and preserves prior ack state', () => {
+  const sent = buildFleetEvent('fleet.message.sent', {
+    projectId: RES_PROJECT, traceId: 't1', from: 'captain', to: 'worker',
+    payload: { messageId: 'm-dup', body: 'first', replyTo: null, artifactUris: [], authority: 'peer' },
+  }, { id: 'e-dup-1', ts: '2026-07-16T00:00:00.000Z' });
+  const state = foldFleetEvents([sent], { projectId: RES_PROJECT });
+
+  const ack = buildFleetEvent('fleet.message.acknowledged', {
+    projectId: RES_PROJECT, traceId: 't1', from: 'worker', to: 'captain',
+    payload: { messageId: 'm-dup', recipient: 'worker', disposition: 'injected' },
+  }, { id: 'e-dup-ack', ts: '2026-07-16T00:00:01.000Z' });
+  reduceFleetEvent(state, ack);
+  assert.equal(state.messages.get('m-dup').acknowledged, true);
+
+  // A second sent event with the same messageId must not overwrite/reset ack state.
+  const resend = buildFleetEvent('fleet.message.sent', {
+    projectId: RES_PROJECT, traceId: 't2', from: 'captain', to: 'worker',
+    payload: { messageId: 'm-dup', body: 'hijack', replyTo: null, artifactUris: [], authority: 'peer' },
+  }, { id: 'e-dup-2', ts: '2026-07-16T00:00:02.000Z' });
+
+  const snapshot = structuredClone(state.messages);
+  assert.throws(() => reduceFleetEvent(state, resend), /already exists/);
+  assert.deepStrictEqual(state.messages, snapshot);
+  assert.equal(state.messages.get('m-dup').acknowledged, true);
+  assert.equal(state.messages.get('m-dup').body, 'first');
+  assert.equal(state.recentEventIdSet.has('e-dup-2'), false);
+});
+
+test('applyTaskClaimed and applyTaskRecovered reject a sender who is not the task recipient', () => {
+  // Direct offer to worker-a only — isolates the destination check.
+  const offered = buildFleetEvent('fleet.task.offered', {
+    projectId: RES_PROJECT, traceId: 't1', from: 'captain', to: 'worker-a',
+    payload: { taskId: 'task-r2', contract: { goal: 'g', acceptance: ['a'] } },
+  }, { id: 'e-r2-offer', ts: '2026-07-16T00:00:00.000Z' });
+  const state = foldFleetEvents([offered], { projectId: RES_PROJECT });
+
+  // worker-b (ownerId fleetId worker-b, so only the destination check fails) claims worker-a's task.
+  const wrongClaim = buildFleetEvent('fleet.task.claimed', {
+    projectId: RES_PROJECT, traceId: 't1', from: 'worker-b', to: 'captain',
+    payload: { taskId: 'task-r2', attemptId: 'task-r2-1', ownerId: resOwner('worker-b', 2) },
+  }, { id: 'e-r2-claim', ts: '2026-07-16T00:00:01.000Z' });
+  const claimSnap = structuredClone(state.tasks);
+  assert.throws(() => reduceFleetEvent(state, wrongClaim), /not a recipient/);
+  assert.deepStrictEqual(state.tasks, claimSnap);
+
+  // Recover path: a claimed task scoped to worker-a cannot be recovered by worker-b.
+  state.tasks.set('task-r2-recover', {
+    status: 'claimed', to: 'worker-a', ownerId: resOwner('worker-a', 3),
+    attemptId: 'task-r2-recover-1', attempt: 1,
+  });
+  const wrongRecover = buildFleetEvent('fleet.task.recovered', {
+    projectId: RES_PROJECT, traceId: 't1', from: 'worker-b', to: 'captain',
+    payload: {
+      taskId: 'task-r2-recover', attemptId: 'task-r2-recover-2',
+      priorAttemptId: 'task-r2-recover-1', ownerId: resOwner('worker-b', 2), reason: 'dead',
+    },
+  }, { id: 'e-r2-recover', ts: '2026-07-16T00:00:02.000Z' });
+  const recoverSnap = structuredClone(state.tasks);
+  assert.throws(() => reduceFleetEvent(state, wrongRecover), /not a recipient/);
+  assert.deepStrictEqual(state.tasks, recoverSnap);
+});
+
+test('applyTaskClaimed and applyTaskRecovered reject an ownerId whose fleetId is not the sender', () => {
+  // Group offer to worker — any worker passes the destination check, isolating the fleetId check.
+  const offered = buildFleetEvent('fleet.task.offered', {
+    projectId: RES_PROJECT, traceId: 't1', from: 'captain', to: 'worker',
+    payload: { taskId: 'task-r3', contract: { goal: 'g', acceptance: ['a'] } },
+  }, { id: 'e-r3-offer', ts: '2026-07-16T00:00:00.000Z' });
+  const state = foldFleetEvents([offered], { projectId: RES_PROJECT });
+
+  // worker-b claims but attributes ownership to worker-a's process.
+  const wrongClaim = buildFleetEvent('fleet.task.claimed', {
+    projectId: RES_PROJECT, traceId: 't1', from: 'worker-b', to: 'captain',
+    payload: { taskId: 'task-r3', attemptId: 'task-r3-1', ownerId: resOwner('worker-a', 4) },
+  }, { id: 'e-r3-claim', ts: '2026-07-16T00:00:01.000Z' });
+  const claimSnap = structuredClone(state.tasks);
+  assert.throws(() => reduceFleetEvent(state, wrongClaim), /fleetId does not match/);
+  assert.deepStrictEqual(state.tasks, claimSnap);
+
+  // Recover path: worker-b recovers a group task but claims worker-a's ownerId.
+  state.tasks.set('task-r3-recover', {
+    status: 'claimed', to: 'worker', ownerId: resOwner('worker-a', 5),
+    attemptId: 'task-r3-recover-1', attempt: 1,
+  });
+  const wrongRecover = buildFleetEvent('fleet.task.recovered', {
+    projectId: RES_PROJECT, traceId: 't1', from: 'worker-b', to: 'captain',
+    payload: {
+      taskId: 'task-r3-recover', attemptId: 'task-r3-recover-2',
+      priorAttemptId: 'task-r3-recover-1', ownerId: resOwner('worker-a', 5), reason: 'dead',
+    },
+  }, { id: 'e-r3-recover', ts: '2026-07-16T00:00:02.000Z' });
+  const recoverSnap = structuredClone(state.tasks);
+  assert.throws(() => reduceFleetEvent(state, wrongRecover), /fleetId does not match/);
+  assert.deepStrictEqual(state.tasks, recoverSnap);
+});
+
+// ── election precedence lock-in (coverage gaps) ──────────────────────────
+
+test('electFleetIdentity invalid explicit with valid October fails without fallback or lease', () => {
+  const substrate = makeLeaseSubstrate();
+  assert.throws(
+    () => electFleetIdentity({
+      projectId: ELECTION_PROJECT, ownerId: ELECTION_OWNER,
+      explicitFleetId: 'Bad Fleet', octoberNode: 'backend',
+      acquireLease: substrate.acquire, releaseLease: substrate.release,
+    }),
+    { message: 'Invalid fleet ID' },
+  );
+  // validateFleetId threw BEFORE any lease acquisition — no fallback to October.
+  assert.equal(substrate.ops.length, 0);
+});
+
+test('electFleetIdentity duplicate node while captain is live-held fails before any worker lease', () => {
+  const substrate = makeLeaseSubstrate();
+  const nodeLease = octoberNodeLeaseId(ELECTION_PROJECT, 'backend');
+  const captainLease = peerLeaseId(ELECTION_PROJECT, 'captain');
+  const workerLease = peerLeaseId(ELECTION_PROJECT, deriveOctoberWorkerId('backend'));
+  // Pre-hold BOTH the node and the captain lease by another process — the
+  // captain-live-held path would normally route to worker fallback.
+  substrate.acquire(nodeLease, OTHER_OWNER, { ttlMs: FLEET_LIMITS.peerLeaseTtlMs });
+  substrate.acquire(captainLease, OTHER_OWNER, { ttlMs: FLEET_LIMITS.peerLeaseTtlMs });
+
+  assert.throws(
+    () => electFleetIdentity({
+      projectId: ELECTION_PROJECT, ownerId: ELECTION_OWNER,
+      octoberNode: 'backend',
+      acquireLease: substrate.acquire, releaseLease: substrate.release,
+    }),
+    (err) => err.message.includes(nodeLease) && err.message.includes('live-holder'),
+  );
+  // Node-duplicate short-circuited before captain/worker: only the node lease
+  // was attempted by ELECTION_OWNER, and the worker lease was never touched.
+  const acquireIds = substrate.ops
+    .filter((o) => o.op === 'acquire' && o.owner === ELECTION_OWNER)
+    .map((o) => o.id);
+  assert.deepEqual(acquireIds, [nodeLease]);
+  assert.ok(!substrate.ops.some((o) => o.id === workerLease), 'worker lease was never attempted');
+});
+
+test('validateTaskOfferedPayload rejects an unknown contract key (closed contract shape)', () => {
+  const valid = buildFleetEvent(
+    'fleet.task.offered',
+    {
+      projectId: PROJECT_ID, traceId: 'trace-contractkey', from: 'captain', to: 'worker',
+      payload: { taskId: 'task-c', contract: { goal: 'g', acceptance: ['a'] } },
+    },
+    { id: 'fleet_contractkey', ts: '2026-01-01T00:00:00.000Z' },
+  );
+  assert.equal(validateFleetEvent(valid), valid);
+  // A contract carrying an extra key is rejected — the contract is a closed shape.
+  const poisoned = {
+    ...valid,
+    payload: { ...valid.payload, contract: { ...valid.payload.contract, rogue: 1 } },
+  };
+  assert.throws(() => validateFleetEvent(poisoned), /Invalid fleet event payload/);
+});
+
+// ── defect 3: recovery evidence preservation ──────────────────────────────
+
+test('deriveRecoveryActions preserves prior owner/attempt evidence on needs-review', () => {
+  const state = createFleetState('project_deadbeef');
+  const priorOwner = 'worker:7:123e4567-e89b-12d3-a456-426614174000:';
+  // Alive prior owner on a well-formed record → needs-review WITH evidence.
+  state.tasks.set('alive-task', {
+    status: 'claimed', to: 'worker',
+    ownerId: priorOwner, attemptId: 'alive-task-1', attempt: 1,
+  });
+  // Partially ill-formed: valid ownerId, empty attemptId → preserve ownerId
+  // evidence only (never fabricate an attemptId).
+  state.tasks.set('partial-attempt', {
+    status: 'claimed', to: 'worker', ownerId: priorOwner, attemptId: '', attempt: 1,
+  });
+  // Partially ill-formed: valid attemptId, missing ownerId → preserve
+  // attemptId evidence only (never fabricate an ownerId).
+  state.tasks.set('partial-owner', {
+    status: 'claimed', to: 'worker', attemptId: 'partial-owner-1', attempt: 1,
+  });
+
+  const actions = deriveRecoveryActions(state, {
+    fleetId: 'worker',
+    ownerAlive: (id) => id === priorOwner, // alive-task alive; others dead
+    newOwnerId: 'worker:8:223e4567-e89b-12d3-a456-426614174000:',
+  });
+  const byTask = new Map(actions.map((a) => [a.taskId, a]));
+
+  // Alive prior owner: needs-review carrying the EXACT prior owner/attempt.
+  const alive = byTask.get('alive-task');
+  assert.equal(alive.status, 'needs-review');
+  assert.equal(alive.ownerId, priorOwner, 'alive needs-review preserves ownerId');
+  assert.equal(alive.priorAttemptId, 'alive-task-1', 'alive needs-review preserves priorAttemptId');
+
+  // Partial: ownerId valid, attemptId empty → preserve ownerId only.
+  const partialAttempt = byTask.get('partial-attempt');
+  assert.equal(partialAttempt.status, 'needs-review');
+  assert.equal(partialAttempt.ownerId, priorOwner, 'partial preserves valid ownerId');
+  assert.ok(!('priorAttemptId' in partialAttempt), 'no fabricated priorAttemptId');
+
+  // Partial: attemptId valid, ownerId missing → preserve attemptId only.
+  const partialOwner = byTask.get('partial-owner');
+  assert.equal(partialOwner.status, 'needs-review');
+  assert.equal(partialOwner.priorAttemptId, 'partial-owner-1', 'partial preserves valid attemptId');
+  assert.ok(!('ownerId' in partialOwner), 'no fabricated ownerId');
+});
+
+// ── defect 4: closed-schema validation never mutates caller objects ────────
+
+test('validateFleetEvent and buildFleetEvent never mutate the caller objects', () => {
+  const payload = {
+    messageId: 'msg-nomut', body: 'hi', replyTo: null, artifactUris: [], authority: 'peer',
+  };
+  const event = {
+    id: 'fleet_nomut', ts: '2026-01-01T00:00:00.000Z', schemaVersion: FLEET_PROTOCOL_VERSION,
+    kind: 'fleet.message.sent', projectId: PROJECT_ID, traceId: 'trace-nomut',
+    from: 'captain', to: 'worker', payload,
+  };
+  const eventSnapshot = JSON.parse(JSON.stringify(event));
+  const payloadSnapshot = JSON.parse(JSON.stringify(payload));
+  // validateFleetEvent returns the event unchanged and must not mutate it.
+  assert.equal(validateFleetEvent(event), event);
+  assert.deepEqual(event, eventSnapshot, 'event object untouched');
+  assert.deepEqual(payload, payloadSnapshot, 'payload object untouched');
+
+  // An event carrying an unknown key is REJECTED but still not mutated.
+  const poisoned = { ...event, rogue: 1 };
+  const poisonedSnapshot = JSON.parse(JSON.stringify(poisoned));
+  assert.throws(() => validateFleetEvent(poisoned), /Unknown fleet event key/);
+  assert.deepEqual(poisoned, poisonedSnapshot, 'rejected event object untouched');
+
+  // buildFleetEvent must not mutate its `fields` argument either.
+  const fields = {
+    projectId: PROJECT_ID, traceId: 'trace-build-nomut', from: 'captain', to: 'worker',
+    payload: { taskId: 'task-nomut', contract: { goal: 'g', acceptance: ['a'] } },
+  };
+  const fieldsSnapshot = JSON.parse(JSON.stringify(fields));
+  buildFleetEvent('fleet.task.offered', fields, { id: 'fleet_build_nomut', ts: '2026-01-01T00:00:00.000Z' });
+  assert.deepEqual(fields, fieldsSnapshot, 'buildFleetEvent fields argument untouched');
 });

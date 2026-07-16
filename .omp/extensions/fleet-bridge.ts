@@ -11,7 +11,9 @@ import {
   canonicalProjectId,
   createFleetState,
   deriveRecoveryActions,
+  destinationMatchesPeer,
   foldFleetEvents,
+  electFleetIdentity,
   peerLeaseId,
   reduceFleetEvent,
   selectPendingDeliveries,
@@ -71,15 +73,44 @@ type FleetEvent = {
 // by the current session_start/session_shutdown wiring (watcher,
 // renewTimer/reconcileTimer distinctions, reconciling) are declared here so
 // later steps only ADD registrations, never widen this shape.
-
 type Runtime = {
   active: boolean;
   fleetId?: string;
+  identitySource?: 'explicit' | 'october-auto';
+  lifecycleState: 'disabled' | 'starting' | 'active' | 'degraded' | 'shutting-down';
   projectId?: string;
   ownerId?: string;
+  nodeLeaseId?: string;
   context?: ExtensionContext;
   state?: FleetState;
   readCursor: { afterId?: string; afterTs?: string };
+  lastReconcileAttemptAt?: number;
+  // Outcome of the most recent reconcile pass: 'ok' when it completed
+  // without throwing, 'error' when it entered its catch branch. Surfaced
+  // alongside lastReconcileAttemptAt so /fleet-status reports not just WHEN
+  // reconciliation last ran but WHETHER it succeeded.
+  lastReconcileOutcome?: 'ok' | 'error';
+  shutdownRequested: boolean;
+  // Monotonic token bumped at every session_start and session_shutdown.
+  // Startup captures the value after its own bump; after any await it
+  // re-checks equality so a shutdown (or a re-entrant start) during that
+  // await cannot let a stale continuation install timers/watcher effects.
+  lifecycleGeneration: number;
+  // One-shot guard making the degradation teardown idempotent: once the
+  // renew-loss path has torn down effects + released leases, a second
+  // timer tick or a concurrent shutdown re-entering it is a full no-op.
+  localTeardownComplete: boolean;
+  recoveredTaskIds: Set<string>;
+  recoveryNeedsReviewTaskIds: Set<string>;
+  recoveryDeferredTaskIds: Set<string>;
+  // Per-task evidence captured during the startup recovery pass so
+  // /fleet-status can surface WHY each needs-review/deferred task was flagged
+  // (the exact reason string) without an operator grepping the error tail.
+  // Cleared at the start of every performStartupRecovery so they reflect the
+  // current startup pass, never a stale prior lifecycle.
+  recoveryNeedsReviewEvidence: Map<string, string>;
+  recoveryDeferredEvidence: Map<string, string>;
+  lastRecoveryAt?: number;
   ownedTaskIds: Set<string>;
   injectedMessageIds: Set<string>;
   injectedTaskAttemptIds: Set<string>;
@@ -275,8 +306,17 @@ function reconstructFleetState(
 export default function fleetBridge(pi: ExtensionAPI) {
   const runtime: Runtime = {
     active: false,
+    lifecycleState: 'disabled',
     reconciling: false,
     readCursor: {},
+    shutdownRequested: false,
+    lifecycleGeneration: 0,
+    localTeardownComplete: false,
+    recoveredTaskIds: new Set(),
+    recoveryNeedsReviewTaskIds: new Set(),
+    recoveryDeferredTaskIds: new Set(),
+    recoveryNeedsReviewEvidence: new Map(),
+    recoveryDeferredEvidence: new Map(),
     ownedTaskIds: new Set(),
     injectedMessageIds: new Set(),
     injectedTaskAttemptIds: new Set(),
@@ -333,6 +373,22 @@ export default function fleetBridge(pi: ExtensionAPI) {
       ownerId: runtime.ownerId,
       state: runtime.state,
     };
+  }
+
+  function safeNotify(ctx: ExtensionContext | undefined, message: string, level: 'info' | 'warning' | 'error'): void {
+    try {
+      ctx?.ui.notify(message, level);
+    } catch (error) {
+      pushBoundedError(runtime.errors, `Fleet UI notification failed: ${String(error)}`);
+    }
+  }
+
+  function safeSetStatus(ctx: ExtensionContext | undefined, value: string): void {
+    try {
+      ctx?.ui.setStatus('omp-fleet', value);
+    } catch (error) {
+      pushBoundedError(runtime.errors, `Fleet UI status failed: ${String(error)}`);
+    }
   }
 
   // publish() is the single write path onto the shared Kagami event bus:
@@ -435,9 +491,12 @@ export default function fleetBridge(pi: ExtensionAPI) {
           injectedTaskAttemptIds: [...runtime.injectedTaskAttemptIds],
         });
       }
+      runtime.lastReconcileOutcome = 'ok';
     } catch (error) {
+      runtime.lastReconcileOutcome = 'error';
       pushBoundedError(runtime.errors, `Reconciliation failed: ${String(error)}`);
     } finally {
+      runtime.lastReconcileAttemptAt = Date.now();
       runtime.reconciling = false;
     }
   }
@@ -631,6 +690,71 @@ function peersStatusView(
   return { text: JSON.stringify(snapshot, null, 2), details: { peers, tasks: taskSummary } };
 }
 
+function fleetStatusView(): { text: string; details: unknown } {
+  const identity =
+    runtime.active && runtime.fleetId && runtime.projectId && runtime.ownerId && runtime.state
+      ? {
+          fleetId: runtime.fleetId,
+          projectId: runtime.projectId,
+          ownerId: runtime.ownerId,
+          state: runtime.state,
+        }
+      : undefined;
+  const activeView = identity ? peersStatusView('status', identity) : undefined;
+  const pending =
+    identity === undefined
+      ? { messages: 0, tasks: 0 }
+      : {
+          messages: selectPendingDeliveries(
+            identity.state,
+            identity.fleetId,
+            runtime.injectedMessageIds,
+          ).length,
+          tasks: selectPendingTaskDeliveries(
+            identity.state,
+            identity.fleetId,
+            identity.ownerId,
+            runtime.injectedTaskAttemptIds,
+          ).length,
+        };
+  const snapshot = {
+    lifecycleState: runtime.lifecycleState,
+    active: runtime.active,
+    identitySource: runtime.identitySource ?? null,
+    fleetId: runtime.fleetId ?? null,
+    projectId: runtime.projectId ?? null,
+    ownerId: runtime.ownerId ?? null,
+    transportCursor: runtime.readCursor,
+    semanticCursor: runtime.state?.cursor ?? null,
+    pending,
+    lastReconcileAttemptAt: runtime.lastReconcileAttemptAt ?? null,
+    lastReconcileOutcome: runtime.lastReconcileOutcome ?? null,
+    recovery: {
+      lastAt: runtime.lastRecoveryAt ?? null,
+      counts: {
+        recovered: runtime.recoveredTaskIds.size,
+        needsReview: runtime.recoveryNeedsReviewTaskIds.size,
+        deferred: runtime.recoveryDeferredTaskIds.size,
+      },
+      recoveredTaskIds: [...runtime.recoveredTaskIds],
+      // Each needs-review/deferred entry carries the exact reason captured
+      // during the startup recovery pass, so /fleet-status reports not just
+      // WHICH tasks need attention but WHY — without grepping the error tail.
+      needsReview: [...runtime.recoveryNeedsReviewTaskIds].map((taskId) => ({
+        taskId,
+        reason: runtime.recoveryNeedsReviewEvidence.get(taskId) ?? null,
+      })),
+      deferred: [...runtime.recoveryDeferredTaskIds].map((taskId) => ({
+        taskId,
+        reason: runtime.recoveryDeferredEvidence.get(taskId) ?? null,
+      })),
+    },
+    errors: runtime.errors.slice(-10),
+    fleet: activeView ? JSON.parse(activeView.text) : null,
+  };
+  return { text: JSON.stringify(snapshot, null, 2), details: snapshot };
+}
+
 /**
  * Sole command/tool mutation boundary. Authorizes the exact (fleetId, op)
  * pair before any side effect, then dispatches one of the closed operation
@@ -641,6 +765,10 @@ function peersStatusView(
 async function executeOperation(
   params: FleetOperationParams,
 ): Promise<{ text: string; details?: unknown }> {
+  if (params.op === 'status') {
+    return fleetStatusView();
+  }
+
   const identity = requireActive();
   const { fleetId, projectId, ownerId, state } = identity;
 
@@ -652,7 +780,7 @@ async function executeOperation(
     throw new Error(`${fleetId} is not authorized to perform ${params.op}`);
   }
 
-  if (params.op === 'peers' || params.op === 'status') {
+  if (params.op === 'peers') {
     return peersStatusView(params.op, identity);
   }
 
@@ -714,7 +842,7 @@ async function executeOperation(
     const taskStatus = typeof task?.status === 'string' ? task.status : '';
     const taskTo = typeof task?.to === 'string' ? task.to : '';
     // Confirm the task is currently offered TO this peer (current attempt 0).
-    if (!task || taskStatus !== 'offered' || taskTo !== fleetId) {
+    if (!task || taskStatus !== 'offered' || !destinationMatchesPeer(taskTo, fleetId)) {
       throw new Error(`Task ${taskId} is not offered to ${fleetId}`);
     }
     const offerFrom = typeof task.from === 'string' ? task.from : '';
@@ -737,9 +865,12 @@ async function executeOperation(
       });
     } catch (error) {
       try {
-        releaseLease(leaseId, ownerId);
-      } catch {
-        /* best-effort cleanup; publish failure is the reported error */
+        const released = releaseLease(leaseId, ownerId);
+        if (!released) {
+          pushBoundedError(runtime.errors, `Task ${taskId} claim rollback incomplete: lease ${leaseId} release returned false (held by another)`);
+        }
+      } catch (releaseError) {
+        pushBoundedError(runtime.errors, `Task ${taskId} claim rollback failed: lease ${leaseId} ${String(releaseError)}`);
       }
       throw error;
     }
@@ -886,9 +1017,9 @@ async function notifyFleetResult(
 ): Promise<void> {
   try {
     const result = await run();
-    ctx.ui.notify(result.text, 'info');
+    safeNotify(ctx, result.text, 'info');
   } catch (error) {
-    ctx.ui.notify(`${usage}\n${String(error)}`, 'warning');
+    safeNotify(ctx, `${usage}\n${String(error)}`, 'warning');
   }
 }
 
@@ -912,7 +1043,7 @@ pi.registerCommand('fleet-send', {
     const usage = 'Usage: /fleet-send <peer> <message>';
     const match = args.trim().match(/^(\S+)\s+([\s\S]+)$/);
     if (!match) {
-      ctx.ui.notify(usage, 'warning');
+      safeNotify(ctx, usage, 'warning');
       return;
     }
     const [, to, message] = match;
@@ -926,7 +1057,7 @@ pi.registerCommand('fleet-task', {
     const usage = 'Usage: /fleet-task <peer> <task-id> <goal>';
     const match = args.trim().match(/^(\S+)\s+(\S+)\s+([\s\S]+)$/);
     if (!match) {
-      ctx.ui.notify(usage, 'warning');
+      safeNotify(ctx, usage, 'warning');
       return;
     }
     const [, to, taskId, goal] = match;
@@ -950,7 +1081,7 @@ pi.registerCommand('fleet-claim', {
     const usage = 'Usage: /fleet-claim <task-id>';
     const match = args.trim().match(/^(\S+)$/);
     if (!match) {
-      ctx.ui.notify(usage, 'warning');
+      safeNotify(ctx, usage, 'warning');
       return;
     }
     const [, taskId] = match;
@@ -964,7 +1095,7 @@ pi.registerCommand('fleet-complete', {
     const usage = 'Usage: /fleet-complete <task-id> [summary]';
     const match = args.trim().match(/^(\S+)(?:\s+([\s\S]+))?$/);
     if (!match) {
-      ctx.ui.notify(usage, 'warning');
+      safeNotify(ctx, usage, 'warning');
       return;
     }
     const [, taskId, summary] = match;
@@ -982,7 +1113,7 @@ pi.registerCommand('fleet-fail', {
     const usage = 'Usage: /fleet-fail <task-id> <reason>';
     const match = args.trim().match(/^(\S+)\s+([\s\S]+)$/);
     if (!match) {
-      ctx.ui.notify(usage, 'warning');
+      safeNotify(ctx, usage, 'warning');
       return;
     }
     const [, taskId, reason] = match;
@@ -1012,6 +1143,16 @@ pi.registerCommand('fleet-fail', {
 
   function performStartupRecovery(): void {
     const { fleetId, projectId, ownerId, state } = requireActive();
+    // Reset this lifecycle's recovery accounting so /fleet-status reflects
+    // the CURRENT startup pass, never a stale prior lifecycle. These sets and
+    // evidence maps are reporting-only (never read for lease/ownership
+    // logic), so clearing them here is safe; recoveredTaskIds is repopulated
+    // below as each recovery lands.
+    runtime.recoveredTaskIds.clear();
+    runtime.recoveryNeedsReviewTaskIds.clear();
+    runtime.recoveryDeferredTaskIds.clear();
+    runtime.recoveryNeedsReviewEvidence.clear();
+    runtime.recoveryDeferredEvidence.clear();
 
     // Startup dead/stale cleanup (plan item 6): sweep ALL dead/stale leases
     // globally. holderAlive===false entries are reclaimed under custody;
@@ -1033,11 +1174,14 @@ pi.registerCommand('fleet-fail', {
       ownerAlive,
       newOwnerId: ownerId,
     }) as RecoveryAction[];
+    runtime.lastRecoveryAt = Date.now();
 
     for (const action of actions) {
       const taskId = action.taskId;
 
       if (action.status === 'needs-review') {
+        runtime.recoveryNeedsReviewTaskIds.add(taskId);
+        runtime.recoveryNeedsReviewEvidence.set(taskId, action.reason || 'prior owner still appears alive');
         // Ambiguous or live prior owner — surface evidence, publish nothing,
         // never steal a task someone may still be working.
         pushBoundedError(
@@ -1062,6 +1206,11 @@ pi.registerCommand('fleet-fail', {
       // incumbent (racing recovery) wins and we defer.
       const acquired = acquireLease(leaseId, ownerId, { ttlMs: FLEET_LIMITS.peerLeaseTtlMs });
       if (!acquired.ok) {
+        runtime.recoveryDeferredTaskIds.add(taskId);
+        runtime.recoveryDeferredEvidence.set(
+          taskId,
+          `held by ${acquired.heldBy || 'unknown'} (${acquired.reason || 'contended'})`,
+        );
         // Another owner won the race or the prior owner is still genuinely
         // alive. Do not publish, do not claim ownership; surface needs-review
         // with heldBy evidence. Prior folded state is untouched.
@@ -1095,11 +1244,20 @@ pi.registerCommand('fleet-fail', {
         // exclusivity is not silently stranded under a recovery that never
         // landed. Surface the bounded error; do not claim ownership.
         try {
-          releaseLease(leaseId, ownerId);
+          const released = releaseLease(leaseId, ownerId);
+          if (!released) {
+            // releaseLease returned false (held by another / turned over) —
+            // NOT swallowed: surface it with the leaseId so an operator can
+            // see the cleanup did not complete, alongside the publish failure.
+            pushBoundedError(
+              runtime.errors,
+              `Task ${taskId} recovery rollback incomplete: lease ${leaseId} release returned false (held by another)`,
+            );
+          }
         } catch (releaseError) {
           pushBoundedError(
             runtime.errors,
-            `Task ${taskId} recovery rollback failed: ${String(releaseError)}`,
+            `Task ${taskId} recovery rollback failed: lease ${leaseId} ${String(releaseError)}`,
           );
         }
         pushBoundedError(
@@ -1111,35 +1269,153 @@ pi.registerCommand('fleet-fail', {
       // Recovery landed and state folded — record ownership so the existing
       // 5s renewal loop preserves the task lease.
       runtime.ownedTaskIds.add(taskId);
+      runtime.recoveredTaskIds.add(taskId);
     }
   }
 
+
+  // ── localTeardown(): idempotent degradation teardown. Called when lease
+  // renewal fails (renewLease returns false OR throws) — at that point this
+  // session can no longer legitimately hold ANY lease, so it MUST
+  // immediately stop every runtime effect (renew + reconcile timers, the
+  // directory watcher) and release every lease the process owns (task +
+  // peer + node) so a stale heartbeat can never resurrect operations or
+  // silently retain work. Every step is individually guarded so no error
+  // escapes; each failure is recorded as a bounded error. Idempotent — a
+  // second renewal-loss tick (or a concurrent session_shutdown) re-entering
+  // it is a full no-op once `localTeardownComplete` is set, which is also
+  // why session_start resets that flag at the top of every new lifecycle.
+  // Does NOT touch lifecycleState (caller owns the 'degraded' mark) and
+  // does NOT publish fleet.peer.left (that requires genuine active state
+  // and belongs to session_shutdown).
+  function localTeardown(): void {
+    if (runtime.localTeardownComplete) return;
+    runtime.localTeardownComplete = true;
+
+    // Stop runtime effects FIRST so no further reconcile/renew tick can
+    // fire while leases are being released. Null the handles before
+    // clearing so a re-entrant call sees nothing to do.
+    const renewTimer = runtime.renewTimer;
+    const reconcileTimer = runtime.reconcileTimer;
+    runtime.renewTimer = undefined;
+    runtime.reconcileTimer = undefined;
+    try {
+      clearInterval(renewTimer);
+    } catch (error) {
+      pushBoundedError(runtime.errors, `Fleet renew timer clear failed: ${String(error)}`);
+    }
+    try {
+      clearInterval(reconcileTimer);
+    } catch (error) {
+      pushBoundedError(runtime.errors, `Fleet reconcile timer clear failed: ${String(error)}`);
+    }
+
+    const watcher = runtime.watcher;
+    runtime.watcher = undefined;
+    if (watcher) {
+      try {
+        watcher.close();
+      } catch (error) {
+        pushBoundedError(runtime.errors, `Fleet watcher close failed: ${String(error)}`);
+      }
+    }
+
+    const { projectId, fleetId, ownerId, nodeLeaseId } = runtime;
+
+    // Release owned TASK leases, then drop the set so session_shutdown's
+    // own loop (and a re-entrant call here) iterates nothing.
+    if (projectId && ownerId) {
+      for (const taskId of [...runtime.ownedTaskIds]) {
+        try {
+          releaseLease(taskLeaseId(projectId, taskId), ownerId);
+        } catch (error) {
+          pushBoundedError(runtime.errors, `Task ${taskId} lease release failed: ${String(error)}`);
+        }
+      }
+    }
+    runtime.ownedTaskIds.clear();
+
+    if (projectId && fleetId && ownerId) {
+      try {
+        releaseLease(peerLeaseId(projectId, fleetId), ownerId);
+      } catch (error) {
+        pushBoundedError(runtime.errors, `Fleet peer lease release failed: ${String(error)}`);
+      }
+    }
+
+    if (nodeLeaseId && ownerId) {
+      try {
+        releaseLease(nodeLeaseId, ownerId);
+      } catch (error) {
+        pushBoundedError(runtime.errors, `Fleet node lease release failed: ${String(error)}`);
+      }
+    }
+  }
+
+  // markDegradedAndTeardown(): the renewal-loss reaction shared by the
+  // renew timer's false-return and throw branches — flip to degraded
+  // status (block new operations) then tear down effects + release every
+  // owned lease. Keeping the status flip separate from localTeardown()
+  // means localTeardown() stays a pure no-throw effect/lease drain that
+  // neither owns the lifecycle state nor notifies the operator; each
+  // branch keeps its own distinct operator message.
+  function markDegradedAndTeardown(): void {
+    runtime.active = false;
+    runtime.lifecycleState = 'degraded';
+    safeSetStatus(runtime.context, 'fleet:degraded');
+    localTeardown();
+  }
 
   // ── session_start: validate identity, acquire the exclusive peer lease,
   // restore live-session delivery idempotency sets, announce presence ──
 
   pi.on('session_start', async (_event, ctx) => {
     runtime.context = ctx;
-    let acquiredLeaseId: string | undefined;
+    // New lifecycle: clear the shutdown signal, reset the one-shot degrade
+    // guard (runtime persists across start/shutdown cycles in-process —
+    // without this reset the next lifecycle's degrade path would silently
+    // no-op on a still-true flag and leak timers/leases), and capture this
+    // start's generation token. The bump invalidates any prior start's
+    // stale continuation; session_shutdown bumps it again, so a shutdown
+    // (or a re-entrant start) that lands during an await below can never
+    // let this continuation install watcher/timer effects afterward.
+    runtime.shutdownRequested = false;
+    runtime.localTeardownComplete = false;
+    const generation = ++runtime.lifecycleGeneration;
+    runtime.lifecycleState = 'starting';
+    let acquiredPeerLeaseId: string | undefined;
+    let acquiredNodeLeaseId: string | undefined;
     let acquiredOwnerId: string | undefined;
     try {
-      const fleetId = validateFleetId(process.env.YURI_FLEET_ID);
+      // Explicit YURI_FLEET_ID remains authoritative. Otherwise October's
+      // stable terminal node is reserved before role election. Missing both
+      // values preserves the disabled-but-usable behavior.
       const projectId = canonicalProjectId(ctx.cwd);
       const processUuid = crypto.randomUUID();
       const sessionId = pi.getSessionName() || '';
-      const ownerId = buildProcessOwnerId({ fleetId, pid: process.pid, processUuid, sessionId });
-      const leaseId = peerLeaseId(projectId, fleetId);
-      const acquired = acquireLease(leaseId, ownerId, { ttlMs: FLEET_LIMITS.peerLeaseTtlMs });
-      if (!acquired.ok) throw new Error(`Fleet identity ${fleetId} is held by ${acquired.heldBy}`);
-      // Identity is now live on disk — from this point on, any failure below
-      // must release it best-effort in the catch block so a broken startup
-      // never strands an exclusive lease under a process that reports itself
-      // inactive.
-      acquiredLeaseId = leaseId;
+      const explicitFleetId = process.env.YURI_FLEET_ID;
+      const octoberNode = process.env.OCTOBER_BUS_NODE;
+      const isExplicit = explicitFleetId !== undefined;
+      const ownerIdFleetId = isExplicit ? validateFleetId(explicitFleetId) : 'proc';
+      const ownerId = buildProcessOwnerId({ fleetId: ownerIdFleetId, pid: process.pid, processUuid, sessionId });
+      const election = electFleetIdentity({
+        projectId,
+        ownerId,
+        explicitFleetId,
+        octoberNode,
+        ttlMs: FLEET_LIMITS.peerLeaseTtlMs,
+        acquireLease,
+        releaseLease,
+      });
+      acquiredPeerLeaseId = election.peerLeaseId;
+      acquiredNodeLeaseId = election.nodeLeaseId;
       acquiredOwnerId = ownerId;
+      const fleetId = election.fleetId;
 
       runtime.active = true;
-      runtime.fleetId = fleetId;
+      runtime.fleetId = election.fleetId;
+      runtime.identitySource = election.identitySource;
+      runtime.nodeLeaseId = election.nodeLeaseId;
       runtime.projectId = projectId;
       runtime.ownerId = ownerId;
 
@@ -1171,8 +1447,8 @@ pi.registerCommand('fleet-fail', {
         to: fleetId === 'captain' ? 'worker' : 'captain',
         payload: { ownerId },
       });
-      ctx.ui.setStatus('omp-fleet', `fleet:${fleetId}`);
-      ctx.ui.notify(`Fleet bridge active as ${fleetId}`, 'info');
+      safeSetStatus(ctx, `fleet:${fleetId}`);
+      safeNotify(ctx, `Fleet bridge active as ${fleetId}`, 'info');
       // ── Task 8 startup recovery: recover claimed tasks whose prior owning
       // process has disappeared — AFTER complete stream reconstruction +
       // this peer's own joined event are folded into state, BEFORE the first
@@ -1191,6 +1467,7 @@ pi.registerCommand('fleet-fail', {
       // delivers any pending messages/tasks now owed to this peer — before
       // the directory watch/timer take over for the rest of the session.
       await reconcile();
+      if (!runtime.active || runtime.shutdownRequested || runtime.lifecycleGeneration !== generation) return;
 
       // Watch the EVENT DIRECTORY, not the active segment's inode: rotation
       // renames events.jsonl to a sealed segment and creates a fresh active
@@ -1220,36 +1497,73 @@ pi.registerCommand('fleet-fail', {
       // Renew timer starts only after the full startup sequence above
       // succeeded — a partially-initialized runtime never gets a heartbeat.
       runtime.renewTimer = setInterval(() => {
-        if (!runtime.active || !runtime.projectId || !runtime.fleetId || !runtime.ownerId) return;
-        const peerRenewed = renewLease(peerLeaseId(runtime.projectId, runtime.fleetId), runtime.ownerId, {
-          ttlMs: FLEET_LIMITS.peerLeaseTtlMs,
-        });
-        const failedTasks = [...runtime.ownedTaskIds].filter(
-          (taskId) =>
-            !renewLease(taskLeaseId(runtime.projectId!, taskId), runtime.ownerId!, {
+        try {
+          if (!runtime.active || !runtime.projectId || !runtime.fleetId || !runtime.ownerId) return;
+          const peerRenewed = renewLease(peerLeaseId(runtime.projectId, runtime.fleetId), runtime.ownerId, {
+            ttlMs: FLEET_LIMITS.peerLeaseTtlMs,
+          });
+          const nodeRenewed =
+            !runtime.nodeLeaseId ||
+            renewLease(runtime.nodeLeaseId, runtime.ownerId, {
               ttlMs: FLEET_LIMITS.peerLeaseTtlMs,
-            }),
-        );
-        if (!peerRenewed || failedTasks.length > 0) {
-          runtime.active = false;
-          runtime.errors.push(`Lease renewal failed: ${failedTasks.join(', ') || 'peer'}`);
-          runtime.context?.ui.setStatus('omp-fleet', 'fleet:degraded');
-          runtime.context?.ui.notify('Fleet lease lost; new fleet operations are blocked', 'error');
+            });
+          const failedTasks = [...runtime.ownedTaskIds].filter(
+            (taskId) =>
+              !renewLease(taskLeaseId(runtime.projectId!, taskId), runtime.ownerId!, {
+                ttlMs: FLEET_LIMITS.peerLeaseTtlMs,
+              }),
+          );
+          if (!peerRenewed || !nodeRenewed || failedTasks.length > 0) {
+            const failedIdentityLease = !peerRenewed ? 'peer' : !nodeRenewed ? 'node' : '';
+            pushBoundedError(runtime.errors, `Lease renewal failed: ${failedTasks.join(', ') || failedIdentityLease}`);
+            markDegradedAndTeardown();
+            safeNotify(runtime.context, 'Fleet lease lost; new fleet operations are blocked', 'error');
+          }
+        } catch (error) {
+          pushBoundedError(runtime.errors, `Fleet lease renewal threw: ${String(error)}`);
+          markDegradedAndTeardown();
+          safeNotify(runtime.context, 'Fleet lease renewal failed; new fleet operations are blocked', 'error');
         }
       }, FLEET_LIMITS.leaseRenewEveryMs);
       runtime.renewTimer.unref?.();
+      runtime.lifecycleState = 'active';
     } catch (error) {
-      runtime.errors.push(String(error));
+      pushBoundedError(runtime.errors, String(error));
       runtime.active = false;
-      if (acquiredLeaseId && acquiredOwnerId) {
+      runtime.lifecycleState = runtime.shutdownRequested ? 'shutting-down' : 'disabled';
+      if (acquiredPeerLeaseId && acquiredOwnerId) {
         try {
-          releaseLease(acquiredLeaseId, acquiredOwnerId);
+          releaseLease(acquiredPeerLeaseId, acquiredOwnerId);
         } catch (releaseError) {
-          runtime.errors.push(String(releaseError));
+          pushBoundedError(runtime.errors, String(releaseError));
         }
       }
-      ctx.ui.setStatus('omp-fleet', 'fleet:disabled');
-      ctx.ui.notify(`Fleet bridge disabled: ${String(error)}`, 'warning');
+      if (acquiredNodeLeaseId && acquiredOwnerId) {
+        try {
+          releaseLease(acquiredNodeLeaseId, acquiredOwnerId);
+        } catch (releaseError) {
+          pushBoundedError(runtime.errors, String(releaseError));
+        }
+      }
+      // Release any task leases acquired during startup recovery
+      // (performStartupRecovery populated runtime.ownedTaskIds at L~1201,
+      // after runtime.projectId was set at L~1247) — without this, a throw
+      // after recovery (e.g. fs.mkdirSync/fs.watch below) strands those task
+      // leases under a disabled session. Each release is guarded so one
+      // failure cannot skip the rest; the set is cleared so session_shutdown
+      // re-iterates nothing.
+      if (runtime.projectId && acquiredOwnerId) {
+        for (const taskId of [...runtime.ownedTaskIds]) {
+          try {
+            releaseLease(taskLeaseId(runtime.projectId, taskId), acquiredOwnerId);
+          } catch (releaseError) {
+            pushBoundedError(runtime.errors, `Task ${taskId} lease release failed: ${String(releaseError)}`);
+          }
+        }
+        runtime.ownedTaskIds.clear();
+      }
+      safeSetStatus(ctx, 'fleet:disabled');
+      safeNotify(ctx, `Fleet bridge disabled: ${String(error)}`, 'warning');
     }
   });
 
@@ -1264,15 +1578,18 @@ pi.registerCommand('fleet-fail', {
   // publish() (via requireActive()) refuses to run otherwise.
 
   pi.on('session_shutdown', async () => {
+    runtime.shutdownRequested = true;
+    runtime.lifecycleGeneration++;
+    runtime.lifecycleState = 'shutting-down';
     clearInterval(runtime.renewTimer);
     clearInterval(runtime.reconcileTimer);
     try {
       runtime.watcher?.close();
     } catch (error) {
-      runtime.errors.push(String(error));
+      pushBoundedError(runtime.errors, `Fleet watcher close failed: ${String(error)}`);
     }
 
-    const { projectId, fleetId, ownerId } = runtime;
+    const { projectId, fleetId, ownerId, nodeLeaseId } = runtime;
 
     if (runtime.active && projectId && fleetId && ownerId) {
       try {
@@ -1282,7 +1599,7 @@ pi.registerCommand('fleet-fail', {
           payload: { ownerId },
         });
       } catch (error) {
-        runtime.errors.push(String(error));
+        pushBoundedError(runtime.errors, `Fleet leave publish failed: ${String(error)}`);
       }
     }
 
@@ -1291,7 +1608,7 @@ pi.registerCommand('fleet-fail', {
         try {
           releaseLease(taskLeaseId(projectId, taskId), ownerId);
         } catch (error) {
-          runtime.errors.push(String(error));
+          pushBoundedError(runtime.errors, `Task ${taskId} lease release failed: ${String(error)}`);
         }
       }
     }
@@ -1301,11 +1618,20 @@ pi.registerCommand('fleet-fail', {
       try {
         releaseLease(peerLeaseId(projectId, fleetId), ownerId);
       } catch (error) {
-        runtime.errors.push(String(error));
+        pushBoundedError(runtime.errors, `Fleet peer lease release failed: ${String(error)}`);
+      }
+    }
+
+    if (nodeLeaseId && ownerId) {
+      try {
+        releaseLease(nodeLeaseId, ownerId);
+      } catch (error) {
+        pushBoundedError(runtime.errors, `Fleet node lease release failed: ${String(error)}`);
       }
     }
 
     runtime.active = false;
+    runtime.lifecycleState = 'disabled';
   });
 
   // Task 6 reconciliation/delivery/rendering/watch wiring, Task 7 fleet tool

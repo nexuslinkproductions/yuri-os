@@ -52,6 +52,21 @@ export function validateFleetId(fleetId) {
   return trimmed;
 }
 
+
+/**
+ * Validate a project ID: requires a nonempty string — the closed contract
+ * shared by peerLeaseId, taskLeaseId, octoberNodeLeaseId, and
+ * electFleetIdentity. Throws `Invalid project ID` otherwise, so a malformed
+ * projectId can never reach a leased-resource ID string or an election.
+ * Returns the value unchanged (no trim normalization) to match the
+ * historical interpolation behavior of the lease-ID builders.
+ */
+function validateProjectId(projectId) {
+  if (typeof projectId !== 'string' || projectId.trim().length === 0) {
+    throw new Error('Invalid project ID');
+  }
+  return projectId;
+}
 /**
  * Derive a stable, opaque project identifier from a working directory by
  * resolving symlinks (fs.realpathSync) and hashing the canonical path with
@@ -125,6 +140,7 @@ export function parseProcessOwnerId(ownerId) {
  * Stable resource ID for a peer's lease, scoped to a project.
  */
 export function peerLeaseId(projectId, fleetId) {
+  validateProjectId(projectId);
   const validFleetId = validateFleetId(fleetId);
   return `fleet-peer:${projectId}:${validFleetId}`;
 }
@@ -156,6 +172,7 @@ function validateTaskId(taskId) {
  * to 80 characters.
  */
 export function taskLeaseId(projectId, taskId) {
+  validateProjectId(projectId);
   const validTaskId = validateTaskId(taskId);
   return `fleet-task:${projectId}:${validTaskId}`;
 }
@@ -213,9 +230,7 @@ export function deriveOctoberWorkerId(rawNode) {
  * Throws 'Invalid project ID' when projectId is not a nonempty string.
  */
 export function octoberNodeLeaseId(projectId, rawNode) {
-  if (typeof projectId !== 'string' || projectId.trim().length === 0) {
-    throw new Error('Invalid project ID');
-  }
+  validateProjectId(projectId);
   const trimmed = trimOctoberNode(rawNode);
   const hash = crypto.createHash('sha256').update(trimmed, 'utf8').digest('hex');
   return `fleet-node:${projectId}:${hash}`;
@@ -245,6 +260,115 @@ export function isWorkerPeerId(peerId) {
 export function destinationMatchesPeer(destination, peerId) {
   if (destination === 'worker') return isWorkerPeerId(peerId);
   return destination === peerId;
+}
+
+// ── October fleet identity election ──────────────────────────────────────
+//
+// Pure election orchestration: given an explicit fleet ID, an October node,
+// or neither, resolve a fleet identity through the atomic lease substrate.
+// Takes acquireLease/releaseLease as injected deps so the SAME logic is testable
+// in the smoke harness without the OMP extension runtime, and so the bridge
+// never duplicates the election's discrimination rules.
+
+/**
+ * Format a lease-contention result into a human-readable diagnostic.
+ * Includes the lease ID, holder owner ID, reason, and acquisition time.
+ */
+export function formatLeaseConflict(leaseId, result) {
+  const reason = result.reason || 'unknown';
+  const holder = result.heldBy || 'unknown';
+  const since = typeof result.since === 'number' ? new Date(result.since).toISOString() : '';
+  return `Lease ${leaseId} held by ${holder} (${reason}${since ? ` since ${since}` : ''})`;
+}
+
+/**
+ * Resolve a fleet identity through explicit-override or October automatic
+ * election. Returns { fleetId, identitySource, peerLeaseId, nodeLeaseId? } on
+ * success — the peer lease is ALWAYS acquired (uniform contract for all three
+ * paths) so the bridge treats the return value the same regardless of source.
+ *
+ * Resolution precedence (spec § Resolution precedence):
+ *   1. explicitFleetId !== undefined → validate it; use exactly; never fall
+ *      back. No node lease (identity is independent of October's node namespace).
+ *   2. octoberNode !== undefined → deterministically validate the node by
+ *      deriving its worker ID BEFORE any lease acquisition, so a non-
+ *      normalizable input fails identically whether captain is free or held;
+ *      then reserve project-scoped node lease; then atomically try captain.
+ *      Only reason=live-holder proceeds to acquire the pre-derived worker's
+ *      peer lease. Any other captain result (reacquire-race, id-missing, etc.)
+ *      releases the node lease and throws — never silently downgrades to worker.
+ *   3. Both undefined → throw 'Invalid fleet ID' (existing disabled behavior).
+ *
+ * On ANY failure after the node lease is acquired, the node lease is released
+ * best-effort (via releaseLease) before re-throwing, so the caller never
+ * strands a node reservation. The peer lease (explicit or October) is NOT
+ * released on internal failure — the caller owns post-election peer cleanup.
+ *
+ * @param {string}  projectId
+ * @param {string}  ownerId            unique process owner (from buildProcessOwnerId)
+ * @param {string|undefined} explicitFleetId  raw YURI_FLEET_ID env value
+ * @param {string|undefined} octoberNode      raw OCTOBER_BUS_NODE env value
+ * @param {number}  ttlMs              lease TTL (defaults to FLEET_LIMITS.peerLeaseTtlMs)
+ * @param {function} acquireLease      injected: (id, owner, {ttlMs}) => {ok, ...}
+ * @param {function} releaseLease      injected: (id, owner) => boolean
+ * @returns {{fleetId, identitySource, peerLeaseId, nodeLeaseId?}}
+ */
+export function electFleetIdentity({
+  projectId, ownerId, explicitFleetId, octoberNode,
+  ttlMs = FLEET_LIMITS.peerLeaseTtlMs, acquireLease, releaseLease,
+}) {
+  validateProjectId(projectId);
+  // 1. Explicit presence (including invalid empty string) wins, never falls back.
+  if (explicitFleetId !== undefined) {
+    const fleetId = validateFleetId(explicitFleetId);
+    const pLeaseId = peerLeaseId(projectId, fleetId);
+    const result = acquireLease(pLeaseId, ownerId, { ttlMs });
+    if (!result.ok) throw new Error(formatLeaseConflict(pLeaseId, result));
+    return { fleetId, identitySource: 'explicit', peerLeaseId: pLeaseId };
+  }
+
+  // 2. October automatic election.
+  if (octoberNode !== undefined) {
+    // Deterministic validation BEFORE any lease acquisition: derive the worker
+    // ID up front so a non-normalizable node throws 'Invalid October node'
+    // identically whether captain is free or held — never silently accepted
+    // as captain only to fail later on the worker path.
+    const workerId = deriveOctoberWorkerId(octoberNode);
+
+    // Reserve project-scoped node lease BEFORE role election.
+    const nodeLeaseId = octoberNodeLeaseId(projectId, octoberNode);
+    const nodeResult = acquireLease(nodeLeaseId, ownerId, { ttlMs });
+    if (!nodeResult.ok) throw new Error(formatLeaseConflict(nodeLeaseId, nodeResult));
+
+    // Node lease acquired — any failure below must release it.
+    try {
+      // Atomically try captain.
+      const captainLeaseId = peerLeaseId(projectId, 'captain');
+      const captainResult = acquireLease(captainLeaseId, ownerId, { ttlMs });
+
+      if (captainResult.ok) {
+        return { fleetId: 'captain', identitySource: 'october-auto', nodeLeaseId, peerLeaseId: captainLeaseId };
+      }
+
+      // ONLY live-holder falls back to the pre-derived worker ID.
+      if (captainResult.reason === 'live-holder') {
+        const workerLeaseId = peerLeaseId(projectId, workerId);
+        const workerResult = acquireLease(workerLeaseId, ownerId, { ttlMs });
+        if (!workerResult.ok) throw new Error(formatLeaseConflict(workerLeaseId, workerResult));
+        return { fleetId: workerId, identitySource: 'october-auto', nodeLeaseId, peerLeaseId: workerLeaseId };
+      }
+
+      // Any other captain result (reacquire-race, etc.) — fail, do not downgrade.
+      throw new Error(formatLeaseConflict(captainLeaseId, captainResult));
+    } catch (error) {
+      // Exception-safe rollback: release the node lease before propagating.
+      try { releaseLease(nodeLeaseId, ownerId); } catch { /* best-effort */ }
+      throw error;
+    }
+  }
+
+  // 3. Neither explicit nor October — disable (existing behavior).
+  throw new Error('Invalid fleet ID');
 }
 
 // ── fleet event schemas ───────────────────────────────────────────────────
@@ -332,6 +456,39 @@ function isPlainPayload(payload) {
   return payload != null && typeof payload === 'object' && !Array.isArray(payload);
 }
 
+// Closed-schema guard: the single reuse point that rejects any key on a
+// plain object outside an exact allowlist. Every fleet event and every
+// kind-specific payload is a closed shape, so an extra or misspelled key
+// is a schema violation (rejected) rather than silently carried data.
+// `label` becomes the thrown message so a top-level violation stays
+// distinguishable from a payload one. Callers must have already confirmed
+// the value is a plain object (isPlainPayload or the validateFleetEvent
+// object guard) before calling — rejectUnknownKeys assumes plain-object
+// input and does not re-check the type itself.
+const FLEET_EVENT_KEYS = Object.freeze([
+  'id', 'ts', 'schemaVersion', 'kind', 'projectId', 'traceId', 'from', 'to', 'payload',
+]);
+const PEER_PAYLOAD_KEYS = Object.freeze(['ownerId']);
+const MESSAGE_SENT_PAYLOAD_KEYS = Object.freeze(
+  ['messageId', 'body', 'replyTo', 'artifactUris', 'authority'],
+);
+const MESSAGE_ACK_PAYLOAD_KEYS = Object.freeze(['messageId', 'recipient', 'disposition']);
+const TASK_OFFERED_PAYLOAD_KEYS = Object.freeze(['taskId', 'contract']);
+const TASK_CONTRACT_KEYS = Object.freeze(['goal', 'acceptance']);
+const TASK_CLAIMED_PAYLOAD_KEYS = Object.freeze(['taskId', 'attemptId', 'ownerId']);
+const TASK_RESULT_PAYLOAD_KEYS = Object.freeze(['taskId', 'attemptId', 'summary', 'artifactUris']);
+const TASK_RECOVERED_PAYLOAD_KEYS = Object.freeze(
+  ['taskId', 'attemptId', 'priorAttemptId', 'ownerId', 'reason'],
+);
+
+function rejectUnknownKeys(value, allowedKeys, label) {
+  for (const key of Object.keys(value)) {
+    if (!allowedKeys.includes(key)) {
+      throw new Error(label);
+    }
+  }
+}
+
 // Runs `fn(value)` for reuse (task-ID rules, process-owner-ID rules) but
 // normalizes any failure to a single payload-shaped error, since payload
 // sub-fields share the outer payload validation family.
@@ -384,6 +541,7 @@ function validatePeerPayload(payload) {
   if (!isPlainPayload(payload) || !isBoundedScalar(payload.ownerId)) {
     throw new Error('Invalid fleet event payload');
   }
+  rejectUnknownKeys(payload, PEER_PAYLOAD_KEYS, 'Invalid fleet event payload');
   withPayloadError(parseProcessOwnerId, payload.ownerId);
   return payload;
 }
@@ -395,6 +553,7 @@ function validateMessageSentPayload(payload) {
   if (!isPlainPayload(payload)) {
     throw new Error('Invalid fleet event payload');
   }
+  rejectUnknownKeys(payload, MESSAGE_SENT_PAYLOAD_KEYS, 'Invalid fleet event payload');
   const { messageId, body, replyTo, artifactUris, authority } = payload;
   if (
     !isBoundedScalar(messageId) ||
@@ -415,6 +574,7 @@ function validateMessageAckPayload(payload) {
   if (!isPlainPayload(payload)) {
     throw new Error('Invalid fleet event payload');
   }
+  rejectUnknownKeys(payload, MESSAGE_ACK_PAYLOAD_KEYS, 'Invalid fleet event payload');
   const { messageId, recipient, disposition } = payload;
   if (!isBoundedScalar(messageId) || disposition !== 'injected') {
     throw new Error('Invalid fleet event payload');
@@ -431,11 +591,13 @@ function validateTaskOfferedPayload(payload) {
   if (!isPlainPayload(payload)) {
     throw new Error('Invalid fleet event payload');
   }
+  rejectUnknownKeys(payload, TASK_OFFERED_PAYLOAD_KEYS, 'Invalid fleet event payload');
   const { taskId, contract } = payload;
   withPayloadError(validateTaskId, taskId);
   if (!isPlainPayload(contract)) {
     throw new Error('Invalid fleet event payload');
   }
+  rejectUnknownKeys(contract, TASK_CONTRACT_KEYS, 'Invalid fleet event payload');
   const { goal, acceptance } = contract;
   if (
     typeof goal !== 'string' ||
@@ -464,6 +626,7 @@ function validateTaskClaimedPayload(payload) {
   if (!isPlainPayload(payload)) {
     throw new Error('Invalid fleet event payload');
   }
+  rejectUnknownKeys(payload, TASK_CLAIMED_PAYLOAD_KEYS, 'Invalid fleet event payload');
   const { taskId, attemptId, ownerId } = payload;
   withPayloadError(validateTaskId, taskId);
   if (!isBoundedScalar(attemptId)) {
@@ -482,6 +645,7 @@ function validateTaskResultPayload(payload) {
   if (!isPlainPayload(payload)) {
     throw new Error('Invalid fleet event payload');
   }
+  rejectUnknownKeys(payload, TASK_RESULT_PAYLOAD_KEYS, 'Invalid fleet event payload');
   const { taskId, attemptId, summary, artifactUris } = payload;
   withPayloadError(validateTaskId, taskId);
   if (
@@ -501,6 +665,7 @@ function validateTaskRecoveredPayload(payload) {
   if (!isPlainPayload(payload)) {
     throw new Error('Invalid fleet event payload');
   }
+  rejectUnknownKeys(payload, TASK_RECOVERED_PAYLOAD_KEYS, 'Invalid fleet event payload');
   const { taskId, attemptId, priorAttemptId, ownerId, reason } = payload;
   withPayloadError(validateTaskId, taskId);
   if (
@@ -542,6 +707,7 @@ export function validateFleetEvent(event) {
   if (event == null || typeof event !== 'object' || Array.isArray(event)) {
     throw new Error('Invalid fleet event');
   }
+  rejectUnknownKeys(event, FLEET_EVENT_KEYS, 'Unknown fleet event key');
 
   const { id, ts, schemaVersion, kind, projectId, traceId, from, to, payload } = event;
 
@@ -724,6 +890,11 @@ function applyPeerLeft(state, event) {
 
 function applyMessageSent(state, event) {
   const { id, traceId, from, to, ts, payload } = event;
+  if (state.messages.has(payload.messageId)) {
+    rejectFleetTransition(
+      `Cannot apply fleet.message.sent: messageId "${payload.messageId}" already exists`,
+    );
+  }
   state.messages.set(payload.messageId, {
     ...payload,
     eventId: id,
@@ -739,7 +910,12 @@ function applyMessageSent(state, event) {
 }
 
 function applyMessageAcknowledged(state, event) {
-  const { ts, payload } = event;
+  const { from, ts, payload } = event;
+  if (from !== payload.recipient) {
+    rejectFleetTransition(
+      `Cannot apply fleet.message.acknowledged: sender "${from}" is not recipient "${payload.recipient}"`,
+    );
+  }
   const existing = state.messages.get(payload.messageId);
   if (!existing) {
     // Accepted unknown acknowledgement: a no-op on the messages map, but the
@@ -785,11 +961,21 @@ function applyTaskOffered(state, event) {
 }
 
 function applyTaskClaimed(state, event) {
-  const { ts, payload } = event;
+  const { from, ts, payload } = event;
   const task = state.tasks.get(payload.taskId);
   if (!task || task.status !== 'offered') {
     rejectFleetTransition(
       `Cannot apply fleet.task.claimed outside offered state for task "${payload.taskId}"`,
+    );
+  }
+  if (!destinationMatchesPeer(task.to, from)) {
+    rejectFleetTransition(
+      `Cannot apply fleet.task.claimed: sender "${from}" is not a recipient of task "${payload.taskId}"`,
+    );
+  }
+  if (parseProcessOwnerId(payload.ownerId).fleetId !== from) {
+    rejectFleetTransition(
+      `Cannot apply fleet.task.claimed: ownerId fleetId does not match sender "${from}"`,
     );
   }
   state.tasks.set(payload.taskId, {
@@ -804,11 +990,21 @@ function applyTaskClaimed(state, event) {
 }
 
 function applyTaskRecovered(state, event) {
-  const { ts, payload } = event;
+  const { from, ts, payload } = event;
   const task = state.tasks.get(payload.taskId);
   if (!task || task.status !== 'claimed') {
     rejectFleetTransition(
       `Cannot apply fleet.task.recovered outside claimed state for task "${payload.taskId}"`,
+    );
+  }
+  if (!destinationMatchesPeer(task.to, from)) {
+    rejectFleetTransition(
+      `Cannot apply fleet.task.recovered: sender "${from}" is not a recipient of task "${payload.taskId}"`,
+    );
+  }
+  if (parseProcessOwnerId(payload.ownerId).fleetId !== from) {
+    rejectFleetTransition(
+      `Cannot apply fleet.task.recovered: ownerId fleetId does not match sender "${from}"`,
     );
   }
   state.tasks.set(payload.taskId, {
@@ -824,11 +1020,24 @@ function applyTaskRecovered(state, event) {
 }
 
 function applyTaskResult(state, event, terminalStatus) {
-  const { kind, ts, payload } = event;
+  const { kind, ts, from, payload } = event;
   const task = state.tasks.get(payload.taskId);
   if (!task || task.status !== 'claimed') {
     rejectFleetTransition(
       `Cannot apply ${kind} outside claimed state for task "${payload.taskId}"`,
+    );
+  }
+  if (!destinationMatchesPeer(task.to, from)) {
+    rejectFleetTransition(
+      `Cannot apply ${kind}: sender "${from}" is not a recipient of task "${payload.taskId}"`,
+    );
+  }
+  if (
+    typeof task.ownerId !== 'string' ||
+    parseProcessOwnerId(task.ownerId).fleetId !== from
+  ) {
+    rejectFleetTransition(
+      `Cannot apply ${kind}: sender "${from}" does not own task "${payload.taskId}"`,
     );
   }
   if (task.attemptId !== payload.attemptId) {
@@ -966,8 +1175,43 @@ export function deriveRecoveryActions(state, { fleetId, ownerAlive, newOwnerId }
   return [...state.tasks.entries()]
     .filter(([, task]) => destinationMatchesPeer(task.to, peer) && task.status === 'claimed')
     .map(([taskId, task]) => {
+      // Defensive invariant: a claimed record with a MISSING or EMPTY
+      // ownerId/attemptId is ill-formed — never auto-recover it. An empty
+      // (or whitespace-only) string is not a real identity, so emitting a
+      // fleet.task.recovered event off it would publish a bogus
+      // priorAttemptId/ownerId. Flag it for human review instead, even when
+      // the prior owner is dead.
+      //
+      // Evidence preservation: whenever a field IS a non-blank string, the
+      // needs-review action carries it verbatim (ownerId as `ownerId`,
+      // attemptId as `priorAttemptId`) so an operator reviewing the action
+      // sees the exact prior owner/attempt the record held, even when the
+      // record is only partially ill-formed. A fully blank record carries no
+      // evidence rather than fabricated values.
+      const ownerIdValid = typeof task.ownerId === 'string' && task.ownerId.trim().length > 0;
+      const attemptIdValid = typeof task.attemptId === 'string' && task.attemptId.trim().length > 0;
+      if (!ownerIdValid || !attemptIdValid) {
+        const evidence = {};
+        if (ownerIdValid) evidence.ownerId = task.ownerId;
+        if (attemptIdValid) evidence.priorAttemptId = task.attemptId;
+        return {
+          taskId,
+          status: 'needs-review',
+          reason: 'claimed task record missing ownerId or attemptId',
+          ...evidence,
+        };
+      }
+      // Alive prior owner — surface for operator decision, preserving the
+      // exact prior owner/attempt so a reviewer can distinguish a genuine
+      // live contender from stale state without re-reading raw state.
       if (ownerAlive(task.ownerId)) {
-        return { taskId, status: 'needs-review', reason: 'prior owner still appears alive' };
+        return {
+          taskId,
+          status: 'needs-review',
+          reason: 'prior owner still appears alive',
+          ownerId: task.ownerId,
+          priorAttemptId: task.attemptId,
+        };
       }
       return {
         taskId,
