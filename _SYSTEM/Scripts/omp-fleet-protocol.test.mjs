@@ -1006,3 +1006,148 @@ test('destinationMatchesPeer group-matches worker, exact-matches everything else
   assert.equal(destinationMatchesPeer('workers', 'workers'), true);
   assert.equal(destinationMatchesPeer('workers', 'worker'), false);
 });
+
+
+// ── dynamic worker authorization + recipient-aware delivery (Task 3) ──────
+
+const DYN_PROJECT = 'project_deadbeef';
+const dynOwnerId = (fleetId) =>
+  buildProcessOwnerId({ fleetId, pid: 1, processUuid: '123e4567-e89b-12d3-a456-426614174000' });
+
+test('dynamic worker-* senders are authorized for worker event kinds and rejected for captain-only kinds', () => {
+  // worker-* may emit a worker-authorized kind (message.sent)
+  const sent = buildFleetEvent('fleet.message.sent', {
+    projectId: DYN_PROJECT, traceId: 't1', from: 'worker-delivery-a1b2', to: 'captain',
+    payload: { messageId: 'm-dyn', body: 'hi', replyTo: null, artifactUris: [], authority: 'peer' },
+  }, { id: 'e-dyn-1', ts: '2026-07-16T00:00:00.000Z' });
+  assert.equal(sent.from, 'worker-delivery-a1b2');
+
+  // worker-* may emit another worker-authorized kind (peer.joined)
+  const joined = buildFleetEvent('fleet.peer.joined', {
+    projectId: DYN_PROJECT, traceId: 't1', from: 'worker-delivery-a1b2', to: 'captain',
+    payload: { ownerId: dynOwnerId('worker-delivery-a1b2') },
+  }, { id: 'e-dyn-2', ts: '2026-07-16T00:00:01.000Z' });
+  assert.equal(joined.from, 'worker-delivery-a1b2');
+
+  // captain-only kind still rejects a validated worker-* sender
+  assert.throws(() =>
+    buildFleetEvent('fleet.task.offered', {
+      projectId: DYN_PROJECT, traceId: 't1', from: 'worker-delivery-a1b2', to: 'captain',
+      payload: { taskId: 'task-dyn', contract: { goal: 'g', acceptance: ['a'] } },
+    }),
+    /not authorized to emit/,
+  );
+
+  // near-prefix sender is rejected outright (not treated as a worker peer)
+  assert.throws(() =>
+    buildFleetEvent('fleet.message.sent', {
+      projectId: DYN_PROJECT, traceId: 't1', from: 'workers', to: 'captain',
+      payload: { messageId: 'm-near', body: 'hi', replyTo: null, artifactUris: [], authority: 'peer' },
+    }),
+    /not authorized to emit/,
+  );
+});
+
+test('captain-only operations stay captain-only for exact worker and dynamic worker-* actors', () => {
+  assert.equal(authorizeFleetOperation('captain', 'offerTask'), true);
+  // exact worker still cannot offer
+  assert.equal(authorizeFleetOperation('worker', 'offerTask'), false);
+  // dynamic worker-* still cannot offer (captain-only preserved)
+  assert.equal(authorizeFleetOperation('worker-delivery-a1b2', 'offerTask'), false);
+  // dynamic worker-* gains the worker role's non-captain operations
+  assert.equal(authorizeFleetOperation('worker-delivery-a1b2', 'send'), true);
+  assert.equal(authorizeFleetOperation('worker-delivery-a1b2', 'claimTask'), true);
+  assert.equal(authorizeFleetOperation('worker-delivery-a1b2', 'completeTask'), true);
+  // near-prefix actor is refused everything
+  assert.equal(authorizeFleetOperation('workers', 'send'), false);
+  // captain stays unable to perform worker-only operations
+  assert.equal(authorizeFleetOperation('captain', 'claimTask'), false);
+});
+
+test('a to:worker group message is pending for each worker-role peer', () => {
+  const sent = buildFleetEvent('fleet.message.sent', {
+    projectId: DYN_PROJECT, traceId: 't1', from: 'captain', to: 'worker',
+    payload: { messageId: 'm-group', body: 'hi team', replyTo: null, artifactUris: [], authority: 'peer' },
+  }, { id: 'e-grp-1', ts: '2026-07-16T00:00:00.000Z' });
+  const state = foldFleetEvents([sent], { projectId: DYN_PROJECT });
+  assert.deepEqual(selectPendingDeliveries(state, 'worker-a').map((m) => m.messageId), ['m-group']);
+  assert.deepEqual(selectPendingDeliveries(state, 'worker-b').map((m) => m.messageId), ['m-group']);
+  assert.deepEqual(selectPendingDeliveries(state, 'worker').map((m) => m.messageId), ['m-group']);
+  // a non-recipient peer receives nothing
+  assert.deepEqual(selectPendingDeliveries(state, 'captain'), []);
+});
+
+test('an acknowledgement from worker-a does not suppress delivery to worker-b', () => {
+  const sent = buildFleetEvent('fleet.message.sent', {
+    projectId: DYN_PROJECT, traceId: 't1', from: 'captain', to: 'worker',
+    payload: { messageId: 'm-group', body: 'hi team', replyTo: null, artifactUris: [], authority: 'peer' },
+  }, { id: 'e-ack-1', ts: '2026-07-16T00:00:00.000Z' });
+  const ack = buildFleetEvent('fleet.message.acknowledged', {
+    projectId: DYN_PROJECT, traceId: 't1', from: 'worker-a', to: 'captain',
+    payload: { messageId: 'm-group', recipient: 'worker-a', disposition: 'injected' },
+  }, { id: 'e-ack-2', ts: '2026-07-16T00:00:01.000Z' });
+  const state = foldFleetEvents([sent, ack], { projectId: DYN_PROJECT });
+  // acker is excluded
+  assert.deepEqual(selectPendingDeliveries(state, 'worker-a'), []);
+  // the other worker peer still owes the message
+  assert.deepEqual(selectPendingDeliveries(state, 'worker-b').map((m) => m.messageId), ['m-group']);
+  // legacy boolean still flips once any recipient acks
+  assert.equal(state.messages.get('m-group').acknowledged, true);
+});
+
+test('a direct to:worker-* message delivers only to that exact peer', () => {
+  const sent = buildFleetEvent('fleet.message.sent', {
+    projectId: DYN_PROJECT, traceId: 't1', from: 'captain', to: 'worker-delivery-a1b2',
+    payload: { messageId: 'm-direct', body: 'only you', replyTo: null, artifactUris: [], authority: 'peer' },
+  }, { id: 'e-dir-1', ts: '2026-07-16T00:00:00.000Z' });
+  const state = foldFleetEvents([sent], { projectId: DYN_PROJECT });
+  assert.deepEqual(selectPendingDeliveries(state, 'worker-delivery-a1b2').map((m) => m.messageId), ['m-direct']);
+  // other worker peers do not receive a direct address
+  assert.deepEqual(selectPendingDeliveries(state, 'worker-b'), []);
+  assert.deepEqual(selectPendingDeliveries(state, 'worker'), []);
+});
+
+test('near-prefix destinations like "workers" exact-match only and never group-match', () => {
+  const toWorkers = buildFleetEvent('fleet.message.sent', {
+    projectId: DYN_PROJECT, traceId: 't1', from: 'captain', to: 'workers',
+    payload: { messageId: 'm-workers', body: 'x', replyTo: null, artifactUris: [], authority: 'peer' },
+  }, { id: 'e-near-1', ts: '2026-07-16T00:00:00.000Z' });
+  const state = foldFleetEvents([toWorkers], { projectId: DYN_PROJECT });
+  // 'workers' is an exact destination, not a group — only a peer literally named 'workers' gets it
+  assert.deepEqual(selectPendingDeliveries(state, 'workers').map((m) => m.messageId), ['m-workers']);
+  assert.deepEqual(selectPendingDeliveries(state, 'worker'), []);
+  assert.deepEqual(selectPendingDeliveries(state, 'worker-a'), []);
+});
+
+test('a to:worker task offer is selectable by each worker-role peer', () => {
+  const offered = buildFleetEvent('fleet.task.offered', {
+    projectId: DYN_PROJECT, traceId: 't1', from: 'captain', to: 'worker',
+    payload: { taskId: 'task-group', contract: { goal: 'g', acceptance: ['a'] } },
+  }, { id: 'e-tgrp-1', ts: '2026-07-16T00:00:00.000Z' });
+  const state = foldFleetEvents([offered], { projectId: DYN_PROJECT });
+  assert.deepEqual(
+    selectPendingTaskDeliveries(state, 'worker-a', dynOwnerId('worker-a')).map((t) => t.deliveryId),
+    ['task-group:offer'],
+  );
+  assert.deepEqual(
+    selectPendingTaskDeliveries(state, 'worker-b', dynOwnerId('worker-b')).map((t) => t.deliveryId),
+    ['task-group:offer'],
+  );
+});
+
+test('a direct to:worker-* task offer selects only for that exact peer', () => {
+  const offered = buildFleetEvent('fleet.task.offered', {
+    projectId: DYN_PROJECT, traceId: 't1', from: 'captain', to: 'worker-delivery-a1b2',
+    payload: { taskId: 'task-direct', contract: { goal: 'g', acceptance: ['a'] } },
+  }, { id: 'e-tdir-1', ts: '2026-07-16T00:00:00.000Z' });
+  const state = foldFleetEvents([offered], { projectId: DYN_PROJECT });
+  assert.deepEqual(
+    selectPendingTaskDeliveries(state, 'worker-delivery-a1b2', dynOwnerId('worker-delivery-a1b2')).map((t) => t.deliveryId),
+    ['task-direct:offer'],
+  );
+  // a different worker peer does not see a direct task offer
+  assert.deepEqual(
+    selectPendingTaskDeliveries(state, 'worker-b', dynOwnerId('worker-b')),
+    [],
+  );
+});

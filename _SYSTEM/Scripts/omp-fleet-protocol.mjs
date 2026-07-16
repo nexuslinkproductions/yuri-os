@@ -292,6 +292,16 @@ const FLEET_EVENT_AUTHORIZED_SENDERS = Object.freeze({
   'fleet.task.failed': Object.freeze(['worker']),
   'fleet.task.recovered': Object.freeze(['worker']),
 });
+// A sender is authorized for an event kind when it appears verbatim in
+// that kind's closed sender set, OR — for worker-authorized kinds only —
+// when it is a valid dynamic worker-* peer. isWorkerPeerId covers the
+// exact 'worker' identity and every validated 'worker-*', so the rule
+// lives in one place; captain-only kinds (fleet.task.offered) list no
+// 'worker' and therefore still reject worker-* senders outright.
+function isAuthorizedEventSender(kind, from) {
+  const authorized = FLEET_EVENT_AUTHORIZED_SENDERS[kind];
+  return authorized.includes(from) || (authorized.includes('worker') && isWorkerPeerId(from));
+}
 
 const ARTIFACT_URI_PREFIXES = Object.freeze([
   'agent://',
@@ -557,8 +567,7 @@ export function validateFleetEvent(event) {
     throw new Error('Invalid fleet event participants');
   }
 
-  const authorizedSenders = FLEET_EVENT_AUTHORIZED_SENDERS[kind];
-  if (!authorizedSenders.includes(from)) {
+  if (!isAuthorizedEventSender(kind, from)) {
     throw new Error(`Sender "${from}" is not authorized to emit ${kind}`);
   }
 
@@ -619,18 +628,33 @@ const FLEET_OPERATION_AUTHORIZATION = Object.freeze({
 });
 
 /**
- * Authorize `actor` (exact string, verbatim — no role-inference fallback)
- * to perform `operation`. `operation` must belong to the closed
- * FLEET_OPERATIONS set or this throws `Unknown fleet operation`. A known
- * operation the actor's role does not carry (or an actor outside the
- * closed captain/worker role map) resolves to `false`, never a throw.
+ * Resolve an actor to its closed role for operation authorization:
+ * 'captain' verbatim maps to the captain role; the exact 'worker' identity
+ * and any validated 'worker-*' peer (via isWorkerPeerId) map to the worker
+ * role. Any other actor (near-prefixes like 'workers', or unrecognized
+ * strings) resolves to undefined and is refused. Captain-only operations
+ * are unaffected because only the captain role carries them.
+ */
+function resolveOperationRole(actor) {
+  if (actor === 'captain') return 'captain';
+  if (isWorkerPeerId(actor)) return 'worker';
+  return undefined;
+}
+
+/**
+ * Authorize `actor` to perform `operation`. `operation` must belong to the
+ * closed FLEET_OPERATIONS set or this throws `Unknown fleet operation`. The
+ * actor resolves to a role via resolveOperationRole: a known operation the
+ * resolved role does not carry (or an actor outside captain/worker) resolves
+ * to `false`, never a throw.
  */
 export function authorizeFleetOperation(actor, operation) {
   if (typeof operation !== 'string' || !FLEET_OPERATION_SET.has(operation)) {
     throw new Error(`Unknown fleet operation "${operation}"`);
   }
-  const allowed = FLEET_OPERATION_AUTHORIZATION[actor];
-  return Boolean(allowed) && allowed.includes(operation);
+  const role = resolveOperationRole(actor);
+  if (role === undefined) return false;
+  return FLEET_OPERATION_AUTHORIZATION[role].includes(operation);
 }
 
 // ── fleet state + reducer ──────────────────────────────────────────────────
@@ -708,6 +732,7 @@ function applyMessageSent(state, event) {
     to,
     ts,
     acknowledged: false,
+    acknowledgedBy: new Set(),
     disposition: undefined,
     acknowledgedAt: undefined,
   });
@@ -721,9 +746,15 @@ function applyMessageAcknowledged(state, event) {
     // event is still valid and still advances dedup/cursor (see caller).
     return;
   }
+  // Track acknowledgements per recipient so a group message (to:worker)
+  // acked by one worker peer does not suppress delivery to another. The
+  // legacy `acknowledged` boolean is derived as "acked by >=1 recipient".
+  const acknowledgedBy = existing.acknowledgedBy ?? new Set();
+  acknowledgedBy.add(payload.recipient);
   state.messages.set(payload.messageId, {
     ...existing,
-    acknowledged: true,
+    acknowledgedBy,
+    acknowledged: acknowledgedBy.size > 0,
     disposition: payload.disposition,
     acknowledgedAt: ts,
   });
@@ -890,7 +921,11 @@ export function foldFleetEvents(events, { projectId } = {}) {
 export function selectPendingDeliveries(state, fleetId, injectedMessageIds = new Set()) {
   const peer = validateFleetId(fleetId);
   return [...state.messages.values()]
-    .filter((message) => message.to === peer && !message.acknowledged && !injectedMessageIds.has(message.messageId))
+    .filter((message) =>
+      destinationMatchesPeer(message.to, peer) &&
+      !(message.acknowledgedBy && message.acknowledgedBy.has(peer)) &&
+      !injectedMessageIds.has(message.messageId),
+    )
     .sort((a, b) => a.ts.localeCompare(b.ts) || a.eventId.localeCompare(b.eventId));
 }
 
@@ -906,7 +941,7 @@ export function selectPendingTaskDeliveries(state, fleetId, ownerId, injectedTas
   const peer = validateFleetId(fleetId);
   return [...state.tasks.entries()]
     .map(([taskId, task]) => {
-      if (task.to !== peer) return null;
+      if (!destinationMatchesPeer(task.to, peer)) return null;
       if (task.status === 'offered') return { ...task, taskId, deliveryId: `${taskId}:offer` };
       if (task.status === 'claimed' && task.recovered && task.ownerId === ownerId) {
         return { ...task, taskId, deliveryId: task.attemptId };
@@ -929,7 +964,7 @@ export function selectPendingTaskDeliveries(state, fleetId, ownerId, injectedTas
 export function deriveRecoveryActions(state, { fleetId, ownerAlive, newOwnerId }) {
   const peer = validateFleetId(fleetId);
   return [...state.tasks.entries()]
-    .filter(([, task]) => task.to === peer && task.status === 'claimed')
+    .filter(([, task]) => destinationMatchesPeer(task.to, peer) && task.status === 'claimed')
     .map(([taskId, task]) => {
       if (ownerAlive(task.ownerId)) {
         return { taskId, status: 'needs-review', reason: 'prior owner still appears alive' };
