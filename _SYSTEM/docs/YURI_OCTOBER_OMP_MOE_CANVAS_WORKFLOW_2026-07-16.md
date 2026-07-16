@@ -1,26 +1,40 @@
-# YURI October × OMP MoE Canvas Workflow
+# YURI MURE Matrix × OMP × October Canvas Workflow
 
 **Date:** 2026-07-16  
-**Status:** Operating design; implementation is not yet end-to-end live  
-**Scope:** October canvas, persistent Codex and Claude Code terminals, Python coordination, OMP TaskTool, and MURE MoE dispatch
+**Status:** Operating design; MURE-matrix-first correction applied; implementation is not yet end-to-end live  
+**Scope:** Canonical MURE roles and reducer/verification topology, OMP TaskTool execution, October canvas projection, replaceable terminal/model bindings, persistent workcells, and Python coordination
 
 ## Ruling
 
 Use six cooperating planes with one owner per transition:
 
-1. **October is the outer workflow and UI plane.** It owns the visible plan, dependency-aware board, terminal lifecycle, queued peer delivery, and operator status.
-2. **Codex terminals are persistent implementation/integration workcells.** They own bounded source changes in isolated worktrees and return commit/artifact bundles. One designated Codex terminal owns final integration.
-3. **Claude Code terminals are persistent architecture/advisory/review workcells.** They run only as continuous interactive CLI/PTY sessions. They default to read-only planning and independent review; mutation requires an explicitly assigned isolated October worktree and scoped path ownership.
-4. **Python is the deterministic coordinator.** It may compile task DAGs, invoke pure planners, validate schemas/parity, observe state, and render status. It does not select models, admit OMP children, decide verifier outcomes, merge code, or impersonate TaskTool.
-5. **One parent OMP session is the inner MURE/MoE execution plane.** MURE alone owns risk routing, producer/evidence/fallback/escalation/verifier attempts, TaskTool receipts, pushed results, transcript/model proof, and terminal extraction.
+1. **The MURE logical role matrix and reducer/verification topology are canonical.** Role authority comes from `_SYSTEM/mure/ROLE-TOPOLOGY.md` and the cards under `_SYSTEM/mure/agents/`; `_SYSTEM/mure/agent-catalog.json` is their machine-readable projection. Reducer truth comes from the native MURE planner/reducer. A model, provider, terminal, session, worktree, or human-readable terminal name is a binding, never a role.
+2. **One parent OMP session is the MURE execution plane.** MURE alone owns risk routing, producer/evidence/fallback/escalation/verifier attempts, TaskTool receipts, pushed results, transcript/model proof, and terminal extraction.
+3. **October is the board, projection, and capacity-binding plane.** It renders the dependency-aware workflow, terminal lifecycle, queued peer delivery, and operator status. It does not define reusable roles or reducer semantics.
+4. **Codex and Claude Code terminals are replaceable persistent workcells.** They may fill bounded role slots for one canvas instance. One explicitly bound integration workcell owns final integration; Claude Code runs only through continuous interactive CLI/PTY sessions.
+5. **Python is the deterministic coordinator.** It may compile task DAGs, invoke pure planners, validate schemas/parity, observe state, and render status. It does not select models, admit OMP children, decide verifier outcomes, merge code, or impersonate TaskTool.
 6. **Kagami is the evidence plane.** It mirrors lifecycle observations and cross-session correlation without advancing execution state.
 
-October must not become a second MURE reducer. Python must not become a fake OMP runtime. Codex subagents and Claude Code workcells must not be presented as MURE model-route evidence.
+October must not become a second MURE reducer. Python must not become a fake OMP runtime. Named canvas nodes, Codex subagents, and Claude Code workcells must not be presented as MURE roles or model-route evidence.
+
+## Recovery Prerequisite
+
+Board task `t-e3c18c6f` is the prerequisite for the existing inventory/design chain. The chain remains held until the reusable canvas satisfies all of these conditions:
+
+1. the MURE logical role matrix is the template's semantic source;
+2. reducer purposes and independent verification are represented without alteration;
+3. the current 14-terminal arrangement exists only as a replaceable capacity/model-binding profile;
+4. named terminal nodes are neither linked into the canonical topology nor encoded as roles; and
+5. retired provider surfaces are not restored as architecture authorities.
+
+The board task ID and precedence are owner-supplied evidence. This repository has no sanctioned October board connector, and `.october/canvas.json` is not an integration API, so board status must be synchronized through October itself before the held chain is released.
 
 ## Ground Truth and Confidence
 
 ### CONFIRMED
 
+- `_SYSTEM/mure/ROLE-TOPOLOGY.md` separates Orchestrator, Architect, Advisor, Worker, and Verifier authority from model/provider bindings.
+- `_SYSTEM/mure/agents/` owns the logical role cards and `_SYSTEM/mure/agent-catalog.json` projects them; provider/model variants and terminal sessions are runtime bindings.
 - `_SYSTEM/mure/sol-moe-company.mjs` produces a governed, manifest-only plan from explicit subtasks.
 - `_SYSTEM/mure/sol-moe-router.mjs` classifies R0–R3 and separates primary, evidence, availability-fallback, quality-escalation, and verifier routes.
 - `_SYSTEM/mure/sol-moe-native-dispatch.mjs` is a pure reducer/compiler; it never invokes a tool or subprocess.
@@ -109,44 +123,51 @@ correlationId
 
 `wait_for_nodes` and an idle terminal are scheduling evidence, not semantic completion. A plausible result body with status `failed`, `cancelled`, or `timeout` is not success.
 
-## General Canvas Topology
+## Reusable MURE-Matrix Topology
 
 ```text
-                         ┌─────────────────────────────┐
-                         │ Control / Integrator Codex  │
-                         │ goal, plan, merge, delivery │
-                         └──────────────┬──────────────┘
-                                        │ explicit October bus
-              ┌─────────────────────────┼──────────────────────────┐
-              │                         │                          │
-    ┌─────────▼─────────┐    ┌──────────▼──────────┐    ┌──────────▼─────────┐
-    │ Python Coordinator │    │ Parent OMP / MURE   │    │ Independent Verify │
-    │ DAG/status/gates    │    │ native MoE reducer  │    │ Orion / Claude Code │
-    └─────────┬─────────┘    └──────────┬──────────┘    └────────────────────┘
-              │                         │ TaskTool
-       readiness/status          ephemeral OMP children
-              │                 producer/evidence/verifier
-    ┌─────────▼─────────┐
-    │ Isolated Codex     │  implementation/integration worktree owners
-    │ worker terminals   │
-    └────────────────────┘
+                         ┌────────────────────────────┐
+                         │ MURE Orchestrator role     │
+                         │ goal, cast, synthesize     │
+                         └─────────────┬──────────────┘
+                                       │
+                 ┌─────────────────────┼──────────────────────┐
+                 │                     │                      │
+       ┌─────────▼─────────┐  ┌────────▼────────┐   ┌────────▼────────┐
+       │ Architect role     │  │ Advisor role    │   │ Reducer queue   │
+       │ decomposition only │  │ consult only    │   │ one state owner │
+       └────────────────────┘  └─────────────────┘   └────────┬────────┘
+                                                               │
+               evidence Worker ──► producer Worker ──► independent Verifier
+                                            │                        │
+                              availability failure            reject│
+                                            ▼                        ▼
+                              availability fallback     quality escalation
+                                                                     │
+                                                                     └─► re-verify
 
-    Claude Code terminals attach beside Control for architecture, advisory,
-    and independent review; they do not sit inside the OMP child tree.
-
-                 all accepted observations ──► Kagami evidence
+                         accepted observations ──► Kagami evidence
 ```
 
-Use a star topology through Control. Do not build an all-to-all mesh. Keep ephemeral OMP children rolled up inside the parent OMP node; create a canvas terminal only for persistent, human-steerable, or durable file-owning work.
+Persist only the MURE role/reducer edges shown above. Do not build an all-to-all mesh and do not create reusable edges among named terminal nodes. Keep ephemeral OMP children rolled up inside the parent OMP execution slot; create a visible canvas terminal only for persistent, human-steerable, or durable file-owning capacity.
 
-### Current canvas assignment
+### Replaceable capacity/model-binding profile
 
-- **Atlas:** Control/integrator and final user delivery.
-- **Juno:** plain persistent terminal suitable for Python plan/status tooling or the visible parent OMP session, but not both simultaneously.
-- **Apollo:** adversarial audit/evidence lane; no implicit merge authority.
-- **Orion:** persistent Claude Code architecture, synthesis, and independent-review lane. Its current main-root session is review-only; `needs-input`/paused maps to `WAITING_OWNER`, not failure or reassignment.
+The current board happens to expose 14 named terminals. That count and those names describe today's available capacity, not the reusable architecture. Do not copy them into the template.
 
-Exactly one terminal may integrate against the main tree. Every concurrent mutating Codex or Claude Code workcell uses an isolated October worktree and explicit path ownership.
+At canvas instantiation, resolve an external binding profile with fields such as:
+
+| Binding field | Meaning | Canonical? |
+|---|---|---:|
+| `slotId` | Instance-local role slot | no |
+| `mureRoleId` / `archetype` | Reference into the MURE role catalog/topology | yes, by reference |
+| `purpose` | `evidence`, `producer`, `availability-fallback`, `quality-escalation`, or `verifier` | yes, by reducer contract |
+| `terminalHandle` | Human-readable canvas node/session name | no |
+| `ompAgentCardId` / `providerRoute` / `model` | Current executable runtime route binding | no |
+| `worktree` / `pathOwnership` | Instance-local mutation boundary | no |
+| `availabilityProof` | Canary/transcript evidence for this route | instance evidence |
+
+Bindings are resolved attributes, not topology nodes. Renaming or replacing every terminal, provider, model, or OMP/runtime agent card must leave the reusable MURE matrix unchanged. Exactly one bound workcell may integrate against the main tree; every concurrent mutating workcell uses an isolated October worktree and explicit path ownership.
 
 ## Claude Code Terminal Boundary
 
@@ -243,21 +264,22 @@ Text must accompany color. An OMP producer completion with a pending R2 verifier
 2. Python compiles the outer dependency DAG and pure MURE intent. The Control agent posts October board tasks and creates only the isolated terminals that are actually needed.
 3. A worker atomically claims an outer task and receives a self-contained typed packet through queued October delivery.
 4. Durable multi-file implementation stays in the assigned Codex worktree. Codex-local subagents may help, but their output is not MURE route proof.
-5. Architecture synthesis and independent code review may go to a persistent Claude Code terminal such as Orion. It stays read-only on main or receives its own isolated worktree for an explicitly bounded implementation task.
+5. Architecture synthesis and independent code review may go to a bound persistent Claude Code workcell. It stays read-only on main or receives its own isolated worktree for an explicitly bounded implementation task.
 6. MURE research, model-route alternatives, and policy-required verification go to the parent OMP session. It owns all TaskTool calls and reducer state.
 7. The implementation workcell returns a scoped commit/artifact bundle. A separate dependent verifier task evaluates it independently.
 8. Control integrates only verified commits, runs final repository checks, emits `DELIVERY`, and completes the October plan.
 
 ## Implementation Order
 
-1. **Parity gate first.** Add one fixture-driven check spanning `WORKER_BINDINGS`, adapter-accepted IDs, provider registry latest status, catalog projection, exact projected model, and `disabledAgents`. A fake binding and a historically proven but later blocked route must fail.
-2. **Reconcile current drift.** Align TaskTool compiler/tests/skills/cards with OMP 17 and align route policy/bindings with executable card IDs.
-3. **Correlation contract.** Add a schema/test and a short adapter that wraps October, MURE, and OMP observations without becoming a reducer.
-4. **Parent lifecycle adapter.** Wire a real OMP extension or supported host path around TaskTool spawn receipts and async pushed results. Preserve one serialized reducer owner.
-5. **Finish fleet bridge Phase 1.** Complete and independently verify reconciliation, fleet tool/commands, recovery, smoke harness, and visible two-terminal acceptance.
-6. **Python coordinator.** Add it only against supported October/OMP APIs. It owns readiness, presentation, and validation—not execution truth.
-7. **Canvas template.** Register the star topology and operator state surface after the schema and live smoke pass.
-8. **Retirement work last.** Census nano execution callers separately. Preserve Kagami evidence even if nano execution paths are later retired.
+1. **Architecture recovery gate (`t-e3c18c6f`) first.** Make the reusable canvas MURE-matrix-first, keep terminal/model capacity in an external binding profile, and prove that no named terminal is encoded as a role. Hold the inventory/design chain until October records this gate as passed.
+2. **Parity gate.** Add one fixture-driven check spanning `WORKER_BINDINGS`, adapter-accepted IDs, provider registry latest status, catalog projection, exact projected model, and `disabledAgents`. A fake binding and a historically proven but later blocked route must fail.
+3. **Reconcile current drift.** Align TaskTool compiler/tests/skills/cards with OMP 17 and align route policy/bindings with executable card IDs.
+4. **Correlation contract.** Add a schema/test and a short adapter that wraps October, MURE, and OMP observations without becoming a reducer.
+5. **Parent lifecycle adapter.** Wire a real OMP extension or supported host path around TaskTool spawn receipts and async pushed results. Preserve one serialized reducer owner.
+6. **Finish fleet bridge Phase 1.** Complete and independently verify reconciliation, fleet tool/commands, recovery, smoke harness, and visible two-terminal acceptance.
+7. **Python coordinator.** Add it only against supported October/OMP APIs. It owns readiness, presentation, and validation, not execution truth.
+8. **Canvas template.** Register the MURE role/reducer topology and operator state surface after the schema and live smoke pass; resolve capacity bindings only when instantiating the template.
+9. **Retirement work last.** Census nano execution callers separately. Preserve Kagami evidence even if nano execution paths are later retired.
 
 ## R2 Acceptance Smoke
 

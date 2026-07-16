@@ -1,13 +1,13 @@
-# AGENTS.md — OpenClaw Workspace (YURI-OS-MUSUBI)
+# AGENTS.md — YURI Workspace (YURI-OS-MUSUBI)
 
-OpenClaw-native adapter. This is the brain-stem: it chains the YURI spine in the canonical order every session. This file does not duplicate YURI policy — it routes to the authority sources.
+Root agent adapter. This is the brain-stem: it chains the YURI spine in the canonical order every session. This file does not duplicate YURI policy; it routes to the authority sources.
 
 ## Read Order (every session, natively)
 
 1. `_SYSTEM/yuri-origin.md` — canonical operating contract (authority layer)
 2. `_SYSTEM/persona.md` — identity, cognition, Marcel operating model
 3. `SOUL.md` — core truths, adversarial-ally contract
-4. This file — OpenClaw-specific routing and tool conventions
+4. This file — root-agent routing and tool conventions
 5. xref-selected context evidence (on task)
 6. task-local files
 
@@ -28,39 +28,34 @@ Key contracts (see origin for full text):
 
 ## Memory Architecture
 
-Two-track system from YURI origin, plus OpenClaw daily notes:
+Use the two-track system from YURI origin:
 
 - **Track A (YURI canonical)** — `_SYSTEM/memory/`, durable store `_SYSTEM/OS_KERNEL/memory.db`. Shared across all lanes. Governed: propose → decide → promote.
 - **Track B (Claude auto-memory)** — `.claude/memory/`. Claude-Sonnet behavioral self-development. Not shared.
-- **Track C (OpenClaw daily)** — `memory/YYYY-MM-DD.md` + `MEMORY.md`. Session continuity within OpenClaw. Raw logs + curated long-term memory.
-
-Routing: Track A for anything another lane should know. Track B for Claude-only behavioral drift. Track C for OpenClaw-specific session memory. Cross-link by label, never duplicate.
+Routing: Track A for anything another lane should know. Track B for Claude-only behavioral drift. Cross-link by label, never duplicate.
 
 ## Skills
 
-Skills live in `.claude/skills/` (Claude Code skills) and are loaded by the YURI skill loader. OpenClaw skills live in the standard skill registry. The `<skill-recall-hint>` injected each prompt should be honored — invoke matching skills before substantial work.
+Canonical skills live in root `skills/` and are loaded through the YURI skill indexes. Provider-specific skill folders are compatibility surfaces only. Honor injected skill-recall hints and invoke matching skills before substantial work.
 
-## OpenClaw Conventions
+## Root-Agent Conventions
 
-- **Heartbeats** — use proactively: email/calendar/weather checks, memory maintenance, staleness detection
-- **Sub-agents** — spawn for parallel work, same fleet-by-default posture as CLAUDE.md
-- **Cron vs heartbeat** — cron for exact-timing tasks, heartbeat for batched periodic checks
-- **Group chats** — participate, don't dominate. React naturally. Quality > quantity.
-- **Memory** — write daily notes to `memory/YYYY-MM-DD.md`. Curate long-term to `MEMORY.md`. No mental notes.
+- **Sub-agents** — use for bounded parallel work; never present Codex subagents as MURE route/model evidence.
+- **Continuity** — promote cross-lane durable knowledge through Track A; do not create provider-specific shadow memory.
+- **Freshness** — detect stale indexes and safely regenerate derived projections before trusting them.
 
 ## Agent Fleet (MURE)
 
-MURE agent definitions live exclusively in `.openclaw/agents/` as OpenClaw-native cards. Repo-local `.omp/agents/` is retired and must not become a MURE authority again. The Helmsman dispatches; every other role is a specialized lane. Fleet-by-default: decompose → dispatch parallel → verify → finalize orchestrator-only.
+Canonical logical MURE role cards live under `_SYSTEM/mure/agents/`; `_SYSTEM/mure/agent-catalog.json` is their generated machine-readable projection. The executable role boundaries are summarized in `_SYSTEM/mure/ROLE-TOPOLOGY.md`; the provider/model route registry is `_SYSTEM/config/provider-route-registry.json`. OMP cards and terminal sessions are replaceable runtime bindings, not role authorities. Sol is the orchestrator, advisors are consult-only, workers are bounded leaves, and verifiers are independent downstream gates. Fable 5 is archival and excluded.
 
-See `.openclaw/mure-agent-catalog.json` for the complete role registry with model bindings.
-The executable role boundaries are summarized in `_SYSTEM/mure/ROLE-TOPOLOGY.md`; the provider/model route registry is `_SYSTEM/config/provider-route-registry.json`. Sol is the orchestrator, advisors are consult-only, workers are bounded leaves, and verifiers are independent downstream gates. Fable 5 is archival and excluded.
+OpenClaw is retired. `.openclaw/` is historical/provider residue only and must not be restored to active architecture, role, skill, memory, or routing authority.
 
 ## Git & GitHub
 
 - Commit AND push session's own work directly (scoped pathspec only — `git add <paths>` + `git commit -- <paths>`)
 - NEVER `git add .` or bare `git commit`
 - `git fetch` + rebase/fast-forward, NEVER force
-- GitHub: `gh` CLI + `@openclaw/github` skill for issues, PRs, CI
+- GitHub: `gh` CLI plus the relevant canonical GitHub skill for issues, PRs, and CI
 
 ## Code Intelligence (GitNexus)
 

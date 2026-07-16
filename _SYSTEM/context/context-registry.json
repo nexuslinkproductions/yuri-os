@@ -92,9 +92,12 @@
     },
     {
       "id": "october-omp-moe-canvas",
-      "label": "October / OMP / MURE Canvas Workflow Context",
-      "triggers": ["October", "canvas", "Codex terminal", "Claude Code terminal", "Python coordinator", "OMP", "MURE", "MoE", "TaskTool", "fleet bridge", "native dispatch", "correlationId", "worktree fleet"],
+      "label": "MURE Matrix / OMP / October Canvas Workflow Context",
+      "triggers": ["October", "canvas", "MURE matrix", "role matrix", "reducer topology", "verification topology", "capacity binding", "model binding", "Codex terminal", "Claude Code terminal", "Python coordinator", "OMP", "MURE", "MoE", "TaskTool", "fleet bridge", "native dispatch", "correlationId", "worktree fleet"],
       "paths": [
+        "_SYSTEM/mure/ROLE-TOPOLOGY.md",
+        "_SYSTEM/mure/agents",
+        "_SYSTEM/mure/agent-catalog.json",
         "_SYSTEM/docs/YURI_OCTOBER_OMP_MOE_CANVAS_WORKFLOW_2026-07-16.md",
         "_SYSTEM/mure/sol-moe-company.mjs",
         "_SYSTEM/mure/sol-moe-router.mjs",
@@ -104,14 +107,13 @@
         "_SYSTEM/mure/native-dispatch-shadow.mjs",
         "_SYSTEM/config/sol-moe-routing-policy.json",
         "_SYSTEM/config/provider-route-registry.json",
-        "_SYSTEM/mure/agent-catalog.json",
         ".omp/config.yml",
         ".omp/extensions/fleet-bridge.ts",
         "_SYSTEM/Scripts/omp-fleet-protocol.mjs",
         "docs/superpowers/specs/2026-07-15-october-omp-fleet-bridge-design.md",
         "skills/omp-moe-dispatch/SKILL.md"
       ],
-      "loadRule": "Use for October canvas orchestration, persistent Codex or Claude Code worktree terminals, Python coordination, OMP TaskTool, MURE native MoE dispatch, fleet-bridge lifecycle, or cross-plane correlation. Keep October as the outer workflow plane and MURE as the sole inner attempt/verifier reducer."
+      "loadRule": "Use for reusable canvas orchestration, persistent Codex or Claude Code worktree terminals, Python coordination, OMP TaskTool, MURE native MoE dispatch, fleet-bridge lifecycle, or cross-plane correlation. Treat the MURE logical role matrix plus reducer/verification topology as canonical. October renders the board and a replaceable capacity/model-binding profile; terminal names never become roles or reusable topology nodes."
     },
     {
       "id": "xref-navigation",
