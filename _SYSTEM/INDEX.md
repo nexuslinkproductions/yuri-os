@@ -166,6 +166,10 @@ Autonomy work routes through the `autonomy` context packet. Start with `_SYSTEM/
 
 Multi-Sonnet implementation work routes through `_SYSTEM/docs/YURI_SONNET_WORKCELL_PROTOCOL_2026-05-26.md`. Sonnet workers produce typed bundles with read-only memory capsules and structured memory signals; `_SYSTEM/Scripts/yuri-workcell-capture.mjs` preserves live pane output in the workcell runtime pool; Codex/main integrates and verifies; Rick Prime supercharges the integrated diff; Marcel authorizes commits and memory promotions.
 
+## October / OMP / MURE Canvas Workflow
+
+October canvas orchestration, persistent Codex and Claude Code worktree terminals, Python coordination, OMP TaskTool, and MURE native MoE work route through `_SYSTEM/docs/YURI_OCTOBER_OMP_MOE_CANVAS_WORKFLOW_2026-07-16.md` and the `october-omp-moe-canvas` context packet. October owns the visible outer DAG and terminal/message surface; Codex owns implementation/integration workcells; continuous Claude Code CLI/PTY sessions own architecture/advisory/review workcells; one parent OMP session owns native child execution; MURE owns risk routing, fallback, escalation, and independent verification; Python may plan, validate, observe, and render but never becomes a second reducer. Keep local task IDs namespaced under one cross-plane correlation ID and do not treat terminal idleness as semantic completion.
+
 ## Current Cleanup North Star
 
 YURI should read as:

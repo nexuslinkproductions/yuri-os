@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-06-07",
+  "updated": "2026-07-16",
   "purpose": "Master YURI artifact registry seed. This extends folder classification into durable docs, scripts, registries, reports, skills, runtime state, and generated artifacts.",
   "rules": {
     "readByDefault": "Only canonical anchors and context selectors may be read by default.",
@@ -386,6 +386,18 @@
       "storageRule": "Governed-autonomy protocols live in _SYSTEM/docs/.",
       "rebuildRule": "Update through Sonnet workcell protocol changes; validate with artifact registry and autonomy context routing.",
       "notes": "Protocol for multi-Sonnet worker implementation, memory capsules/signals, Rick Prime supercharge review, C-137 integration, and Marcel authorization."
+    },
+    {
+      "path": "_SYSTEM/docs/YURI_OCTOBER_OMP_MOE_CANVAS_WORKFLOW_2026-07-16.md",
+      "type": "doc",
+      "class": "system_control_plane",
+      "owner": "YURI orchestration",
+      "status": "active_design",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Cross-surface orchestration protocols live in _SYSTEM/docs/ and are selected through the context registry.",
+      "rebuildRule": "Update when October, OMP TaskTool, MURE native dispatch, or Python coordination contracts change; verify the focused native/fleet suites and context/artifact registries.",
+      "notes": "General operating workflow for October canvas plans, persistent Codex and Claude Code worktrees, Python coordination, parent OMP TaskTool execution, MURE MoE reduction, and Kagami correlation evidence."
     },
     {
       "path": "_SYSTEM/config/schemas/yuri.autonomy-run.v0.schema.json",
