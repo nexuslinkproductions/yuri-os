@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-07-16",
+  "updated": "2026-07-17",
   "purpose": "Master YURI artifact registry seed. This extends folder classification into durable docs, scripts, registries, reports, skills, runtime state, and generated artifacts.",
   "rules": {
     "readByDefault": "Only canonical anchors and context selectors may be read by default.",
@@ -2618,6 +2618,90 @@
       "path": "_SYSTEM/Scripts/math/formula-foundry-bakeoff.test.mjs",
       "rebuildRule": "node --test _SYSTEM/Scripts/math/formula-foundry-bakeoff.test.mjs",
       "notes": "Covers the Formula Foundry bakeoff harness and promotion/demotion ledger."
+    },
+    {
+      "path": "_SYSTEM/Scripts/backend-volume-broker.swift",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Fixed encrypted T7 volume-broker source lives in _SYSTEM/Scripts/; its compiled runtime binary and non-secret receipt stay in ignored _SYSTEM/state/backend-volume/.",
+      "rebuildRule": "Compile with Swift warnings as errors, then run node --test _SYSTEM/Scripts/backend-volume-broker.test.mjs and the separately gated fixture-only acceptance suite.",
+      "notes": "Keychain-backed AES-256 APFS sparsebundle broker pinned to the dedicated T7 image; it exposes no protected dataset content and permits only fail-closed governed attach/detach operations."
+    },
+    {
+      "path": "_SYSTEM/Scripts/backend-volume-broker.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Fixed encrypted T7 broker regression tests live beside the broker in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-volume-broker.test.mjs; use only fixture evidence and never the protected dataset.",
+      "notes": "Static and behavioral coverage for the fixed broker contract, Keychain secret isolation, image identity checks, and fail-closed detach safety."
+    },
+    {
+      "path": "_SYSTEM/Scripts/backend-storage-guard.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Fail-closed backend storage supervisor source lives in _SYSTEM/Scripts/ and accepts only the fixed encrypted T7 broker contract.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-storage-guard.test.mjs and fixture-only APFS acceptance before any separately authorized protected recovery.",
+      "notes": "Supervises writer process groups, continuously validates pinned mount identity, and shuts writers down before detach; Phase-1 operation does not access the protected dataset."
+    },
+    {
+      "path": "_SYSTEM/Scripts/backend-storage-guard.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Fail-closed supervisor regression tests live beside the supervisor in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-storage-guard.test.mjs using mocks and fixtures only; never point the test at the protected dataset.",
+      "notes": "Covers the fixed encrypted T7 identity contract, closed configuration schema, writer shutdown, detach ordering, and refusal of bare-local fallback."
+    },
+    {
+      "path": "_SYSTEM/Scripts/backend-volume-apfs.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Fixture-only APFS acceptance tests for the fixed encrypted T7 image live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run the opt-in Phase-1 suite only with its dedicated private fixture mount and pinned broker digest; do not access or restore the protected dataset.",
+      "notes": "Validates filesystem semantics, SQLite/WAL behavior, detach/reattach, fail-closed writer shutdown, and isolated launchd persistence against non-protected fixtures only."
+    },
+    {
+      "path": "_SYSTEM/Scripts/backend-volume-launchd-fixture.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Temporary launchd fixture helper for the fixed encrypted T7 acceptance path lives in _SYSTEM/Scripts/.",
+      "rebuildRule": "Exercise only through backend-volume-apfs.test.mjs with a private fixture mount and fail-closed supervisor; never install it as the live protected runtime.",
+      "notes": "Provides isolated restart and persistence evidence without touching the live LaunchAgent, canonical mount, or protected dataset."
+    },
+    {
+      "path": "_SYSTEM/Scripts/backend-volume-sqlite-worker.py",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "SQLite/WAL fixture worker for the fixed encrypted T7 acceptance path lives in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run only through backend-volume-apfs.test.mjs under the fail-closed supervisor and private fixture root; do not open the protected dataset.",
+      "notes": "Exercises non-protected lock, contention, WAL, integrity, checkpoint, and abrupt-exit cases for Phase-1 acceptance."
     }
   ],
   "mustRegisterPrefixes": [

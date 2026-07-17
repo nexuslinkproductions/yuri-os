@@ -435,6 +435,9 @@ _SYSTEM/state/voice/
 # overseer runtime state — the live fleet board (per-session, not source); template lives in Scripts/voice
 _SYSTEM/state/overseer/
 
+# Encrypted backend-volume broker binaries, pins, and local recovery receipts
+_SYSTEM/state/backend-volume/
+
 # Agent-Native plans app local-files bridge token (per-serve, local-only; NEVER commit)
 .plan-url
 .agent-native/
