@@ -26,6 +26,7 @@
  */
 
 import { createHash } from 'node:crypto'
+import { execFileSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -56,6 +57,7 @@ const RECURSIVE_SKIP_DIRS = new Set([
   'build',
   '.next',
 ])
+const SPARSE_DISCOVERY_CACHE = new Map()
 
 // Body injection size limits (tunable)
 const SKILL_BODY_MAX_PER_SKILL = 5000  // max chars per skill body
@@ -186,19 +188,20 @@ export function buildRegistry() {
 
   for (const surface of DISCOVERY_PATHS) {
     const surfacePath = path.join(REPO_ROOT, surface.prefix)
-    if (!existsSync(surfacePath)) continue
-
-    for (const discovered of discoverSurfaceFiles(surface, surfacePath)) {
+    const discoveredFiles = [
+      ...(existsSync(surfacePath) ? discoverSurfaceFiles(surface, surfacePath) : []),
+      ...discoverSparseTrackedSurfaceFiles(surface),
+    ]
+    const uniqueDiscovered = [...new Map(discoveredFiles.map((entry) => [entry.sourcePath, entry])).values()]
+    for (const discovered of uniqueDiscovered) {
       const { skillName, sourcePath } = discovered
       const normalizedSkillName = normalizeSkillId(skillName)
-      const stat = statSync(sourcePath)
-
-      if (!stat.isFile()) continue
+      if (discovered.content === undefined && !statSync(sourcePath).isFile()) continue
       if (normalizedSkillName && seenNormalized.has(normalizedSkillName) && !isCanonicalSurface(surface)) {
         continue
       }
 
-      const fullBody = readFileSync(sourcePath, 'utf8')
+      const fullBody = discovered.content ?? readFileSync(sourcePath, 'utf8')
       let body = fullBody
       let bodyTruncated = false
       if (body.length > SKILL_BODY_MAX_PER_SKILL) {
@@ -212,6 +215,7 @@ export function buildRegistry() {
         name: skillName,
         source_path: path.relative(REPO_ROOT, sourcePath).split(path.sep).join('/'),  // POSIX separators -> Windows-portable manifest (else .codex/plugins/cache reference-only detection breaks on Windows)
         source_type: surface.sourceType,
+        materialization: discovered.sparseTracked ? 'git-index' : 'worktree',
         body,
         body_length: fullBody.length,
         bodyTruncated,
@@ -236,6 +240,55 @@ export function buildRegistry() {
 
   enforceTotalBodyCap(skills)
   return { skills, discovered_at: new Date().toISOString(), count: skills.length }
+}
+
+function discoverSparseTrackedSurfaceFiles(surface) {
+  if (surface.kind === 'skill_md_recursive') return []
+  const cacheKey = `${surface.prefix}\0${surface.kind}`
+  if (SPARSE_DISCOVERY_CACHE.has(cacheKey)) return SPARSE_DISCOVERY_CACHE.get(cacheKey)
+  let records = []
+  try {
+    records = execFileSync('git', ['ls-files', '-v', '-z', '--', surface.prefix], {
+      cwd: REPO_ROOT,
+      encoding: 'utf8',
+      maxBuffer: 8 * 1024 * 1024,
+    }).split('\0').filter(Boolean)
+  } catch {
+    SPARSE_DISCOVERY_CACHE.set(cacheKey, [])
+    return []
+  }
+  const prefix = `${surface.prefix.replace(/\/+$/, '')}/`
+  const discovered = []
+  for (const record of records) {
+    const match = record.match(/^(\S) (.+)$/)
+    if (!match || match[1] !== 'S') continue
+    const relativePath = match[2].split(path.sep).join('/')
+    if (!relativePath.startsWith(prefix)) continue
+    const remainder = relativePath.slice(prefix.length)
+    let skillName = ''
+    if (surface.kind === 'flat_md' && /^[^/]+\.md$/.test(remainder)) {
+      skillName = remainder.replace(/\.md$/, '')
+    } else if (surface.kind === 'skill_md' && /^[^/]+\/SKILL\.md$/.test(remainder)) {
+      skillName = remainder.split('/')[0]
+    } else {
+      continue
+    }
+    const sourcePath = path.join(REPO_ROOT, ...relativePath.split('/'))
+    if (existsSync(sourcePath)) continue
+    try {
+      const content = execFileSync('git', ['show', `:${relativePath}`], {
+        cwd: REPO_ROOT,
+        encoding: 'utf8',
+        maxBuffer: 2 * 1024 * 1024,
+      })
+      discovered.push({ skillName, sourcePath, content, sparseTracked: true })
+    } catch {
+      // A tracked-but-unreadable blob is left absent so validation reports the
+      // manifest entry missing rather than silently accepting incomplete data.
+    }
+  }
+  SPARSE_DISCOVERY_CACHE.set(cacheKey, discovered)
+  return discovered
 }
 
 function enforceTotalBodyCap(skills) {
@@ -470,6 +523,7 @@ export function recommendSkills(query, registry = buildRegistry()) {
 
 function deriveCapabilityHints(text) {
   const hints = ['intent-normalization', 'deterministic-verification']
+  if (isProseEditingRequest(text)) hints.push('formatting', 'persona-alignment', 'summarization')
   if (/\b(memory|rag|recall|retrieval|context|eot|neuron)\b/.test(text)) hints.push('memory-navigation', 'retrieval', 'reduce-and-learn')
   if (/\b(skill|skills|capability|trigger|routing|recall)\b/.test(text)) hints.push('skill-recall', 'orchestration')
   if (/\b(claude output lane|output lane|sublane|sublanes|plans?|ideas?|findings?|draft[- ]?artifacts?|diff[- ]?proposals?|reviews?|questions?|decisions?|evidence|raw[- ]?captures?)\b/.test(text)) hints.push('output-organization', 'skill-recall')
@@ -491,6 +545,7 @@ function deriveWorkPackets(text) {
 
 function deriveSignals(text) {
   const signals = []
+  if (isProseEditingRequest(text)) signals.push('prose-editing')
   if (/\b(code|test|refactor|script|kernel|loader|mjs|js|ts)\b/.test(text)) signals.push('code')
   if (/\b(risk|guard|protected|security|audit|failure|critical|production)\b/.test(text)) signals.push('risk')
   if (/\b(memory|rag|recall|retrieval|context|eot|neuron)\b/.test(text)) signals.push('memory')
@@ -500,6 +555,19 @@ function deriveSignals(text) {
   if (/\b(design|visual|presentation|html|ui|ux)\b/.test(text)) signals.push('design')
   if (/\b(campaign|supercharge|forensic|symbiotic|shintai)\b/.test(text)) signals.push('campaign')
   return unique(signals)
+}
+
+function isProseEditingRequest(text) {
+  const negatedAction = /\b(?:do not|don['’]t|dont|never|without|avoid|no|refrain from)\b[\s\S]{0,48}\b(?:humaniz(?:e|ed|ing)|humanizer|de[- ]?slop(?:ped|ping)?|naturaliz(?:e|ed|ing)|voice[- ]?match(?:ing)?|polish|rewrite|edit)\b/
+  if (negatedAction.test(text)) return false
+
+  const transformationAction = '(?:humanize|de[- ]?slop|naturalize|voice[- ]?match|match (?:my|the|this) voice)'
+  const requestLead = '(?:(?:can|could|would|will) you(?: please)?|please|kindly|i (?:want|need) you to|help me(?: to)?)'
+  const directAction = new RegExp(`^(?:please\\s+|kindly\\s+)?${transformationAction}\\b|\\b${requestLead}\\s+${transformationAction}\\b`)
+  const explicitInvocation = /(?:^|\s)\/humanizer\b|\b(?:use|invoke|apply|run)\s+(?:the\s+)?humanizer\b/
+  const proseObject = '(?:prose|copy|cover letter|letter|essay|article|email|writing|draft|paragraph|text|manuscript|statement)'
+  const suppliedProseEdit = new RegExp(`^(?:please\\s+|kindly\\s+)?(?:polish|rewrite|edit)\\b[\\s\\S]{0,80}\\b${proseObject}\\b|\\b${requestLead}\\s+(?:polish|rewrite|edit)\\b[\\s\\S]{0,80}\\b${proseObject}\\b`)
+  return directAction.test(text) || explicitInvocation.test(text) || suppliedProseEdit.test(text)
 }
 
 function writeManifest(registry) {

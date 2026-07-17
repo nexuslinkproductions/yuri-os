@@ -14,8 +14,25 @@ function scorePacket(packet, text) {
   if (!text) return packet.id === 'baseline' ? 1 : 0;
   const haystack = text.toLowerCase();
   return packet.triggers.reduce((score, trigger) => {
-    return haystack.includes(String(trigger).toLowerCase()) ? score + 1 : score;
+    return hasBoundedTrigger(haystack, String(trigger).toLowerCase()) ? score + 1 : score;
   }, 0);
+}
+
+function hasBoundedTrigger(haystack, needle) {
+  if (!needle) return false;
+  let offset = 0;
+  while (offset <= haystack.length - needle.length) {
+    const index = haystack.indexOf(needle, offset);
+    if (index < 0) return false;
+    const before = index > 0 ? haystack[index - 1] : '';
+    const afterIndex = index + needle.length;
+    const after = afterIndex < haystack.length ? haystack[afterIndex] : '';
+    const leftBounded = !/[a-z0-9]/.test(needle[0]) || !/[a-z0-9]/.test(before);
+    const rightBounded = !/[a-z0-9]/.test(needle[needle.length - 1]) || !/[a-z0-9]/.test(after);
+    if (leftBounded && rightBounded) return true;
+    offset = index + 1;
+  }
+  return false;
 }
 
 function existingPaths(paths) {

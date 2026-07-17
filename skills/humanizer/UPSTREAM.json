@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "humanizer",
+  "repository": "https://github.com/blader/humanizer",
+  "ref": "1b48564898e999219882660237fde01bf4843a0f",
+  "commit": "1b48564898e999219882660237fde01bf4843a0f",
+  "commitSignature": "unsigned",
+  "tree": "299241e3698ecdfe6ba5633da3f407349cff25d6",
+  "archiveSha256": "d321803aa6a3424f5d18da5b82cf96088954ac69e13e1adf04bf9749d5d90197",
+  "version": "2.8.2",
+  "license": "MIT",
+  "retrievedOn": "2026-07-17",
+  "installer": ".codex/skills/.system/skill-installer/scripts/install-skill-from-github.py",
+  "files": {
+    "references/upstream-SKILL.md": "243aecdafecb5e11c2d45e2e088b7876e3f6eee34aa50c53f624d8468039afa8",
+    "LICENSE": "4ac4810254ab36d45419141aeb8e69bf50652cfafe5b2dab947d06d44e5cbf96"
+  }
+}

@@ -161,7 +161,7 @@
     {
       "id": "skills",
       "label": "Skill Library / Evolution Context",
-      "triggers": ["skill", "skills", "skill-tree", "skill evolution", "design system", "capability", "plugin", "plugins", "connector", "connectors", "codex plugin", "app connector", "mcp tool", "tool_search"],
+      "triggers": ["skill", "skills", "skill-tree", "skill evolution", "design system", "capability", "plugin", "plugins", "connector", "connectors", "codex plugin", "app connector", "mcp tool", "tool_search", "humanize", "humanizer", "de-slop", "voice match", "voice-match", "polish prose", "polish writing", "polish copy", "polish cover letter", "polish paragraph", "polish text", "polish email", "polish draft", "polish letter", "polish essay", "polish article", "polish manuscript", "polish statement", "polish this supplied paragraph"],
       "paths": [
         ".agents/README.md",
         ".agents/agent-index.json",
@@ -169,12 +169,15 @@
         "skills/README.md",
         "skills/domain-index.json",
         "skills/skill-index.json",
+        "skills/humanizer/SKILL.md",
+        "skills/humanizer/UPSTREAM.json",
         ".codex/skills",
         "_SYSTEM/Scripts/yuri-skill-loader.mjs",
+        "_SYSTEM/Scripts/humanizer-skill.test.mjs",
         "_SYSTEM/Scripts/yuri-capability-census.mjs",
         "_SYSTEM/docs/YURI_SKILL_EVOLUTION_PROMOTION_2026-05-23.md"
       ],
-      "loadRule": "Load only the specific skill files needed for the task after this packet selects the domain."
+      "loadRule": "Load only the specific skill files needed for the task after this packet selects the domain. Humanizer is opt-in: load its canonical wrapper for explicit prose-editing requests and consult the pinned upstream reference only when the detailed pattern catalog is needed."
     },
     {
       "id": "memory",

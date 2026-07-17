@@ -183,6 +183,10 @@
     "source_path": "skills/hatch-pet/SKILL.md",
     "hash": "bf9eaaadddab347f"
   },
+  "humanizer": {
+    "source_path": "skills/humanizer/SKILL.md",
+    "hash": "2aa6dd20f59747c3"
+  },
   "imagegen": {
     "source_path": "skills/imagegen/SKILL.md",
     "hash": "22583d12990c820b"

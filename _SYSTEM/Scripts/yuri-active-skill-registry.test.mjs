@@ -91,6 +91,42 @@ assert(outputLaneRegistry.active.some((item) => item.skill_id === 'claude-output
 assert(outputLaneRegistry.active.some((item) => item.skill_id === 'claude-codex-capability-bridge'), 'Codex bridge should route capability/output work');
 assert(outputLaneRegistry.capabilityIndex['output-organization'].includes('claude-output-lane'), 'capability index should map output-organization');
 
+const humanizerRegistry = buildActiveSkillRegistry({
+  pulseSeed: {
+    capabilityHints: ['formatting', 'persona-alignment', 'summarization'],
+    workPackets: [{ id: 'polish', capability: 'formatting' }],
+  },
+  context: { signals: ['prose-editing'], persona: true },
+  routePlan,
+  rawSkillRegistry: {
+    discovered_at: '2026-07-17T00:00:00.000Z',
+    count: 1,
+    skills: [skill('humanizer', 'hash-humanizer', 'HUMANIZER BODY SHOULD NOT LEAK')],
+  },
+});
+
+const selectedHumanizer = humanizerRegistry.active.find((item) => item.skill_id === 'humanizer');
+assert(selectedHumanizer, 'Humanizer should route explicit prose-formatting work');
+assert(selectedHumanizer.capabilities.includes('persona-alignment'), 'Humanizer should expose voice alignment');
+assert(humanizerRegistry.capabilityIndex.formatting.includes('humanizer'), 'capability index should map Humanizer formatting');
+assert(!JSON.stringify(humanizerRegistry).includes('HUMANIZER BODY SHOULD NOT LEAK'), 'Humanizer registry output must not leak skill bodies');
+
+const genericWritingRegistry = buildActiveSkillRegistry({
+  pulseSeed: {
+    capabilityHints: ['persona-alignment', 'summarization'],
+    workPackets: [{ id: 'summary', capability: 'summarization' }],
+  },
+  context: { signals: ['docs'], persona: true, research: true },
+  routePlan,
+  rawSkillRegistry: {
+    discovered_at: '2026-07-17T00:00:00.000Z',
+    count: 1,
+    skills: [skill('humanizer', 'hash-humanizer', 'HUMANIZER BODY SHOULD NOT LEAK')],
+  },
+});
+assert.equal(genericWritingRegistry.active.some((item) => item.skill_id === 'humanizer'), false, 'generic persona/research work must not activate Humanizer');
+assert(genericWritingRegistry.suppressed.some((item) => item.skill_id === 'humanizer' && item.reason === 'required_signal_missing'), 'Humanizer should explain its explicit-trigger suppression');
+
 const serialized = JSON.stringify(first);
 for (const forbidden of ['PRIVATE BODY SHOULD NOT LEAK', 'EXECUTION BODY SHOULD NOT LEAK', 'COLLISION BODY SHOULD NOT LEAK']) {
   assert(!serialized.includes(forbidden), `registry output leaked skill body: ${forbidden}`);

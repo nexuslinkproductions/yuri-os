@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-07-08",
+  "updated": "2026-07-17",
   "canonicalRoot": "skills",
   "sourceOfTruth": true,
-  "count": 120,
+  "count": 121,
   "rules": {
     "skillBodyPath": "skills/<skill-id>/SKILL.md",
     "providerCaches": "reference_only",
@@ -246,6 +246,11 @@
     {
       "id": "hatch-pet",
       "path": "skills/hatch-pet/SKILL.md",
+      "sourceFamily": "codex_import"
+    },
+    {
+      "id": "humanizer",
+      "path": "skills/humanizer/SKILL.md",
       "sourceFamily": "codex_import"
     },
     {

@@ -203,6 +203,12 @@ const SKILL_CAPABILITY_PROFILES = Object.freeze({
     traits: ['docs', 'teaching'],
     signals: ['docs'],
   },
+  humanizer: {
+    capabilities: ['formatting', 'persona-alignment', 'summarization'],
+    traits: ['prose-editing', 'voice-preservation', 'citation-preservation'],
+    signals: ['prose-editing'],
+    requiredSignals: ['prose-editing'],
+  },
   // wave-3 S.3: 16 .claude/skills dirs had no profile entry — capped at score=18 and
   // suppressed in competitive contexts. Profiled from each SKILL.md description.
   'anthropic-managed-agents': {
@@ -329,11 +335,13 @@ const SKILL_CAPABILITY_PROFILES = Object.freeze({
     capabilities: ['memory-navigation', 'retrieval', 'reduce-and-learn'],
     traits: ['memory', 'recall', 'context'],
     signals: ['memory', 'docs', 'campaign'],
+    coverageSignals: ['memory'],
   },
   'research-artifact-factory': {
     capabilities: ['research', 'summarization', 'formatting'],
     traits: ['research', 'artifacts', 'docs'],
     signals: ['research', 'docs'],
+    coverageSignals: ['research'],
   },
   'visual-introspection': {
     capabilities: ['design', 'risk-review', 'deterministic-verification'],
@@ -398,9 +406,14 @@ export function buildActiveSkillRegistry({
     }
 
     const profile = profileSkill(skill);
+    if (profile.requiredSignals.length && !profile.requiredSignals.some((signal) => signals.has(signal))) {
+      suppressed.push(suppressedSkill(skillId, 'required_signal_missing'));
+      continue;
+    }
     const matchedCapabilities = profile.capabilities.filter((capability) =>
       capabilityHints.has(capability) || workCapabilities.has(capability));
     const matchedSignals = profile.signals.filter((signal) => signals.has(signal));
+    const matchedCoverageSignals = profile.coverageSignals.filter((signal) => signals.has(signal));
 
     if (!matchedCapabilities.length && !matchedSignals.length) {
       suppressed.push(suppressedSkill(skillId, 'no_capability_match'));
@@ -416,6 +429,7 @@ export function buildActiveSkillRegistry({
       profile,
       matchedCapabilities,
       matchedSignals,
+      matchedCoverageSignals,
       score: scoreSkill({
         profile,
         matchedCapabilities,
@@ -428,7 +442,14 @@ export function buildActiveSkillRegistry({
     });
   }
 
-  candidates.sort((a, b) => b.score - a.score || String(a.skill.name).localeCompare(String(b.skill.name)));
+  // A directly requested semantic domain keeps one declared canonical anchor
+  // ahead of generic high-scoring helpers. This is a coverage guarantee, not
+  // an unbounded score bonus: hard filters and the same stage budgets still
+  // apply, and profiles opt in by semantic signal rather than runtime/model id.
+  candidates.sort((a, b) =>
+    b.matchedCoverageSignals.length - a.matchedCoverageSignals.length ||
+    b.score - a.score ||
+    String(a.skill.name).localeCompare(String(b.skill.name)));
 
   const active = [];
   const stageBindings = Object.fromEntries(STAGE_IDS.map((stageId) => [stageId, []]));
@@ -479,7 +500,7 @@ export function buildActiveSkillRegistry({
       maxActive: MAX_ACTIVE,
       maxPerStage: MAX_PER_STAGE,
       hardFilters: ['no_collision', 'not_disabled', 'has_capability_match'],
-      rankKeys: ['stage_fit', 'capability_fit', 'risk_fit', 'stable_name'],
+      rankKeys: ['canonical_signal_coverage', 'stage_fit', 'capability_fit', 'risk_fit', 'stable_name'],
       collisionPolicy: 'canonical YURI skill roots win over migrated duplicate shadows',
       canonicalSkillRoot: 'skills',
     },
@@ -514,6 +535,8 @@ function profileSkill(skill) {
       capabilities: unique(known.capabilities),
       traits: unique(known.traits),
       signals: unique(known.signals),
+      requiredSignals: unique(known.requiredSignals || []),
+      coverageSignals: unique(known.coverageSignals || []),
       stageAffinity: stageAffinityFor(known.capabilities),
       knownProfile: true,
     };
@@ -550,6 +573,8 @@ function profileSkill(skill) {
     capabilities: unique(capabilities),
     traits: unique(signals),
     signals: unique(signals),
+    requiredSignals: [],
+    coverageSignals: [],
     stageAffinity: stageAffinityFor(capabilities),
     knownProfile: false,
   };
@@ -610,6 +635,7 @@ function buildCapabilityIndex(active) {
 
 function reasonFor(candidate) {
   const parts = [];
+  if (candidate.matchedCoverageSignals.length) parts.push(`canonical coverage: ${candidate.matchedCoverageSignals.join(', ')}`);
   if (candidate.matchedCapabilities.length) parts.push(`matched capabilities: ${candidate.matchedCapabilities.join(', ')}`);
   if (candidate.matchedSignals.length) parts.push(`matched signals: ${candidate.matchedSignals.join(', ')}`);
   return parts.join('; ') || 'Matched active pulse context.';
