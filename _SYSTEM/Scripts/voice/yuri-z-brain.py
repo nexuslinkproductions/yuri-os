@@ -341,7 +341,16 @@ _DESTRUCTIVE = re.compile(
     r"\brm\s+-[a-z]*[rf][a-z]*\s+(/|~|\$home|\*|\.\s*$)"
     r"|\bsudo\b|\bdd\b[^|]*\bof=|\bmkfs|:\(\)\s*\{\s*:\s*\|"
     r"|>\s*/dev/[sh]d|\bshutdown\b|\breboot\b|\bdiskutil\s+erase"
-    r"|\bchmod\s+-R\s+777\s+/|(curl|wget)[^|]*\|\s*(sh|bash|zsh)|\bgit\s+push\b[^\n]*--force",
+    r"|\bchmod\s+-R\s+777\s+/|(curl|wget)[^|]*\|\s*(sh|bash|zsh)"
+    r"|\brsync\b[^|;&]*\b--delete\b"
+    r"|\bgit\s+reset\s+--hard\b"
+    r"|\bgit\s+clean\s+-[^;&|]*[dDxXfF]"
+    r"|\bgit\s+checkout\b(?!\s+-b\b)(?!\s+\S+$)[^|;&]*"
+    r"|\bgit\s+restore\b(?!\s+--staged\b)[^|;&]*"
+    r"|\bgit\s+branch\s+-D\b"
+    r"|\bgit\s+worktree\s+remove\b"
+    r"|\bgit\s+stash\s+(?!list\b|show\b)\w+"
+    r"|\bgit\s+push\b[^\n]*--force",
     re.IGNORECASE)
 
 
@@ -364,7 +373,7 @@ def _bash_block_reason(cmd: str):
 # non-"1" value) the brain behaves EXACTLY as before this change — the inline gate (now SEC-4-hardened)
 # is the sole enforcement path. This is a BUILD behind a disarmed flag (self-governable); arming the
 # flag as the live default is owner-gated per the Self-Governance Charter.
-UNIFIED_GATE = os.environ.get("YURI_Z_UNIFIED_GATE", "0") == "1"
+UNIFIED_GATE = os.environ.get("YURI_Z_UNIFIED_GATE", "1") == "1"
 _SAFETY_CORE_CLI = os.path.join(REPO, "_SYSTEM", "Scripts", "policy", "yuri-safety-core.mjs")
 _UNIFIED_GATE_TIMEOUT = float(os.environ.get("YURI_Z_UNIFIED_GATE_TIMEOUT", "10"))
 
