@@ -149,6 +149,15 @@ export function evaluateToolCall(toolName, toolInput = {}, opts = {}) {
     return evaluateShellCommand(command, cwd);
   }
 
+  if (isReadTool(normalizedTool)) {
+    const targets = toolTargetPaths(input);
+    if (!targets.length && isImplicitCwdReadTool(normalizedTool)) targets.push('.');
+    for (const target of targets) {
+      const hit = protectedPathHit(target, cwd);
+      if (hit) return block(`read of protected target blocked: ${hit.label}`);
+    }
+  }
+
   if (isWriteTool(normalizedTool)) {
     const target = input.path || input.file_path || input.filePath || input.target_file || input.target || '';
     if (!target) return allow();
@@ -354,6 +363,36 @@ function isShellTool(toolName) {
 
 function isWriteTool(toolName) {
   return ['write', 'edit', 'write_file', 'writefile', 'create_file', 'createfile'].includes(toolName);
+}
+
+function isReadTool(toolName) {
+  return [
+    'read', 'read_file', 'readfile', 'read_text_file', 'readtextfile',
+    'get_file', 'getfile', 'list_dir', 'listdir', 'list_directory', 'listdirectory',
+    'grep', 'glob', 'search_files', 'searchfiles', 'view_image', 'viewimage',
+  ].includes(toolName);
+}
+
+function isImplicitCwdReadTool(toolName) {
+  return [
+    'list_dir', 'listdir', 'list_directory', 'listdirectory',
+    'grep', 'glob', 'search_files', 'searchfiles',
+  ].includes(toolName);
+}
+
+function toolTargetPaths(input = {}) {
+  const targets = [];
+  for (const key of [
+    'path', 'file_path', 'filePath', 'target_file', 'targetFile', 'target',
+    'directory', 'dir', 'root', 'root_path', 'rootPath', 'notebook_path', 'notebookPath',
+  ]) {
+    if (typeof input[key] === 'string' && input[key]) targets.push(input[key]);
+  }
+  for (const key of ['paths', 'files', 'targets']) {
+    if (!Array.isArray(input[key])) continue;
+    for (const target of input[key]) if (typeof target === 'string' && target) targets.push(target);
+  }
+  return targets;
 }
 
 function allow() {

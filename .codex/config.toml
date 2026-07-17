@@ -58,4 +58,9 @@ tool_timeout_sec = 60
 
 [[hooks.PreToolUse]]
 matcher = "*"
-hooks = [{ type = "command", command = "node .codex/hooks/pre-tool-use.mjs" }]
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "node \"$(git rev-parse --show-toplevel)/_SYSTEM/Scripts/yuri-hook-adapter.mjs\" --harness codex"
+timeout = 10
+statusMessage = "Applying YURI policy"

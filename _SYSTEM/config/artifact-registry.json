@@ -2798,6 +2798,18 @@
       "storageRule": "Universal hook registry and adapter regression fixtures live beside their implementation in _SYSTEM/Scripts/.",
       "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-hook-registry.test.mjs.",
       "notes": "Covers hashes, dependency closure, provider rendering, harness normalization, structured deny semantics, exit codes, sparse materialization, and stalled October delegation."
+    },
+    {
+      "path": "_SYSTEM/Scripts/policy/yuri-safety-core.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Focused shared enforcement fixtures live beside yuri-safety-core.mjs under _SYSTEM/Scripts/policy/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/policy/yuri-safety-core.test.mjs plus repo-integrity, hook-registry, and OMP hook suites.",
+      "notes": "Proves direct Read/read-like tool inputs deny protected path names without opening protected contents while ordinary reads remain allowed."
     }
   ],
   "mustRegisterPrefixes": [

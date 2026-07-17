@@ -5,6 +5,7 @@
 // Also verifies the real hook loads and registers against the shared policy module.
 
 import { deepStrictEqual, strictEqual, ok } from 'node:assert';
+import path from 'node:path';
 import { before, describe, it } from 'node:test';
 
 // The nested .omp/hooks/pre/package.json sets "type":"module" so .js files
@@ -40,6 +41,7 @@ const blockScanner = (cmd) => cmd ? { url: cmd, reason: `URL blocked: private ho
 const throwScanner = () => { throw new Error('simulated policy explosion'); };
 const allowSafety = () => ({ allowed: true, decision: 'allow' });
 const blockSafety = () => ({ allowed: false, decision: 'deny', reason: 'repo wipe blocked' });
+const ROOT = path.resolve(import.meta.dirname, '../../..');
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -83,10 +85,15 @@ describe('createHandler (injected scanner)', () => {
     strictEqual(r, undefined);
   });
 
-  it('non-bash tool → no block', async () => {
-    const h = createHandler(blockScanner, allowSafety);
+  it('non-shell tool reaches shared safety while URL scanning stays shell-only', async () => {
+    let evaluatedTool = null;
+    const h = createHandler(blockScanner, (toolName) => {
+      evaluatedTool = toolName;
+      return allowSafety();
+    });
     const r = await h({ toolName: 'Read', input: { command: 'curl http://127.0.0.1/' } });
     strictEqual(r, undefined);
+    strictEqual(evaluatedTool, 'Read');
   });
 
   it('blocked URL → { block: true, reason }', async () => {
@@ -121,6 +128,38 @@ describe('shared YURI safety integration', () => {
     deepStrictEqual(r, { block: true, reason: 'repo wipe blocked' });
   });
 
+  it('routes provider-cased Bash through shared safety', async () => {
+    const h = createHandler(passScanner, blockSafety);
+    const r = await h({ toolName: 'Bash', input: { command: 'node dangerous.js' } });
+    deepStrictEqual(r, { block: true, reason: 'repo wipe blocked' });
+  });
+
+  it('routes non-shell tools through shared safety', async () => {
+    const h = createHandler(passScanner, blockSafety);
+    const r = await h({ toolName: 'Write', input: { file_path: '.env', content: 'x' } });
+    deepStrictEqual(r, { block: true, reason: 'repo wipe blocked' });
+  });
+
+  it('real safety core blocks direct protected Read without opening the file', async () => {
+    const pi = new FakeHookAPI();
+    hook(pi);
+    const r = await pi.invokeToolCall({ toolName: 'Read', input: { file_path: '.env' } });
+    ok(r?.block, 'direct protected Read should be blocked');
+    ok(r?.reason?.includes('read of protected target'));
+  });
+
+  it('uses top-level OMP event cwd to resolve relative protected reads', async () => {
+    const pi = new FakeHookAPI();
+    hook(pi);
+    const r = await pi.invokeToolCall({
+      toolName: 'Read',
+      cwd: path.join(ROOT, '.claude/projects'),
+      input: { file_path: 'session.json' },
+    });
+    ok(r?.block, 'top-level event cwd must participate in protected path resolution');
+    ok(r?.reason?.includes('.claude/projects'));
+  });
+
   it('real safety core blocks dynamic repository deletion', async () => {
     const pi = new FakeHookAPI();
     hook(pi);
@@ -139,6 +178,14 @@ describe('hook factory (real policy module)', () => {
     hook(pi);
     const r = await pi.invokeToolCall({ toolName: 'bash', input: { command: 'curl https://example.com/' } });
     strictEqual(r, undefined);
+  });
+
+  it('provider-cased Bash URL calls pass through real URL policy', async () => {
+    const pi = new FakeHookAPI();
+    hook(pi);
+    const r = await pi.invokeToolCall({ toolName: 'Bash', input: { command: 'curl http://127.0.0.1/' } });
+    ok(r?.block, 'provider-cased Bash should be URL-gated');
+    ok(r?.reason?.includes('private-network'));
   });
 
   it('localhost blocks through real policy', async () => {

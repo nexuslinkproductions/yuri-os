@@ -127,14 +127,17 @@
       "paths": [
         "_SYSTEM/config/yuri-hook-registry.json",
         "_SYSTEM/Scripts/yuri-hook-registry.mjs",
+        "_SYSTEM/Scripts/yuri-hook-registry.test.mjs",
         "_SYSTEM/Scripts/yuri-hook-adapter.mjs",
         "_SYSTEM/Scripts/policy/yuri-safety-core.mjs",
+        "_SYSTEM/Scripts/policy/yuri-safety-core.test.mjs",
         "_SYSTEM/Scripts/policy/repo-integrity-guard.mjs",
         "_SYSTEM/Scripts/url-policy.mjs",
         "_SYSTEM/config/october-capability-registry.json",
         ".codex/config.toml",
         ".codex/hooks/pre-tool-use.mjs",
-        ".omp/hooks/pre/url-safety-guard.js"
+        ".omp/hooks/pre/url-safety-guard.js",
+        ".omp/hooks/pre/url-safety-guard.test.mjs"
       ],
       "loadRule": "Use before diagnosing, rendering, activating, or migrating hooks across Claude Code, Codex, and OMP. The YURI manifest owns logical hook contracts; harness settings and hook files are replaceable projections. Validate hashes and dependency closure first, keep enforcement deny output harness-native with process exit 0, bound optional October prompt context internally, and never revive retired OpenClaw authority or historical provider hook theater wholesale."
     },

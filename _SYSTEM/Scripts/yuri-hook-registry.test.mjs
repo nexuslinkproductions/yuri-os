@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { Readable, Writable } from 'node:stream';
@@ -16,6 +16,8 @@ import {
 } from './yuri-hook-adapter.mjs';
 import {
   ROOT,
+  codexPreToolCommands,
+  jsonHookCommands,
   loadRegistry,
   providerHealth,
   renderProvider,
@@ -35,8 +37,12 @@ function capture() {
 }
 
 test('canonical registry validates hashes, roles, and dependency closure', () => {
-  const result = validateRegistry(loadRegistry());
+  const registry = loadRegistry();
+  const result = validateRegistry(registry);
   assert.deepEqual(result, { ok: true, hooks: 2, hashedPaths: 8 });
+  const unapproved = structuredClone(registry);
+  unapproved.liveActivation.ownerApproved = false;
+  assert.throws(() => validateRegistry(unapproved), /explicit owner approval/u);
 });
 
 test('provider projections are worktree-rooted and contain no canonical clone path', () => {
@@ -47,6 +53,10 @@ test('provider projections are worktree-rooted and contain no canonical clone pa
   assert.match(codex, /git rev-parse --show-toplevel/u);
   assert.match(codex, /\[\[hooks\.PreToolUse\.hooks\]\]/u);
   assert.doesNotMatch(codex, /hooks\s*=\s*\[/u);
+  assert.ok(
+    readFileSync(path.join(ROOT, '.codex/config.toml'), 'utf8').includes(renderProvider('codex').inlineToml),
+    'live Codex PreToolUse projection must equal the canonical rendered TOML',
+  );
   assert.doesNotMatch(`${claude}${codex}`, /\/Users\/marcelspatz\/YURI-OS-MUSUBI/u);
   assert.equal(omp.module, '.omp/hooks/pre/url-safety-guard.js');
 });
@@ -68,16 +78,38 @@ test('rendered Codex projection works from a nested worktree cwd and never exits
   assert.equal(JSON.parse(result.stdout).hookSpecificOutput.permissionDecision, 'deny');
 });
 
-test('health reports pending live projections and behavioral parity gaps without false-green activation', async () => {
+test('projection parsers require exactly one canonical command and expose duplicates', () => {
+  const expected = 'node "$(git rev-parse --show-toplevel)/hook.mjs"';
+  const codex = [
+    '[[hooks.PreToolUse]]',
+    'matcher = "*"',
+    '[[hooks.PreToolUse.hooks]]',
+    `command = ${JSON.stringify(expected)}`,
+    '[[hooks.PreToolUse]]',
+    'matcher = "Bash"',
+    'hooks = [{ type = "command", command = "node stale.mjs" }]',
+  ].join('\n');
+  assert.deepEqual(codexPreToolCommands(codex), [expected, 'node stale.mjs']);
+
+  const hooksJson = JSON.stringify({ hooks: { UserPromptSubmit: [{ hooks: [
+    { command: 'node raw.mjs' },
+    { command: 'node wrapper.mjs' },
+  ] }] } });
+  assert.deepEqual(jsonHookCommands(hooksJson, 'UserPromptSubmit'), ['node raw.mjs', 'node wrapper.mjs']);
+});
+
+test('health behaviorally verifies every activated live projection', async () => {
   const health = await providerHealth();
-  assert.equal(health.ok, false);
+  assert.equal(health.ok, true);
   assert.equal(health.checks.find((check) => check.id === 'omp-shared-safety-core').ok, true);
-  assert.equal(health.checks.find((check) => check.id === 'omp-universal-pretool-parity').ok, false);
-  assert.equal(health.checks.find((check) => check.id === 'canonical-protected-read-enforcement').ok, false);
-  assert.equal(health.checks.find((check) => check.id === 'codex-root-anchored-pretool').ok, false);
-  assert.equal(health.checks.find((check) => check.id === 'claude-universal-pretool').ok, false);
-  assert.equal(health.checks.find((check) => check.id === 'claude-bounded-october-prompt').ok, false);
-  assert.equal(health.checks.find((check) => check.id === 'codex-bounded-october-prompt').ok, false);
+  for (const id of [
+    'omp-universal-pretool-parity',
+    'canonical-protected-read-enforcement',
+    'codex-root-anchored-pretool',
+    'claude-universal-pretool',
+    'claude-bounded-october-prompt',
+    'codex-bounded-october-prompt',
+  ]) assert.equal(health.checks.find((check) => check.id === id).ok, true, id);
 });
 
 test('sparse bootstrap plan is no-write and the current dependency closure is materialized', () => {

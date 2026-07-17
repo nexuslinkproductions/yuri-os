@@ -16,6 +16,16 @@
     "cwdIndependentWithinWorktree": true,
     "absoluteCanonicalClonePathsForbidden": true
   },
+  "liveActivation": {
+    "ownerApproved": true,
+    "approvedOn": "2026-07-17",
+    "status": "config-applied-session-reload-and-trust-verification-required",
+    "codex": "Restart or reopen from the worktree, inspect /hooks, and trust exactly one changed root-anchored PreToolUse plus one bounded UserPromptSubmit definition. Never bypass hook trust.",
+    "claudeCode": "Use the continuous CLI/PTY settings watcher and inspect /hooks; restart that continuous session only if the Local definitions remain stale.",
+    "omp": "Reload the owning OMP session so the universal tool_call adapter replaces the prior bash-only handler.",
+    "october": "No restart and no hand edit of ~/.october/bus-hook.mjs. If October regenerates .codex/hooks.json, health must fail until the bounded local overlay is reapplied.",
+    "rollback": "Restore only the prior provider commands and activation labels together with their registered hashes; do not replace whole generated lifecycle files."
+  },
   "hooks": [
     {
       "hookId": "yuri.pre-tool.enforcement",
@@ -54,7 +64,7 @@
         {
           "provider": "claude-code",
           "projection": ".claude/settings.local.json",
-          "activation": "implementation-ready-awaiting-parity-gate",
+          "activation": "active-config-verified-session-reload-required",
           "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/yuri-hook-adapter.mjs\" --harness claude",
           "invokedPaths": [
             "_SYSTEM/Scripts/yuri-hook-adapter.mjs"
@@ -63,7 +73,7 @@
         {
           "provider": "codex",
           "projection": ".codex/config.toml",
-          "activation": "implementation-ready-awaiting-parity-gate",
+          "activation": "active-config-verified-session-reload-required",
           "command": "node \"$(git rev-parse --show-toplevel)/_SYSTEM/Scripts/yuri-hook-adapter.mjs\" --harness codex",
           "invokedPaths": [
             "_SYSTEM/Scripts/yuri-hook-adapter.mjs"
@@ -72,7 +82,7 @@
         {
           "provider": "omp",
           "projection": ".omp/hooks/pre/url-safety-guard.js",
-          "activation": "legacy-active-parity-hold",
+          "activation": "active-universal-projection-session-reload-required",
           "command": "OMP HookAPI imports the shared YURI policy and URL cores from the worktree root.",
           "invokedPaths": [
             ".omp/hooks/pre/url-safety-guard.js",
@@ -116,7 +126,7 @@
         {
           "provider": "claude-code",
           "projection": ".claude/settings.local.json",
-          "activation": "implementation-ready-awaiting-parity-gate",
+          "activation": "active-config-verified-session-reload-required",
           "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/yuri-hook-adapter.mjs\" --delegate-october pre-prompt --timeout-ms 1800",
           "invokedPaths": [
             "_SYSTEM/Scripts/yuri-hook-adapter.mjs",
@@ -126,7 +136,7 @@
         {
           "provider": "codex",
           "projection": ".codex/hooks.json",
-          "activation": "external-generator-awaiting-upstream-deadline",
+          "activation": "external-generated-local-overlay-active-reapply-after-regeneration",
           "command": "node \"$(git rev-parse --show-toplevel)/_SYSTEM/Scripts/yuri-hook-adapter.mjs\" --delegate-october pre-prompt --timeout-ms 1800",
           "invokedPaths": [
             "_SYSTEM/Scripts/yuri-hook-adapter.mjs",
@@ -149,13 +159,13 @@
     },
     {
       "surface": ".codex/hooks.json",
-      "status": "external-generated-lifecycle-projection",
-      "rule": "October owns the current lifecycle commands. The YURI registry may render a bounded UserPromptSubmit overlay but must not redefine October endpoints."
+      "status": "external-generated-lifecycle-projection-with-bounded-local-overlay",
+      "rule": "October owns the lifecycle projection. YURI replaces only the raw UserPromptSubmit command with its bounded wrapper; health must detect and reapply that overlay if October regenerates the file. Other October endpoints remain unchanged."
     },
     {
       "surface": ".omp/hooks/pre/url-safety-guard.js",
-      "status": "active-provider-projection-parity-hold",
-      "rule": "The current adapter is live but only routes exact lowercase bash calls through shared YURI cores. It is not universal parity or a logical-role authority; migrate it only through the separately approved live-activation gate."
+      "status": "active-provider-projection-universal",
+      "rule": "Routes every OMP tool event through shared YURI safety, then applies URL policy only to normalized shell tools. It is a replaceable provider adapter, not a logical-role authority."
     },
     {
       "surface": "_SYSTEM/Scripts/yuri-merge-settings.mjs",
@@ -174,12 +184,12 @@
     }
   ],
   "contentHashes": {
-    ".codex/config.toml": "e0828a6474e19e12b26a3a80f7f4ca6c4fcf89636ff0d99cef9d553be79ea2d6",
+    ".codex/config.toml": "c58ef803fec6dc5fb7336b6cdc74261b0dbfbeaafe4459515d27fc13c661b37b",
     ".codex/hooks/pre-tool-use.mjs": "5ef038dea0f2fcb62d5a1c95c9c581a42d5da4011c7542d17f2cadaf9c74c35e",
-    ".omp/hooks/pre/url-safety-guard.js": "2ef4a663f45b7c6794dacf7eff6899f1c6e6975b0646370302a6f7b66d322c90",
+    ".omp/hooks/pre/url-safety-guard.js": "34a7f4c52c3b8d0f8cb521219e79b361793638a9c38be6544f547f8c0a84c628",
     "_SYSTEM/Scripts/_lib/lane-command-gate.mjs": "4c8fb712b8ba70db6a71d9f8b70087cdf79f8815d6bb0fc4fc8a8e532917adce",
     "_SYSTEM/Scripts/policy/repo-integrity-guard.mjs": "1837cabd5c52ad80336c40a7f87758cd8ec2ab0fde4ac68e124f92c393b08738",
-    "_SYSTEM/Scripts/policy/yuri-safety-core.mjs": "e931d3ef28edeaa35d8cbdce784231dea99834e44aa503498e98e43c1da661e9",
+    "_SYSTEM/Scripts/policy/yuri-safety-core.mjs": "e262ca50fb2d60064f527b605c5e626680394864c88ab2cc99a03da59e722aa7",
     "_SYSTEM/Scripts/url-policy.mjs": "1b03b1565f86d0ee4f64e98cf99c33aef8be58b699b56bab2ca3c4dec2f19bee",
     "_SYSTEM/Scripts/yuri-hook-adapter.mjs": "a8db2340bba8374e583c3377902d8c0c6e31ba8d106486fa403ec76d8c8207d5"
   }

@@ -90,7 +90,15 @@ export function validateRegistry(registry = loadRegistry(), { checkHashes = true
 
   const serialized = JSON.stringify(registry);
   assert(!/term-[a-z0-9-]+/iu.test(serialized), 'transient October node identity found in durable hook registry');
+  assert(!/dangerously-bypass-hook-trust/iu.test(serialized), 'hook trust bypass cannot appear in the registry');
   assert(!(registry.hooks ?? []).some((hook) => (hook.providerAdapters ?? []).some((adapter) => /openclaw/iu.test(adapter.provider))), 'OpenClaw cannot be a provider adapter');
+
+  const activated = (registry.hooks ?? []).flatMap((hook) => hook.providerAdapters ?? [])
+    .some((adapter) => /(?:^|-)active(?:-|$)/u.test(adapter.activation));
+  if (activated) {
+    assert(registry.liveActivation?.ownerApproved === true, 'live provider activation requires explicit owner approval');
+    assert(/reload|verified/u.test(registry.liveActivation?.status ?? ''), 'live activation receipt must declare verification/reload state');
+  }
 
   const ids = new Set();
   for (const hook of registry.hooks ?? []) {
@@ -167,6 +175,7 @@ export function renderProvider(provider, registry = loadRegistry()) {
         'type = "command"',
         `command = ${JSON.stringify(pre.command)}`,
         'timeout = 10',
+        'statusMessage = "Applying YURI policy"',
       ].join('\n'),
       hooksJsonOverlay: {
         UserPromptSubmit: [{ hooks: [{ type: 'command', command: prompt.command, timeout: 10 }] }],
@@ -200,21 +209,21 @@ export function sparseBootstrapPlan(registry = loadRegistry()) {
   };
 }
 
-function codexPreToolCommand(source) {
+export function codexPreToolCommands(source) {
   const text = String(source);
   const marker = '[[hooks.PreToolUse]]';
-  const start = text.indexOf(marker);
-  if (start === -1) return null;
-  const tail = text.slice(start);
-  const remainder = tail.slice(marker.length);
-  const boundary = remainder.search(/\n\s*\[\[hooks\.(?!PreToolUse\.hooks\]\])[^\]\n]+\]\]/u);
-  const block = boundary === -1 ? tail : tail.slice(0, marker.length + boundary);
-  const match = block.match(/\bcommand\s*=\s*("(?:\\.|[^"\\])*")/u);
-  if (!match) return null;
-  try { return JSON.parse(match[1]); } catch { return null; }
+  const commands = [];
+  for (const group of text.split(marker).slice(1)) {
+    const boundary = group.search(/\n\s*\[\[hooks\.(?!PreToolUse\.hooks\]\])[^\]\n]+\]\]/u);
+    const block = boundary === -1 ? group : group.slice(0, boundary);
+    const match = block.match(/\bcommand\s*=\s*("(?:\\.|[^"\\])*")/u);
+    if (!match) continue;
+    try { commands.push(JSON.parse(match[1])); } catch { /* invalid TOML string is not healthy */ }
+  }
+  return commands;
 }
 
-function jsonHookCommands(source, event) {
+export function jsonHookCommands(source, event) {
   try {
     const parsed = JSON.parse(String(source));
     return (parsed?.hooks?.[event] ?? [])
@@ -231,7 +240,7 @@ export async function providerHealth(registry = loadRegistry()) {
   const checks = [];
   const codex = fs.readFileSync(path.join(ROOT, '.codex/config.toml'), 'utf8');
   const codexCommand = adapterFor(registry, 'yuri.pre-tool.enforcement', 'codex').command;
-  checks.push({ id: 'codex-root-anchored-pretool', ok: codexPreToolCommand(codex) === codexCommand });
+  checks.push({ id: 'codex-root-anchored-pretool', ok: codexPreToolCommands(codex).join('\n') === codexCommand });
 
   const omp = fs.readFileSync(path.join(ROOT, '.omp/hooks/pre/url-safety-guard.js'), 'utf8');
   checks.push({ id: 'omp-shared-safety-core', ok: omp.includes('yuri-safety-core.mjs') && omp.includes('url-policy.mjs') });
@@ -264,13 +273,13 @@ export async function providerHealth(registry = loadRegistry()) {
   const claude = fs.existsSync(claudeLocalPath) ? fs.readFileSync(claudeLocalPath, 'utf8') : '';
   const claudePreTool = jsonHookCommands(claude, 'PreToolUse');
   const claudePrompt = jsonHookCommands(claude, 'UserPromptSubmit');
-  checks.push({ id: 'claude-universal-pretool', ok: claudePreTool.includes(adapterFor(registry, 'yuri.pre-tool.enforcement', 'claude-code').command) });
-  checks.push({ id: 'claude-bounded-october-prompt', ok: claudePrompt.includes(adapterFor(registry, 'october.prompt-context.pull', 'claude-code').command) });
+  checks.push({ id: 'claude-universal-pretool', ok: claudePreTool.join('\n') === adapterFor(registry, 'yuri.pre-tool.enforcement', 'claude-code').command });
+  checks.push({ id: 'claude-bounded-october-prompt', ok: claudePrompt.join('\n') === adapterFor(registry, 'october.prompt-context.pull', 'claude-code').command });
 
   const codexHooksPath = path.join(ROOT, '.codex/hooks.json');
   const codexHooks = fs.existsSync(codexHooksPath) ? fs.readFileSync(codexHooksPath, 'utf8') : '';
   const codexPrompt = jsonHookCommands(codexHooks, 'UserPromptSubmit');
-  checks.push({ id: 'codex-bounded-october-prompt', ok: codexPrompt.includes(adapterFor(registry, 'october.prompt-context.pull', 'codex').command) });
+  checks.push({ id: 'codex-bounded-october-prompt', ok: codexPrompt.join('\n') === adapterFor(registry, 'october.prompt-context.pull', 'codex').command });
 
   return { ok: checks.every((check) => check.ok), checks };
 }
