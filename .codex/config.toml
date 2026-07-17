@@ -42,6 +42,14 @@ startup_timeout_sec = 5
 # Keep this effectively out of the way so lane-level budgets own cancellation.
 tool_timeout_sec = 21600
 
+[mcp_servers.october]
+command = "sh"
+args = ["-c", 'exec node "$(git rev-parse --show-toplevel)/_SYSTEM/Scripts/october-mcp-stdio-bridge.mjs"']
+env_vars = ["OCTOBER_BUS_PORT", "OCTOBER_BUS_CANVAS", "OCTOBER_BUS_NODE"]
+enabled = true
+startup_timeout_sec = 10
+tool_timeout_sec = 130
+
 [mcp_servers.gitnexus]
 command = "node"
 args = ["_SYSTEM/Scripts/gitnexus-mcp.mjs"]

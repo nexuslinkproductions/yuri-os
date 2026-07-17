@@ -1,5 +1,24 @@
 # Diagnosis receipt — SessionStart loader:1572 + missing MCP tools (2026-07-17)
 
+## Codex/main arbitration — restoration plan superseded
+
+The evidence that `loader:1572` is a `MODULE_NOT_FOUND` failure and that Claude/Codex lack
+working October MCP projections is accepted. The restoration plan later in this receipt is
+**rejected and must not be executed**: tracked or skip-worktree state does not establish that a
+provider hook is canonical, safe, or still required. Do not materialize `.claude/hooks`,
+`.omp/agents`, `_SYSTEM/mure`, or the wider skipped corpus; do not change skip-worktree bits or
+run any sparse-checkout command. `.omp/agents` and OpenClaw are retired and are not MURE
+authorities.
+
+Current repair authority is the provider-neutral YURI hook registry plus the October capability
+projection. The recovery-safe fix removes unresolved or mutating project hook registrations,
+retains the canonical universal PreToolUse and bounded UserPromptSubmit projections, adds
+non-executing active-path health checks, and repairs MCP discovery without static ports or
+persisted canvas/node identities. Source integration and live reload/trust verification are
+separate gates. The independent arbitration receipt counted 23 absent active Claude command
+occurrences across 20 unique paths; it also rejected the proposed zero-skip-worktree invariant in
+favor of the actual invariant: every *active registered dependency* must be materialized.
+
 Lane: Claude Code (Fable 5), YURI-OS-MUSUBI main. Requested by Apollo via October bus
 (temporary capacity assignment). Outbound `message_peer` unavailable in this session (see B-1),
 so this file + the live terminal are the receipt. Read-only diagnosis; NO mutations performed,

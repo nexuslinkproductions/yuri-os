@@ -5,6 +5,14 @@
       "args": [
         "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/voice/voice-mcp-server.py"
       ]
+    },
+    "october": {
+      "type": "http",
+      "url": "http://127.0.0.1:${OCTOBER_BUS_PORT}/mcp",
+      "headers": {
+        "X-October-Canvas": "${OCTOBER_BUS_CANVAS}",
+        "X-October-Node": "${OCTOBER_BUS_NODE}"
+      }
     }
   }
 }

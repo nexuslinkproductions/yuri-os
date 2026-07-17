@@ -1398,7 +1398,7 @@
   "harnessAdapters": [
     {
       "harness": "claude-code",
-      "transport": "project MCP plus generated command hooks",
+      "transport": "project Streamable HTTP MCP plus generated command hooks",
       "projection": ".mcp.json + .claude/settings.local.json",
       "events": [
         "SessionStart",
@@ -1407,11 +1407,22 @@
         "SessionEnd",
         "Notification"
       ],
-      "outerTimeoutMs": 5000
+      "outerTimeoutMs": 5000,
+      "activationSource": {
+        "kind": "project-config",
+        "path": ".mcp.json",
+        "mcpTransport": "streamable-http",
+        "endpointTemplate": "http://127.0.0.1:${OCTOBER_BUS_PORT}/mcp",
+        "requiredEnvironment": [
+          "OCTOBER_BUS_PORT",
+          "OCTOBER_BUS_CANVAS",
+          "OCTOBER_BUS_NODE"
+        ]
+      }
     },
     {
       "harness": "codex",
-      "transport": "project MCP plus generated hooks",
+      "transport": "project stdio-to-HTTP MCP bridge plus generated hooks",
       "projection": ".codex/config.toml + .codex/hooks.json",
       "events": [
         "SessionStart",
@@ -1419,7 +1430,20 @@
         "Stop",
         "PermissionRequest"
       ],
-      "outerTimeoutMs": 10000
+      "outerTimeoutMs": 10000,
+      "activationSource": {
+        "kind": "project-config",
+        "path": ".codex/config.toml",
+        "mcpTransport": "stdio-http-bridge",
+        "bridgePath": "_SYSTEM/Scripts/october-mcp-stdio-bridge.mjs",
+        "rootResolution": "git rev-parse --show-toplevel",
+        "endpointTemplate": "http://127.0.0.1:${OCTOBER_BUS_PORT}/mcp",
+        "requiredEnvironment": [
+          "OCTOBER_BUS_PORT",
+          "OCTOBER_BUS_CANVAS",
+          "OCTOBER_BUS_NODE"
+        ]
+      }
     },
     {
       "harness": "opencode",
@@ -1468,14 +1492,74 @@
     },
     {
       "harness": "pi",
-      "transport": "generated native extension and native message/task tools",
-      "projection": "~/.pi/agent/extensions/october-bus.ts",
+      "transport": "October-generated lifecycle extension plus project essential peer/task compatibility adapter",
+      "projection": "~/.pi/agent/extensions/october-bus.ts + .omp/extensions/october-bus-tools.mjs",
       "events": [
         "session_start",
         "session_shutdown",
         "before_agent_start",
         "agent_end"
-      ]
+      ],
+      "activationSource": {
+        "kind": "october-generated",
+        "path": "~/.pi/agent/extensions/october-bus.ts",
+        "managedBy": "October adapter generator",
+        "status": "generated-source-only",
+        "liveInferredFromPath": false
+      },
+      "compatibilityAdapter": {
+        "path": ".omp/extensions/october-bus-tools.mjs",
+        "mustExist": true,
+        "mustLoad": true,
+        "schemaRuntime": "pi.zod",
+        "toolLoadMode": "essential",
+        "responsibility": "Registers the five peer/task tools only; October remains authoritative for lifecycle delivery and canvas state."
+      },
+      "activationHealth": {
+        "status": "source-ready-session-reload-required",
+        "liveRule": "Path presence is not activation. Live requires every startup and runtime health check below.",
+        "requiredEnvironment": [
+          "OCTOBER_BUS_PORT",
+          "OCTOBER_BUS_CANVAS",
+          "OCTOBER_BUS_NODE"
+        ],
+        "generatedExtension": {
+          "path": "~/.pi/agent/extensions/october-bus.ts",
+          "mustExist": true,
+          "mustLoad": true
+        },
+        "projectCompatibilityAdapter": {
+          "path": ".omp/extensions/october-bus-tools.mjs",
+          "mustExist": true,
+          "mustLoad": true,
+          "schemaRuntime": "pi.zod",
+          "toolLoadMode": "essential",
+          "responsibility": "Registers the five peer/task tools only; October remains authoritative for lifecycle delivery and canvas state."
+        },
+        "nativeToolRegistration": {
+          "requiredTools": [
+            "message_peer",
+            "add_task",
+            "claim_task",
+            "complete_task",
+            "list_tasks"
+          ],
+          "dependency": "host-injected pi.zod",
+          "completeSetRequired": true
+        },
+        "prePromptContext": {
+          "event": "before_agent_start",
+          "endpoint": "/hook/pre-prompt",
+          "injectionRequired": true,
+          "sessionStartIsInsufficient": true
+        },
+        "generatorDefects": [
+          "Missing OCTOBER_BUS_PORT, OCTOBER_BUS_CANVAS, or OCTOBER_BUS_NODE returns before all hooks and tools without a diagnostic.",
+          "session_start reports live status only; unread October context is not pulled until before_agent_start, so no first user turn means no context injection.",
+          "message_peer and all four task tools share one silent typebox import try/catch; import failure registers zero native tools without a diagnostic."
+        ],
+        "activationAction": "Restart the October-launched Pi session with all attachment environment variables, load both the October-generated lifecycle extension and project compatibility adapter, verify all five essential native tools, and prove before_agent_start injected /hook/pre-prompt context. The compatibility adapter must defer when a repaired host adapter provides the complete tool set."
+      }
     },
     {
       "harness": "campfire",

@@ -2340,7 +2340,8 @@ test('config pins task.isolation (auto/patch), maxConcurrency 32, and the full s
     assert.ok(/commit:\s*zai\/glm-5.2/.test(config), 'commit = GLM-5.2');
     assert.ok(/designer:\s*zai\/glm-5.2/.test(config), 'designer = GLM-5.2 (NOT Composer)');
     assert.ok(/vision:\s*openai-codex\/gpt-5.6-luna/.test(config), 'vision = Luna');
-    assert.ok(/advisor:\s*anthropic\/claude-fable-5/.test(config), 'advisor = Fable 5 (canary-proven 2026-07-13; OMP advisor role + normal MURE dispatch both admitted)');
+    assert.ok(/advisor:\s*openai-codex\/gpt-5\.6-luna:max/.test(config), 'advisor = Luna at maximum reasoning');
+    assert.ok(!/advisor:\s*anthropic\/claude-fable-5/.test(config), 'Fable 5 must remain excluded from the active OMP advisor role');
     assert.ok(/slow:\s*anthropic\/claude-opus-4-8/.test(config), 'slow = Opus 4.8');
     assert.ok(!/^\s*default:/.test(config), 'config must not set modelRoles.default (Sol default lives at the session level)');
     assert.ok(!/designer:\s*cursor\/composer/.test(config), 'Composer must never be the designer');

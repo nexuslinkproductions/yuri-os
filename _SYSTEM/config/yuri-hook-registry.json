@@ -8,6 +8,10 @@
     "namedTerminalsAreRoles": false,
     "retiredAdapters": [
       "OpenClaw"
+    ],
+    "retiredAgentSurfaces": [
+      ".openclaw/agents",
+      ".omp/agents"
     ]
   },
   "rootPolicy": {
@@ -15,6 +19,86 @@
     "discovery": "Resolve from the adapter module URL; rendered Codex commands use git rev-parse --show-toplevel from the session cwd.",
     "cwdIndependentWithinWorktree": true,
     "absoluteCanonicalClonePathsForbidden": true
+  },
+  "providerMergeContracts": {
+    "claude-code": {
+      "settingsSources": [
+        ".claude/settings.json",
+        ".claude/settings.local.json"
+      ],
+      "mergeRule": "Repository project and project-local hook groups are additive. Health validates their effective repository merge; user-level settings remain outside source validation.",
+      "eventOwners": {
+        "PreToolUse": "yuri.pre-tool.enforcement",
+        "UserPromptSubmit": "october.prompt-context.pull"
+      },
+      "exactCommandCount": 1,
+      "lifecycleLiveness": {
+        "inventoryAllHookEvents": true,
+        "includeStatusLine": true,
+        "executeCommands": false,
+        "projectSettingsLifecycle": {
+          "source": ".claude/settings.json",
+          "status": "mutating-lifecycle-chain-retired-during-recovery",
+          "requiredCommandCount": 0,
+          "requiredHookEntryCount": 0,
+          "statusLineAllowed": false,
+          "rule": "The former project-owned SessionStart, tool, stop, and status-line chain is retired during recovery. Do not reactivate it by materializing historical hook files."
+        },
+        "repoLocalCommands": {
+          "mustResolveInsideWorktree": true,
+          "mustExist": true,
+          "mustBelongToRegisteredDependencyClosure": true,
+          "forbiddenPathPrefixes": [
+            ".claude/hooks/",
+            ".omp/agents/",
+            ".openclaw/agents/"
+          ]
+        },
+        "canonicalEventContracts": {
+          "PreToolUse": {
+            "hookType": "command",
+            "matcher": "",
+            "maxTimeoutSeconds": 10
+          },
+          "UserPromptSubmit": {
+            "hookType": "command",
+            "matcher": "",
+            "maxTimeoutSeconds": 5
+          }
+        },
+        "externalGeneratedCommands": [
+          {
+            "contractId": "october.claude.generated-lifecycle",
+            "owner": "October",
+            "classification": "external-generated-october",
+            "source": ".claude/settings.local.json",
+            "executable": "node",
+            "scriptPath": "~/.october/bus-hook.mjs",
+            "required": true,
+            "mustExist": true,
+            "hookType": "command",
+            "matcher": "*",
+            "maxTimeoutSeconds": 5,
+            "eventModes": {
+              "SessionStart": "session-start",
+              "Stop": "stop",
+              "SessionEnd": "session-end",
+              "Notification": "notify"
+            }
+          }
+        ],
+        "futureSessionDoctor": {
+          "status": "not-active-until-separately-registered-and-reviewed",
+          "readOnly": true,
+          "bounded": true,
+          "failSoft": true,
+          "rule": "Any future SessionStart doctor must be a registered dependency with a finite timeout, read only non-protected metadata, emit diagnostics without mutation, and never block session startup."
+        }
+      },
+      "forbiddenLegacyCommands": [
+        "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/user-prompt-submit.js\""
+      ]
+    }
   },
   "liveActivation": {
     "ownerApproved": true,
@@ -148,9 +232,14 @@
   ],
   "legacyInventory": [
     {
-      "surface": ".claude/settings.json and .claude/hooks/*",
-      "status": "superseded-not-materialized",
-      "rule": "Do not rehydrate the historical provider-specific hook theater as the universal authority. Migrate still-needed logical behavior explicitly into this registry."
+      "surface": ".claude/settings.json project lifecycle and statusLine chain",
+      "status": "mutating-lifecycle-chain-retired-during-recovery",
+      "rule": "Project settings contain zero lifecycle commands during recovery. PreToolUse and UserPromptSubmit are projected exactly once through .claude/settings.local.json; a future SessionStart doctor must be separately registered, read-only, bounded, and fail-soft."
+    },
+    {
+      "surface": ".claude/hooks/user-prompt-submit.js and historical PreToolUse implementations",
+      "status": "unregistered-legacy-implementation",
+      "rule": "Do not revive these files as active provider registrations. Migrate any still-needed logical behavior explicitly into the universal registry and shared adapter."
     },
     {
       "surface": ".codex/hooks/pre-tool-use.mjs",
@@ -166,6 +255,11 @@
       "surface": ".omp/hooks/pre/url-safety-guard.js",
       "status": "active-provider-projection-universal",
       "rule": "Routes every OMP tool event through shared YURI safety, then applies URL policy only to normalized shell tools. It is a replaceable provider adapter, not a logical-role authority."
+    },
+    {
+      "surface": ".openclaw/agents and .omp/agents",
+      "status": "retired-agent-authority-surfaces",
+      "rule": "Neither historical surface may regain MURE role, model-route, or orchestration authority."
     },
     {
       "surface": "_SYSTEM/Scripts/yuri-merge-settings.mjs",
@@ -184,11 +278,11 @@
     }
   ],
   "contentHashes": {
-    ".codex/config.toml": "c58ef803fec6dc5fb7336b6cdc74261b0dbfbeaafe4459515d27fc13c661b37b",
+    ".codex/config.toml": "1b5c3e28f394e3dac2572f92aa146127a5c2b2f41e6e324b68f0df619b590bf8",
     ".codex/hooks/pre-tool-use.mjs": "5ef038dea0f2fcb62d5a1c95c9c581a42d5da4011c7542d17f2cadaf9c74c35e",
     ".omp/hooks/pre/url-safety-guard.js": "34a7f4c52c3b8d0f8cb521219e79b361793638a9c38be6544f547f8c0a84c628",
     "_SYSTEM/Scripts/_lib/lane-command-gate.mjs": "4c8fb712b8ba70db6a71d9f8b70087cdf79f8815d6bb0fc4fc8a8e532917adce",
-    "_SYSTEM/Scripts/policy/repo-integrity-guard.mjs": "1837cabd5c52ad80336c40a7f87758cd8ec2ab0fde4ac68e124f92c393b08738",
+    "_SYSTEM/Scripts/policy/repo-integrity-guard.mjs": "80df75aeb66e6e7bfe4af002a9ef03d657a0b827b2a5f39efb58d1ca94f98e16",
     "_SYSTEM/Scripts/policy/yuri-safety-core.mjs": "e262ca50fb2d60064f527b605c5e626680394864c88ab2cc99a03da59e722aa7",
     "_SYSTEM/Scripts/url-policy.mjs": "1b03b1565f86d0ee4f64e98cf99c33aef8be58b699b56bab2ca3c4dec2f19bee",
     "_SYSTEM/Scripts/yuri-hook-adapter.mjs": "a8db2340bba8374e583c3377902d8c0c6e31ba8d106486fa403ec76d8c8207d5"

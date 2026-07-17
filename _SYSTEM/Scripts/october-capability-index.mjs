@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // @capability: october-external-capability-index
-// @serves: October | October MCP | October bus | message_peer | claim_task | send_to_node | wait_for_nodes | UserPromptSubmit | external tool registry | capability discovery
-// @does: Projects October's authoritative live MCP tool schemas and installed harness-adapter evidence into a versioned YURI search/xref registry without copying transient canvas state.
-// @use: Run --refresh with an attached October canvas plus an explicit app version and bundle SHA; run --validate offline; run --check-live after an October upgrade to detect tool-schema drift.
-// @exports: buildRegistry, classifyTool, fetchOctoberTools, parseMcpResponse, schemaDigest, validateRegistry
+// @serves: October | October MCP | October bus | Claude MCP server-name health | message_peer | claim_task | send_to_node | wait_for_nodes | UserPromptSubmit | Pi activation health | external tool registry | capability discovery
+// @does: Projects October's authoritative live MCP tool schemas and harness-adapter contracts into a versioned YURI search/xref registry without copying transient canvas state or treating generated-path presence as runtime activation.
+// @use: Run --refresh with an attached October canvas plus an explicit app version and bundle SHA; run --validate offline; run --check-live after an October upgrade; run --check-claude-mcp for the project server-name invariant; run --check-pi for a fail-closed generated-source/runtime-evidence health report.
+// @exports: buildRegistry, checkClaudeOctoberMcpConfigurationFromDisk, checkPiActivationFromDisk, classifyTool, evaluatePiActivation, fetchOctoberTools, inspectPiCompatibilitySource, inspectPiGeneratedSource, parseMcpResponse, schemaDigest, validateClaudeOctoberMcpConfiguration, validateRegistry
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -16,6 +16,72 @@ export const REGISTRY_PATH = path.join(ROOT, '_SYSTEM/config/october-capability-
 
 const REQUIRED_ENV = ['OCTOBER_BUS_PORT', 'OCTOBER_BUS_CANVAS', 'OCTOBER_BUS_NODE'];
 const REQUIRED_TOOLS = ['message_peer', 'claim_task', 'send_to_node', 'wait_for_nodes'];
+
+export const CLAUDE_OCTOBER_MCP_SERVER_NAME = 'october';
+
+export function validateClaudeOctoberMcpConfiguration({
+  mcpConfig = {},
+  claudeSettings = {},
+} = {}) {
+  const expectedServerName = CLAUDE_OCTOBER_MCP_SERVER_NAME;
+  const expectedPermissionNamespace = `mcp__${expectedServerName}__*`;
+  const mcpServers = mcpConfig?.mcpServers;
+  const configuredServerNames = mcpServers && typeof mcpServers === 'object' && !Array.isArray(mcpServers)
+    ? Object.keys(mcpServers)
+    : [];
+  const enabledServerNames = Array.isArray(claudeSettings?.enabledMcpjsonServers)
+    ? claudeSettings.enabledMcpjsonServers.map(String)
+    : [];
+  const permissionAllow = Array.isArray(claudeSettings?.permissions?.allow)
+    ? claudeSettings.permissions.allow.map(String)
+    : [];
+  const checks = {
+    configuredServerExists: Object.prototype.hasOwnProperty.call(mcpServers ?? {}, expectedServerName),
+    configuredServerEnabled: enabledServerNames.includes(expectedServerName),
+    permissionNamespaceMatches: permissionAllow.includes(expectedPermissionNamespace),
+  };
+  const errors = [];
+  if (!checks.configuredServerExists) errors.push(`.mcp.json is missing MCP server "${expectedServerName}"`);
+  if (!checks.configuredServerEnabled) errors.push(`Claude settings do not enable MCP server "${expectedServerName}"`);
+  if (!checks.permissionNamespaceMatches) errors.push(`Claude settings are missing permission namespace "${expectedPermissionNamespace}"`);
+  return {
+    ok: errors.length === 0,
+    expectedServerName,
+    expectedPermissionNamespace,
+    configuredServerNames,
+    enabledServerNames,
+    permissionAllow,
+    checks,
+    errors,
+  };
+}
+
+export function checkClaudeOctoberMcpConfigurationFromDisk({ rootDirectory = ROOT } = {}) {
+  const files = {
+    mcpConfig: '.mcp.json',
+    claudeSettings: '.claude/settings.local.json',
+  };
+  const readErrors = [];
+  let mcpConfig = {};
+  let claudeSettings = {};
+  try {
+    mcpConfig = JSON.parse(fs.readFileSync(path.join(rootDirectory, files.mcpConfig), 'utf8'));
+  } catch (error) {
+    readErrors.push(`could not read ${files.mcpConfig}: ${error.message}`);
+  }
+  try {
+    claudeSettings = JSON.parse(fs.readFileSync(path.join(rootDirectory, files.claudeSettings), 'utf8'));
+  } catch (error) {
+    readErrors.push(`could not read ${files.claudeSettings}: ${error.message}`);
+  }
+  const verdict = validateClaudeOctoberMcpConfiguration({ mcpConfig, claudeSettings });
+  return {
+    ...verdict,
+    ok: readErrors.length === 0 && verdict.ok,
+    files,
+    errors: [...readErrors, ...verdict.errors],
+  };
+}
 
 const READ_ONLY = new Set([
   'list_peers', 'get_peer_context', 'find', 'list_tasks', 'list_canvas',
@@ -46,6 +112,208 @@ const TOOL_ALIASES = {
   wait_for_nodes: ['wait until agent idle', 'sequence dependent work', 'worker completion'],
   find: ['October AI search', 'semantic canvas workspace search'],
 };
+
+export const PI_REQUIRED_NATIVE_TOOLS = Object.freeze([
+  'message_peer', 'add_task', 'claim_task', 'complete_task', 'list_tasks',
+]);
+
+export const PI_ACTIVATION_CONTRACT = Object.freeze({
+  status: 'source-ready-session-reload-required',
+  liveRule: 'Path presence is not activation. Live requires every startup and runtime health check below.',
+  requiredEnvironment: [...REQUIRED_ENV],
+  generatedExtension: {
+    path: '~/.pi/agent/extensions/october-bus.ts',
+    mustExist: true,
+    mustLoad: true,
+  },
+  projectCompatibilityAdapter: {
+    path: '.omp/extensions/october-bus-tools.mjs',
+    mustExist: true,
+    mustLoad: true,
+    schemaRuntime: 'pi.zod',
+    toolLoadMode: 'essential',
+    responsibility: 'Registers the five peer/task tools only; October remains authoritative for lifecycle delivery and canvas state.',
+  },
+  nativeToolRegistration: {
+    requiredTools: [...PI_REQUIRED_NATIVE_TOOLS],
+    dependency: 'host-injected pi.zod',
+    completeSetRequired: true,
+  },
+  prePromptContext: {
+    event: 'before_agent_start',
+    endpoint: '/hook/pre-prompt',
+    injectionRequired: true,
+    sessionStartIsInsufficient: true,
+  },
+  generatorDefects: [
+    'Missing OCTOBER_BUS_PORT, OCTOBER_BUS_CANVAS, or OCTOBER_BUS_NODE returns before all hooks and tools without a diagnostic.',
+    'session_start reports live status only; unread October context is not pulled until before_agent_start, so no first user turn means no context injection.',
+    'message_peer and all four task tools share one silent typebox import try/catch; import failure registers zero native tools without a diagnostic.',
+  ],
+  activationAction: 'Restart the October-launched Pi session with all attachment environment variables, load both the October-generated lifecycle extension and project compatibility adapter, verify all five essential native tools, and prove before_agent_start injected /hook/pre-prompt context. The compatibility adapter must defer when a repaired host adapter provides the complete tool set.',
+});
+
+function quotedCall(text, functionName, toolName) {
+  const escaped = toolName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`${functionName}\\s*\\(\\s*['"]${escaped}['"]`).test(text);
+}
+
+export function inspectPiGeneratedSource(source) {
+  const text = String(source ?? '');
+  const sessionStartAt = text.search(/pi\.on\(\s*['"]session_start['"]/);
+  const sessionShutdownAt = text.search(/pi\.on\(\s*['"]session_shutdown['"]/);
+  const sessionStartBlock = sessionStartAt === -1
+    ? ''
+    : text.slice(sessionStartAt, sessionShutdownAt > sessionStartAt ? sessionShutdownAt : undefined);
+  const declaredNativeTools = PI_REQUIRED_NATIVE_TOOLS.filter((name) => (
+    name === 'message_peer'
+      ? /name\s*:\s*['"]message_peer['"]/.test(text)
+      : quotedCall(text, 'taskTool', name)
+  ));
+  const checks = {
+    defaultExtensionExport: /export\s+default\s+async\s+function/.test(text),
+    requiredEnvironmentReferences: REQUIRED_ENV.every((key) => text.includes(`process.env.${key}`)),
+    beforeAgentStartHook: /pi\.on\(\s*['"]before_agent_start['"]/.test(text),
+    prePromptEndpoint: text.includes('/hook/pre-prompt'),
+    intendedNativeToolsDeclared: PI_REQUIRED_NATIVE_TOOLS.every((name) => declaredNativeTools.includes(name)),
+  };
+  return {
+    ok: Object.values(checks).every(Boolean),
+    checks,
+    declaredNativeTools,
+    missingDeclaredNativeTools: PI_REQUIRED_NATIVE_TOOLS.filter((name) => !declaredNativeTools.includes(name)),
+    observedGeneratorDefects: {
+      missingEnvironmentEarlyReturn: /if\s*\(\s*!PORT\s*\|\|\s*!CANVAS\s*\|\|\s*!NODE\s*\)\s*return/.test(text),
+      sessionStartDoesNotPullContext: sessionStartBlock.includes('/hook/session')
+        && !sessionStartBlock.includes('/hook/pre-prompt'),
+      silentTypeboxToolFailure: /await\s+import\(\s*['"]typebox['"]\s*\)/.test(text)
+        && /catch\s*\{\s*\/\*\s*typebox[^}]*\*\/\s*\}/i.test(text),
+    },
+  };
+}
+
+export function inspectPiCompatibilitySource(source) {
+  const text = String(source ?? '');
+  const declaredNativeTools = PI_REQUIRED_NATIVE_TOOLS.filter((name) => (
+    name === 'message_peer'
+      ? /name\s*:\s*['"]message_peer['"]/.test(text)
+      : quotedCall(text, 'taskTool', name)
+  ));
+  const checks = {
+    defaultExtensionExport: /export\s+default\s+function\s+octoberPiEssentialTools/.test(text),
+    requiredEnvironmentReferences: REQUIRED_ENV.every((key) => text.includes(key)),
+    hostInjectedZod: /pi\.zod\?\.z/.test(text),
+    noTypeboxImport: !/import\s*\(\s*['"]typebox['"]\s*\)/.test(text),
+    essentialToolLoadMode: /loadMode\s*:\s*['"]essential['"]/.test(text),
+    intendedNativeToolsDeclared: PI_REQUIRED_NATIVE_TOOLS.every((name) => declaredNativeTools.includes(name)),
+    boundedLoopbackTransport: text.includes('AbortController')
+      && /REQUEST_TIMEOUT_MS\s*=\s*2500/.test(text)
+      && text.includes('http://127.0.0.1:${attachment.port}')
+      && !/127\.0\.0\.1:\d+/.test(text),
+  };
+  return {
+    ok: Object.values(checks).every(Boolean),
+    checks,
+    declaredNativeTools,
+    missingDeclaredNativeTools: PI_REQUIRED_NATIVE_TOOLS.filter((name) => !declaredNativeTools.includes(name)),
+  };
+}
+
+export function evaluatePiActivation({
+  env = {},
+  extensionPresent = false,
+  extensionSource = '',
+  compatibilityAdapterPresent = false,
+  compatibilityAdapterSource = '',
+  runtime = {},
+} = {}) {
+  const source = inspectPiGeneratedSource(extensionSource);
+  const compatibility = inspectPiCompatibilitySource(compatibilityAdapterSource);
+  const registeredTools = Array.isArray(runtime.registeredTools)
+    ? [...new Set(runtime.registeredTools.map(String))]
+    : [];
+  const runtimeEvidenceProvided = runtime.extensionLoaded !== undefined
+    || runtime.compatibilityAdapterLoaded !== undefined
+    || runtime.registeredTools !== undefined
+    || runtime.beforeAgentStartContextInjected !== undefined
+    || runtime.startupEnvironmentObserved !== undefined;
+  const missingEnvironment = REQUIRED_ENV.filter((key) => !String(env?.[key] ?? '').trim());
+  const missingNativeTools = PI_REQUIRED_NATIVE_TOOLS.filter((name) => !registeredTools.includes(name));
+  const checks = {
+    startupEnvironmentAttached: missingEnvironment.length === 0,
+    generatedExtensionPresent: extensionPresent === true,
+    generatedSourceContract: extensionPresent === true && source.ok,
+    generatedExtensionLoaded: runtime.extensionLoaded === true,
+    projectCompatibilityAdapterPresent: compatibilityAdapterPresent === true,
+    projectCompatibilitySourceContract: compatibilityAdapterPresent === true && compatibility.ok,
+    projectCompatibilityAdapterLoaded: runtime.compatibilityAdapterLoaded === true,
+    intendedNativeToolsRegistered: missingNativeTools.length === 0,
+    beforeAgentStartContextInjected: runtime.beforeAgentStartContextInjected === true,
+  };
+  const failures = Object.entries(checks).filter(([, ok]) => !ok).map(([name]) => name);
+  const live = failures.length === 0;
+  return {
+    ok: live,
+    live,
+    status: live ? 'live' : (runtimeEvidenceProvided ? 'unhealthy' : 'runtime-unverified'),
+    runtimeEvidenceProvided,
+    checks,
+    missingEnvironment,
+    missingNativeTools,
+    source,
+    compatibility,
+    failures,
+    generatorDefects: PI_ACTIVATION_CONTRACT.generatorDefects,
+    activationAction: PI_ACTIVATION_CONTRACT.activationAction,
+  };
+}
+
+export function checkPiActivationFromDisk({
+  env = process.env,
+  homeDirectory = env.HOME,
+  rootDirectory = ROOT,
+  runtime = {},
+} = {}) {
+  const extensionPath = homeDirectory
+    ? path.join(homeDirectory, '.pi/agent/extensions/october-bus.ts')
+    : null;
+  let extensionSource = '';
+  let extensionPresent = false;
+  let compatibilityAdapterSource = '';
+  let compatibilityAdapterPresent = false;
+  if (extensionPath) {
+    try {
+      extensionSource = fs.readFileSync(extensionPath, 'utf8');
+      extensionPresent = true;
+    } catch {
+      extensionPresent = false;
+    }
+  }
+  const compatibilityAdapterPath = path.join(rootDirectory, PI_ACTIVATION_CONTRACT.projectCompatibilityAdapter.path);
+  try {
+    compatibilityAdapterSource = fs.readFileSync(compatibilityAdapterPath, 'utf8');
+    compatibilityAdapterPresent = true;
+  } catch {
+    compatibilityAdapterPresent = false;
+  }
+  const checkerMissingEnvironment = REQUIRED_ENV.filter((key) => !String(env?.[key] ?? '').trim());
+  const startupEnvironmentObserved = runtime.startupEnvironmentObserved === true;
+  return {
+    ...evaluatePiActivation({
+      env: startupEnvironmentObserved ? env : {},
+      extensionPresent,
+      extensionSource,
+      compatibilityAdapterPresent,
+      compatibilityAdapterSource,
+      runtime,
+    }),
+    extensionPath: PI_ACTIVATION_CONTRACT.generatedExtension.path,
+    compatibilityAdapterPath: PI_ACTIVATION_CONTRACT.projectCompatibilityAdapter.path,
+    startupEnvironmentObserved,
+    checkerEnvironmentAttached: checkerMissingEnvironment.length === 0,
+    checkerEnvironmentScope: 'checker-process-only; does not prove Pi startup environment',
+  };
+}
 
 export const LIFECYCLE_ENDPOINTS = [
   {
@@ -95,17 +363,33 @@ export const LIFECYCLE_ENDPOINTS = [
 export const HARNESS_ADAPTERS = [
   {
     harness: 'claude-code',
-    transport: 'project MCP plus generated command hooks',
+    transport: 'project Streamable HTTP MCP plus generated command hooks',
     projection: '.mcp.json + .claude/settings.local.json',
     events: ['SessionStart', 'UserPromptSubmit', 'Stop', 'SessionEnd', 'Notification'],
     outerTimeoutMs: 5000,
+    activationSource: {
+      kind: 'project-config',
+      path: '.mcp.json',
+      mcpTransport: 'streamable-http',
+      endpointTemplate: 'http://127.0.0.1:${OCTOBER_BUS_PORT}/mcp',
+      requiredEnvironment: REQUIRED_ENV,
+    },
   },
   {
     harness: 'codex',
-    transport: 'project MCP plus generated hooks',
+    transport: 'project stdio-to-HTTP MCP bridge plus generated hooks',
     projection: '.codex/config.toml + .codex/hooks.json',
     events: ['SessionStart', 'UserPromptSubmit', 'Stop', 'PermissionRequest'],
     outerTimeoutMs: 10000,
+    activationSource: {
+      kind: 'project-config',
+      path: '.codex/config.toml',
+      mcpTransport: 'stdio-http-bridge',
+      bridgePath: '_SYSTEM/Scripts/october-mcp-stdio-bridge.mjs',
+      rootResolution: 'git rev-parse --show-toplevel',
+      endpointTemplate: 'http://127.0.0.1:${OCTOBER_BUS_PORT}/mcp',
+      requiredEnvironment: REQUIRED_ENV,
+    },
   },
   {
     harness: 'opencode',
@@ -136,9 +420,18 @@ export const HARNESS_ADAPTERS = [
   },
   {
     harness: 'pi',
-    transport: 'generated native extension and native message/task tools',
-    projection: '~/.pi/agent/extensions/october-bus.ts',
+    transport: 'October-generated lifecycle extension plus project essential peer/task compatibility adapter',
+    projection: '~/.pi/agent/extensions/october-bus.ts + .omp/extensions/october-bus-tools.mjs',
     events: ['session_start', 'session_shutdown', 'before_agent_start', 'agent_end'],
+    activationSource: {
+      kind: 'october-generated',
+      path: '~/.pi/agent/extensions/october-bus.ts',
+      managedBy: 'October adapter generator',
+      status: 'generated-source-only',
+      liveInferredFromPath: false,
+    },
+    compatibilityAdapter: PI_ACTIVATION_CONTRACT.projectCompatibilityAdapter,
+    activationHealth: PI_ACTIVATION_CONTRACT,
   },
   {
     harness: 'campfire',
@@ -326,6 +619,43 @@ export function validateRegistry(registry) {
   const lifecycleText = JSON.stringify(registry?.lifecycleEndpoints ?? []);
   const adapterText = JSON.stringify(registry?.harnessAdapters ?? []);
   if (!lifecycleText.includes('pre-prompt') || !adapterText.includes('UserPromptSubmit')) errors.push('UserPromptSubmit/pre-prompt projection is missing');
+  const adapters = new Map((registry?.harnessAdapters ?? []).map((adapter) => [adapter.harness, adapter]));
+  const claude = adapters.get('claude-code');
+  const codex = adapters.get('codex');
+  const pi = adapters.get('pi');
+  if (claude?.activationSource?.mcpTransport !== 'streamable-http' || claude.activationSource.path !== '.mcp.json') {
+    errors.push('Claude Code October MCP project activation metadata is missing');
+  }
+  if (codex?.activationSource?.mcpTransport !== 'stdio-http-bridge'
+    || codex.activationSource.bridgePath !== '_SYSTEM/Scripts/october-mcp-stdio-bridge.mjs'
+    || codex.activationSource.rootResolution !== 'git rev-parse --show-toplevel') {
+    errors.push('Codex October MCP stdio bridge activation metadata is missing');
+  }
+  if (pi?.activationSource?.kind !== 'october-generated') errors.push('Pi October activation must remain generator-owned metadata');
+  if (pi?.activationSource?.status !== 'generated-source-only' || pi.activationSource.liveInferredFromPath !== false) {
+    errors.push('Pi generated extension path must not be treated as live activation');
+  }
+  if (pi?.compatibilityAdapter?.path !== '.omp/extensions/october-bus-tools.mjs'
+    || pi.compatibilityAdapter.schemaRuntime !== 'pi.zod'
+    || pi.compatibilityAdapter.toolLoadMode !== 'essential') {
+    errors.push('Pi OMP 17 compatibility adapter metadata is missing');
+  }
+  const piHealth = pi?.activationHealth;
+  const piTools = piHealth?.nativeToolRegistration?.requiredTools ?? [];
+  if (REQUIRED_ENV.some((key) => !piHealth?.requiredEnvironment?.includes(key))) errors.push('Pi activation health is missing required October startup environment');
+  if (PI_REQUIRED_NATIVE_TOOLS.some((name) => !piTools.includes(name))) errors.push('Pi activation health is missing intended native tools');
+  if (piHealth?.status !== 'source-ready-session-reload-required'
+    || piHealth?.projectCompatibilityAdapter?.path !== '.omp/extensions/october-bus-tools.mjs'
+    || piHealth?.nativeToolRegistration?.dependency !== 'host-injected pi.zod') {
+    errors.push('Pi source-ready compatibility health contract is missing');
+  }
+  if (piHealth?.prePromptContext?.event !== 'before_agent_start'
+    || piHealth.prePromptContext.endpoint !== '/hook/pre-prompt'
+    || piHealth.prePromptContext.injectionRequired !== true) {
+    errors.push('Pi activation health is missing before_agent_start pre-prompt injection');
+  }
+  if (!Array.isArray(piHealth?.generatorDefects) || piHealth.generatorDefects.length < 3) errors.push('Pi generator defects are not recorded');
+  if (/127\.0\.0\.1:\d+\/mcp/.test(adapterText)) errors.push('static October bus port leaked into harness activation metadata');
   const serialized = JSON.stringify(registry);
   if (/term-[a-z0-9-]+/i.test(serialized)) errors.push('transient October node id leaked into durable registry');
   return { ok: errors.length === 0, errors };
@@ -341,6 +671,20 @@ function readRegistry() {
 }
 
 async function main() {
+  if (process.argv.includes('--check-claude-mcp')) {
+    const verdict = checkClaudeOctoberMcpConfigurationFromDisk();
+    console.log(JSON.stringify(verdict));
+    if (!verdict.ok) process.exitCode = 1;
+    return;
+  }
+
+  if (process.argv.includes('--check-pi')) {
+    const verdict = checkPiActivationFromDisk();
+    console.log(JSON.stringify(verdict));
+    if (!verdict.ok) process.exitCode = 1;
+    return;
+  }
+
   if (process.argv.includes('--refresh')) {
     const version = option('--source-version');
     const bundleSha256 = option('--bundle-sha256');

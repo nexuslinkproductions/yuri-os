@@ -40,6 +40,19 @@ test('blocks find, rsync, and option-prefixed destructive Git forms', () => {
   assert.equal(hit('git clean -ndx'), null, 'dry-run clean remains allowed');
 });
 
+test('blocks sparse-checkout mutations while allowing read-only inspection', () => {
+  for (const command of [
+    'git sparse-checkout add --skip-checks _SYSTEM/Scripts/voice',
+    'git -C . sparse-checkout set _SYSTEM/Scripts',
+    'git -c core.quotePath=false sparse-checkout reapply',
+    'command git sparse-checkout disable',
+    '/usr/bin/git sparse-checkout init --cone',
+  ]) assert.ok(hit(command), command);
+
+  assert.equal(hit('git sparse-checkout list'), null);
+  assert.equal(hit('git sparse-checkout check-rules --stdin'), null);
+});
+
 test('blocks rsync receivers that can replace the repository or protected paths', (t) => {
   for (const command of [
     `rsync -a --ignore-existing /tmp/recovery/ ${ROOT}/`,
@@ -108,6 +121,7 @@ test('shared Codex safety core denies the newly covered bypass classes', () => {
     `rsync -a /tmp/recovery/ ${process.env.HOME}/YURI-OS-MUSUBI/`,
     `rsync -a /tmp/recovery/ ${process.env.HOME}/YURI-OS-MUSUBI/.claude/projects/`,
     'git -C . reset --hard',
+    'git sparse-checkout add --skip-checks _SYSTEM/Scripts/voice',
     `mv ${process.env.HOME}/YURI-OS-MUSUBI /tmp/gone`,
   ]) {
     const decision = evaluateToolCall('exec_command', { cmd: command, workdir: process.env.HOME + '/YURI-OS-MUSUBI' });

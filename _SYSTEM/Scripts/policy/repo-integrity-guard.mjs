@@ -24,6 +24,10 @@ const INTERPRETER_NAMES = new Set([
   'node', 'bun', 'deno', 'python', 'python2', 'python3', 'ruby', 'perl', 'php',
 ]);
 
+const SPARSE_CHECKOUT_MUTATORS = new Set([
+  'add', 'disable', 'init', 'reapply', 'set',
+]);
+
 const RSYNC_VALUE_OPTIONS = new Set([
   '-e', '-f', '-B',
   '--address', '--backup-dir', '--bwlimit', '--checksum-seed', '--chmod',
@@ -189,6 +193,9 @@ function gitDestructiveReason(tokens) {
     const subcommand = (tokens[j] || '').toLowerCase();
     const tail = tokens.slice(j + 1).map((token) => token.toLowerCase());
     if (subcommand === 'reset' && tail.includes('--hard')) return 'git reset --hard is blocked';
+    if (subcommand === 'sparse-checkout' && SPARSE_CHECKOUT_MUTATORS.has(tail[0])) {
+      return 'git sparse-checkout mutation is blocked: it can silently delete ignored runtime data in tracked out-of-cone directories; Marcel\'s password-gated override is required';
+    }
     const cleanDryRun = tail.some((token) =>
       token === '--dry-run' || (/^-[^-]/u.test(token) && token.slice(1).includes('n')),
     );

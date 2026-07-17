@@ -698,7 +698,7 @@ export function renderProjectConfig(projection) {
   lines.push('  commit: zai/glm-5.2');
   lines.push('  designer: zai/glm-5.2');
   lines.push('  vision: openai-codex/gpt-5.6-luna');
-  lines.push('  advisor: anthropic/claude-fable-5');
+  lines.push('  advisor: openai-codex/gpt-5.6-luna:max');
   lines.push('  slow: anthropic/claude-opus-4-8');
   lines.push('');
 

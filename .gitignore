@@ -458,3 +458,6 @@ _SYSTEM/Scripts/alpha-factor-library/data/databento/
 
 # untracked red-team research (placeholder-secret fixtures trip secret-scan)
 02_RESOURCES/RESEARCH/redteam-2026-07-07/
+
+# October desktop — local canvas state
+.october/
