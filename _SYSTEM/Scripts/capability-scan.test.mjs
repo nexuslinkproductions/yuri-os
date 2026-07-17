@@ -10,12 +10,16 @@ test('parses capability annotations and metadata from source content', () => {
     '// @does: proves parsing',
     '// @use: call it',
     '// @exports: one, two',
+    '// @status: legacy',
+    '// @superseded-by: replacement-capability',
     'export const one = 1;',
   ].join('\n');
   const [capability] = parseCapabilityContent('_SYSTEM/Scripts/fixture.mjs', source);
   assert.equal(capability.id, 'fixture-capability');
   assert.deepEqual(capability.serves, ['first', 'second']);
   assert.deepEqual(capability.exports, ['one', 'two']);
+  assert.equal(capability.status, 'legacy');
+  assert.equal(capability.supersededBy, 'replacement-capability');
 });
 
 test('mechanism path filter preserves the scanner directory contract', () => {

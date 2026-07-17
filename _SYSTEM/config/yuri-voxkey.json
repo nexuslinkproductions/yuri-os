@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "id": "yuri-voxkey",
+  "status": "staged",
+  "purpose": "Local push-to-talk dictation with a YURI-owned safety adapter and Flow Bar UI.",
+  "upstream": {
+    "repository": "https://github.com/sorcerai/voxkey",
+    "commit": "f4416ebdf00c1ca4d1b1840103f936d965a66b2f",
+    "commitSignature": "unsigned",
+    "tree": "b0c65684b44deddcee148fc8c79f7c307e62ccc4",
+    "archiveSha256": "b5af7f0e0cbeeaca051e9b50bbd866ecf98db29c00f9cbbc3d27b5583ffd565e",
+    "license": "MIT",
+    "files": {
+      "install.sh": "2e4d1ee1833fa2909fb3c21c0abd33c9dfa910b8fe1808918501067d2551272d",
+      "requirements.lock": "ceb462135f8cb2e7fdda4fea1ece12f30a30ad8506359fa75196f81f61b2b958",
+      "package-lock.json": "eae991245ac5deb4b47bb21506d2f1cf4095c3d410f585e14254535ae6807e08",
+      "hammerspoon/voxkey.lua": "b097804bcff94ea1143336df1fa28625341cb9d633d7649c0dd76e7d13d7ea59",
+      "src/voxkey/cli.py": "d2b643b81384669126ac32e82ffbb110c5f8cc7838226c703978abee7a16904e",
+      "LICENSE": "5a5b5b9ae9038223f17135ffc2a8654a21089ed0570334ff4b9f4e70293436ef"
+    }
+  },
+  "model": {
+    "name": "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8",
+    "archiveBytes": 487170055,
+    "archiveSha256": "5793d0fd397c5778d2cf2126994d58e9d56b1be7c04d13c7a15bb1b4eafb16bf",
+    "license": "CC-BY-4.0"
+  },
+  "requirements": {
+    "python": "3.10",
+    "nodeMinimumMajor": 18,
+    "hammerspoon": true,
+    "minimumFreeBytes": 2147483648
+  },
+  "runtime": {
+    "command": "~/.local/bin/voxkey",
+    "dataRoot": "~/.local/share/voxkey",
+    "modelRoot": "~/.local/share/voxkey/models/parakeet",
+    "hammerspoonModule": "~/.hammerspoon/yuri-voxkey.lua",
+    "hammerspoonInit": "~/.hammerspoon/init.lua",
+    "receipt": "~/.local/state/yuri/voxkey-install.json",
+    "backupRoot": "~/.local/state/yuri/voxkey-backups",
+    "operationLock": "~/.local/state/yuri/voxkey-backups/.operation.lock",
+    "pttHeldFlag": "_SYSTEM/state/voice/ptt-held.flag",
+    "pttOwnerLock": "_SYSTEM/state/voice/ptt-owner.lock/lockfile.lfs"
+  },
+  "hotkey": {
+    "modifiers": [
+      "ctrl"
+    ],
+    "key": "space",
+    "macOSSymbolicHotKeyId": 60,
+    "requireAssignable": true,
+    "automaticSystemRemap": false,
+    "observedBeforeIntegration": {
+      "observedOn": "2026-07-17",
+      "enabled": true,
+      "parameters": [
+        32,
+        49,
+        262144
+      ],
+      "rollback": "Re-enable macOS symbolic hotkey 60 as the previous-input-source Ctrl+Space shortcut."
+    }
+  },
+  "privacy": {
+    "formatter": "disabled",
+    "contextCapture": "disabled",
+    "history": "disabled",
+    "cloudSync": "disabled",
+    "screenCapture": "disabled",
+    "secureFields": "deny",
+    "autoSubmit": false,
+    "launchAtLogin": false
+  },
+  "overlay": {
+    "kind": "bottom-center-flow-bar",
+    "waveform": "animated-indicator",
+    "states": [
+      "ready",
+      "recording",
+      "transcribing",
+      "success",
+      "cancelled",
+      "error"
+    ]
+  },
+  "exclusiveListenerPatterns": [
+    "_SYSTEM/Scripts/voice/voice-ptt.py",
+    "_SYSTEM/Scripts/voice/parakeet-listen.py",
+    "_SYSTEM/Scripts/voice/voice-listen.sh",
+    "_SYSTEM/Scripts/voice/bot.py",
+    "_SYSTEM/Scripts/voice/yuri-interrupt-listener.py"
+  ],
+  "activationGates": [
+    "recovery-capacity-clearance",
+    "transactional-install-and-recovery-tests",
+    "pinned-source-verification",
+    "python-3.10-and-hammerspoon-installed",
+    "macos-control-space-remapped-with-rollback",
+    "microphone-and-accessibility-tcc",
+    "no-competing-voice-listener",
+    "runtime-doctor-pass"
+  ]
+}

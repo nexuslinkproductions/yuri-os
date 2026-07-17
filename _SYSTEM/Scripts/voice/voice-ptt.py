@@ -3,6 +3,8 @@
 # @serves: push to talk | voice control claude | hold key speak inject | voice into vscode claude | hands-on voice command | cancel push to talk
 # @does: GLOBAL push-to-talk voice control. Hold a hotkey, speak, release -> Parakeet transcribes the clip on release (~39ms per second of audio, doesn't degrade with length) -> the text is pasted (clipboard + Cmd-V [+ Return]) into the FOCUSED app — VS Code's Claude input, a terminal Claude, anywhere. Press Escape to CANCEL mid-thought (nothing sent). Drops a ptt-held flag so the Rick-voice overseer never talks over your live dictation. Single-instance (kills prior ptt on launch). No always-on, no VAD wait, no TTS: intentional voice INPUT only.
 # @use: run `ptt` (grant Accessibility to the terminal/python on first run). HOLD the combo (default right-option), speak, release. Tap ESCAPE to cancel a press mid-sentence. Tune: VOICE_PTT_KEY ("ctrl+enter" | "alt+enter" | single like "alt_r"/"f13"), VOICE_PTT_CANCEL_KEY (default "esc"), VOICE_PTT_SUBMIT (1=paste+Enter, 0=paste only), VOICE_MIC_DEVICE, VOICE_PTT_MODEL (default mlx-community/parakeet-tdt-0.6b-v3 = EN+DE auto-detect; set mlx-community/parakeet-tdt-0.6b-v2 for English-only), VOICE_PTT_STREAM (1=experimental live streaming — only wins for short commands; default 0=batch), VOICE_PTT_CHUNK_S.
+# @status: legacy
+# @superseded-by: voice-voxkey-control
 import os, sys, time, threading, queue, subprocess
 # The 2.3G model is cached locally after first download — never phone the HF Hub again.
 # Kills the "unauthenticated requests to the HF Hub" warning AND skips a network round-trip

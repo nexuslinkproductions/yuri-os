@@ -65,6 +65,9 @@ export function parseCapabilityContent(file, content) {
       else if ((g = l.match(/@does:\s*(.+)/))) cap.does = g[1].trim();
       else if ((g = l.match(/@use:\s*(.+)/))) cap.use = g[1].trim();
       else if ((g = l.match(/@exports:\s*(.+)/))) cap.exports = g[1].split(',').map((s) => s.trim()).filter(Boolean);
+      else if ((g = l.match(/@status:\s*(active|legacy|retired)\b/i))) cap.status = g[1].toLowerCase();
+      else if ((g = l.match(/@superseded-by:\s*(\S+)/))) cap.supersededBy = g[1].trim();
+      else if ((g = l.match(/@supersedes:\s*(.+)/))) cap.supersedes = g[1].split('|').map((s) => s.trim()).filter(Boolean);
       else if (!l.includes('//') && !l.includes('#') && l.trim()) break; // left the comment block (js or py/sh)
     }
     out.push(cap);

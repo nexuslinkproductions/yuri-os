@@ -21,7 +21,7 @@ const norm = (s) => String(s || '').normalize('NFKC').toLowerCase()
   .replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
 const toks = (s) => new Set(norm(s).split(' ').filter((t) => t.length > 2));
 
-function score(needTokens, needRaw, cap) {
+export function scoreCapability(needTokens, needRaw, cap) {
   const nr = norm(needRaw);
   let s = 0;
   for (const phrase of cap.serves || []) {
@@ -36,7 +36,24 @@ function score(needTokens, needRaw, cap) {
   const idt = toks(`${cap.id} ${cap.does || ''}`);
   let o2 = 0;
   for (const t of needTokens) if (idt.has(t)) o2++;
-  return s + o2 * 0.5;
+  s += o2 * 0.5;
+
+  // Superseded mechanisms stay searchable for explicit migration/legacy work,
+  // but they must not outrank their active replacement for ordinary recall.
+  // Lifecycle state is source annotation metadata, so ranking does not encode
+  // provider, terminal, model, or one-off query names.
+  const asksForLegacy = /\b(?:legacy|old|right option)\b/.test(nr);
+  if (cap.status === 'legacy' && cap.supersededBy && !asksForLegacy) s *= 0.25;
+  return s;
+}
+
+export function rankCapabilities(need, capabilities, limit = 3) {
+  const needTokens = toks(need);
+  return (capabilities || [])
+    .map((c) => ({ c, s: scoreCapability(needTokens, need, c) }))
+    .filter((x) => x.s > 0.5)
+    .sort((a, b) => b.s - a.s || String(a.c.id).localeCompare(String(b.c.id)))
+    .slice(0, limit);
 }
 
 function main() {
@@ -46,12 +63,7 @@ function main() {
   try { reg = JSON.parse(fs.readFileSync(REGISTRY, 'utf8')); }
   catch (e) { process.stderr.write(`capability registry unreadable: ${e.message}\n`); process.exit(1); }
 
-  const needTokens = toks(need);
-  const ranked = (reg.capabilities || [])
-    .map((c) => ({ c, s: score(needTokens, need, c) }))
-    .filter((x) => x.s > 0.5)
-    .sort((a, b) => b.s - a.s)
-    .slice(0, 3);
+  const ranked = rankCapabilities(need, reg.capabilities, 3);
 
   if (!ranked.length) {
     console.log(`No registered YURI capability matches "${need}".`);
@@ -67,4 +79,5 @@ function main() {
   }
   console.log('CAPABILITY-FIRST: reach for the above before building new code (xref to confirm + locate).');
 }
-main();
+
+if (process.argv[1] && import.meta.url === url.pathToFileURL(process.argv[1]).href) main();
