@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Janine Wälti — Texte &amp; Human Design</title>
+<meta name="description" content="Janine Wälti — Texterin und Human Design Readerin aus der Schweiz. Klare Worte für Blog, Newsletter und Social Media. Readings und Workshops für mehr Klarheit über dich selbst.">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23BE5B36'/%3E%3Ctext x='50' y='68' font-size='58' font-family='Georgia,serif' fill='%23FAF6EF' text-anchor='middle'%3EJ%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================
+   Janine Wälti — design system
+   Texte & Human Design · warm editorial aesthetic
+   ========================================================= */
+
+:root {
+  /* --- color --- */
+  --bg:          #FAF6EF;
+  --bg-alt:      #F1E8D9;
+  --bg-deep:     #EDE1CC;
+  --ink:         #2A241D;
+  --ink-soft:    #5C5346;
+  --ink-faint:   #8A8072;
+  --rust:        #BE5B36;
+  --rust-dark:   #9C4726;
+  --rust-tint:   #F1DDCF;
+  --forest:      #4B5842;
+  --forest-dark: #333D2C;
+  --blush:       #E7C9B9;
+  --line:        #E1D3BC;
+  --paper:       #FFFDF9;
+
+  /* --- type --- */
+  --font-display: "Fraunces", "Iowan Old Style", serif;
+  --font-body: "Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --step-1: clamp(0.86rem, 0.82rem + 0.2vw, 0.95rem);
+  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.1rem);
+  --step-2: clamp(1.3rem, 1.2rem + 0.5vw, 1.6rem);
+  --step-3: clamp(1.7rem, 1.5rem + 1vw, 2.3rem);
+  --step-4: clamp(2.3rem, 1.9rem + 2vw, 3.4rem);
+  --step-5: clamp(2.8rem, 2.2rem + 3vw, 4.4rem);
+
+  /* --- geometry --- */
+  --container: 1180px;
+  --radius-sm: 10px;
+  --radius-md: 20px;
+  --radius-lg: 32px;
+  --edge: clamp(1.25rem, 4vw, 3rem);
+
+  --ease: cubic-bezier(.16,.84,.44,1);
+}
+
+/* =========== reset =========== */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; margin: 0; padding: 0; }
+h1, h2, h3, blockquote, p, figure { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+.skip-link {
+  position: absolute; left: -999px; top: 0;
+  background: var(--ink); color: var(--paper);
+  padding: 0.8em 1.2em; border-radius: 0 0 var(--radius-sm) 0;
+  z-index: 999;
+}
+.skip-link:focus { left: 0; }
+
+.wrap {
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--edge);
+}
+
+h1, h2, h3 { font-family: var(--font-display); font-weight: 500; letter-spacing: -0.01em; color: var(--ink); }
+
+/* =========== buttons =========== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 0.5em;
+  padding: 0.9em 1.6em;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: var(--step-1);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: transform 0.25s var(--ease), background 0.25s var(--ease), color 0.25s var(--ease), border-color .25s var(--ease);
+  white-space: nowrap;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn-primary { background: var(--rust); color: var(--paper); }
+.btn-primary:hover { background: var(--rust-dark); }
+.btn-outline { border-color: var(--ink); color: var(--ink); }
+.btn-outline:hover { background: var(--ink); color: var(--paper); }
+.btn-outline-dark { border-color: var(--paper); color: var(--paper); }
+.btn-outline-dark:hover { background: var(--paper); color: var(--forest-dark); }
+.btn-text { color: var(--rust-dark); font-weight: 600; padding: 0; border-radius: 0; }
+.btn-text:hover { text-decoration: underline; }
+.btn-small { padding: 0.6em 1.3em; font-size: var(--step-1); }
+.btn-full { width: 100%; }
+
+/* =========== header =========== */
+.site-header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(250, 246, 239, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.header-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-block: 1.1rem;
+  gap: 1.5rem;
+}
+.wordmark { display: flex; align-items: center; gap: 0.65rem; flex-shrink: 0; }
+.wordmark-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.1rem; height: 2.1rem;
+  background: var(--rust); color: var(--paper);
+  border-radius: 50%;
+  font-family: var(--font-display); font-size: 0.95rem; font-weight: 600;
+}
+.wordmark-name { font-family: var(--font-display); font-size: 1.15rem; font-weight: 500; }
+
+.main-nav { display: flex; gap: 1.9rem; margin-inline: auto; }
+.main-nav a {
+  font-size: var(--step-1); font-weight: 500; color: var(--ink-soft);
+  position: relative; padding-block: 0.2rem;
+  transition: color 0.2s var(--ease);
+}
+.main-nav a:hover { color: var(--ink); }
+.main-nav a::after {
+  content: ""; position: absolute; left: 0; right: 100%; bottom: -2px; height: 2px;
+  background: var(--rust); transition: right 0.25s var(--ease);
+}
+.main-nav a:hover::after { right: 0; }
+
+.nav-cta { flex-shrink: 0; }
+.nav-toggle {
+  display: none; flex-direction: column; justify-content: center; gap: 5px;
+  width: 2.4rem; height: 2.4rem; background: none; border: none; cursor: pointer;
+  flex-shrink: 0;
+}
+.nav-toggle span { display: block; width: 100%; height: 2px; background: var(--ink); border-radius: 2px; transition: transform .25s var(--ease), opacity .25s var(--ease); }
+.nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* =========== section rhythm =========== */
+section { padding-block: clamp(4rem, 9vw, 7.5rem); }
+.section-eyebrow {
+  font-size: var(--step-1); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--rust-dark); margin-bottom: 0.9rem;
+}
+.section-title { font-size: var(--step-4); line-height: 1.12; max-width: 18ch; }
+.section-lede { font-size: var(--step-2); color: var(--ink-soft); max-width: 56ch; margin-top: 1.1rem; line-height: 1.55; }
+
+/* =========== hero =========== */
+.hero { padding-top: clamp(3.5rem, 8vw, 6rem); }
+.hero-grid {
+  display: grid; grid-template-columns: 1.05fr 0.95fr; gap: clamp(2.5rem, 6vw, 5rem);
+  align-items: center;
+}
+.eyebrow {
+  font-size: var(--step-1); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--forest); margin-bottom: 1.4rem;
+}
+.hero-title {
+  font-size: var(--step-5); line-height: 1.05; letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+}
+.hero-lede { font-size: var(--step-2); color: var(--ink-soft); max-width: 46ch; line-height: 1.6; margin-bottom: 2.1rem; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.3rem; }
+.hero-note { font-size: var(--step-1); color: var(--ink-faint); }
+
+.hero-visual { position: relative; }
+.portrait-frame {
+  aspect-ratio: 4 / 5;
+  border-radius: 62% 38% 55% 45% / 48% 42% 58% 52%;
+  background: linear-gradient(155deg, var(--blush) 0%, var(--rust-tint) 45%, var(--bg-deep) 100%);
+  padding: 1px;
+  position: relative;
+  overflow: hidden;
+}
+.portrait-frame::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: radial-gradient(var(--rust) 1px, transparent 1px);
+  background-size: 16px 16px;
+  opacity: 0.12;
+}
+.portrait-dashed {
+  position: absolute; inset: 14%;
+  border: 1.5px dashed var(--rust-dark);
+  border-radius: 50% 50% 48% 52% / 55% 45% 55% 45%;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+}
+.portrait-dashed span {
+  font-family: var(--font-display); font-style: italic; font-size: var(--step-2);
+  color: var(--rust-dark); opacity: 0.75;
+}
+.portrait-frame-sm { max-width: 320px; }
+
+.hero-chip {
+  position: absolute; background: var(--paper);
+  border: 1px solid var(--line); border-radius: var(--radius-md);
+  padding: 0.9rem 1.3rem; box-shadow: 0 20px 40px -20px rgba(42, 36, 29, 0.25);
+  display: flex; flex-direction: column; gap: 0.15rem;
+}
+.hero-chip strong { font-family: var(--font-display); font-size: var(--step-2); }
+.hero-chip span { font-size: var(--step-1); color: var(--ink-soft); }
+.hero-chip-a { top: 6%; left: -6%; }
+.hero-chip-b { bottom: 8%; right: -8%; }
+
+/* =========== zwei wege / paths =========== */
+.paths { background: var(--bg-alt); }
+.paths-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.75rem; margin-top: 3rem; }
+.path-card {
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg);
+  padding: clamp(1.8rem, 3vw, 2.8rem);
+  display: flex; flex-direction: column; gap: 0.9rem;
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), border-color 0.3s var(--ease);
+}
+.path-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 30px 60px -30px rgba(42, 36, 29, 0.3);
+  border-color: var(--rust);
+}
+.path-icon {
+  width: 3rem; height: 3rem; color: var(--rust);
+  display: flex; align-items: center; justify-content: center;
+}
+.path-icon svg { width: 100%; height: 100%; }
+.path-kicker { font-size: var(--step-1); font-weight: 600; color: var(--ink-faint); letter-spacing: 0.04em; }
+.path-card h3 { font-size: var(--step-3); }
+.path-card p { color: var(--ink-soft); }
+.path-link { margin-top: 0.4rem; font-weight: 600; color: var(--rust-dark); }
+
+/* =========== about =========== */
+.about-grid {
+  display: grid; grid-template-columns: 0.7fr 1.3fr; gap: clamp(2.5rem, 6vw, 5rem);
+  align-items: center;
+}
+.pull-quote {
+  font-family: var(--font-display); font-style: italic; font-weight: 500;
+  font-size: var(--step-3); line-height: 1.4; color: var(--forest-dark);
+  margin-block: 1.3rem 1.6rem;
+  border-left: 3px solid var(--rust);
+  padding-left: 1.3rem;
+}
+.about-copy p { color: var(--ink-soft); margin-bottom: 1rem; max-width: 60ch; }
+.draft-note {
+  display: inline-block; font-size: var(--step-1); font-style: italic;
+  color: var(--ink-faint); background: var(--bg-alt); padding: 0.3em 0.8em;
+  border-radius: var(--radius-sm); margin-bottom: 1.3rem !important;
+}
+
+/* =========== services =========== */
+.services-hd { background: var(--forest-dark); color: var(--bg); }
+.services-hd .section-eyebrow { color: var(--blush); }
+.services-hd .section-title, .services-hd h3 { color: var(--bg); }
+.services-hd .section-lede { color: #C9CFC1; }
+.services-hd .service-card { background: rgba(250,246,239,0.06); border-color: rgba(250,246,239,0.16); }
+.services-hd .service-card p { color: #C9CFC1; }
+.services-hd .service-index { color: var(--blush); }
+.services-hd .inline-cta { border-top-color: rgba(250,246,239,0.16); }
+.services-hd .inline-cta p { color: var(--bg); }
+
+.cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; }
+.service-card {
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-md);
+  padding: clamp(1.6rem, 2.5vw, 2.2rem);
+  transition: transform 0.3s var(--ease);
+}
+.service-card:hover { transform: translateY(-4px); }
+.service-index { font-family: var(--font-display); font-style: italic; font-size: var(--step-2); color: var(--rust); }
+.service-card h3 { font-size: var(--step-2); margin-block: 0.6rem 0.5rem; }
+.service-card p { color: var(--ink-soft); font-size: var(--step-1); }
+
+.inline-cta {
+  margin-top: 3rem; padding-top: 2.2rem; border-top: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.2rem;
+}
+.inline-cta p { font-size: var(--step-2); font-family: var(--font-display); font-style: italic; }
+
+/* =========== process =========== */
+.process-steps {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.75rem;
+  margin-top: 3rem; counter-reset: step;
+  position: relative;
+}
+.process-steps li { position: relative; padding-top: 1.5rem; border-top: 2px solid var(--line); }
+.process-num {
+  display: block; font-family: var(--font-display); font-style: italic;
+  font-size: var(--step-3); color: var(--rust); margin-bottom: 0.6rem;
+}
+.process-steps h3 { font-size: var(--step-2); margin-bottom: 0.4rem; }
+.process-steps p { color: var(--ink-soft); font-size: var(--step-1); }
+
+/* =========== testimonials =========== */
+.testimonial-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; }
+.testimonial-card {
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-md);
+  padding: clamp(1.6rem, 2.5vw, 2rem);
+}
+.testimonial-card blockquote {
+  font-family: var(--font-display); font-style: italic; font-size: var(--step-2);
+  line-height: 1.5; color: var(--ink);
+}
+.testimonial-card figcaption { margin-top: 1rem; font-size: var(--step-1); color: var(--ink-faint); }
+
+/* =========== cta band =========== */
+.cta-band { background: var(--rust); color: var(--paper); }
+.cta-band-inner { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2rem; }
+.cta-band h2 { font-size: var(--step-4); max-width: 20ch; line-height: 1.15; color: var(--paper); }
+.cta-band .hero-actions { justify-content: center; margin: 0; }
+.cta-band .btn-primary { background: var(--paper); color: var(--rust-dark); }
+.cta-band .btn-primary:hover { background: var(--ink); color: var(--paper); }
+
+/* =========== contact =========== */
+.contact-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: clamp(2.5rem, 6vw, 5rem); align-items: start; }
+.contact-list { margin-top: 1.8rem; display: flex; flex-direction: column; gap: 0.8rem; }
+.contact-list a { font-size: var(--step-2); font-weight: 600; color: var(--rust-dark); }
+.contact-list a:hover { text-decoration: underline; }
+
+.contact-form {
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg);
+  padding: clamp(1.8rem, 3vw, 2.6rem);
+  display: flex; flex-direction: column; gap: 1.2rem;
+}
+.form-row { display: flex; flex-direction: column; gap: 0.5rem; }
+.form-row label { font-size: var(--step-1); font-weight: 600; color: var(--ink-soft); }
+.form-row input, .form-row select, .form-row textarea {
+  border: 1.5px solid var(--line); border-radius: var(--radius-sm);
+  padding: 0.8em 1em; background: var(--bg); resize: vertical;
+  transition: border-color 0.2s var(--ease);
+}
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+  outline: none; border-color: var(--rust);
+}
+.form-note { font-size: 0.8rem; color: var(--ink-faint); text-align: center; }
+
+/* =========== footer =========== */
+.site-footer { background: var(--ink); color: var(--bg); padding-top: 3.5rem; }
+.footer-inner {
+  display: flex; flex-wrap: wrap; gap: 2rem; align-items: center; justify-content: space-between;
+  padding-bottom: 2.5rem; border-bottom: 1px solid rgba(250,246,239,0.14);
+}
+.wordmark-footer .wordmark-name { color: var(--bg); }
+.footer-nav { display: flex; gap: 1.6rem; flex-wrap: wrap; }
+.footer-nav a, .footer-legal a { color: #C9C2B4; font-size: var(--step-1); }
+.footer-nav a:hover, .footer-legal a:hover { color: var(--bg); }
+.footer-legal { display: flex; gap: 1.3rem; }
+.footer-bottom {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.6rem;
+  padding-block: 1.6rem 2rem; font-size: 0.85rem; color: #948C7C;
+}
+
+/* =========== reveal-on-scroll =========== */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+/* =========== responsive =========== */
+@media (max-width: 980px) {
+  .main-nav, .nav-cta { display: none; }
+  .nav-toggle { display: flex; }
+  .site-header.nav-open .main-nav {
+    display: flex; position: absolute; top: 100%; left: 0; right: 0;
+    flex-direction: column; background: var(--bg); padding: 1.5rem var(--edge);
+    border-bottom: 1px solid var(--line); gap: 1.1rem;
+    box-shadow: 0 24px 40px -28px rgba(42, 36, 29, 0.4);
+  }
+  .site-header.nav-open .main-nav a { font-size: var(--step-2); }
+
+  .hero-grid { grid-template-columns: 1fr; }
+  .hero-visual { max-width: 420px; margin-inline: auto; order: -1; }
+  .hero-chip { display: none; }
+
+  .paths-grid { grid-template-columns: 1fr; }
+  .about-grid { grid-template-columns: 1fr; }
+  .about-visual { max-width: 260px; margin-inline: auto; }
+  .cards-grid { grid-template-columns: 1fr 1fr; }
+  .process-steps { grid-template-columns: 1fr 1fr; }
+  .testimonial-grid { grid-template-columns: 1fr; }
+  .contact-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 620px) {
+  .cards-grid { grid-template-columns: 1fr; }
+  .process-steps { grid-template-columns: 1fr; }
+  .header-inner { padding-block: 0.9rem; }
+  .wordmark-name { display: none; }
+}
+
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+<header class="site-header" id="top">
+  <div class="wrap header-inner">
+    <a href="#top" class="wordmark">
+      <span class="wordmark-mark">JW</span>
+      <span class="wordmark-name">Janine&nbsp;Wälti</span>
+    </a>
+
+    <nav class="main-nav" id="main-nav" aria-label="Hauptnavigation">
+      <a href="#ueber-mich">Über&nbsp;mich</a>
+      <a href="#texte">Texte</a>
+      <a href="#human-design">Human&nbsp;Design</a>
+      <a href="#ablauf">Ablauf</a>
+      <a href="#kontakt">Kontakt</a>
+    </nav>
+
+    <a href="#kontakt" class="btn btn-primary btn-small nav-cta">Termin&nbsp;buchen</a>
+
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="main-nav" aria-label="Menü öffnen">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy reveal">
+        <p class="eyebrow">Texte&nbsp;· Human&nbsp;Design&nbsp;· Workshops&nbsp;— Schweiz</p>
+        <h1 class="hero-title">Worte, die wirken.<br>Klarheit, die trägt.</h1>
+        <p class="hero-lede">
+          Ich bin Janine — Texterin und Human&nbsp;Design&nbsp;Readerin. Ich helfe dir,
+          deine Botschaft in Worte zu fassen, die wirklich nach dir klingen, und
+          die Klarheit zu finden, die dich in deinem eigenen Tempo führt.
+        </p>
+        <div class="hero-actions">
+          <a href="#texte" class="btn btn-primary">Copywriting&nbsp;anfragen</a>
+          <a href="#human-design" class="btn btn-outline">Reading&nbsp;buchen</a>
+        </div>
+        <p class="hero-note">Antwort innert 48&nbsp;Stunden · 1:1 auf Deutsch</p>
+      </div>
+
+      <div class="hero-visual reveal" aria-hidden="true">
+        <div class="portrait-frame">
+          <div class="portrait-dashed">
+            <span>Foto folgt</span>
+          </div>
+        </div>
+        <div class="hero-chip hero-chip-a">
+          <strong>50+</strong>
+          <span>Texte geschrieben</span>
+        </div>
+        <div class="hero-chip hero-chip-b">
+          <strong>Human Design</strong>
+          <span>Readings &amp; Workshops</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ZWEI WEGE ============ -->
+  <section class="paths" id="wege">
+    <div class="wrap">
+      <p class="section-eyebrow reveal">Zwei Wege, zusammenzuarbeiten</p>
+      <h2 class="section-title reveal">Klare Sprache nach aussen.<br>Klare Sicht nach innen.</h2>
+
+      <div class="paths-grid">
+        <a href="#texte" class="path-card reveal">
+          <span class="path-icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none"><path d="M9 39 L33 15 L39 21 L15 45 L8 46 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M28 20 L34 26" stroke="currentColor" stroke-width="2"/><path d="M6 6 L14 6 M10 2 L10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+          <span class="path-kicker">01 — Texte</span>
+          <h3>Copywriting</h3>
+          <p>Blogartikel, Newsletter und Social&nbsp;Media-Texte, die deine Stimme
+            treffen und deine Leser:innen zum Bleiben bewegen.</p>
+          <span class="path-link">Leistungen ansehen →</span>
+        </a>
+
+        <a href="#human-design" class="path-card reveal">
+          <span class="path-icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="17" stroke="currentColor" stroke-width="2"/><path d="M24 7 L24 41 M9.5 15.5 L38.5 32.5 M9.5 32.5 L38.5 15.5" stroke="currentColor" stroke-width="1.4" opacity=".55"/><circle cx="24" cy="24" r="4" fill="currentColor"/></svg>
+          </span>
+          <span class="path-kicker">02 — Human Design</span>
+          <h3>Readings &amp; Workshops</h3>
+          <p>1:1 Readings und Gruppen-Workshops, die dir zeigen, wie du als du
+            selbst entscheidest, arbeitest und lebst.</p>
+          <span class="path-link">Angebot ansehen →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ÜBER MICH ============ -->
+  <section class="about" id="ueber-mich">
+    <div class="wrap about-grid">
+      <div class="about-visual reveal" aria-hidden="true">
+        <div class="portrait-frame portrait-frame-sm">
+          <div class="portrait-dashed"><span>Foto folgt</span></div>
+        </div>
+      </div>
+      <div class="about-copy reveal">
+        <p class="section-eyebrow">Über mich</p>
+        <blockquote class="pull-quote">
+          „Ich glaube, dass die besten Texte und die klarsten Entscheidungen
+          aus demselben Ort kommen: dem, wer du wirklich bist.“
+        </blockquote>
+        <p>
+          Nach [X Jahren] als Texterin für [Branche/Kund:innen] habe ich Human&nbsp;Design
+          entdeckt — und gemerkt, wie sehr beides zusammenhängt. Klarheit über die eigene
+          Energie ist die Basis für Kommunikation, die trägt. Heute begleite ich Menschen
+          und Marken auf beiden Ebenen: im Wort und im Selbstverständnis.
+        </p>
+        <p class="draft-note">Platzhaltertext — wird mit deiner echten Geschichte ersetzt.</p>
+        <a href="#kontakt" class="btn btn-text">Lern mich kennen →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TEXTE / LEISTUNGEN ============ -->
+  <section class="services services-texte" id="texte">
+    <div class="wrap">
+      <p class="section-eyebrow reveal">Leistungen — Texte</p>
+      <h2 class="section-title reveal">Worte für Blog, Newsletter &amp; Social Media</h2>
+      <p class="section-lede reveal">
+        Jeder Text beginnt mit deiner Stimme, nicht mit einer Vorlage. Ich schreibe,
+        redigiere und strukturiere, bis der Text so klingt, wie du selbst klingen würdest —
+        nur präziser.
+      </p>
+
+      <div class="cards-grid">
+        <article class="service-card reveal">
+          <span class="service-index">01</span>
+          <h3>Blogartikel</h3>
+          <p>SEO-bewusste, gut recherchierte Artikel, die Vertrauen aufbauen und
+            langfristig Reichweite bringen.</p>
+        </article>
+        <article class="service-card reveal">
+          <span class="service-index">02</span>
+          <h3>Newsletter</h3>
+          <p>Regelmässige E-Mails, die geöffnet, gelesen und beantwortet werden —
+            statt im Postfach zu verstauben.</p>
+        </article>
+        <article class="service-card reveal">
+          <span class="service-index">03</span>
+          <h3>Social&nbsp;Media-Texte</h3>
+          <p>Captions und Kampagnen-Texte, die deine Positionierung schärfen statt
+            sie zu verwässern.</p>
+        </article>
+      </div>
+
+      <div class="inline-cta reveal">
+        <p>Nicht sicher, was genau du brauchst? Lass uns kurz sprechen.</p>
+        <a href="#kontakt" class="btn btn-primary">Unverbindlich anfragen</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HUMAN DESIGN / LEISTUNGEN ============ -->
+  <section class="services services-hd" id="human-design">
+    <div class="wrap">
+      <p class="section-eyebrow reveal">Leistungen — Human Design</p>
+      <h2 class="section-title reveal">Readings &amp; Workshops für mehr Klarheit</h2>
+      <p class="section-lede reveal">
+        Human&nbsp;Design ist kein Test, den du bestehst — es ist eine Landkarte, die
+        dir zeigt, wie du bereits funktionierst. Ich übersetze sie in Sprache, die im
+        Alltag trägt.
+      </p>
+
+      <div class="cards-grid">
+        <article class="service-card reveal">
+          <span class="service-index">01</span>
+          <h3>1:1 Reading</h3>
+          <p>Deine Bodygraph im Detail: Energie-Typ, Strategie, Autorität — und was
+            das konkret für deine Entscheidungen bedeutet.</p>
+        </article>
+        <article class="service-card reveal">
+          <span class="service-index">02</span>
+          <h3>Business Reading</h3>
+          <p>Wie du dein Business nach deinem Design statt nach fremden Regeln
+            führst — von Positionierung bis Rhythmus.</p>
+        </article>
+        <article class="service-card reveal">
+          <span class="service-index">03</span>
+          <h3>Gruppen-Workshop</h3>
+          <p>Human&nbsp;Design als Team- oder Gruppenformat — praxisnah, interaktiv,
+            mit Raum für eigene Fragen.</p>
+        </article>
+      </div>
+
+      <div class="inline-cta reveal">
+        <p>Bereit, deine eigene Landkarte zu lesen?</p>
+        <a href="#kontakt" class="btn btn-primary">Reading buchen</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ABLAUF ============ -->
+  <section class="process" id="ablauf">
+    <div class="wrap">
+      <p class="section-eyebrow reveal">So arbeiten wir zusammen</p>
+      <h2 class="section-title reveal">Vom ersten Hallo bis zum fertigen Ergebnis</h2>
+
+      <ol class="process-steps">
+        <li class="reveal">
+          <span class="process-num">01</span>
+          <h3>Kennenlernen</h3>
+          <p>Kurzes Gespräch — per Mail oder Call — über dein Anliegen und deine Ziele.</p>
+        </li>
+        <li class="reveal">
+          <span class="process-num">02</span>
+          <h3>Angebot</h3>
+          <p>Klares Angebot mit Umfang, Zeitrahmen und Preis. Keine versteckten Kosten.</p>
+        </li>
+        <li class="reveal">
+          <span class="process-num">03</span>
+          <h3>Umsetzung</h3>
+          <p>Texte, Reading oder Workshop entstehen — mit Raum für Feedback unterwegs.</p>
+        </li>
+        <li class="reveal">
+          <span class="process-num">04</span>
+          <h3>Ergebnis</h3>
+          <p>Du erhältst fertige Texte oder ein Reading, das nachwirkt — nicht nur nachklingt.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ STIMMEN ============ -->
+  <section class="testimonials" id="stimmen">
+    <div class="wrap">
+      <p class="section-eyebrow reveal">Stimmen</p>
+      <h2 class="section-title reveal">Was andere sagen</h2>
+
+      <div class="testimonial-grid">
+        <figure class="testimonial-card reveal">
+          <blockquote>„[Platzhalter-Zitat einer Kundin/eines Kunden — ersetzt sobald
+            echte Stimmen vorliegen.]“</blockquote>
+          <figcaption>— Platzhalter, Kund:in</figcaption>
+        </figure>
+        <figure class="testimonial-card reveal">
+          <blockquote>„[Platzhalter-Zitat einer Kundin/eines Kunden — ersetzt sobald
+            echte Stimmen vorliegen.]“</blockquote>
+          <figcaption>— Platzhalter, Kund:in</figcaption>
+        </figure>
+        <figure class="testimonial-card reveal">
+          <blockquote>„[Platzhalter-Zitat einer Kundin/eines Kunden — ersetzt sobald
+            echte Stimmen vorliegen.]“</blockquote>
+          <figcaption>— Platzhalter, Kund:in</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA BAND ============ -->
+  <section class="cta-band">
+    <div class="wrap cta-band-inner reveal">
+      <h2>Bereit für klare Worte — oder mehr Klarheit über dich selbst?</h2>
+      <div class="hero-actions">
+        <a href="#kontakt" class="btn btn-primary">Copywriting anfragen</a>
+        <a href="#kontakt" class="btn btn-outline btn-outline-dark">Reading buchen</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ KONTAKT ============ -->
+  <section class="contact" id="kontakt">
+    <div class="wrap contact-grid">
+      <div class="reveal">
+        <p class="section-eyebrow">Kontakt</p>
+        <h2 class="section-title">Schreib mir</h2>
+        <p class="section-lede">
+          Egal ob Text-Projekt oder Reading-Anfrage — schreib mir kurz, worum es geht,
+          und ich melde mich innert 48&nbsp;Stunden zurück.
+        </p>
+        <ul class="contact-list">
+          <li><a href="mailto:hallo@janinewaelti.ch">hallo@janinewaelti.ch</a></li>
+          <li><a href="#" target="_blank" rel="noopener">Instagram ↗</a></li>
+          <li><a href="#" target="_blank" rel="noopener">LinkedIn ↗</a></li>
+        </ul>
+      </div>
+
+      <form class="contact-form reveal" onsubmit="return false;">
+        <div class="form-row">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" autocomplete="name" required>
+        </div>
+        <div class="form-row">
+          <label for="email">E-Mail</label>
+          <input type="email" id="email" name="email" autocomplete="email" required>
+        </div>
+        <div class="form-row">
+          <label for="topic">Ich interessiere mich für</label>
+          <select id="topic" name="topic">
+            <option>Copywriting</option>
+            <option>Human Design Reading</option>
+            <option>Workshop</option>
+            <option>Etwas anderes</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="message">Nachricht</label>
+          <textarea id="message" name="message" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Nachricht senden</button>
+        <p class="form-note">Formular ist ein Design-Platzhalter — Versand folgt bei der Migration zu Hosttech.</p>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <a href="#top" class="wordmark wordmark-footer">
+      <span class="wordmark-mark">JW</span>
+      <span class="wordmark-name">Janine&nbsp;Wälti</span>
+    </a>
+
+    <nav class="footer-nav" aria-label="Footer-Navigation">
+      <a href="#ueber-mich">Über mich</a>
+      <a href="#texte">Texte</a>
+      <a href="#human-design">Human Design</a>
+      <a href="#kontakt">Kontakt</a>
+    </nav>
+
+    <div class="footer-legal">
+      <a href="#impressum">Impressum</a>
+      <a href="#datenschutz">Datenschutz</a>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <p>© <span id="year"></span> Janine Wälti. Alle Rechte vorbehalten.</p>
+    <p class="footer-draft">Design-Entwurf — Inhalte &amp; Bilder folgen.</p>
+  </div>
+</footer>
+
+<script>
+// Janine Wälti — interactions
+
+// current year in footer
+document.getElementById('year').textContent = new Date().getFullYear();
+
+// mobile nav toggle
+const header = document.querySelector('.site-header');
+const toggle = document.getElementById('navToggle');
+toggle.addEventListener('click', () => {
+  const open = header.classList.toggle('nav-open');
+  toggle.setAttribute('aria-expanded', String(open));
+  toggle.setAttribute('aria-label', open ? 'Menü schliessen' : 'Menü öffnen');
+});
+
+// close mobile nav when a link is tapped
+document.querySelectorAll('#main-nav a').forEach(a =>
+  a.addEventListener('click', () => {
+    header.classList.remove('nav-open');
+    toggle.setAttribute('aria-expanded', 'false');
+  })
+);
+
+// reveal-on-scroll
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('is-visible');
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+</script>
+</body>
+</html>
