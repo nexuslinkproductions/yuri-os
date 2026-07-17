@@ -8,7 +8,7 @@
     "unresolvedRoutesAreBlocked": true
   },
   "availabilityDefaults": {
-    "zai/glm-5.2": false,
+    "zai/glm-5.2": true,
     "opencode-go/mimo-v2.5": true
   },
   "seat": {
@@ -30,7 +30,7 @@
       "deepseek": { "min": 0.22, "max": 0.45 },
       "mimo": { "min": 0, "max": 0.18 },
       "openai": { "min": 0.10, "max": 0.30 },
-      "zai": { "min": 0, "max": 0 }
+      "zai": { "min": 0.08, "max": 0.2 }
     },
     "recoveredTargets": {
       "minimax": { "min": 0.28, "max": 0.5 },
