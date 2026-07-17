@@ -13,7 +13,8 @@
  *   install:  REPO_ROOT/yuri-init.sh
  *             _SYSTEM/Scripts/yuri-merge-settings.mjs → export mergeSettings
  *   govern:   _SYSTEM/Scripts/policy/yuri-safety-core.mjs → evaluateToolCall
- *             .claude/settings.json PreToolUse hook chain (11 hooks, 0 call yuri-safety-core)
+ *             _SYSTEM/config/yuri-hook-registry.json → provider-neutral PreToolUse contract
+ *             _SYSTEM/Scripts/yuri-hook-adapter.mjs → evaluateToolCall + URL policy
  *   remember: _SYSTEM/Scripts/memory-kernel.mjs → appendMemoryEntry / MEMORY_AUDIT_LOG
  *             _SYSTEM/Scripts/memory-session-write.mjs → Stop hook → memory_governor.py
  *   recall:   _SYSTEM/Scripts/skill-recall.mjs → rankSkills
@@ -21,9 +22,10 @@
  *             _SYSTEM/OS_KERNEL/search-index.db (FTS5, 1.4 GB)
  *
  * EXPECTED OUTCOMES:
- *   GREEN (7): init artifacts exist, merge-settings self-test, evaluateToolCall blocks,
+ *   GREEN (8): init artifacts exist, merge-settings self-test, universal hook registry contract,
+ *              evaluateToolCall blocks,
  *              memory-kernel exports, Stop hook wiring, skill-recall exports, FTS5 DB exists
- *   RED   (4): S1→S2 hook-chain orphan, S2→S3 governance-no-audit, S3→S4 ledger-not-indexed,
+ *   RED   (3): S2→S3 governance-no-audit, S3→S4 ledger-not-indexed,
  *              S4→S1 no-reindex-on-install
  */
 
@@ -75,50 +77,32 @@ test('S1:install — merge-settings self-test passes', () => {
   );
 });
 
-// ── S1→S2 WIRING GAP ─────────────────────────────────────────────────────────
-// [RED] The canonical governance policy (yuri-safety-core.mjs::evaluateToolCall)
-//       is NOT referenced by any PreToolUse hook in .claude/settings.json.
-//       11 PreToolUse hooks exist; grep for 'yuri-safety-core' across .claude/hooks/
-//       returns nothing. bash-security-guard.js has its own inline CJS denylist.
-//
-// MISSING WIRING:
-//   Option A — Add a PreToolUse hook entry to .claude/settings.json:
-//     { "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/policy/yuri-safety-core.mjs\"" }
-//   Option B — In bash-security-guard.js:1 add:
-//     const { evaluateToolCall } = require('../_SYSTEM/Scripts/policy/yuri-safety-core.mjs')
-//     and delegate dangerous-command evaluation there.
+// ── S1→S2 UNIVERSAL REGISTRY CONTRACT ────────────────────────────────────────
+// The YURI manifest owns the logical PreToolUse role. Claude Code, Codex, and OMP
+// are projections; sparse-absent historical Claude files are not the authority.
 // ─────────────────────────────────────────────────────────────────────────────
 
-test('[RED] S1→S2:WIRE — PreToolUse hook chain must call yuri-safety-core.mjs evaluateToolCall', () => {
-  const settingsPath = join(REPO_ROOT, '.claude/settings.json');
-  assert.ok(existsSync(settingsPath), `.claude/settings.json missing — cannot verify hook chain`);
+test('S1→S2:CONTRACT — universal PreToolUse registry declares every harness route to YURI safety', () => {
+  const registryPath = join(REPO_ROOT, '_SYSTEM/config/yuri-hook-registry.json');
+  const adapterPath = join(REPO_ROOT, '_SYSTEM/Scripts/yuri-hook-adapter.mjs');
+  assert.ok(existsSync(registryPath), `universal hook registry missing at ${registryPath}`);
+  assert.ok(existsSync(adapterPath), `universal hook adapter missing at ${adapterPath}`);
 
-  const settings = JSON.parse(readFileSync(settingsPath, 'utf8'));
-  const preToolGroups = settings?.hooks?.PreToolUse ?? [];
-  const cmds = preToolGroups.flatMap((g) => (g.hooks ?? []).map((h) => h.command ?? ''));
-
-  // Also scan the PreToolUse hook source files for any import of yuri-safety-core
-  const hookFiles = [
-    join(REPO_ROOT, '.claude/hooks/bash-security-guard.js'),
-    join(REPO_ROOT, '.claude/hooks/pre-tool-use.js'),
-    join(REPO_ROOT, '.claude/hooks/claude-protocol-guard.mjs'),
-  ];
-  const hookSrcMentionsSafetyCore = hookFiles
-    .filter(existsSync)
-    .some((p) => readFileSync(p, 'utf8').includes('yuri-safety-core'));
-
+  const registry = JSON.parse(readFileSync(registryPath, 'utf8'));
+  const preTool = registry.hooks?.find((hook) => hook.hookId === 'yuri.pre-tool.enforcement');
+  assert.equal(preTool?.logicalEvent, 'PreToolUse', 'canonical logical PreToolUse hook missing');
   assert.ok(
-    cmds.some((cmd) => cmd.includes('yuri-safety-core')) || hookSrcMentionsSafetyCore,
-    `[RED] No PreToolUse hook references yuri-safety-core.mjs (evaluateToolCall).\n` +
-      `  Hook commands in .claude/settings.json PreToolUse:\n` +
-      `${cmds.map((c) => `    ${c}`).join('\n')}\n` +
-      `  bash-security-guard.js / pre-tool-use.js / claude-protocol-guard.mjs:\n` +
-      `  none import yuri-safety-core. The canonical SEC-1 denylist is orphaned.\n\n` +
-      `  FIX (Option A): add to .claude/settings.json hooks.PreToolUse:\n` +
-      `    { "_yuri": true, "hooks": [{ "command": "node \\"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/policy/yuri-safety-core.mjs\\"" }] }\n` +
-      `  FIX (Option B): in bash-security-guard.js require evaluateToolCall from\n` +
-      `    '../../_SYSTEM/Scripts/policy/yuri-safety-core.mjs' and delegate to it.`,
+    preTool.dependencyClosure.includes('_SYSTEM/Scripts/policy/yuri-safety-core.mjs'),
+    'canonical PreToolUse dependency closure omits yuri-safety-core.mjs',
   );
+  assert.deepEqual(
+    preTool.providerAdapters.map((adapter) => adapter.provider).sort(),
+    ['claude-code', 'codex', 'omp'],
+    'Claude Code, Codex, and OMP projections must all be registered',
+  );
+  const adapterSource = readFileSync(adapterPath, 'utf8');
+  assert.match(adapterSource, /import \{ evaluateToolCall \} from '\.\/policy\/yuri-safety-core\.mjs'/u);
+  assert.match(adapterSource, /import \{ scanCommand \} from '\.\/url-policy\.mjs'/u);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

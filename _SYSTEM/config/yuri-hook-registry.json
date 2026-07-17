@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "kind": "yuri-universal-hook-registry",
+  "authority": {
+    "owner": "YURI",
+    "canonicalSource": "This manifest defines logical hook roles and contracts. Harness files are replaceable projections, never policy authorities.",
+    "architecture": "MURE-matrix-first",
+    "namedTerminalsAreRoles": false,
+    "retiredAdapters": [
+      "OpenClaw"
+    ]
+  },
+  "rootPolicy": {
+    "canonicalRoot": "Git worktree root",
+    "discovery": "Resolve from the adapter module URL; rendered Codex commands use git rev-parse --show-toplevel from the session cwd.",
+    "cwdIndependentWithinWorktree": true,
+    "absoluteCanonicalClonePathsForbidden": true
+  },
+  "hooks": [
+    {
+      "hookId": "yuri.pre-tool.enforcement",
+      "logicalEvent": "PreToolUse",
+      "owner": "YURI",
+      "version": 1,
+      "coreEntrypoint": "_SYSTEM/Scripts/yuri-hook-adapter.mjs",
+      "enabled": true,
+      "required": true,
+      "optional": false,
+      "matcher": "*",
+      "inputContract": "Harness-native JSON is normalized into tool name, tool input, cwd, and logical PreToolUse event.",
+      "outputContract": "Allow emits nothing. Deny emits the harness-native structured block result.",
+      "exitContract": {
+        "normal": 0,
+        "deniedInHookMode": 0,
+        "deniedInCheckMode": 2,
+        "runtimeDefect": "Never exit 1; evaluator defects become a structured deny with exit 0."
+      },
+      "cwdPolicy": "The adapter resolves imports from its own module URL; provider commands must be root-anchored.",
+      "dependencyClosure": [
+        "_SYSTEM/Scripts/yuri-hook-adapter.mjs",
+        "_SYSTEM/Scripts/policy/yuri-safety-core.mjs",
+        "_SYSTEM/Scripts/policy/repo-integrity-guard.mjs",
+        "_SYSTEM/Scripts/_lib/lane-command-gate.mjs",
+        "_SYSTEM/Scripts/url-policy.mjs"
+      ],
+      "failMode": "fail-closed decision, fail-soft process",
+      "protectedScope": "May classify protected path names from hook input; never reads protected contents.",
+      "teardown": "Remove only the generated provider projection; shared policy sources remain registered.",
+      "sourceRefs": [
+        "_SYSTEM/yuri-origin.md",
+        "_SYSTEM/config/yuri-hook-registry.json"
+      ],
+      "providerAdapters": [
+        {
+          "provider": "claude-code",
+          "projection": ".claude/settings.local.json",
+          "activation": "implementation-ready-awaiting-parity-gate",
+          "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/yuri-hook-adapter.mjs\" --harness claude",
+          "invokedPaths": [
+            "_SYSTEM/Scripts/yuri-hook-adapter.mjs"
+          ]
+        },
+        {
+          "provider": "codex",
+          "projection": ".codex/config.toml",
+          "activation": "implementation-ready-awaiting-parity-gate",
+          "command": "node \"$(git rev-parse --show-toplevel)/_SYSTEM/Scripts/yuri-hook-adapter.mjs\" --harness codex",
+          "invokedPaths": [
+            "_SYSTEM/Scripts/yuri-hook-adapter.mjs"
+          ]
+        },
+        {
+          "provider": "omp",
+          "projection": ".omp/hooks/pre/url-safety-guard.js",
+          "activation": "legacy-active-parity-hold",
+          "command": "OMP HookAPI imports the shared YURI policy and URL cores from the worktree root.",
+          "invokedPaths": [
+            ".omp/hooks/pre/url-safety-guard.js",
+            "_SYSTEM/Scripts/policy/yuri-safety-core.mjs",
+            "_SYSTEM/Scripts/url-policy.mjs"
+          ]
+        }
+      ]
+    },
+    {
+      "hookId": "october.prompt-context.pull",
+      "logicalEvent": "UserPromptSubmit",
+      "owner": "October",
+      "wrapperOwner": "YURI",
+      "version": 1,
+      "coreEntrypoint": "_SYSTEM/Scripts/yuri-hook-adapter.mjs",
+      "enabled": true,
+      "required": false,
+      "optional": true,
+      "matcher": "",
+      "inputContract": "Pass the harness prompt-event JSON unchanged to October's generated bus hook.",
+      "outputContract": "Forward successful October context output; timeout, absence, or transport failure emits nothing.",
+      "exitContract": {
+        "normal": 0,
+        "timeout": 0,
+        "delegateError": 0,
+        "runtimeDefect": "Never exit 1; this context/telemetry hook is fail-soft."
+      },
+      "cwdPolicy": "YURI wrapper resolves its own worktree root and invokes the external October generator output with a bounded deadline.",
+      "dependencyClosure": [
+        "_SYSTEM/Scripts/yuri-hook-adapter.mjs"
+      ],
+      "failMode": "fail-soft with 1800 ms internal deadline",
+      "protectedScope": "Does not inspect protected runtime or secrets; transports the current prompt event to the local October bus.",
+      "teardown": "Remove only the generated provider projection. Never edit ~/.october/bus-hook.mjs by hand.",
+      "sourceRefs": [
+        "_SYSTEM/config/october-capability-registry.json",
+        "_SYSTEM/config/yuri-hook-registry.json"
+      ],
+      "providerAdapters": [
+        {
+          "provider": "claude-code",
+          "projection": ".claude/settings.local.json",
+          "activation": "implementation-ready-awaiting-parity-gate",
+          "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/yuri-hook-adapter.mjs\" --delegate-october pre-prompt --timeout-ms 1800",
+          "invokedPaths": [
+            "_SYSTEM/Scripts/yuri-hook-adapter.mjs",
+            "~/.october/bus-hook.mjs"
+          ]
+        },
+        {
+          "provider": "codex",
+          "projection": ".codex/hooks.json",
+          "activation": "external-generator-awaiting-upstream-deadline",
+          "command": "node \"$(git rev-parse --show-toplevel)/_SYSTEM/Scripts/yuri-hook-adapter.mjs\" --delegate-october pre-prompt --timeout-ms 1800",
+          "invokedPaths": [
+            "_SYSTEM/Scripts/yuri-hook-adapter.mjs",
+            "~/.october/bus-hook.mjs"
+          ]
+        }
+      ]
+    }
+  ],
+  "legacyInventory": [
+    {
+      "surface": ".claude/settings.json and .claude/hooks/*",
+      "status": "superseded-not-materialized",
+      "rule": "Do not rehydrate the historical provider-specific hook theater as the universal authority. Migrate still-needed logical behavior explicitly into this registry."
+    },
+    {
+      "surface": ".codex/hooks/pre-tool-use.mjs",
+      "status": "compatibility-shim",
+      "rule": "May delegate to the universal adapter; project activation should invoke the universal adapter with a worktree-rooted command."
+    },
+    {
+      "surface": ".codex/hooks.json",
+      "status": "external-generated-lifecycle-projection",
+      "rule": "October owns the current lifecycle commands. The YURI registry may render a bounded UserPromptSubmit overlay but must not redefine October endpoints."
+    },
+    {
+      "surface": ".omp/hooks/pre/url-safety-guard.js",
+      "status": "active-provider-projection-parity-hold",
+      "rule": "The current adapter is live but only routes exact lowercase bash calls through shared YURI cores. It is not universal parity or a logical-role authority; migrate it only through the separately approved live-activation gate."
+    },
+    {
+      "surface": "_SYSTEM/Scripts/yuri-merge-settings.mjs",
+      "status": "transitional-installer",
+      "rule": "Preserve additive/idempotent user-setting merge behavior; migrate its YURI source input to registry rendering in a separately reviewed installer change."
+    },
+    {
+      "surface": "_SYSTEM/Scripts/golden-path.test.mjs",
+      "status": "registry-aware",
+      "rule": "The S1-to-S2 test validates the universal manifest and adapter, not sparse-absent historical Claude hook files."
+    },
+    {
+      "surface": "~/.october/bus-hook.mjs",
+      "status": "external-generated-delegate",
+      "rule": "October owns and regenerates this file. YURI may bound it but must not hand-edit it."
+    }
+  ],
+  "contentHashes": {
+    ".codex/config.toml": "e0828a6474e19e12b26a3a80f7f4ca6c4fcf89636ff0d99cef9d553be79ea2d6",
+    ".codex/hooks/pre-tool-use.mjs": "5ef038dea0f2fcb62d5a1c95c9c581a42d5da4011c7542d17f2cadaf9c74c35e",
+    ".omp/hooks/pre/url-safety-guard.js": "2ef4a663f45b7c6794dacf7eff6899f1c6e6975b0646370302a6f7b66d322c90",
+    "_SYSTEM/Scripts/_lib/lane-command-gate.mjs": "4c8fb712b8ba70db6a71d9f8b70087cdf79f8815d6bb0fc4fc8a8e532917adce",
+    "_SYSTEM/Scripts/policy/repo-integrity-guard.mjs": "1837cabd5c52ad80336c40a7f87758cd8ec2ab0fde4ac68e124f92c393b08738",
+    "_SYSTEM/Scripts/policy/yuri-safety-core.mjs": "e931d3ef28edeaa35d8cbdce784231dea99834e44aa503498e98e43c1da661e9",
+    "_SYSTEM/Scripts/url-policy.mjs": "1b03b1565f86d0ee4f64e98cf99c33aef8be58b699b56bab2ca3c4dec2f19bee",
+    "_SYSTEM/Scripts/yuri-hook-adapter.mjs": "a8db2340bba8374e583c3377902d8c0c6e31ba8d106486fa403ec76d8c8207d5"
+  }
+}

@@ -1,0 +1,1526 @@
+{
+  "schemaVersion": 1,
+  "kind": "external-capability-projection",
+  "authority": {
+    "owner": "October",
+    "canonicalSource": "Live attached October MCP tools/list plus installed October adapter generator",
+    "projectionOwner": "YURI xref/context layer",
+    "rule": "October defines these capabilities. YURI indexes and validates a versioned projection; it does not redefine the implementations or persist transient canvas/node identities.",
+    "version": "1.0.30",
+    "bundleSha256": "bd1064687e76d0e50b003fcb97b1dd8cc6121e3048d499c55808b9999b6f7137"
+  },
+  "transport": {
+    "endpointTemplate": "http://127.0.0.1:${OCTOBER_BUS_PORT}/mcp",
+    "requiredEnvironment": [
+      "OCTOBER_BUS_PORT",
+      "OCTOBER_BUS_CANVAS",
+      "OCTOBER_BUS_NODE"
+    ],
+    "headers": {
+      "X-October-Canvas": "${OCTOBER_BUS_CANVAS}",
+      "X-October-Node": "${OCTOBER_BUS_NODE}"
+    },
+    "discovery": "JSON-RPC tools/list"
+  },
+  "toolCount": 47,
+  "toolSchemaSha256": "501e41c23187925341209d00c1a97822d3aa9bc48f4ba3d11912a8d26c0b5d17",
+  "tools": [
+    {
+      "name": "add_chat",
+      "description": "Add an AI chat node to the canvas (a conversational coding agent). Like add_terminal, you can use this to bring on a helper agent — a chat node is better when the subtask wants a back-and-forth the user can watch and steer. The new chat is auto-connected to you, so coordinate via message_peer / send_to_node. Pass `harness` to choose the engine (claude-code / codex / opencode / hermes / cursor / grok); defaults to the user's default.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "harness": {
+            "description": "which agent engine",
+            "enum": [
+              "claude-code",
+              "codex",
+              "opencode",
+              "hermes",
+              "cursor",
+              "grok"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "canvas",
+      "authorizationClass": "canvas-write",
+      "stateEffect": "mutates canvas or launches/removes a session",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=add_chat",
+      "aliases": []
+    },
+    {
+      "name": "add_note",
+      "description": "Drop a sticky note on the canvas (instructions, a TODO, a reminder for the user or other agents).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "text": {
+            "description": "the note text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "canvas",
+      "authorizationClass": "canvas-write",
+      "stateEffect": "mutates canvas or launches/removes a session",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=add_note",
+      "aliases": []
+    },
+    {
+      "name": "add_remotion",
+      "description": "Add a Remotion video block to the canvas (a programmatic video project + live Studio preview).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "canvas",
+      "authorizationClass": "canvas-write",
+      "stateEffect": "mutates canvas or launches/removes a session",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=add_remotion",
+      "aliases": []
+    },
+    {
+      "name": "add_screen",
+      "description": "Add a screen (live preview) to the canvas. kind \"desktop\" = a web page, \"phone\" = a mobile screen. It scaffolds a real route/file you can then edit.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "kind": {
+            "description": "desktop (web) or phone; default desktop",
+            "enum": [
+              "desktop",
+              "phone"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "canvas",
+      "authorizationClass": "canvas-write",
+      "stateEffect": "mutates canvas or launches/removes a session",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=add_screen",
+      "aliases": []
+    },
+    {
+      "name": "add_task",
+      "description": "Post a task to this canvas's shared board for any connected agent (including yourself) to pick up. Use it to break work into parallelizable pieces or to hand off follow-ups without addressing a specific peer. Keep the description self-contained — the claimer may have none of your context. Optional `after` lists task ids that must finish first (the task stays blocked until they do). Returns the new task id.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "after": {
+            "description": "task ids that must complete before this one is claimable",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "description": {
+            "description": "what needs doing — self-contained, actionable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "description"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "task-board",
+      "authorizationClass": "board-write",
+      "stateEffect": "mutates shared task-board state",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=add_task",
+      "aliases": []
+    },
+    {
+      "name": "add_terminal",
+      "description": "Add a terminal to the canvas — including to SPAWN A HELPER AGENT for a parallelizable subtask. You are not limited to working alone: when a task splits into independent parts, add a terminal per part with `agent` set, then drive each with send_to_node and coordinate via message_peer (the new terminal is auto-connected to you, so you can message it right away). Pass `agent` (claude / codex / opencode / hermes / cursor / grok) to AUTO-START that coding agent — e.g. \"add 3 claude code terminals\" → call this 3× with agent:\"claude\". For several agents on the SAME repo at once, set `isolate:true` (each gets its own git worktree+branch, no collisions). Omit `agent` for a plain shell. Optionally pass cwd (an absolute folder); it defaults to the workspace folder so the agent boots immediately (omit only to let the user pick a folder, which delays launch).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "agent": {
+            "description": "coding agent to auto-launch in the terminal",
+            "enum": [
+              "claude",
+              "codex",
+              "opencode",
+              "hermes",
+              "cursor",
+              "grok"
+            ],
+            "type": "string"
+          },
+          "cwd": {
+            "description": "absolute folder to open the terminal in",
+            "type": "string"
+          },
+          "isolate": {
+            "description": "run this agent in its OWN git worktree+branch so several agents can work the SAME repo in parallel without colliding. Use when fanning out multiple agents on one codebase.",
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "canvas",
+      "authorizationClass": "canvas-write",
+      "stateEffect": "mutates canvas or launches/removes a session",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=add_terminal",
+      "aliases": []
+    },
+    {
+      "name": "arrange_nodes",
+      "description": "Tidy the layout: lay nodes out in a grid. Pass `ids` to arrange specific nodes (in order), or omit to arrange everything. `columns` sets the grid width (default 3).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "columns": {
+            "description": "grid columns (default 3)",
+            "type": "number"
+          },
+          "ids": {
+            "description": "node ids to arrange, in order; omit for all",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "canvas",
+      "authorizationClass": "canvas-write",
+      "stateEffect": "mutates canvas or launches/removes a session",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=arrange_nodes",
+      "aliases": []
+    },
+    {
+      "name": "ask_user",
+      "description": "Ask the human user a question and wait for their answer. Use before any large, irreversible, or ambiguous change — confirm your approach, or let them choose between valid options (e.g. two designs, which files to touch). Provide 2–4 short `options` when it is a choice; omit them for an open question. Blocks until they reply, then returns their answer. Prefer asking over guessing on consequential decisions; do not ask about trivial, easily-reversible details.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "options": {
+            "description": "2–4 short choices, shown as buttons (optional)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "question": {
+            "description": "the question to show the user",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "user-interaction",
+      "authorizationClass": "user-interaction",
+      "stateEffect": "asks or speaks to the user",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=ask_user",
+      "aliases": []
+    },
+    {
+      "name": "browser_click",
+      "description": "Click an element in the connected browser by CSS selector OR an @ref from browser_snapshot/browser_find (a trusted click at its center, so framework handlers fire; @refs reach into shadow DOM + same-origin iframes). Returns whether an element matched.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "selector": {
+            "description": "CSS selector (e.g. button[type=submit]) or an @ref like @5 from browser_snapshot/find",
+            "type": "string"
+          }
+        },
+        "required": [
+          "selector"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "browser",
+      "authorizationClass": "browser-control",
+      "stateEffect": "changes connected browser state or submits page input",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=browser_click",
+      "aliases": []
+    },
+    {
+      "name": "browser_eval",
+      "description": "Evaluate arbitrary JavaScript in the connected browser page and return the result. Powerful but unrestricted — the user is asked to confirm before it runs.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "code": {
+            "description": "JavaScript expression/statements to run in the page",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "browser",
+      "authorizationClass": "browser-control",
+      "stateEffect": "changes connected browser state or submits page input",
+      "userConfirmation": true,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=browser_eval",
+      "aliases": []
+    },
+    {
+      "name": "browser_find",
+      "description": "Find a clickable element in the connected browser by its visible text (case-insensitive) and get a CSS selector you can pass to browser_click. Use when you know the button/link label but not its selector.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "text": {
+            "description": "visible text of the element, e.g. \"Watch\" or \"Sign in\"",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "browser",
+      "authorizationClass": "read-only",
+      "stateEffect": "none",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=browser_find",
+      "aliases": []
+    },
+    {
+      "name": "browser_get_console",
+      "description": "Get recent console messages (logs/warnings/errors) from the connected browser — useful to reproduce bugs.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "browser",
+      "authorizationClass": "read-only",
+      "stateEffect": "none",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=browser_get_console",
+      "aliases": []
+    },
+    {
+      "name": "browser_get_downloads",
+      "description": "List recent files the connected browser downloaded (filename, state, save path in your Downloads folder).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "browser",
+      "authorizationClass": "read-only",
+      "stateEffect": "none",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=browser_get_downloads",
+      "aliases": []
+    },
+    {
+      "name": "browser_get_network",
+      "description": "Get recent network requests (method, status, type, URL) from the connected browser. Capture starts when an agent is wired in or on first call. Pass `body` (a URL substring) to fetch the response BODY of the most recent matching request — for reverse-engineering an API or debugging a failed response. Body reads ask the user first and have obvious secrets (tokens/cookies) redacted + the body capped.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "body": {
+            "description": "a URL substring; returns that request’s response body instead of the list",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "browser",
+      "authorizationClass": "read-only",
+      "stateEffect": "none",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=browser_get_network",
+      "aliases": []
+    },
+    {
+      "name": "browser_navigate",
+      "description": "Navigate the connected browser to a URL (http/https). Returns the URL it landed on.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "url": {
+            "description": "absolute URL to open, e.g. https://example.com",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "browser",
+      "authorizationClass": "browser-control",
+      "stateEffect": "changes connected browser state or submits page input",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=browser_navigate",
+      "aliases": []
+    },
+    {
+      "name": "browser_press_key",
+      "description": "Press a single key in the connected browser (e.g. Enter, Tab, Escape).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "key": {
+            "description": "key to press, e.g. Enter",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "browser",
+      "authorizationClass": "browser-control",
+      "stateEffect": "changes connected browser state or submits page input",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=browser_press_key",
+      "aliases": []
+    },
+    {
+      "name": "browser_read",
+      "description": "Read the current page of the browser wired to you: its title, URL and visible text. Use this to summarize a page, pull reference content, or check what's on screen after navigating/clicking.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "browser",
+      "authorizationClass": "read-only",
+      "stateEffect": "none",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=browser_read",
+      "aliases": []
+    },
+    {
+      "name": "browser_screenshot",
+      "description": "Take a PNG screenshot of the connected browser viewport. Use when you need to SEE the page (layout, images, canvas) — prefer browser_read for plain text.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "browser",
+      "authorizationClass": "read-only",
+      "stateEffect": "none",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=browser_screenshot",
+      "aliases": []
+    },
+    {
+      "name": "browser_scroll",
+      "description": "Scroll the connected browser: up, down, top or bottom.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "direction": {
+            "description": "scroll direction",
+            "enum": [
+              "up",
+              "down",
+              "top",
+              "bottom"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "direction"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "browser",
+      "authorizationClass": "browser-control",
+      "stateEffect": "changes connected browser state or submits page input",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=browser_scroll",
+      "aliases": []
+    },
+    {
+      "name": "browser_snapshot",
+      "description": "List the visible interactive elements (links, buttons, inputs) on the connected page with their text and CSS selectors — a cheap, token-light alternative to a screenshot for deciding what to click/type.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "browser",
+      "authorizationClass": "read-only",
+      "stateEffect": "none",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=browser_snapshot",
+      "aliases": []
+    },
+    {
+      "name": "browser_type",
+      "description": "Type text into an input/textarea in the connected browser by CSS selector OR an @ref from browser_snapshot/browser_find (React-controlled-input safe). Returns whether an element matched.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "selector": {
+            "description": "CSS selector or an @ref like @5 from browser_snapshot/find",
+            "type": "string"
+          },
+          "text": {
+            "description": "the text to set",
+            "type": "string"
+          }
+        },
+        "required": [
+          "selector",
+          "text"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "browser",
+      "authorizationClass": "browser-control",
+      "stateEffect": "changes connected browser state or submits page input",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=browser_type",
+      "aliases": []
+    },
+    {
+      "name": "browser_upload",
+      "description": "Attach a local file to a <input type=file> in the connected browser (by CSS selector) so the page can upload it. The user is asked to confirm before the file is attached.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "path": {
+            "description": "absolute path of the local file to attach",
+            "type": "string"
+          },
+          "selector": {
+            "description": "CSS selector of the file input (light DOM)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "selector",
+          "path"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "browser",
+      "authorizationClass": "browser-control",
+      "stateEffect": "changes connected browser state or submits page input",
+      "userConfirmation": true,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=browser_upload",
+      "aliases": []
+    },
+    {
+      "name": "browser_wait_for",
+      "description": "Wait until a CSS selector appears in the connected browser, or wait a fixed number of milliseconds. Use after a navigation/click that loads content. Returns whether the wait was satisfied.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "ms": {
+            "description": "fixed wait in milliseconds (if no selector)",
+            "type": "number"
+          },
+          "selector": {
+            "description": "CSS selector to wait for",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "browser",
+      "authorizationClass": "read-only",
+      "stateEffect": "none",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=browser_wait_for",
+      "aliases": []
+    },
+    {
+      "name": "check_inbox",
+      "description": "Pull anything new from your connected peers right now: every message addressed to you (all of them, delivered together — messages that arrived while you were busy are queued and drained as one batch) plus a short note of what peers recently did. (October also surfaces these automatically at the start of your turn.)",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "peer-bus",
+      "authorizationClass": "stateful-read",
+      "stateEffect": "consumes queued inbox entries",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=check_inbox",
+      "aliases": []
+    },
+    {
+      "name": "claim_task",
+      "description": "Claim a task from the shared board before working on it — the claim is atomic, so no other agent can take it once it's yours. Call with a task id to claim that task, or with no id to claim the oldest unblocked open task. Claiming tells everyone the work is covered; do the work, then call complete_task. A claim held by an agent that went offline can be re-claimed.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "id": {
+            "description": "task id to claim; omit for the next available task",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "task-board",
+      "authorizationClass": "board-write",
+      "stateEffect": "mutates shared task-board state",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=claim_task",
+      "aliases": [
+        "atomically claim board work",
+        "task ownership",
+        "shared task board"
+      ]
+    },
+    {
+      "name": "complete_task",
+      "description": "Mark a board task done, optionally with a short note of the outcome (where the result lives, anything the next task needs). Completing a task automatically unblocks tasks that depended on it. Only complete work that is actually done and verified.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "id": {
+            "description": "the task id",
+            "type": "string"
+          },
+          "note": {
+            "description": "one-line outcome — where the result is, caveats",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "task-board",
+      "authorizationClass": "board-write",
+      "stateEffect": "mutates shared task-board state",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=complete_task",
+      "aliases": []
+    },
+    {
+      "name": "connect_nodes",
+      "description": "Draw a connection between two canvas nodes (ids from list_canvas) — e.g. a chat → a screen, or a terminal → a screen. Connecting two AGENTS makes them peers on the bus so they can message_peer each other (agents you spawn via add_terminal/add_chat are already connected to you; use this to wire up agents that were added separately).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "from": {
+            "description": "source node id",
+            "type": "string"
+          },
+          "to": {
+            "description": "target node id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "canvas",
+      "authorizationClass": "canvas-write",
+      "stateEffect": "mutates canvas or launches/removes a session",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=connect_nodes",
+      "aliases": []
+    },
+    {
+      "name": "create_plan",
+      "description": "Lay out a multi-step plan as a live checklist the user watches tick off. REQUIRED whenever the user asks for several things at once (3+ distinct steps — e.g. \"do these 10 things\", \"spin up the whole project\"). Pass `items`: an ordered array of short step descriptions. After creating it, drive EVERY item to completion via update_plan_item — never stop after the first few.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "items": {
+            "description": "ordered list of short step descriptions",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": {
+            "description": "optional plan title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "plan",
+      "authorizationClass": "plan-write",
+      "stateEffect": "mutates visible plan state",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=create_plan",
+      "aliases": []
+    },
+    {
+      "name": "disconnect_nodes",
+      "description": "Remove the connection between two canvas nodes (ids from list_canvas).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "canvas",
+      "authorizationClass": "canvas-write",
+      "stateEffect": "mutates canvas or launches/removes a session",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=disconnect_nodes",
+      "aliases": []
+    },
+    {
+      "name": "find",
+      "description": "Find files in the canvas workspace by MEANING or behaviour — not just filename. e.g. \"the file that handles auth redirects\", \"where the pricing CTA is rendered\", \"what changed recently\". Returns ranked paths, each with a one-line reason and the last commit that touched it. Use this instead of guessing paths.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "query": {
+            "description": "natural-language description of the file(s) you want to locate",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "semantic-search",
+      "authorizationClass": "read-only",
+      "stateEffect": "none",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=find",
+      "aliases": [
+        "October AI search",
+        "semantic canvas workspace search"
+      ]
+    },
+    {
+      "name": "get_node_status",
+      "description": "Check whether a worker agent is busy or idle, by name (e.g. \"Atlas\") or id — instant, and it does NOT interrupt them. Chat agents report precise busy/idle; terminal agents report whether a command is running / waiting for input. Pass `history: true` to also get a short journal of what that agent has been doing lately (its recent per-turn summaries) — use it to answer \"what has X been up to?\" without messaging them. Use before sending dependent work or to report progress to the user.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "history": {
+            "description": "also return the agent's recent turn-by-turn activity journal",
+            "type": "boolean"
+          },
+          "id": {
+            "description": "node id from list_canvas",
+            "type": "string"
+          },
+          "name": {
+            "description": "agent name, e.g. \"Atlas\"",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "worker-orchestration",
+      "authorizationClass": "read-only",
+      "stateEffect": "none",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=get_node_status",
+      "aliases": []
+    },
+    {
+      "name": "get_peer_context",
+      "description": "Get the fuller recent context of your connected peers (what they have been working on). Optionally pass a peer name to focus on one.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "peer": {
+            "description": "peer display name (optional; omit for all peers)",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "peer-bus",
+      "authorizationClass": "read-only",
+      "stateEffect": "none",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=get_peer_context",
+      "aliases": []
+    },
+    {
+      "name": "import_sessions",
+      "description": "Bring the user's EXISTING Claude Code / Codex conversations from this machine onto the canvas: October scans the CLIs' own session transcripts on disk (newest first, skipping sessions October already tracks), and spawns one terminal per session resumed in its original folder (`claude --resume <id>` / `codex resume <id>`). Use when the user asks to bring/import/resume their sessions. The result names what was resumed and how many more exist.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "agent": {
+            "description": "only this CLI (default: both)",
+            "enum": [
+              "claude",
+              "codex"
+            ],
+            "type": "string"
+          },
+          "count": {
+            "description": "how many to bring in (default 5, newest first)",
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "canvas",
+      "authorizationClass": "canvas-write",
+      "stateEffect": "mutates canvas or launches/removes a session",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=import_sessions",
+      "aliases": []
+    },
+    {
+      "name": "install_video_tools",
+      "description": "Make the LOCAL video toolchain ready — downloads a static, libass-enabled ffmpeg to October’s app data on first use (no Homebrew, works on macOS + Windows). Reuses a system ffmpeg when one is already on PATH (no download; skips confirmation in that case). Returns whether ffmpeg is now ready, or guidance when the platform has no auto-install path. Fully local, free, no cloud — ffmpeg burns ASS subtitles and mixes background music for the deterministic captions/BGM pipeline.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "local-runtime",
+      "authorizationClass": "local-runtime-write",
+      "stateEffect": "installs tooling or starts/stops a local process",
+      "userConfirmation": true,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=install_video_tools",
+      "aliases": []
+    },
+    {
+      "name": "list_canvas",
+      "description": "List the nodes on your canvas (screens, chats, terminals/agents by NAME, notes, video blocks) AND the connections between them. Use this to see who is wired to whom; use list_peers for just the peers connected to YOU. Use the ids with move_node / connect_nodes.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "canvas",
+      "authorizationClass": "read-only",
+      "stateEffect": "none",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=list_canvas",
+      "aliases": []
+    },
+    {
+      "name": "list_peers",
+      "description": "List the sessions you are connected to on the canvas, with their latest status and one-line summary.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "peer-bus",
+      "authorizationClass": "read-only",
+      "stateEffect": "none",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=list_peers",
+      "aliases": []
+    },
+    {
+      "name": "list_tasks",
+      "description": "See this canvas's shared task board: every task with its status (open / claimed / done), who claimed it, and whether it's still blocked by dependencies. Check it when you finish something or have spare capacity — unclaimed open tasks are work anyone can pick up with claim_task.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "task-board",
+      "authorizationClass": "read-only",
+      "stateEffect": "none",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=list_tasks",
+      "aliases": []
+    },
+    {
+      "name": "message_peer",
+      "description": "Talk to a connected peer agent — address them by name (e.g. \"Marshall\"). This is the one way you reach a peer: ask a question, answer one, hand off a task, share a finding, debate, or just reply. Your message is delivered VERBATIM and the peer responds on its own — no need to phrase it as a command. If the peer is mid-task, your message is queued and delivered together with anything else waiting the moment they are free — so send once and do NOT retry or take over their work; say \"no reply needed\" in the message when that is the intent, otherwise a reply is expected. Address them by name (check list_peers if unsure who is connected); reply to a peer who messaged you by sending back to their name. To reach several peers at once, pass a comma-separated list (\"Atlas, Orion\") or the word \"all\" (every connected peer) — each recipient gets the same verbatim message. Only reach out when you have something substantive — a real answer, a needed question, or work to hand off. If an exchange is going in circles, or your task is done and there is nothing to pass on, send nothing: staying silent is how a multi-agent loop is meant to end.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "message": {
+            "description": "what to say — your exact words, delivered verbatim",
+            "type": "string"
+          },
+          "peer": {
+            "description": "one peer name (e.g. \"Marshall\") or kind (\"terminal\"/\"chat\"); or a comma list / \"all\" to reach several",
+            "type": "string"
+          }
+        },
+        "required": [
+          "peer",
+          "message"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "peer-bus",
+      "authorizationClass": "communication-write",
+      "stateEffect": "delivers a message or queued prompt",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=message_peer",
+      "aliases": [
+        "communicate with another agent",
+        "reply to peer",
+        "October bus message"
+      ]
+    },
+    {
+      "name": "move_node",
+      "description": "Reposition a canvas node (use an id from list_canvas).",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "x",
+          "y"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "canvas",
+      "authorizationClass": "canvas-write",
+      "stateEffect": "mutates canvas or launches/removes a session",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=move_node",
+      "aliases": []
+    },
+    {
+      "name": "remove_node",
+      "description": "Delete a canvas node and its connections (use an id from list_canvas). Closes a terminal/agent it was running.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "canvas",
+      "authorizationClass": "canvas-write",
+      "stateEffect": "mutates canvas or launches/removes a session",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=remove_node",
+      "aliases": []
+    },
+    {
+      "name": "rename_node",
+      "description": "Rename a canvas node (use an id from list_canvas). For a terminal/chat this sets the agent's name (e.g. \"Marshall\"); for a screen it sets the title.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "description": "the new name/title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "canvas",
+      "authorizationClass": "canvas-write",
+      "stateEffect": "mutates canvas or launches/removes a session",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=rename_node",
+      "aliases": []
+    },
+    {
+      "name": "send_to_node",
+      "description": "Send text to a node (id from list_canvas): for a TERMINAL it is delivered as a queued October message — handed to the agent when it can actually receive it (immediately if idle; after its current task / pending prompt otherwise), never typed over a busy session; for a CHAT it posts the message and runs the agent; for a VIDEO EDITOR it hands the task to the video agent wired to that editor (spawning + connecting one if none is). This is how you DRIVE agents, e.g. \"add 3 claude terminals and have each refactor a different module\". The result says whether it delivered now or was queued.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "description": "the command / prompt to send",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "worker-orchestration",
+      "authorizationClass": "communication-write",
+      "stateEffect": "delivers a message or queued prompt",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=send_to_node",
+      "aliases": [
+        "drive terminal agent",
+        "queue prompt to node",
+        "dispatch work"
+      ]
+    },
+    {
+      "name": "speak",
+      "description": "Say a SHORT spoken confirmation back to the user (one sentence). Only audible when the command arrived by voice/wake-word (ignored for typed commands), so use it freely to confirm hands-free actions, e.g. \"Connected Atlas to Orion and started two agents.\" Do not narrate every tool call — speak once when a request (or plan) is done, or to ask a quick spoken question.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "text": {
+            "description": "a short spoken sentence",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "user-interaction",
+      "authorizationClass": "user-interaction",
+      "stateEffect": "asks or speaks to the user",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=speak",
+      "aliases": []
+    },
+    {
+      "name": "start_dev_server",
+      "description": "Start (run) the app's dev server so screens show a live preview. Optionally pass `path` (a workspace app folder); defaults to the project.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "local-runtime",
+      "authorizationClass": "local-runtime-write",
+      "stateEffect": "installs tooling or starts/stops a local process",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=start_dev_server",
+      "aliases": []
+    },
+    {
+      "name": "stop_dev_server",
+      "description": "Stop the app's dev server. Optionally pass `path`; defaults to the project.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "local-runtime",
+      "authorizationClass": "local-runtime-write",
+      "stateEffect": "installs tooling or starts/stops a local process",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=stop_dev_server",
+      "aliases": []
+    },
+    {
+      "name": "update_plan_item",
+      "description": "Update one plan item as you go: set it in_progress when you start, done when finished, or blocked (with a note) if you truly cannot. Keep the checklist honest so the user sees real progress. Keep calling this until every item is done or blocked.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "id": {
+            "description": "the item id from create_plan (e.g. \"3\")",
+            "type": "string"
+          },
+          "note": {
+            "description": "optional result or blocker note",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "in_progress",
+              "done",
+              "blocked"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "plan",
+      "authorizationClass": "plan-write",
+      "stateEffect": "mutates visible plan state",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=update_plan_item",
+      "aliases": []
+    },
+    {
+      "name": "wait_for_nodes",
+      "description": "Block until the named worker agents finish their current work (go idle), then return their status. Use this to SEQUENCE dependent work — e.g. wait for Atlas to finish the API before telling Orion to build the UI against it. Pass `names` (agent names or ids). Polls up to `timeout_sec` (default 120, max 600). Chat agents give the most reliable completion signal.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "names": {
+            "description": "agent names or node ids to wait for",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "timeout_sec": {
+            "description": "max seconds to wait (default 120, max 600)",
+            "type": "number"
+          }
+        },
+        "required": [
+          "names"
+        ],
+        "type": "object"
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "group": "worker-orchestration",
+      "authorizationClass": "read-only",
+      "stateEffect": "none",
+      "userConfirmation": false,
+      "authority": "October",
+      "invocation": "October MCP tools/call name=wait_for_nodes",
+      "aliases": [
+        "wait until agent idle",
+        "sequence dependent work",
+        "worker completion"
+      ]
+    }
+  ],
+  "lifecycleEndpoints": [
+    {
+      "id": "october.context.pull",
+      "endpoint": "/hook/pre-prompt",
+      "method": "GET",
+      "purpose": "Pull unread peer context and messages before a model turn.",
+      "projections": [
+        "Claude UserPromptSubmit",
+        "Codex UserPromptSubmit",
+        "Gemini BeforeAgent",
+        "OpenCode chat.message",
+        "Pi/Campfire before_agent_start",
+        "Cline beforeModel",
+        "Hermes pre_llm_call",
+        "Cursor sessionStart/stop followup"
+      ]
+    },
+    {
+      "id": "october.turn.complete",
+      "endpoint": "/hook/stop",
+      "method": "POST",
+      "purpose": "Report a completed turn excerpt for October status and summary handling.",
+      "projections": [
+        "Claude/Codex Stop",
+        "Gemini AfterAgent",
+        "OpenCode session.idle",
+        "Pi/Campfire agent_end",
+        "Cline afterRun",
+        "Hermes post_llm_call",
+        "Cursor stop"
+      ]
+    },
+    {
+      "id": "october.session.status",
+      "endpoint": "/hook/session",
+      "method": "POST",
+      "purpose": "Report attached harness session live/offline state and resumable session identity where supported."
+    },
+    {
+      "id": "october.attention.notify",
+      "endpoint": "/hook/notify",
+      "method": "POST",
+      "purpose": "Raise the terminal needs-user-attention signal for approval or notification events."
+    },
+    {
+      "id": "october.peer.message.bridge",
+      "endpoint": "/hook/message-peer",
+      "method": "POST",
+      "purpose": "Native non-MCP bridge used by harness extensions that cannot host an MCP client."
+    },
+    {
+      "id": "october.task.board.bridge",
+      "endpoint": "/hook/task",
+      "method": "POST",
+      "purpose": "Native add/claim/complete/list task bridge for Pi-family and Cline extensions."
+    }
+  ],
+  "harnessAdapters": [
+    {
+      "harness": "claude-code",
+      "transport": "project MCP plus generated command hooks",
+      "projection": ".mcp.json + .claude/settings.local.json",
+      "events": [
+        "SessionStart",
+        "UserPromptSubmit",
+        "Stop",
+        "SessionEnd",
+        "Notification"
+      ],
+      "outerTimeoutMs": 5000
+    },
+    {
+      "harness": "codex",
+      "transport": "project MCP plus generated hooks",
+      "projection": ".codex/config.toml + .codex/hooks.json",
+      "events": [
+        "SessionStart",
+        "UserPromptSubmit",
+        "Stop",
+        "PermissionRequest"
+      ],
+      "outerTimeoutMs": 10000
+    },
+    {
+      "harness": "opencode",
+      "transport": "remote MCP plus generated plugin",
+      "projection": "opencode.json + .opencode/plugins/october-bus.js",
+      "events": [
+        "chat.message",
+        "permission.ask",
+        "session.idle"
+      ]
+    },
+    {
+      "harness": "cursor",
+      "transport": "MCP plus generated global hooks",
+      "projection": ".cursor/mcp.json + .cursor/cli.json + ~/.cursor/hooks.json",
+      "events": [
+        "sessionStart",
+        "stop",
+        "sessionEnd"
+      ],
+      "outerTimeoutMs": 10000
+    },
+    {
+      "harness": "gemini",
+      "transport": "MCP plus generated project hooks",
+      "projection": ".gemini/settings.json",
+      "events": [
+        "SessionStart",
+        "BeforeAgent",
+        "AfterAgent",
+        "Notification"
+      ],
+      "outerTimeoutMs": 5000
+    },
+    {
+      "harness": "grok",
+      "transport": "MCP plus generated global hooks",
+      "projection": ".grok/config.toml + ~/.grok/hooks/october.json",
+      "events": [
+        "SessionStart",
+        "Stop",
+        "SessionEnd",
+        "Notification"
+      ],
+      "outerTimeoutMs": 10000
+    },
+    {
+      "harness": "pi",
+      "transport": "generated native extension and native message/task tools",
+      "projection": "~/.pi/agent/extensions/october-bus.ts",
+      "events": [
+        "session_start",
+        "session_shutdown",
+        "before_agent_start",
+        "agent_end"
+      ]
+    },
+    {
+      "harness": "campfire",
+      "transport": "generated Pi-family native extension and native message/task tools",
+      "projection": "~/.campfire/agent/extensions/october-bus.ts",
+      "events": [
+        "session_start",
+        "session_shutdown",
+        "before_agent_start",
+        "agent_end"
+      ]
+    },
+    {
+      "harness": "cline",
+      "transport": "generated native plugin and native message/task tools",
+      "projection": "~/.cline/plugins/october-bus.ts",
+      "events": [
+        "beforeModel",
+        "afterRun"
+      ]
+    },
+    {
+      "harness": "hermes",
+      "transport": "generated Python plugin",
+      "projection": "~/.hermes/plugins/october-bus",
+      "events": [
+        "on_session_start",
+        "pre_llm_call",
+        "post_llm_call",
+        "pre_approval_request"
+      ],
+      "internalTimeoutMs": 3000
+    }
+  ],
+  "versionedFindings": [
+    {
+      "id": "october.user-prompt-submit.fetch-deadline",
+      "affectedVersion": "1.0.30",
+      "status": "reproduced",
+      "event": "Claude UserPromptSubmit",
+      "owner": "October generator",
+      "symptom": "The generated pre-prompt command can be killed by the 5-second outer hook timeout and shown as a hook failure.",
+      "cause": "pullInjection fetches /hook/pre-prompt without an internal AbortSignal deadline; a stalled October event loop outlives the outer hook budget.",
+      "evidence": "A controlled stalled-loopback fixture remained blocked at 5200ms and required SIGTERM; healthy live, missing-env, and closed-port fixtures exited 0.",
+      "requiredFix": "Use a fail-soft internal request deadline materially shorter than every outer harness timeout, emit nothing on timeout, and add a stalled-server regression fixture. Do not hand-edit ~/.october/bus-hook.mjs because October regenerates it."
+    }
+  ]
+}

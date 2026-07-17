@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-07-16",
+  "updated": "2026-07-17",
   "purpose": "Bounded context packet registry for YURI OS. Active navigation is xref-query first, with propagation-scan for circuitry-node sibling checks; this registry supplies maintained path sets that xref-aware tools and humans can cross-reference.",
   "readOrder": [
     "_SYSTEM/yuri-origin.md",
@@ -92,8 +92,8 @@
     },
     {
       "id": "october-omp-moe-canvas",
-      "label": "MURE Matrix / OMP / October Canvas Workflow Context",
-      "triggers": ["October", "canvas", "MURE matrix", "role matrix", "reducer topology", "verification topology", "capacity binding", "model binding", "Codex terminal", "Claude Code terminal", "Python coordinator", "OMP", "MURE", "MoE", "TaskTool", "fleet bridge", "native dispatch", "correlationId", "worktree fleet"],
+      "label": "MURE Matrix / OMP / October Canvas + Capability Context",
+      "triggers": ["October", "October MCP", "October bus", "context bus", "canvas", "message_peer", "claim_task", "send_to_node", "wait_for_nodes", "UserPromptSubmit", "MCP tools", "AI search", "capability registry", "MURE matrix", "role matrix", "reducer topology", "verification topology", "capacity binding", "model binding", "Codex terminal", "Claude Code terminal", "Python coordinator", "OMP", "MURE", "MoE", "TaskTool", "fleet bridge", "native dispatch", "correlationId", "worktree fleet"],
       "paths": [
         "_SYSTEM/mure/ROLE-TOPOLOGY.md",
         "_SYSTEM/mure/agents",
@@ -107,13 +107,36 @@
         "_SYSTEM/mure/native-dispatch-shadow.mjs",
         "_SYSTEM/config/sol-moe-routing-policy.json",
         "_SYSTEM/config/provider-route-registry.json",
+        "_SYSTEM/config/october-capability-registry.json",
+        "_SYSTEM/Scripts/october-capability-index.mjs",
+        "_SYSTEM/config/yuri-hook-registry.json",
+        "_SYSTEM/Scripts/yuri-hook-registry.mjs",
+        "_SYSTEM/Scripts/yuri-hook-adapter.mjs",
         ".omp/config.yml",
         ".omp/extensions/fleet-bridge.ts",
         "_SYSTEM/Scripts/omp-fleet-protocol.mjs",
         "docs/superpowers/specs/2026-07-15-october-omp-fleet-bridge-design.md",
         "skills/omp-moe-dispatch/SKILL.md"
       ],
-      "loadRule": "Use for reusable canvas orchestration, persistent Codex or Claude Code worktree terminals, Python coordination, OMP TaskTool, MURE native MoE dispatch, fleet-bridge lifecycle, or cross-plane correlation. Treat the MURE logical role matrix plus reducer/verification topology as canonical. October renders the board and a replaceable capacity/model-binding profile; terminal names never become roles or reusable topology nodes."
+      "loadRule": "Use for reusable canvas orchestration, October MCP/bus tool discovery, generated October lifecycle adapters, persistent Codex or Claude Code worktree terminals, Python coordination, OMP TaskTool, MURE native MoE dispatch, fleet-bridge lifecycle, or cross-plane correlation. October itself is authoritative for its MCP tools and adapters; the YURI registry is only a versioned searchable projection with drift checks. Treat the MURE logical role matrix plus reducer/verification topology as canonical. October renders the board and a replaceable capacity/model-binding profile; terminal names never become roles or reusable topology nodes."
+    },
+    {
+      "id": "universal-hooks",
+      "label": "Universal Hook Registry / Harness Projection Context",
+      "triggers": ["hook", "hooks", "hook registry", "PreToolUse", "UserPromptSubmit", "hook exit 1", "Claude hooks", "Codex hooks", "OMP hooks", "provider adapter", "sparse checkout hook", "MODULE_NOT_FOUND", "universal enforcement"],
+      "paths": [
+        "_SYSTEM/config/yuri-hook-registry.json",
+        "_SYSTEM/Scripts/yuri-hook-registry.mjs",
+        "_SYSTEM/Scripts/yuri-hook-adapter.mjs",
+        "_SYSTEM/Scripts/policy/yuri-safety-core.mjs",
+        "_SYSTEM/Scripts/policy/repo-integrity-guard.mjs",
+        "_SYSTEM/Scripts/url-policy.mjs",
+        "_SYSTEM/config/october-capability-registry.json",
+        ".codex/config.toml",
+        ".codex/hooks/pre-tool-use.mjs",
+        ".omp/hooks/pre/url-safety-guard.js"
+      ],
+      "loadRule": "Use before diagnosing, rendering, activating, or migrating hooks across Claude Code, Codex, and OMP. The YURI manifest owns logical hook contracts; harness settings and hook files are replaceable projections. Validate hashes and dependency closure first, keep enforcement deny output harness-native with process exit 0, bound optional October prompt context internally, and never revive retired OpenClaw authority or historical provider hook theater wholesale."
     },
     {
       "id": "xref-navigation",

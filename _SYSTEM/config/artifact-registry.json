@@ -2702,6 +2702,102 @@
       "storageRule": "SQLite/WAL fixture worker for the fixed encrypted T7 acceptance path lives in _SYSTEM/Scripts/.",
       "rebuildRule": "Run only through backend-volume-apfs.test.mjs under the fail-closed supervisor and private fixture root; do not open the protected dataset.",
       "notes": "Exercises non-protected lock, contention, WAL, integrity, checkpoint, and abrupt-exit cases for Phase-1 acceptance."
+    },
+    {
+      "path": "_SYSTEM/config/october-capability-registry.json",
+      "type": "config",
+      "class": "system_control_plane",
+      "owner": "YURI",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Versioned semantic projections of external October MCP capabilities live under _SYSTEM/config/; October remains the implementation authority.",
+      "rebuildRule": "Refresh only from an attached native October MCP session with an explicit source version and bundle hash, then run the offline validator, live drift check, and focused tests.",
+      "notes": "Contains tool schemas, side-effect/authorization classes, lifecycle adapter evidence, and no transient canvas or node identities."
+    },
+    {
+      "path": "_SYSTEM/Scripts/october-capability-index.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "October capability extraction, normalization, offline validation, and live schema-drift checks live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node _SYSTEM/Scripts/october-capability-index.mjs and node --test _SYSTEM/Scripts/october-capability-index.test.mjs; use --check-live only in an attached October session.",
+      "notes": "Does not make October runtime state authoritative and never stores transient terminal identities."
+    },
+    {
+      "path": "_SYSTEM/Scripts/october-capability-index.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Deterministic October registry and bounded local-loopback drift fixtures live beside the extractor in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/october-capability-index.test.mjs; localhost fixture permission may be required by the sandbox.",
+      "notes": "Covers schema sorting/digest, side-effect classes, SSE parsing, attachment headers, deadlines, and unclassified-tool drift rejection."
+    },
+    {
+      "path": "_SYSTEM/Scripts/capability-scan.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Sparse-checkout-safe capability scanner fixtures live beside capability-scan.mjs in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/capability-scan.test.mjs and node _SYSTEM/Scripts/capability-scan.mjs --check.",
+      "notes": "Proves tracked sparse-hidden mechanisms remain represented and new searchable capability annotations are not erased."
+    },
+    {
+      "path": "_SYSTEM/config/yuri-hook-registry.json",
+      "type": "config",
+      "class": "system_control_plane",
+      "owner": "YURI",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Canonical logical hook roles and contracts live under _SYSTEM/config/; provider settings and scripts remain replaceable projections.",
+      "rebuildRule": "Run node _SYSTEM/Scripts/yuri-hook-registry.mjs --validate and the focused registry test before any provider activation.",
+      "notes": "Provider-neutral hook authority for Claude Code, Codex, and OMP. It explicitly excludes retired OpenClaw authority and transient terminal identities."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-hook-registry.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Hook manifest validation, rendering, health, and sparse-bootstrap planning live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-hook-registry.test.mjs and node _SYSTEM/Scripts/yuri-hook-registry.mjs --validate.",
+      "notes": "Deterministic and no-network; provider activation is deliberately separate from registry validation."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-hook-adapter.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Cross-harness hook normalization and bounded external delegation live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-hook-registry.test.mjs plus existing safety-core and OMP hook tests.",
+      "notes": "Normalizes Claude Code, Codex, and OMP PreToolUse payloads and fail-soft wraps October UserPromptSubmit context delivery."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-hook-registry.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Universal hook registry and adapter regression fixtures live beside their implementation in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-hook-registry.test.mjs.",
+      "notes": "Covers hashes, dependency closure, provider rendering, harness normalization, structured deny semantics, exit codes, sparse materialization, and stalled October delegation."
     }
   ],
   "mustRegisterPrefixes": [
