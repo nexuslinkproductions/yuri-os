@@ -61,6 +61,12 @@ assert.match(result.stdout, /backend-db-readiness-migration-status\.test\.mjs/, 
 assert.match(result.stdout, /backend-db-readiness-recovery-metadata\.test\.mjs/, 'release gate should include readiness recovery metadata test');
 assert.match(result.stdout, /backend-gitnexus-status-truth\.test\.mjs/, 'release gate should include GitNexus truth test');
 assert.match(result.stdout, /gitnexus-mcp-check\.mjs/, 'release gate should include live GitNexus MCP probe');
+for (const scriptPath of [...releaseGateSource.matchAll(/args:\s*\['([^']+\.mjs)'/gu)].map((match) => match[1])) {
+  const entry = fs.lstatSync(scriptPath);
+  assert.equal(entry.isFile(), true, `release gate dependency must be a file: ${scriptPath}`);
+  assert.equal(entry.isSymbolicLink(), false, `release gate dependency must not be a symlink: ${scriptPath}`);
+}
+assert.match(releaseGateSource, /missing or unsafe step file/, 'release gate must fail closed on dependency drift');
 // RAG retired (owner, 2026-06-10): wiki/archive/fixture RAG health steps removed with the
 // rag-health script family — live retrieval truth is FTS5 (ai search) + xref.
 assert.doesNotMatch(result.stdout, /rag-health|rag-db-health/, 'release gate must not reference retired RAG health steps');

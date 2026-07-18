@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { spawnSync } from 'node:child_process';
@@ -72,6 +73,25 @@ const steps = [
     args: ['_SYSTEM/Scripts/gitnexus-mcp-check.mjs'],
   },
 ];
+
+for (const step of steps) {
+  const scriptPath = step.command === process.execPath ? step.args[0] : null;
+  if (!scriptPath) continue;
+  const absolute = path.resolve(REPO_ROOT, scriptPath);
+  let valid = false;
+  try {
+    const entry = fs.lstatSync(absolute);
+    valid = entry.isFile() && !entry.isSymbolicLink() && fs.realpathSync.native(absolute) === absolute;
+  } catch {}
+  if (!valid) {
+    process.stderr.write(releaseGateLine('FAIL', {
+      reason: '"missing or unsafe step file"',
+      step: step.name,
+      path: scriptPath,
+    }));
+    process.exit(1);
+  }
+}
 
 if (args.dryRun) {
   process.stdout.write(releaseGateLine('DRY_RUN'));
