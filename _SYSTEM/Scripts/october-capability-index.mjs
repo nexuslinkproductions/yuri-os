@@ -2,8 +2,8 @@
 // @capability: october-external-capability-index
 // @serves: October | October MCP | October bus | Claude MCP server-name health | message_peer | claim_task | send_to_node | wait_for_nodes | UserPromptSubmit | Pi activation health | external tool registry | capability discovery
 // @does: Projects October's authoritative live MCP tool schemas and harness-adapter contracts into a versioned YURI search/xref registry without copying transient canvas state or treating generated-path presence as runtime activation.
-// @use: Run --refresh with an attached October canvas plus an explicit app version and bundle SHA; run --validate offline; run --check-live after an October upgrade; run --check-claude-mcp for the project server-name invariant; run --check-pi for a fail-closed generated-source/runtime-evidence health report.
-// @exports: buildRegistry, checkClaudeOctoberMcpConfigurationFromDisk, checkPiActivationFromDisk, classifyTool, evaluatePiActivation, fetchOctoberTools, inspectPiCompatibilitySource, inspectPiGeneratedSource, parseMcpResponse, schemaDigest, validateClaudeOctoberMcpConfiguration, validateRegistry
+// @use: Run --refresh with an attached October canvas plus an explicit app version and bundle SHA; run --sync-local-projections to reconcile YURI-owned harness metadata without refreshing October-owned tools; run --validate offline; run --check-live after an October upgrade; run --check-claude-mcp for the project server-name invariant; run --check-pi or --check-omp for fail-closed generated-source/runtime-evidence health reports.
+// @exports: buildRegistry, checkClaudeOctoberMcpConfigurationFromDisk, checkOmpActivationFromDisk, checkPiActivationFromDisk, classifyTool, evaluateOmpActivation, evaluatePiActivation, fetchOctoberTools, inspectOmpAdapterSource, inspectOmpLauncherSource, inspectPiGeneratedSource, parseMcpResponse, schemaDigest, syncLocalProjections, validateClaudeOctoberMcpConfiguration, validateRegistry
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -117,6 +117,10 @@ export const PI_REQUIRED_NATIVE_TOOLS = Object.freeze([
   'message_peer', 'add_task', 'claim_task', 'complete_task', 'list_tasks',
 ]);
 
+export const OMP_REQUIRED_NATIVE_TOOLS = Object.freeze([
+  'message_peer', 'add_task', 'claim_task', 'complete_task', 'list_tasks',
+]);
+
 export const PI_ACTIVATION_CONTRACT = Object.freeze({
   status: 'source-ready-session-reload-required',
   liveRule: 'Path presence is not activation. Live requires every startup and runtime health check below.',
@@ -126,17 +130,8 @@ export const PI_ACTIVATION_CONTRACT = Object.freeze({
     mustExist: true,
     mustLoad: true,
   },
-  projectCompatibilityAdapter: {
-    path: '.omp/extensions/october-bus-tools.mjs',
-    mustExist: true,
-    mustLoad: true,
-    schemaRuntime: 'pi.zod',
-    toolLoadMode: 'essential',
-    responsibility: 'Registers the five peer/task tools only; October remains authoritative for lifecycle delivery and canvas state.',
-  },
   nativeToolRegistration: {
     requiredTools: [...PI_REQUIRED_NATIVE_TOOLS],
-    dependency: 'host-injected pi.zod',
     completeSetRequired: true,
   },
   prePromptContext: {
@@ -150,7 +145,53 @@ export const PI_ACTIVATION_CONTRACT = Object.freeze({
     'session_start reports live status only; unread October context is not pulled until before_agent_start, so no first user turn means no context injection.',
     'message_peer and all four task tools share one silent typebox import try/catch; import failure registers zero native tools without a diagnostic.',
   ],
-  activationAction: 'Restart the October-launched Pi session with all attachment environment variables, load both the October-generated lifecycle extension and project compatibility adapter, verify all five essential native tools, and prove before_agent_start injected /hook/pre-prompt context. The compatibility adapter must defer when a repaired host adapter provides the complete tool set.',
+  activationAction: 'Restart the October-launched real Pi session with all attachment environment variables, load the October-generated lifecycle extension, verify all five native tools, and prove before_agent_start injected /hook/pre-prompt context.',
+});
+
+export const OMP_ACTIVATION_CONTRACT = Object.freeze({
+  status: 'source-ready-session-reload-required',
+  liveRule: 'Launcher and project-adapter presence are not activation. Live requires a recognized persistent Pi-family foreground binding, observed OMP identity, and October-native idle/busy delivery canaries.',
+  requiredEnvironment: [...REQUIRED_ENV],
+  launcherBinding: {
+    path: '_SYSTEM/Scripts/october-omp/pi',
+    mustExist: true,
+    mustRemainForegroundParent: true,
+    execReplacementForbidden: true,
+    recognizedHarnessFamily: 'pi',
+    resolvedRuntime: 'omp',
+    implementationAuthority: 'YURI',
+  },
+  projectAdapter: {
+    path: '.omp/extensions/october-bus-tools.mjs',
+    mustExist: true,
+    mustLoad: true,
+    implementationAuthority: 'YURI',
+    protocolAuthority: 'October',
+    schemaRuntime: 'pi.zod',
+    toolLoadMode: 'essential',
+    responsibility: 'Registers the five outbound peer/task tools only. It must not pull, consume, poll, acknowledge, or inject October inbound queue state.',
+  },
+  nativeToolRegistration: {
+    requiredTools: [...OMP_REQUIRED_NATIVE_TOOLS],
+    dependency: 'host-injected pi.zod',
+    completeSetRequired: true,
+  },
+  outboundBridge: {
+    outboundEndpoint: '/hook/message-peer',
+    taskEndpoint: '/hook/task',
+    requestTimeoutMs: 2500,
+  },
+  inboundDelivery: {
+    authority: 'October',
+    mode: 'native-terminal-delivery',
+    persistentPiFamilyForegroundBindingRequired: true,
+    pollingAllowed: false,
+    destructivePrePromptPullAllowed: false,
+    adapterInjectionAllowed: false,
+    idleCanaryRequired: true,
+    busyCanaryRequired: true,
+  },
+  activationAction: 'Launch OMP through the persistent _SYSTEM/Scripts/october-omp/pi foreground binding with all attachment environment variables, load the outbound-only YURI project adapter, verify all five essential tools, and prove October-native idle and busy delivery plus outbound peer delivery without any adapter-side inbound consumer.',
 });
 
 function quotedCall(text, functionName, toolName) {
@@ -192,9 +233,11 @@ export function inspectPiGeneratedSource(source) {
   };
 }
 
-export function inspectPiCompatibilitySource(source) {
+export function inspectOmpAdapterSource(source) {
   const text = String(source ?? '');
-  const declaredNativeTools = PI_REQUIRED_NATIVE_TOOLS.filter((name) => (
+  const defaultExportAt = text.search(/export\s+default\s+function\s+octoberPiEssentialTools/);
+  const defaultExportSource = defaultExportAt === -1 ? '' : text.slice(defaultExportAt);
+  const declaredNativeTools = OMP_REQUIRED_NATIVE_TOOLS.filter((name) => (
     name === 'message_peer'
       ? /name\s*:\s*['"]message_peer['"]/.test(text)
       : quotedCall(text, 'taskTool', name)
@@ -210,43 +253,68 @@ export function inspectPiCompatibilitySource(source) {
       && /REQUEST_TIMEOUT_MS\s*=\s*2500/.test(text)
       && text.includes('http://127.0.0.1:${attachment.port}')
       && !/127\.0\.0\.1:\d+/.test(text),
+    outboundPeerEndpoint: text.includes('/hook/message-peer'),
+    outboundTaskEndpoint: text.includes('/hook/task'),
+    defaultExportIsOutboundOnly: defaultExportSource !== ''
+      && !/registerOctoberInboundBridge\s*\(/.test(defaultExportSource)
+      && !defaultExportSource.includes('/hook/pre-prompt'),
   };
   return {
     ok: Object.values(checks).every(Boolean),
     checks,
     declaredNativeTools,
-    missingDeclaredNativeTools: PI_REQUIRED_NATIVE_TOOLS.filter((name) => !declaredNativeTools.includes(name)),
+    missingDeclaredNativeTools: OMP_REQUIRED_NATIVE_TOOLS.filter((name) => !declaredNativeTools.includes(name)),
   };
+}
+
+// Backward-compatible export for callers predating the Pi/OMP identity split.
+export const inspectPiCompatibilitySource = inspectOmpAdapterSource;
+
+export function inspectOmpLauncherSource(source) {
+  const text = String(source ?? '');
+  const invokesLiteralOmp = /(?:^|\n)\s*(?:command\s+)?(?:[^\s]+\/)?omp(?:\s|$)/m.test(text);
+  const invokesConfiguredOmp = /omp_bin\s*=\s*["'][^"']*\/omp["']/.test(text)
+    && /["']\$\{omp_bin\}["']\s+["']\$\{forwarded\[@\]\}["']/.test(text);
+  const forwardsParsedArguments = /while\s+\(\(\s*\$#\s*>\s*0\s*\)\)/.test(text)
+    && /passthrough\+\=\(["']\$1["']\)/.test(text)
+    && invokesConfiguredOmp;
+  const execLines = text.match(/(?:^|\n)\s*exec\s+/gm) ?? [];
+  const guardedNonHostExec = /if\s+\[\[[^\n]*session_role[^\n]*!=\s*["']host["'][^\n]*\]\];\s*then[\s\S]{0,800}?\n\s*exec\s+["']\$\{omp_bin\}["']/.test(text);
+  const checks = {
+    shellLauncher: /^#![^\n]*(?:sh|bash|zsh)\b/.test(text),
+    launchesOmp: invokesLiteralOmp || invokesConfiguredOmp,
+    forwardsArguments: text.includes('"$@"') || forwardsParsedArguments,
+    noExecReplacement: execLines.length === 0 || (execLines.length === 1 && guardedNonHostExec),
+    foregroundChild: !/(?:^|\n)[^\n]*\bomp\b[^\n]*&\s*(?:#.*)?$/m.test(text),
+    noCodexFallback: !/(?:^|\s)codex(?:\s|$)/m.test(text),
+  };
+  return { ok: Object.values(checks).every(Boolean), checks };
 }
 
 export function evaluatePiActivation({
   env = {},
   extensionPresent = false,
   extensionSource = '',
-  compatibilityAdapterPresent = false,
-  compatibilityAdapterSource = '',
   runtime = {},
 } = {}) {
   const source = inspectPiGeneratedSource(extensionSource);
-  const compatibility = inspectPiCompatibilitySource(compatibilityAdapterSource);
   const registeredTools = Array.isArray(runtime.registeredTools)
     ? [...new Set(runtime.registeredTools.map(String))]
     : [];
   const runtimeEvidenceProvided = runtime.extensionLoaded !== undefined
-    || runtime.compatibilityAdapterLoaded !== undefined
     || runtime.registeredTools !== undefined
     || runtime.beforeAgentStartContextInjected !== undefined
+    || runtime.harnessIdentityObserved !== undefined
     || runtime.startupEnvironmentObserved !== undefined;
   const missingEnvironment = REQUIRED_ENV.filter((key) => !String(env?.[key] ?? '').trim());
   const missingNativeTools = PI_REQUIRED_NATIVE_TOOLS.filter((name) => !registeredTools.includes(name));
   const checks = {
+    piHarnessIdentityObserved: runtime.harnessIdentityObserved === 'pi',
+    startupEnvironmentObserved: runtime.startupEnvironmentObserved === true,
     startupEnvironmentAttached: missingEnvironment.length === 0,
     generatedExtensionPresent: extensionPresent === true,
     generatedSourceContract: extensionPresent === true && source.ok,
     generatedExtensionLoaded: runtime.extensionLoaded === true,
-    projectCompatibilityAdapterPresent: compatibilityAdapterPresent === true,
-    projectCompatibilitySourceContract: compatibilityAdapterPresent === true && compatibility.ok,
-    projectCompatibilityAdapterLoaded: runtime.compatibilityAdapterLoaded === true,
     intendedNativeToolsRegistered: missingNativeTools.length === 0,
     beforeAgentStartContextInjected: runtime.beforeAgentStartContextInjected === true,
   };
@@ -257,21 +325,80 @@ export function evaluatePiActivation({
     live,
     status: live ? 'live' : (runtimeEvidenceProvided ? 'unhealthy' : 'runtime-unverified'),
     runtimeEvidenceProvided,
+    resolvedHarness: 'pi',
     checks,
     missingEnvironment,
     missingNativeTools,
     source,
-    compatibility,
     failures,
     generatorDefects: PI_ACTIVATION_CONTRACT.generatorDefects,
     activationAction: PI_ACTIVATION_CONTRACT.activationAction,
   };
 }
 
+export function evaluateOmpActivation({
+  env = {},
+  adapterPresent = false,
+  adapterSource = '',
+  launcherPresent = false,
+  launcherSource = '',
+  runtime = {},
+} = {}) {
+  const source = inspectOmpAdapterSource(adapterSource);
+  const launcher = inspectOmpLauncherSource(launcherSource);
+  const registeredTools = Array.isArray(runtime.registeredTools)
+    ? [...new Set(runtime.registeredTools.map(String))]
+    : [];
+  const runtimeEvidenceProvided = runtime.adapterLoaded !== undefined
+    || runtime.registeredTools !== undefined
+    || runtime.harnessIdentityObserved !== undefined
+    || runtime.startupEnvironmentObserved !== undefined
+    || runtime.launcherBindingObserved !== undefined
+    || runtime.foregroundPersistenceVerified !== undefined
+    || runtime.nativeIdleDeliveryVerified !== undefined
+    || runtime.nativeBusyDeliveryVerified !== undefined
+    || runtime.outboundPeerDeliveryVerified !== undefined
+    || runtime.nativeDeliveryAuthorityObserved !== undefined;
+  const missingEnvironment = REQUIRED_ENV.filter((key) => !String(env?.[key] ?? '').trim());
+  const missingNativeTools = OMP_REQUIRED_NATIVE_TOOLS.filter((name) => !registeredTools.includes(name));
+  const checks = {
+    ompHarnessIdentityObserved: runtime.harnessIdentityObserved === 'omp',
+    startupEnvironmentObserved: runtime.startupEnvironmentObserved === true,
+    startupEnvironmentAttached: missingEnvironment.length === 0,
+    launcherPresent: launcherPresent === true,
+    launcherSourceContract: launcherPresent === true && launcher.ok,
+    launcherBindingObserved: runtime.launcherBindingObserved === OMP_ACTIVATION_CONTRACT.launcherBinding.path,
+    foregroundPersistenceVerified: runtime.foregroundPersistenceVerified === true,
+    projectAdapterPresent: adapterPresent === true,
+    projectAdapterSourceContract: adapterPresent === true && source.ok,
+    projectAdapterLoaded: runtime.adapterLoaded === true,
+    intendedNativeToolsRegistered: missingNativeTools.length === 0,
+    nativeDeliveryAuthorityObserved: runtime.nativeDeliveryAuthorityObserved === 'October',
+    nativeIdleDeliveryVerified: runtime.nativeIdleDeliveryVerified === true,
+    nativeBusyDeliveryVerified: runtime.nativeBusyDeliveryVerified === true,
+    outboundPeerDeliveryVerified: runtime.outboundPeerDeliveryVerified === true,
+  };
+  const failures = Object.entries(checks).filter(([, ok]) => !ok).map(([name]) => name);
+  const live = failures.length === 0;
+  return {
+    ok: live,
+    live,
+    status: live ? 'live' : (runtimeEvidenceProvided ? 'unhealthy' : 'runtime-unverified'),
+    runtimeEvidenceProvided,
+    resolvedHarness: 'omp',
+    checks,
+    missingEnvironment,
+    missingNativeTools,
+    source,
+    launcher,
+    failures,
+    activationAction: OMP_ACTIVATION_CONTRACT.activationAction,
+  };
+}
+
 export function checkPiActivationFromDisk({
   env = process.env,
   homeDirectory = env.HOME,
-  rootDirectory = ROOT,
   runtime = {},
 } = {}) {
   const extensionPath = homeDirectory
@@ -279,8 +406,6 @@ export function checkPiActivationFromDisk({
     : null;
   let extensionSource = '';
   let extensionPresent = false;
-  let compatibilityAdapterSource = '';
-  let compatibilityAdapterPresent = false;
   if (extensionPath) {
     try {
       extensionSource = fs.readFileSync(extensionPath, 'utf8');
@@ -289,13 +414,6 @@ export function checkPiActivationFromDisk({
       extensionPresent = false;
     }
   }
-  const compatibilityAdapterPath = path.join(rootDirectory, PI_ACTIVATION_CONTRACT.projectCompatibilityAdapter.path);
-  try {
-    compatibilityAdapterSource = fs.readFileSync(compatibilityAdapterPath, 'utf8');
-    compatibilityAdapterPresent = true;
-  } catch {
-    compatibilityAdapterPresent = false;
-  }
   const checkerMissingEnvironment = REQUIRED_ENV.filter((key) => !String(env?.[key] ?? '').trim());
   const startupEnvironmentObserved = runtime.startupEnvironmentObserved === true;
   return {
@@ -303,15 +421,54 @@ export function checkPiActivationFromDisk({
       env: startupEnvironmentObserved ? env : {},
       extensionPresent,
       extensionSource,
-      compatibilityAdapterPresent,
-      compatibilityAdapterSource,
       runtime,
     }),
     extensionPath: PI_ACTIVATION_CONTRACT.generatedExtension.path,
-    compatibilityAdapterPath: PI_ACTIVATION_CONTRACT.projectCompatibilityAdapter.path,
     startupEnvironmentObserved,
     checkerEnvironmentAttached: checkerMissingEnvironment.length === 0,
     checkerEnvironmentScope: 'checker-process-only; does not prove Pi startup environment',
+  };
+}
+
+export function checkOmpActivationFromDisk({
+  env = process.env,
+  rootDirectory = ROOT,
+  runtime = {},
+} = {}) {
+  const adapterPath = path.join(rootDirectory, OMP_ACTIVATION_CONTRACT.projectAdapter.path);
+  const launcherPath = path.join(rootDirectory, OMP_ACTIVATION_CONTRACT.launcherBinding.path);
+  let adapterSource = '';
+  let adapterPresent = false;
+  let launcherSource = '';
+  let launcherPresent = false;
+  try {
+    adapterSource = fs.readFileSync(adapterPath, 'utf8');
+    adapterPresent = true;
+  } catch {
+    adapterPresent = false;
+  }
+  try {
+    launcherSource = fs.readFileSync(launcherPath, 'utf8');
+    launcherPresent = true;
+  } catch {
+    launcherPresent = false;
+  }
+  const checkerMissingEnvironment = REQUIRED_ENV.filter((key) => !String(env?.[key] ?? '').trim());
+  const startupEnvironmentObserved = runtime.startupEnvironmentObserved === true;
+  return {
+    ...evaluateOmpActivation({
+      env: startupEnvironmentObserved ? env : {},
+      adapterPresent,
+      adapterSource,
+      launcherPresent,
+      launcherSource,
+      runtime,
+    }),
+    adapterPath: OMP_ACTIVATION_CONTRACT.projectAdapter.path,
+    launcherPath: OMP_ACTIVATION_CONTRACT.launcherBinding.path,
+    startupEnvironmentObserved,
+    checkerEnvironmentAttached: checkerMissingEnvironment.length === 0,
+    checkerEnvironmentScope: 'checker-process-only; does not prove OMP startup environment',
   };
 }
 
@@ -420,8 +577,8 @@ export const HARNESS_ADAPTERS = [
   },
   {
     harness: 'pi',
-    transport: 'October-generated lifecycle extension plus project essential peer/task compatibility adapter',
-    projection: '~/.pi/agent/extensions/october-bus.ts + .omp/extensions/october-bus-tools.mjs',
+    transport: 'October-generated lifecycle extension and native peer/task tools',
+    projection: '~/.pi/agent/extensions/october-bus.ts',
     events: ['session_start', 'session_shutdown', 'before_agent_start', 'agent_end'],
     activationSource: {
       kind: 'october-generated',
@@ -430,8 +587,28 @@ export const HARNESS_ADAPTERS = [
       status: 'generated-source-only',
       liveInferredFromPath: false,
     },
-    compatibilityAdapter: PI_ACTIVATION_CONTRACT.projectCompatibilityAdapter,
     activationHealth: PI_ACTIVATION_CONTRACT,
+  },
+  {
+    harness: 'omp',
+    transport: 'October-native terminal delivery through a persistent Pi-family foreground launcher plus a YURI outbound-only native tool adapter',
+    projection: '_SYSTEM/Scripts/october-omp/pi + .omp/extensions/october-bus-tools.mjs',
+    events: ['October-native idle delivery', 'October-native busy delivery'],
+    activationSource: {
+      kind: 'persistent-pi-family-launcher',
+      path: '_SYSTEM/Scripts/october-omp/pi',
+      managedBy: 'YURI',
+      implementationAuthority: 'YURI',
+      protocolAuthority: 'October',
+      recognizedHarnessFamily: 'pi',
+      resolvedRuntime: 'omp',
+      execReplacementForbidden: true,
+      status: 'source-ready-session-reload-required',
+      liveInferredFromPath: false,
+      requiredEnvironment: REQUIRED_ENV,
+    },
+    outboundAdapter: OMP_ACTIVATION_CONTRACT.projectAdapter,
+    activationHealth: OMP_ACTIVATION_CONTRACT,
   },
   {
     harness: 'campfire',
@@ -619,10 +796,14 @@ export function validateRegistry(registry) {
   const lifecycleText = JSON.stringify(registry?.lifecycleEndpoints ?? []);
   const adapterText = JSON.stringify(registry?.harnessAdapters ?? []);
   if (!lifecycleText.includes('pre-prompt') || !adapterText.includes('UserPromptSubmit')) errors.push('UserPromptSubmit/pre-prompt projection is missing');
-  const adapters = new Map((registry?.harnessAdapters ?? []).map((adapter) => [adapter.harness, adapter]));
+  const adapterList = registry?.harnessAdapters ?? [];
+  const adapterNames = adapterList.map((adapter) => adapter.harness);
+  if (new Set(adapterNames).size !== adapterNames.length) errors.push('harness adapter names must be unique');
+  const adapters = new Map(adapterList.map((adapter) => [adapter.harness, adapter]));
   const claude = adapters.get('claude-code');
   const codex = adapters.get('codex');
   const pi = adapters.get('pi');
+  const omp = adapters.get('omp');
   if (claude?.activationSource?.mcpTransport !== 'streamable-http' || claude.activationSource.path !== '.mcp.json') {
     errors.push('Claude Code October MCP project activation metadata is missing');
   }
@@ -631,23 +812,20 @@ export function validateRegistry(registry) {
     || codex.activationSource.rootResolution !== 'git rev-parse --show-toplevel') {
     errors.push('Codex October MCP stdio bridge activation metadata is missing');
   }
-  if (pi?.activationSource?.kind !== 'october-generated') errors.push('Pi October activation must remain generator-owned metadata');
+  if (pi?.activationSource?.kind !== 'october-generated'
+    || pi.activationSource.path !== '~/.pi/agent/extensions/october-bus.ts') {
+    errors.push('Pi October activation must remain generator-owned metadata');
+  }
   if (pi?.activationSource?.status !== 'generated-source-only' || pi.activationSource.liveInferredFromPath !== false) {
     errors.push('Pi generated extension path must not be treated as live activation');
-  }
-  if (pi?.compatibilityAdapter?.path !== '.omp/extensions/october-bus-tools.mjs'
-    || pi.compatibilityAdapter.schemaRuntime !== 'pi.zod'
-    || pi.compatibilityAdapter.toolLoadMode !== 'essential') {
-    errors.push('Pi OMP 17 compatibility adapter metadata is missing');
   }
   const piHealth = pi?.activationHealth;
   const piTools = piHealth?.nativeToolRegistration?.requiredTools ?? [];
   if (REQUIRED_ENV.some((key) => !piHealth?.requiredEnvironment?.includes(key))) errors.push('Pi activation health is missing required October startup environment');
   if (PI_REQUIRED_NATIVE_TOOLS.some((name) => !piTools.includes(name))) errors.push('Pi activation health is missing intended native tools');
   if (piHealth?.status !== 'source-ready-session-reload-required'
-    || piHealth?.projectCompatibilityAdapter?.path !== '.omp/extensions/october-bus-tools.mjs'
-    || piHealth?.nativeToolRegistration?.dependency !== 'host-injected pi.zod') {
-    errors.push('Pi source-ready compatibility health contract is missing');
+    || piHealth?.generatedExtension?.path !== '~/.pi/agent/extensions/october-bus.ts') {
+    errors.push('Pi source-ready generated-extension health contract is missing');
   }
   if (piHealth?.prePromptContext?.event !== 'before_agent_start'
     || piHealth.prePromptContext.endpoint !== '/hook/pre-prompt'
@@ -655,10 +833,99 @@ export function validateRegistry(registry) {
     errors.push('Pi activation health is missing before_agent_start pre-prompt injection');
   }
   if (!Array.isArray(piHealth?.generatorDefects) || piHealth.generatorDefects.length < 3) errors.push('Pi generator defects are not recorded');
+  if (JSON.stringify(pi ?? {}).includes('.omp/')) errors.push('Pi adapter metadata must not contain OMP projection paths');
+
+  if (omp?.activationSource?.kind !== 'persistent-pi-family-launcher'
+    || omp.activationSource.path !== '_SYSTEM/Scripts/october-omp/pi'
+    || omp.activationSource.implementationAuthority !== 'YURI'
+    || omp.activationSource.protocolAuthority !== 'October'
+    || omp.activationSource.recognizedHarnessFamily !== 'pi'
+    || omp.activationSource.resolvedRuntime !== 'omp'
+    || omp.activationSource.execReplacementForbidden !== true) {
+    errors.push('OMP persistent Pi-family launcher authority metadata is missing');
+  }
+  if (omp?.activationSource?.status !== 'source-ready-session-reload-required'
+    || omp.activationSource.liveInferredFromPath !== false) {
+    errors.push('OMP launcher path must not be treated as live activation');
+  }
+  const ompHealth = omp?.activationHealth;
+  const ompTools = ompHealth?.nativeToolRegistration?.requiredTools ?? [];
+  const ompInbound = ompHealth?.inboundDelivery;
+  const ompOutbound = ompHealth?.outboundBridge;
+  if (REQUIRED_ENV.some((key) => !ompHealth?.requiredEnvironment?.includes(key))) errors.push('OMP activation health is missing required October startup environment');
+  if (OMP_REQUIRED_NATIVE_TOOLS.some((name) => !ompTools.includes(name))) errors.push('OMP activation health is missing intended native tools');
+  if (ompHealth?.status !== 'source-ready-session-reload-required'
+    || ompHealth?.launcherBinding?.path !== '_SYSTEM/Scripts/october-omp/pi'
+    || ompHealth.launcherBinding.mustRemainForegroundParent !== true
+    || ompHealth.launcherBinding.execReplacementForbidden !== true
+    || ompHealth.launcherBinding.recognizedHarnessFamily !== 'pi'
+    || ompHealth.launcherBinding.resolvedRuntime !== 'omp'
+    || ompHealth?.projectAdapter?.path !== '.omp/extensions/october-bus-tools.mjs'
+    || ompHealth.projectAdapter.implementationAuthority !== 'YURI'
+    || ompHealth.projectAdapter.protocolAuthority !== 'October'
+    || ompHealth.nativeToolRegistration?.dependency !== 'host-injected pi.zod') {
+    errors.push('OMP source-ready launcher and outbound-adapter health contract is missing');
+  }
+  if (omp?.outboundAdapter?.path !== '.omp/extensions/october-bus-tools.mjs'
+    || omp.outboundAdapter.responsibility !== OMP_ACTIVATION_CONTRACT.projectAdapter.responsibility
+    || ompOutbound?.outboundEndpoint !== '/hook/message-peer'
+    || ompOutbound.taskEndpoint !== '/hook/task'
+    || ompOutbound.requestTimeoutMs !== 2500) {
+    errors.push('OMP outbound-only native tool bridge contract is missing');
+  }
+  if (ompInbound?.authority !== 'October'
+    || ompInbound.mode !== 'native-terminal-delivery'
+    || ompInbound.persistentPiFamilyForegroundBindingRequired !== true
+    || ompInbound.pollingAllowed !== false
+    || ompInbound.destructivePrePromptPullAllowed !== false
+    || ompInbound.adapterInjectionAllowed !== false
+    || ompInbound.idleCanaryRequired !== true
+    || ompInbound.busyCanaryRequired !== true) {
+    errors.push('OMP October-native inbound delivery contract is missing or permits destructive polling');
+  }
+  if (JSON.stringify(omp ?? {}).includes('~/.pi/')) errors.push('OMP adapter metadata must not contain Pi generated-extension paths');
+  const ompText = JSON.stringify(omp ?? {});
+  if (ompText.includes('pollIntervalMs')
+    || ompText.includes('inboxEndpoint')
+    || ompText.includes('/hook/pre-prompt')
+    || ompText.includes('registerOctoberInboundBridge')) {
+    errors.push('OMP activation metadata must not bless adapter-side inbound polling');
+  }
+
+  if (stableJson(registry?.lifecycleEndpoints ?? []) !== stableJson(LIFECYCLE_ENDPOINTS)) {
+    errors.push('stored lifecycle endpoint projection is stale');
+  }
+  if (stableJson(registry?.harnessAdapters ?? []) !== stableJson(HARNESS_ADAPTERS)) {
+    errors.push('stored harness adapter projection is stale');
+  }
   if (/127\.0\.0\.1:\d+\/mcp/.test(adapterText)) errors.push('static October bus port leaked into harness activation metadata');
   const serialized = JSON.stringify(registry);
   if (/term-[a-z0-9-]+/i.test(serialized)) errors.push('transient October node id leaked into durable registry');
   return { ok: errors.length === 0, errors };
+}
+
+export function syncLocalProjections(registry) {
+  if (!registry || typeof registry !== 'object' || Array.isArray(registry)) {
+    throw new Error('registry object is required');
+  }
+
+  const beforeExternal = structuredClone(registry);
+  delete beforeExternal.harnessAdapters;
+
+  const candidate = structuredClone(registry);
+  candidate.harnessAdapters = structuredClone(HARNESS_ADAPTERS);
+
+  const afterExternal = structuredClone(candidate);
+  delete afterExternal.harnessAdapters;
+  if (stableJson(beforeExternal) !== stableJson(afterExternal)) {
+    throw new Error('local projection sync changed October-owned registry fields');
+  }
+
+  const verdict = validateRegistry(candidate);
+  if (!verdict.ok) {
+    throw new Error(`locally synchronized registry invalid: ${verdict.errors.join('; ')}`);
+  }
+  return candidate;
 }
 
 function option(name) {
@@ -668,6 +935,15 @@ function option(name) {
 
 function readRegistry() {
   return JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf8'));
+}
+
+function writeRegistryAtomically(registry) {
+  const temporaryPath = path.join(
+    path.dirname(REGISTRY_PATH),
+    `.${path.basename(REGISTRY_PATH)}.${process.pid}.tmp`,
+  );
+  fs.writeFileSync(temporaryPath, `${JSON.stringify(registry, null, 2)}\n`, { flag: 'wx', mode: 0o644 });
+  fs.renameSync(temporaryPath, REGISTRY_PATH);
 }
 
 async function main() {
@@ -685,6 +961,13 @@ async function main() {
     return;
   }
 
+  if (process.argv.includes('--check-omp')) {
+    const verdict = checkOmpActivationFromDisk();
+    console.log(JSON.stringify(verdict));
+    if (!verdict.ok) process.exitCode = 1;
+    return;
+  }
+
   if (process.argv.includes('--refresh')) {
     const version = option('--source-version');
     const bundleSha256 = option('--bundle-sha256');
@@ -695,6 +978,24 @@ async function main() {
     fs.mkdirSync(path.dirname(REGISTRY_PATH), { recursive: true });
     fs.writeFileSync(REGISTRY_PATH, `${JSON.stringify(registry, null, 2)}\n`);
     console.log(JSON.stringify({ ok: true, action: 'refreshed', version, tools: registry.toolCount, digest: registry.toolSchemaSha256, path: path.relative(ROOT, REGISTRY_PATH) }));
+    return;
+  }
+
+  if (process.argv.includes('--sync-local-projections')) {
+    const registry = readRegistry();
+    const previousProjectionDigest = sha256(stableJson(registry.harnessAdapters ?? []));
+    const candidate = syncLocalProjections(registry);
+    const projectionDigest = sha256(stableJson(candidate.harnessAdapters));
+    writeRegistryAtomically(candidate);
+    console.log(JSON.stringify({
+      ok: true,
+      action: 'synced-local-projections',
+      changed: previousProjectionDigest !== projectionDigest,
+      projection: 'harnessAdapters',
+      previousProjectionDigest,
+      projectionDigest,
+      path: path.relative(ROOT, REGISTRY_PATH),
+    }));
     return;
   }
 

@@ -1492,8 +1492,8 @@
     },
     {
       "harness": "pi",
-      "transport": "October-generated lifecycle extension plus project essential peer/task compatibility adapter",
-      "projection": "~/.pi/agent/extensions/october-bus.ts + .omp/extensions/october-bus-tools.mjs",
+      "transport": "October-generated lifecycle extension and native peer/task tools",
+      "projection": "~/.pi/agent/extensions/october-bus.ts",
       "events": [
         "session_start",
         "session_shutdown",
@@ -1506,14 +1506,6 @@
         "managedBy": "October adapter generator",
         "status": "generated-source-only",
         "liveInferredFromPath": false
-      },
-      "compatibilityAdapter": {
-        "path": ".omp/extensions/october-bus-tools.mjs",
-        "mustExist": true,
-        "mustLoad": true,
-        "schemaRuntime": "pi.zod",
-        "toolLoadMode": "essential",
-        "responsibility": "Registers the five peer/task tools only; October remains authoritative for lifecycle delivery and canvas state."
       },
       "activationHealth": {
         "status": "source-ready-session-reload-required",
@@ -1528,14 +1520,6 @@
           "mustExist": true,
           "mustLoad": true
         },
-        "projectCompatibilityAdapter": {
-          "path": ".omp/extensions/october-bus-tools.mjs",
-          "mustExist": true,
-          "mustLoad": true,
-          "schemaRuntime": "pi.zod",
-          "toolLoadMode": "essential",
-          "responsibility": "Registers the five peer/task tools only; October remains authoritative for lifecycle delivery and canvas state."
-        },
         "nativeToolRegistration": {
           "requiredTools": [
             "message_peer",
@@ -1544,7 +1528,6 @@
             "complete_task",
             "list_tasks"
           ],
-          "dependency": "host-injected pi.zod",
           "completeSetRequired": true
         },
         "prePromptContext": {
@@ -1558,7 +1541,98 @@
           "session_start reports live status only; unread October context is not pulled until before_agent_start, so no first user turn means no context injection.",
           "message_peer and all four task tools share one silent typebox import try/catch; import failure registers zero native tools without a diagnostic."
         ],
-        "activationAction": "Restart the October-launched Pi session with all attachment environment variables, load both the October-generated lifecycle extension and project compatibility adapter, verify all five essential native tools, and prove before_agent_start injected /hook/pre-prompt context. The compatibility adapter must defer when a repaired host adapter provides the complete tool set."
+        "activationAction": "Restart the October-launched real Pi session with all attachment environment variables, load the October-generated lifecycle extension, verify all five native tools, and prove before_agent_start injected /hook/pre-prompt context."
+      }
+    },
+    {
+      "harness": "omp",
+      "transport": "October-native terminal delivery through a persistent Pi-family foreground launcher plus a YURI outbound-only native tool adapter",
+      "projection": "_SYSTEM/Scripts/october-omp/pi + .omp/extensions/october-bus-tools.mjs",
+      "events": [
+        "October-native idle delivery",
+        "October-native busy delivery"
+      ],
+      "activationSource": {
+        "kind": "persistent-pi-family-launcher",
+        "path": "_SYSTEM/Scripts/october-omp/pi",
+        "managedBy": "YURI",
+        "implementationAuthority": "YURI",
+        "protocolAuthority": "October",
+        "recognizedHarnessFamily": "pi",
+        "resolvedRuntime": "omp",
+        "execReplacementForbidden": true,
+        "status": "source-ready-session-reload-required",
+        "liveInferredFromPath": false,
+        "requiredEnvironment": [
+          "OCTOBER_BUS_PORT",
+          "OCTOBER_BUS_CANVAS",
+          "OCTOBER_BUS_NODE"
+        ]
+      },
+      "outboundAdapter": {
+        "path": ".omp/extensions/october-bus-tools.mjs",
+        "mustExist": true,
+        "mustLoad": true,
+        "implementationAuthority": "YURI",
+        "protocolAuthority": "October",
+        "schemaRuntime": "pi.zod",
+        "toolLoadMode": "essential",
+        "responsibility": "Registers the five outbound peer/task tools only. It must not pull, consume, poll, acknowledge, or inject October inbound queue state."
+      },
+      "activationHealth": {
+        "status": "source-ready-session-reload-required",
+        "liveRule": "Launcher and project-adapter presence are not activation. Live requires a recognized persistent Pi-family foreground binding, observed OMP identity, and October-native idle/busy delivery canaries.",
+        "requiredEnvironment": [
+          "OCTOBER_BUS_PORT",
+          "OCTOBER_BUS_CANVAS",
+          "OCTOBER_BUS_NODE"
+        ],
+        "launcherBinding": {
+          "path": "_SYSTEM/Scripts/october-omp/pi",
+          "mustExist": true,
+          "mustRemainForegroundParent": true,
+          "execReplacementForbidden": true,
+          "recognizedHarnessFamily": "pi",
+          "resolvedRuntime": "omp",
+          "implementationAuthority": "YURI"
+        },
+        "projectAdapter": {
+          "path": ".omp/extensions/october-bus-tools.mjs",
+          "mustExist": true,
+          "mustLoad": true,
+          "implementationAuthority": "YURI",
+          "protocolAuthority": "October",
+          "schemaRuntime": "pi.zod",
+          "toolLoadMode": "essential",
+          "responsibility": "Registers the five outbound peer/task tools only. It must not pull, consume, poll, acknowledge, or inject October inbound queue state."
+        },
+        "nativeToolRegistration": {
+          "requiredTools": [
+            "message_peer",
+            "add_task",
+            "claim_task",
+            "complete_task",
+            "list_tasks"
+          ],
+          "dependency": "host-injected pi.zod",
+          "completeSetRequired": true
+        },
+        "outboundBridge": {
+          "outboundEndpoint": "/hook/message-peer",
+          "taskEndpoint": "/hook/task",
+          "requestTimeoutMs": 2500
+        },
+        "inboundDelivery": {
+          "authority": "October",
+          "mode": "native-terminal-delivery",
+          "persistentPiFamilyForegroundBindingRequired": true,
+          "pollingAllowed": false,
+          "destructivePrePromptPullAllowed": false,
+          "adapterInjectionAllowed": false,
+          "idleCanaryRequired": true,
+          "busyCanaryRequired": true
+        },
+        "activationAction": "Launch OMP through the persistent _SYSTEM/Scripts/october-omp/pi foreground binding with all attachment environment variables, load the outbound-only YURI project adapter, verify all five essential tools, and prove October-native idle and busy delivery plus outbound peer delivery without any adapter-side inbound consumer."
       }
     },
     {

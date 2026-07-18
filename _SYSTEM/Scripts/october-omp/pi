@@ -1,0 +1,104 @@
+#!/bin/zsh
+# @capability: october-omp-pi-binding-launcher
+# @serves: October terminal | Pi harness binding | OMP runtime
+# @does: Keeps a foreground process whose command path ends in `pi` while OMP runs, so October 1.0.31 can classify and deliver to the redirected Pi-family terminal.
+# @use: zsh _SYSTEM/Scripts/october-omp/pi --approved
+
+set -u
+
+omp_bin="${HOME}/.bun/bin/omp"
+yuri_root="/Users/marcelspatz/YURI-OS-MUSUBI"
+if [[ ! -x "${omp_bin}" ]]; then
+  print -u2 -- "October OMP launcher: ${omp_bin} is not executable"
+  exit 127
+fi
+
+typeset -a passthrough explicit_approval forwarded
+passthrough=()
+explicit_approval=()
+approval_shortcut=false
+explicit_approval_seen=false
+while (( $# > 0 )); do
+  case "$1" in
+    --approval-mode)
+      if [[ "${explicit_approval_seen}" == true || $# -lt 2 || -z "$2" || "$2" == --* ]]; then
+        print -u2 -- "October OMP launcher: invalid or duplicate --approval-mode"
+        exit 64
+      fi
+      explicit_approval=(--approval-mode "$2")
+      explicit_approval_seen=true
+      shift 2
+      ;;
+    --approval-mode=*)
+      if [[ "${explicit_approval_seen}" == true || "$1" == "--approval-mode=" ]]; then
+        print -u2 -- "October OMP launcher: invalid or duplicate --approval-mode"
+        exit 64
+      fi
+      explicit_approval=("$1")
+      explicit_approval_seen=true
+      shift
+      ;;
+    --approved|--approve|--auto-approve)
+      approval_shortcut=true
+      shift
+      ;;
+    *)
+      passthrough+=("$1")
+      shift
+      ;;
+  esac
+done
+
+forwarded=("${passthrough[@]}")
+if [[ "${explicit_approval_seen}" == true ]]; then
+  forwarded+=("${explicit_approval[@]}")
+elif [[ "${approval_shortcut}" == true ]]; then
+  forwarded+=(--auto-approve)
+fi
+
+session_role="${CAMPFIRE_SESSION_ROLE:-}"
+if [[ -n "${session_role}" && "${session_role}" != "host" ]]; then
+  # A delegated worker must not inherit the parent terminal's October identity,
+  # implicit approval, or persistent Pi-family foreground classification.
+  unset OCTOBER_BUS_PORT OCTOBER_BUS_CANVAS OCTOBER_BUS_NODE YURI_HARNESS_BINDING
+  exec "${omp_bin}" "${forwarded[@]}"
+fi
+
+port="${OCTOBER_BUS_PORT:-}"
+canvas="${OCTOBER_BUS_CANVAS:-}"
+node="${OCTOBER_BUS_NODE:-}"
+attachment_parts=0
+[[ -n "${port}" ]] && (( attachment_parts += 1 ))
+[[ -n "${canvas}" ]] && (( attachment_parts += 1 ))
+[[ -n "${node}" ]] && (( attachment_parts += 1 ))
+
+if (( attachment_parts > 0 && attachment_parts < 3 )); then
+  print -u2 -- "October OMP launcher: incomplete OCTOBER_BUS_* attachment; refusing an oblivious partial session"
+  exit 78
+fi
+
+if (( attachment_parts == 3 )); then
+  port_pattern='^[0-9]{1,5}$'
+  identity_pattern='^[[:alnum:]_.:-]+$'
+  if [[ ! "${port}" =~ ${port_pattern} ]] || (( port < 1 || port > 65535 )) \
+    || (( ${#canvas} > 256 || ${#node} > 256 )) \
+    || [[ ! "${canvas}" =~ ${identity_pattern} ]] || [[ ! "${node}" =~ ${identity_pattern} ]]; then
+    print -u2 -- "October OMP launcher: invalid OCTOBER_BUS_* attachment; refusing host activation"
+    exit 78
+  fi
+
+  export YURI_HARNESS_BINDING="omp"
+  if [[ "${explicit_approval_seen}" == false && "${approval_shortcut}" == false ]]; then
+    forwarded+=(--auto-approve)
+  fi
+
+  if [[ "${PWD}" == "${yuri_root}" || "${PWD}" == "${yuri_root}/"* ]]; then
+    october_context="October canvas attachment is live: canvas=${canvas}, node=${node}. You are an OMP runtime capacity binding inside YURI-OS-MUSUBI, not a logical MURE role. At session start, use the October MCP list_canvas/list_peers surfaces to resolve your current visible terminal name and connected peers. Use message_peer for cross-terminal replies and the shared task board for ownership. Canonical logical roles, reducer/verification topology, and model routing come only from _SYSTEM/mure and _SYSTEM/config/provider-route-registry.json. Terminal names and current models are replaceable bindings. OpenClaw is retired."
+    forwarded+=("--append-system-prompt=${october_context}")
+  fi
+fi
+
+# Deliberately do not `exec`: October 1.0.31 recognizes the persistent
+# wrapper path basename (`pi`) while the child provides the OMP runtime.
+"${omp_bin}" "${forwarded[@]}"
+exit $?
