@@ -19,13 +19,198 @@ const HOME = os.homedir();
 const LAUNCH_AGENTS_DIR = path.join(HOME, 'Library/LaunchAgents');
 const LOG_DIR = path.join(HOME, 'Library/Logs/YURI-OS-MUSUBI');
 export const PLIST_PATH = path.join(LAUNCH_AGENTS_DIR, `${LABEL}.plist`);
-const OUT_LOG = path.join(LOG_DIR, 'yuri-session-runtime.out.log');
-const ERR_LOG = path.join(LOG_DIR, 'yuri-session-runtime.err.log');
+export const OUT_LOG = path.join(LOG_DIR, 'yuri-session-runtime.out.log');
+export const ERR_LOG = path.join(LOG_DIR, 'yuri-session-runtime.err.log');
+export const RUNTIME_LOG_MAX_BYTES = 50 * 1024 ** 3;
+export const RUNTIME_LOG_ROLLOVER_BYTES = 48 * 1024 ** 3;
+export const RUNTIME_LOG_RETAIN_BYTES = 1024 ** 3;
 const WRAPPER_PATH = path.join(REPO_ROOT, '_SYSTEM/Scripts/yuri-session-launchd.mjs');
 const FORWARDED_SIGNALS = Object.freeze(['SIGINT', 'SIGTERM', 'SIGHUP']);
+const LOG_COPY_BUFFER_BYTES = 8 * 1024 ** 2;
+const NULL_DEVICE = '/dev/null';
+
+function runtimeLogStatus(adapter, candidate) {
+  if (!adapter.existsSync(candidate)) return null;
+  const linkStatus = adapter.lstatSync(candidate);
+  if (linkStatus?.isSymbolicLink?.() === true) {
+    throw new Error(`runtime log must not be a symlink: ${candidate}`);
+  }
+  const status = adapter.statSync(candidate);
+  if (status?.isFile?.() !== true) throw new Error(`runtime log is not a regular file: ${candidate}`);
+  return { path: candidate, size: Number(status.size), mode: Number(status.mode) & 0o777 };
+}
+
+function writeAll(adapter, fd, buffer, length) {
+  let offset = 0;
+  while (offset < length) {
+    const written = adapter.writeSync(fd, buffer, offset, length - offset);
+    if (!Number.isInteger(written) || written <= 0) throw new Error('runtime log tail write made no progress');
+    offset += written;
+  }
+}
+
+export function trimLogTailAtomic(candidate, keepBytes, adapter = fs) {
+  if (!Number.isSafeInteger(keepBytes) || keepBytes < 0) throw new Error('keepBytes must be a non-negative safe integer');
+  const status = runtimeLogStatus(adapter, candidate);
+  if (!status || status.size <= keepBytes) {
+    return { path: candidate, trimmed: false, beforeBytes: status?.size ?? 0, afterBytes: status?.size ?? 0 };
+  }
+
+  const tempPath = `${candidate}.trim-${process.pid}-${Date.now()}.tmp`;
+  const buffer = Buffer.allocUnsafe(LOG_COPY_BUFFER_BYTES);
+  let sourceFd = null;
+  let tempFd = null;
+  try {
+    sourceFd = adapter.openSync(candidate, 'r');
+    tempFd = adapter.openSync(tempPath, 'wx', status.mode);
+    let position = status.size - keepBytes;
+    let remaining = keepBytes;
+    while (remaining > 0) {
+      const requested = Math.min(buffer.length, remaining);
+      const read = adapter.readSync(sourceFd, buffer, 0, requested, position);
+      if (!Number.isInteger(read) || read <= 0) throw new Error('runtime log tail read ended before the requested retention boundary');
+      writeAll(adapter, tempFd, buffer, read);
+      position += read;
+      remaining -= read;
+    }
+    adapter.fchmodSync?.(tempFd, status.mode);
+    adapter.fsyncSync(tempFd);
+    adapter.closeSync(tempFd);
+    tempFd = null;
+    adapter.closeSync(sourceFd);
+    sourceFd = null;
+    if (!adapter.fchmodSync) adapter.chmodSync(tempPath, status.mode);
+    adapter.renameSync(tempPath, candidate);
+  } catch (error) {
+    if (tempFd !== null) {
+      try { adapter.closeSync(tempFd); } catch {}
+    }
+    if (sourceFd !== null) {
+      try { adapter.closeSync(sourceFd); } catch {}
+    }
+    try {
+      if (adapter.existsSync(tempPath)) adapter.unlinkSync(tempPath);
+    } catch {}
+    throw error;
+  }
+  return { path: candidate, trimmed: true, beforeBytes: status.size, afterBytes: keepBytes };
+}
+
+export function capRuntimeLogs(options = {}) {
+  const adapter = options.fsAdapter ?? fs;
+  const logPaths = options.logPaths ?? [OUT_LOG, ERR_LOG];
+  const maxBytes = options.maxBytes ?? RUNTIME_LOG_MAX_BYTES;
+  const retainBytes = options.retainBytes ?? RUNTIME_LOG_RETAIN_BYTES;
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new Error('maxBytes must be a positive safe integer');
+  if (!Number.isSafeInteger(retainBytes) || retainBytes < 0) throw new Error('retainBytes must be a non-negative safe integer');
+
+  const files = logPaths
+    .map((candidate) => runtimeLogStatus(adapter, candidate))
+    .filter(Boolean)
+    .sort((left, right) => right.size - left.size);
+  const beforeBytes = files.reduce((sum, file) => sum + file.size, 0);
+  let totalBytes = beforeBytes;
+  const results = [];
+  for (const file of files) {
+    if (totalBytes < maxBytes) break;
+    const bytesWithoutFile = totalBytes - file.size;
+    const allowedForFile = Math.max(0, maxBytes - bytesWithoutFile);
+    const keepBytes = Math.min(file.size, retainBytes, allowedForFile);
+    const result = trimLogTailAtomic(file.path, keepBytes, adapter);
+    totalBytes -= result.beforeBytes - result.afterBytes;
+    results.push(result);
+  }
+  const afterBytes = logPaths
+    .map((candidate) => runtimeLogStatus(adapter, candidate))
+    .filter(Boolean)
+    .reduce((sum, file) => sum + file.size, 0);
+  if (afterBytes > maxBytes) throw new Error(`runtime logs remain above cap: ${afterBytes} > ${maxBytes}`);
+  return {
+    capped: results.some((result) => result.trimmed),
+    beforeBytes,
+    afterBytes,
+    maxBytes,
+    retained: results,
+  };
+}
+
+function closeQuietly(adapter, fd) {
+  if (fd === null || fd === undefined) return;
+  try { adapter.closeSync(fd); } catch {}
+}
+
+function openBoundedLog(adapter, candidate) {
+  const flags = fs.constants.O_WRONLY
+    | fs.constants.O_CREAT
+    | fs.constants.O_APPEND
+    | (fs.constants.O_NOFOLLOW ?? 0);
+  const fd = adapter.openSync(candidate, flags, 0o600);
+  try {
+    const status = adapter.fstatSync(fd);
+    if (status?.isFile?.() !== true) throw new Error(`runtime log is not a regular file: ${candidate}`);
+    if ((Number(status.mode) & 0o022) !== 0) {
+      throw new Error(`runtime log is group/world writable and is refused: ${candidate}`);
+    }
+    return { fd, path: candidate, size: Number(status.size) };
+  } catch (error) {
+    closeQuietly(adapter, fd);
+    throw error;
+  }
+}
+
+export function createBoundedRuntimeLogSink(options = {}) {
+  const adapter = options.fsAdapter ?? fs;
+  const logPaths = options.logPaths ?? [OUT_LOG, ERR_LOG];
+  const maxBytes = options.maxBytes ?? RUNTIME_LOG_ROLLOVER_BYTES;
+  if (logPaths.length !== 2) throw new Error('runtime log sink requires stdout and stderr paths');
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new Error('maxBytes must be a positive safe integer');
+  for (const candidate of logPaths) adapter.mkdirSync(path.dirname(candidate), { recursive: true, mode: 0o700 });
+
+  const opened = [];
+  try {
+    for (const candidate of logPaths) opened.push(openBoundedLog(adapter, candidate));
+  } catch (error) {
+    for (const entry of opened) closeQuietly(adapter, entry.fd);
+    throw error;
+  }
+
+  let totalBytes = opened.reduce((sum, entry) => sum + entry.size, 0);
+  if (totalBytes > maxBytes) {
+    for (const entry of opened) closeQuietly(adapter, entry.fd);
+    throw new Error(`runtime logs exceed sink ceiling before open: ${totalBytes} > ${maxBytes}`);
+  }
+  let closed = false;
+  let droppedBytes = 0;
+
+  const write = (stream, value) => {
+    const buffer = Buffer.isBuffer(value) ? value : Buffer.from(String(value));
+    if (closed) return { writtenBytes: 0, droppedBytes: buffer.length, totalBytes };
+    const target = stream === 'stderr' ? opened[1] : opened[0];
+    const allowedBytes = Math.min(buffer.length, Math.max(0, maxBytes - totalBytes));
+    if (allowedBytes > 0) writeAll(adapter, target.fd, buffer, allowedBytes);
+    const dropped = buffer.length - allowedBytes;
+    totalBytes += allowedBytes;
+    droppedBytes += dropped;
+    return { writtenBytes: allowedBytes, droppedBytes: dropped, totalBytes };
+  };
+  const close = () => {
+    if (closed) return;
+    closed = true;
+    for (const entry of opened) closeQuietly(adapter, entry.fd);
+  };
+  return {
+    write,
+    close,
+    get totalBytes() { return totalBytes; },
+    get droppedBytes() { return droppedBytes; },
+    get closed() { return closed; },
+  };
+}
 
 function plistEscape(value) {
-  return String(value)
+  // The wrapper is the sole runtime-log writer; launchd must never retain those descriptors.
+  const renderedValue = value === OUT_LOG || value === ERR_LOG ? NULL_DEVICE : String(value);
+  return renderedValue
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
@@ -120,12 +305,31 @@ export function run(options = {}) {
   const spawnImpl = options.spawnImpl ?? spawn;
   const signalSource = options.signalSource ?? process;
   const logger = options.logger ?? console;
-  const spec = buildRunSpec(adapter);
-  logger.log(`[yuri-session-launchd] launching guarded backend with ${spec.nodeBinary}`);
+  const capLogsImpl = options.capLogsImpl ?? capRuntimeLogs;
+  capLogsImpl({ fsAdapter: adapter, maxBytes: RUNTIME_LOG_ROLLOVER_BYTES });
+  const logSinkFactory = options.logSinkFactory ?? createBoundedRuntimeLogSink;
+  const logSink = logSinkFactory({ fsAdapter: adapter, maxBytes: RUNTIME_LOG_ROLLOVER_BYTES });
+  const log = (stream, message) => {
+    const rendered = String(message);
+    logSink.write(stream, `${rendered}\n`);
+    if (stream === 'stderr') logger.error(rendered);
+    else logger.log(rendered);
+  };
+  let spec;
+  try {
+    spec = buildRunSpec(adapter);
+  } catch (error) {
+    log('stderr', error instanceof Error ? error.stack || error.message : String(error));
+    logSink.close();
+    throw error;
+  }
+  log('stdout', `[yuri-session-launchd] launching guarded backend with ${spec.nodeBinary}`);
   let child = null;
   let settled = false;
   let firstSignal = null;
   let signalForwarded = false;
+  let logLimitSignalSent = false;
+  let logWriteFailed = false;
   const forwardLatchedSignal = () => {
     if (!child || !firstSignal || signalForwarded || settled) return;
     if (child.exitCode !== null || child.signalCode !== null) return;
@@ -133,7 +337,7 @@ export function run(options = {}) {
     try {
       child.kill(firstSignal);
     } catch (error) {
-      logger.error(`[yuri-session-launchd] failed to forward ${firstSignal}: ${error instanceof Error ? error.message : String(error)}`);
+      log('stderr', `[yuri-session-launchd] failed to forward ${firstSignal}: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
   const handlers = new Map(FORWARDED_SIGNALS.map((signal) => [signal, () => {
@@ -143,40 +347,71 @@ export function run(options = {}) {
   }]));
   const cleanup = () => {
     for (const [signal, handler] of handlers) signalSource.removeListener?.(signal, handler);
+    child?.stdout?.removeAllListeners?.('data');
+    child?.stderr?.removeAllListeners?.('data');
+    logSink.close();
   };
   for (const [signal, handler] of handlers) signalSource.on?.(signal, handler);
 
   try {
     child = spawnImpl(spec.executable, spec.args, {
       cwd: spec.cwd,
-      stdio: 'inherit',
+      stdio: ['ignore', 'pipe', 'pipe'],
       env: spec.env,
     });
   } catch (error) {
     cleanup();
     throw error;
   }
+  const writeChildLog = (stream, chunk) => {
+    if (logWriteFailed) return;
+    let result;
+    try {
+      result = logSink.write(stream, chunk);
+    } catch (error) {
+      logWriteFailed = true;
+      logSink.close();
+      logger.error(`[yuri-session-launchd] runtime log write failed; stopping child: ${error instanceof Error ? error.message : String(error)}`);
+      if (!logLimitSignalSent && !settled) {
+        logLimitSignalSent = true;
+        try { child.kill('SIGTERM'); } catch {}
+      }
+      return;
+    }
+    if (result.droppedBytes <= 0 || logLimitSignalSent || settled) return;
+    logLimitSignalSent = true;
+    logger.error(`[yuri-session-launchd] runtime log ceiling reached; stopping child for offline compaction`);
+    try {
+      child.kill('SIGTERM');
+    } catch (error) {
+      logger.error(`[yuri-session-launchd] failed to stop child at runtime log ceiling: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+  child.stdout?.on?.('data', (chunk) => writeChildLog('stdout', chunk));
+  child.stderr?.on?.('data', (chunk) => writeChildLog('stderr', chunk));
   forwardLatchedSignal();
 
   child.once('error', (error) => {
     if (settled) return;
     settled = true;
+    log('stderr', `[yuri-session-launchd] guarded backend failed to start: ${error.message}`);
     cleanup();
-    logger.error(`[yuri-session-launchd] guarded backend failed to start: ${error.message}`);
     process.exitCode = 1;
   });
   child.once('exit', (code, signal) => {
     if (settled) return;
     settled = true;
+    if (signal) log('stderr', `[yuri-session-launchd] guarded backend stopped by signal ${signal}`);
     cleanup();
-    if (signal) logger.error(`[yuri-session-launchd] guarded backend stopped by signal ${signal}`);
     process.exitCode = signal ? 1 : (code ?? 1);
   });
   return {
     child,
     cleanup,
+    logSink,
     spec,
     get firstSignal() { return firstSignal; },
+    get logWriteFailed() { return logWriteFailed; },
   };
 }
 

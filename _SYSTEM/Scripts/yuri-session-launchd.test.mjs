@@ -7,6 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { spawnSync } from 'node:child_process';
+import { PassThrough } from 'node:stream';
 import test from 'node:test';
 
 import {
@@ -16,7 +17,12 @@ import {
   LABEL,
   NODE_BINARY,
   NPM_CLI,
+  RUNTIME_LOG_MAX_BYTES,
+  RUNTIME_LOG_RETAIN_BYTES,
+  RUNTIME_LOG_ROLLOVER_BYTES,
   buildRunSpec,
+  capRuntimeLogs,
+  createBoundedRuntimeLogSink,
   install,
   run,
 } from './yuri-session-launchd.mjs';
@@ -52,6 +58,8 @@ class FakeChild extends EventEmitter {
     this.exitCode = null;
     this.signalCode = null;
     this.kills = [];
+    this.stdout = new PassThrough();
+    this.stderr = new PassThrough();
   }
 
   kill(signal) {
@@ -77,6 +85,8 @@ test('plist uses the fixed wrapper and sanitized environment without secret mate
   assert.match(result.stdout, /yuri-session-launchd\.mjs/);
   assert.match(result.stdout, new RegExp(NODE_BINARY.replaceAll('/', '\\/')));
   assert.match(result.stdout, /YURI_SESSION_RUNTIME_ENABLED/);
+  assert.equal((result.stdout.match(/<string>\/dev\/null<\/string>/g) ?? []).length, 2);
+  assert.doesNotMatch(result.stdout, /yuri-session-runtime\.(?:out|err)\.log/);
   assert.doesNotMatch(result.stdout, /YURI_SESSION_RUNTIME_COMMAND/);
   assert.doesNotMatch(result.stdout, /passphrase|password|secret|keychain|backend-volume\/config\.json/i);
 });
@@ -92,6 +102,8 @@ test('missing fixed backend-volume config fails closed before any process can sp
       },
       signalSource: new EventEmitter(),
       logger: { log() {}, error() {} },
+      capLogsImpl: () => ({ capped: false }),
+      logSinkFactory: () => ({ write() { return { droppedBytes: 0 }; }, close() {} }),
     }),
     (error) => error?.code === 'RUNTIME_CONFIG_MISSING' && error.message.includes(CONFIG_PATH),
   );
@@ -153,6 +165,8 @@ test('run ignores environment command/config/npm overrides and forwards shutdown
       },
       signalSource,
       logger: { log() {}, error() {} },
+      capLogsImpl: () => ({ capped: false }),
+      logSinkFactory: () => ({ write() { return { droppedBytes: 0 }; }, close() {} }),
     });
     assert.equal(captured.executable, NODE_BINARY);
     assert.deepEqual(captured.args, [
@@ -245,4 +259,111 @@ test('fixed config rejects symlink and mode-022 identities before spawn', () => 
     },
   };
   assert.throws(() => buildRunSpec(writable), /group\/world writable/);
+});
+
+test('runtime log cap atomically preserves the newest tail and the original mode', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'yuri-runtime-log-cap-'));
+  const out = path.join(root, 'runtime.out.log');
+  const err = path.join(root, 'runtime.err.log');
+  try {
+    fs.writeFileSync(out, 'abcdefghij', { mode: 0o600 });
+    fs.writeFileSync(err, '12345', { mode: 0o600 });
+    const result = capRuntimeLogs({ logPaths: [out, err], maxBytes: 10, retainBytes: 4 });
+    assert.equal(result.capped, true);
+    assert.equal(result.beforeBytes, 15);
+    assert.equal(result.afterBytes, 9);
+    assert.equal(fs.readFileSync(out, 'utf8'), 'ghij');
+    assert.equal(fs.readFileSync(err, 'utf8'), '12345');
+    assert.equal(fs.statSync(out).mode & 0o777, 0o600);
+    assert.equal(fs.readdirSync(root).some((name) => name.includes('.trim-')), false);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('bounded runtime sink shares one exact ceiling across stdout and stderr', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'yuri-runtime-log-sink-'));
+  const out = path.join(root, 'runtime.out.log');
+  const err = path.join(root, 'runtime.err.log');
+  try {
+    fs.writeFileSync(out, 'abcdef', { mode: 0o600 });
+    fs.writeFileSync(err, '1234', { mode: 0o600 });
+    const sink = createBoundedRuntimeLogSink({ logPaths: [out, err], maxBytes: 12 });
+    assert.deepEqual(sink.write('stdout', 'XYZ'), { writtenBytes: 2, droppedBytes: 1, totalBytes: 12 });
+    assert.deepEqual(sink.write('stderr', 'more'), { writtenBytes: 0, droppedBytes: 4, totalBytes: 12 });
+    assert.equal(sink.totalBytes, 12);
+    assert.equal(sink.droppedBytes, 5);
+    sink.close();
+    assert.equal(fs.readFileSync(out, 'utf8'), 'abcdefXY');
+    assert.equal(fs.readFileSync(err, 'utf8'), '1234');
+    assert.equal(fs.statSync(out).mode & 0o777, 0o600);
+    assert.equal(fs.statSync(err).mode & 0o777, 0o600);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('run compacts before spawn and stops a noisy child exactly once at the shared ceiling', () => {
+  const events = [];
+  const child = new FakeChild();
+  let sinkWrites = 0;
+  const launched = run({
+    fsAdapter: virtualConfigAdapter(true),
+    capLogsImpl(options) {
+      events.push(`cap:${options.maxBytes}`);
+      return { capped: true, beforeBytes: RUNTIME_LOG_MAX_BYTES, afterBytes: RUNTIME_LOG_RETAIN_BYTES };
+    },
+    logSinkFactory(options) {
+      events.push(`sink:${options.maxBytes}`);
+      return {
+        write() {
+          sinkWrites += 1;
+          return { droppedBytes: sinkWrites > 1 ? 1 : 0 };
+        },
+        close() { events.push('close'); },
+      };
+    },
+    spawnImpl() {
+      events.push('spawn');
+      return child;
+    },
+    signalSource: new EventEmitter(),
+    logger: { log() {}, error() {} },
+  });
+  assert.deepEqual(events.slice(0, 3), [
+    `cap:${RUNTIME_LOG_ROLLOVER_BYTES}`,
+    `sink:${RUNTIME_LOG_ROLLOVER_BYTES}`,
+    'spawn',
+  ]);
+  child.stdout.write('first-overflow');
+  child.stderr.write('second-overflow');
+  assert.deepEqual(child.kills, ['SIGTERM']);
+  child.exit(0, null);
+  assert.equal(launched.child, child);
+  assert.equal(events.includes('close'), true);
+});
+
+test('runtime log write failure is contained and stops the child exactly once', () => {
+  const child = new FakeChild();
+  let writes = 0;
+  const launched = run({
+    fsAdapter: virtualConfigAdapter(true),
+    capLogsImpl: () => ({ capped: false }),
+    logSinkFactory: () => ({
+      write() {
+        writes += 1;
+        if (writes > 1) throw new Error('injected ENOSPC');
+        return { droppedBytes: 0 };
+      },
+      close() {},
+    }),
+    spawnImpl: () => child,
+    signalSource: new EventEmitter(),
+    logger: { log() {}, error() {} },
+  });
+  assert.doesNotThrow(() => child.stdout.write('first-failing-write'));
+  assert.doesNotThrow(() => child.stderr.write('drained-after-failure'));
+  assert.equal(launched.logWriteFailed, true);
+  assert.deepEqual(child.kills, ['SIGTERM']);
+  child.exit(0, null);
 });
