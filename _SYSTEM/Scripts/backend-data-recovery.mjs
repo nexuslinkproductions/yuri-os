@@ -38,7 +38,7 @@ export const CANONICAL_TARGET = path.join(REPO_ROOT, '_SYSTEM/backend/data');
 export const QUARANTINE_ROOT = path.join(REPO_ROOT, '_SYSTEM/recovery/backend-db');
 export const RECEIPT_ROOT = path.join(REPO_ROOT, '_SYSTEM/state/backend-volume');
 export const SWAP_HELPER_SOURCE_PATH = path.join(REPO_ROOT, '_SYSTEM/Scripts/backend-data-swap.c');
-export const SWAP_HELPER_SOURCE_SHA256 = '4c17848556e1bbc29755a9169a380ee82cec3310da0094a9794dbe742d8a0fd8';
+export const SWAP_HELPER_SOURCE_SHA256 = '473e47306297662deed1aec8f50cfd92ebea03ec544901bc758abc12f30e8f0d';
 export const RECOVERY_LOCK_PATH = path.join(RECEIPT_ROOT, 'backend-data-recovery.lock');
 export const BACKUP_IMAGE_PATH = '/Volumes/T7/YURI-OS-MUSUBI-Backup.sparsebundle';
 export const RUNTIME_IMAGE_PATH = '/Volumes/T7/YURI-Backend-Runtime-v1.sparsebundle';
@@ -90,6 +90,7 @@ const RESTORE_PHASE_A_SCHEMA = 'yuri.backend-data-recovery.restore.phase-a.v2';
 const RESTORE_FINAL_SCHEMA = 'yuri.backend-data-recovery.restore.final.v2';
 const VERIFY_SCHEMA = 'yuri.backend-data-recovery.verify.sealed.v2';
 const VERIFY_FINAL_SCHEMA = 'yuri.backend-data-recovery.verify.final.v2';
+const DATABASE_VERIFICATION_SNAPSHOT_SCHEMA = 'yuri.backend-data-recovery.database-verification-snapshot.v1';
 const DESCRIPTOR_RELATIVE_RECEIPT_WRITER = String.raw`
 import hashlib
 import json
@@ -555,6 +556,68 @@ function copyTreeSystem(source, destination) {
   ], { timeout: 12 * 60 * 60 * 1000 });
 }
 
+function copyDatabaseVerificationFileSystem(source, destination, helper, trace = null) {
+  if (!helper || !helper.path) {
+    fail('DATABASE_SNAPSHOT_HELPER_REQUIRED', 'database verification cloning requires an authenticated native helper');
+  }
+  reattestSwapHelper(helper, trace, 'clone-file', 'pre');
+  const sourceId = exactRegularFileIdentity64(source, 'database verification clone source');
+  const destinationParent = exactDirectoryIdentity64(
+    path.dirname(destination),
+    'database verification clone destination parent',
+  );
+  try {
+    fs.lstatSync(destination);
+    fail('DATABASE_SNAPSHOT_DESTINATION_EXISTS', 'database verification clone destination must not exist', {
+      destination,
+    });
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+  }
+  const helperArgs = [
+    'clone-file',
+    sourceId.path,
+    normalizeAbsolute(destination, 'database verification clone destination'),
+    sourceId.dev,
+    sourceId.ino,
+    destinationParent.dev,
+    destinationParent.ino,
+    sourceId.size,
+  ];
+  trace?.(Object.freeze({
+    event: 'helper-invoke',
+    action: 'clone-file',
+    args: Object.freeze([...helperArgs]),
+  }));
+  let spawnError = null;
+  try {
+    command(helper.path, helperArgs, { timeout: 5 * 60 * 1000 });
+  } catch (error) {
+    spawnError = error;
+  } finally {
+    try {
+      reattestSwapHelper(helper, trace, 'clone-file', 'post');
+    } catch (attestError) {
+      fail(attestError.code || 'SWAP_HELPER_POST_ATTEST_FAILED', attestError.message, {
+        ...attestError.details,
+        spawnError: spawnError ? spawnError.message : null,
+      });
+    }
+  }
+  if (spawnError) {
+    fail(
+      'DATABASE_SNAPSHOT_REFLINK_UNAVAILABLE',
+      'database verification requires native fclonefileat copy-on-write cloning; byte-copy fallback is forbidden',
+      {
+        source: sourceId.path,
+        destination,
+        cause: spawnError.code || spawnError.message || String(spawnError),
+        commandDetails: spawnError.details || null,
+      },
+    );
+  }
+}
+
 function swapHelperBinarySystem(binRoot = path.join(RECEIPT_ROOT, 'bin')) {
   // Read source bytes ONCE, pin-check the bytes, then write them to a private 0400
   // snapshot (O_NOFOLLOW|O_EXCL) + fsync, and compile the SNAPSHOT - not the live source.
@@ -635,6 +698,14 @@ function swapHelperBinarySystem(binRoot = path.join(RECEIPT_ROOT, 'bin')) {
  * only the C-CLI dev/ino handoff needs BigInt precision (see exactDirectoryIdentity64). */
 function reattestSwapHelper(helper, trace = null, action = null, phase = null) {
   if (!helper || !helper.path) fail('SWAP_HELPER_INVALID', 'swap helper identity is missing for re-attestation');
+  if (helper.sourceSha256 !== SWAP_HELPER_SOURCE_SHA256
+      || helper.snapshotSha256 !== SWAP_HELPER_SOURCE_SHA256) {
+    fail('SWAP_HELPER_SOURCE_PIN_MISMATCH', 'swap helper source attestation no longer matches the canonical pin', {
+      expected: SWAP_HELPER_SOURCE_SHA256,
+      sourceSha256: helper.sourceSha256 ?? null,
+      snapshotSha256: helper.snapshotSha256 ?? null,
+    });
+  }
   const exact = exactFile(helper.path, 'compiled atomic swap helper (re-attest)');
   if (exact.stat.uid !== helper.uid
       || (exact.stat.mode & 0o777) !== helper.mode
@@ -647,6 +718,22 @@ function reattestSwapHelper(helper, trace = null, action = null, phase = null) {
     fail('SWAP_HELPER_DIGEST_CHANGED', 'swap helper binary digest changed since compile (tamper or race)');
   }
   trace?.(Object.freeze({ event: 'helper-reattested', action, phase, helperPath: helper.path }));
+}
+
+function swapHelperReceiptIdentity(helper) {
+  if (!helper || typeof helper !== 'object') {
+    fail('SWAP_HELPER_INVALID', 'swap helper identity is missing from database verification metadata');
+  }
+  return Object.freeze({
+    path: helper.path,
+    device: helper.device,
+    inode: helper.inode,
+    uid: helper.uid,
+    mode: helper.mode,
+    sha256: helper.sha256,
+    sourceSha256: helper.sourceSha256,
+    snapshotSha256: helper.snapshotSha256,
+  });
 }
 
 /* Derive exact (dev, ino) for the descriptor-relative C CLI via BigInt stats, then
@@ -665,6 +752,33 @@ function exactDirectoryIdentity64(target, label) {
     fail('PATH_IDENTITY_MISMATCH', `${label} must be an exact directory (no symlink) for descriptor-relative swap`, { path: target });
   }
   return { dev: stat.dev.toString(), ino: stat.ino.toString() };
+}
+
+function exactRegularFileIdentity64(target, label) {
+  const absolute = normalizeAbsolute(target, label);
+  let stat;
+  try {
+    stat = fs.lstatSync(absolute, { bigint: true });
+  } catch (error) {
+    fail('PATH_UNAVAILABLE', `${label} is unavailable`, {
+      path: absolute,
+      cause: error.code || error.message,
+    });
+  }
+  if (!stat.isFile() || stat.isSymbolicLink() || fs.realpathSync.native(absolute) !== absolute) {
+    fail('PATH_IDENTITY_MISMATCH', `${label} must be an exact regular file (no symlink) for descriptor-relative cloning`, {
+      path: absolute,
+    });
+  }
+  if (stat.size < 0n) {
+    fail('PATH_IDENTITY_MISMATCH', `${label} has an invalid negative size`, { path: absolute });
+  }
+  return Object.freeze({
+    path: absolute,
+    dev: stat.dev.toString(),
+    ino: stat.ino.toString(),
+    size: stat.size.toString(),
+  });
 }
 
 function swapTreesSystem(left, right, helper, trace = null) {
@@ -767,6 +881,8 @@ export function createSystemAdapters(overrides = {}) {
     inspectSourceIdentity: inspectSourceIdentitySystem,
     inspectTargetIdentity: inspectTargetIdentitySystem,
     copyTree: copyTreeSystem,
+    copyDatabaseVerificationFile: copyDatabaseVerificationFileSystem,
+    databaseVerificationCopyMode: 'native-fclonefileat-authenticated',
     swapTrees: swapTreesSystem,
     listOpenFiles: listOpenFilesSystem,
     sampleFilesystem: (targetRoot) => fs.statfsSync(targetRoot),
@@ -944,6 +1060,191 @@ export function verifyDatabases(treeRoot, tree, options = {}) {
     requiredRootDatabase,
     ok: requiredRootDatabase && checks.every((check) => check.ok),
     checks,
+  });
+}
+
+function databaseVerificationFamilies(tree) {
+  const files = new Map(tree.entries
+    .filter((entry) => entry.type === 'file')
+    .map((entry) => [entry.path, entry]));
+  const families = [];
+  const selected = new Map();
+  for (const main of activeDatabaseEntries(tree)) {
+    const companionPaths = [`${main.path}-wal`, `${main.path}-shm`, `${main.path}-journal`]
+      .filter((relative) => files.has(relative));
+    const hasWal = companionPaths.includes(`${main.path}-wal`);
+    const hasShm = companionPaths.includes(`${main.path}-shm`);
+    if (hasWal !== hasShm) {
+      fail('DATABASE_FAMILY_INCOMPLETE', 'WAL verification requires the exact main, WAL, and SHM family', {
+        path: main.path,
+        walPresent: hasWal,
+        shmPresent: hasShm,
+      });
+    }
+    const entries = [main, ...companionPaths.map((relative) => files.get(relative))];
+    for (const entry of entries) selected.set(entry.path, entry);
+    const fingerprint = entries
+      .map((entry) => ({ path: entry.path, bytes: entry.bytes, sha256: entry.sha256 }))
+      .sort((left, right) => left.path.localeCompare(right.path, 'en'));
+    families.push(Object.freeze({
+      mainPath: main.path,
+      companionPaths: Object.freeze(companionPaths),
+      fileCount: fingerprint.length,
+      byteCount: fingerprint.reduce((total, entry) => total + entry.bytes, 0),
+      familyDigest: crypto.createHash('sha256').update(JSON.stringify(fingerprint)).digest('hex'),
+    }));
+  }
+  const entries = [...selected.values()].sort((left, right) => left.path.localeCompare(right.path, 'en'));
+  return Object.freeze({
+    families: Object.freeze(families),
+    entries: Object.freeze(entries),
+    fileCount: entries.length,
+    byteCount: entries.reduce((total, entry) => total + entry.bytes, 0),
+    familySetDigest: crypto.createHash('sha256').update(JSON.stringify(entries.map((entry) => ({
+      path: entry.path,
+      bytes: entry.bytes,
+      sha256: entry.sha256,
+    })))).digest('hex'),
+  });
+}
+
+function assertTreeUnchanged(before, after, code, message) {
+  if (before.itemCount !== after.itemCount
+      || before.fileCount !== after.fileCount
+      || before.byteCount !== after.byteCount
+      || before.treeDigest !== after.treeDigest) {
+    fail(code, message, {
+      before: before.treeDigest,
+      after: after.treeDigest,
+    });
+  }
+}
+
+async function verifyDatabasesThroughSnapshot({
+  sourceRoot,
+  sourceTree,
+  quarantineRoot,
+  namespace,
+  helper,
+  adapters,
+  options = {},
+  progress = null,
+}) {
+  if (!/^[a-z0-9][a-z0-9-]{0,160}$/u.test(namespace)) {
+    fail('DATABASE_SNAPSHOT_NAMESPACE_INVALID', 'database verification snapshot namespace is invalid');
+  }
+  if (typeof adapters?.copyDatabaseVerificationFile !== 'function'
+      || !['native-fclonefileat-authenticated', 'fixture-byte-copy'].includes(adapters.databaseVerificationCopyMode)) {
+    fail('DATABASE_SNAPSHOT_ADAPTER_INVALID', 'database verification snapshot copy adapter is unavailable or untrusted');
+  }
+  if (!helper || typeof helper !== 'object') {
+    fail('DATABASE_SNAPSHOT_HELPER_REQUIRED', 'database verification snapshot requires a precompiled helper identity');
+  }
+  const source = exactDirectory(sourceRoot, 'database verification source tree');
+  const quarantine = exactDirectory(quarantineRoot, 'database verification quarantine root');
+  if (source.stat.dev !== quarantine.stat.dev
+      || quarantine.stat.uid !== process.getuid()
+      || (quarantine.stat.mode & 0o077) !== 0) {
+    fail('DATABASE_SNAPSHOT_ROOT_INVALID', 'database verification snapshot root must be private, uid-owned, and on the source filesystem');
+  }
+  const snapshotRoot = path.join(quarantine.path, `database-verification-${namespace}`);
+  if (fs.existsSync(snapshotRoot)) {
+    fail('DATABASE_SNAPSHOT_EXISTS', 'database verification snapshot path already exists', { snapshotRoot });
+  }
+  const familySet = databaseVerificationFamilies(sourceTree);
+  fs.mkdirSync(snapshotRoot, { mode: 0o700 });
+  fsyncDirectory(quarantine.path);
+  const directories = new Set([snapshotRoot]);
+  for (const entry of familySet.entries) {
+    const sourcePath = path.join(source.path, ...entry.path.split('/'));
+    const destination = path.join(snapshotRoot, ...entry.path.split('/'));
+    const parent = path.dirname(destination);
+    fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
+    for (let current = parent; pathWithin(snapshotRoot, current); current = path.dirname(current)) {
+      directories.add(current);
+      if (current === snapshotRoot) break;
+    }
+    adapters.copyDatabaseVerificationFile(sourcePath, destination, helper);
+    fs.chmodSync(destination, 0o400);
+    const copied = fs.lstatSync(destination);
+    if (!copied.isFile() || copied.isSymbolicLink()
+        || copied.uid !== process.getuid() || (copied.mode & 0o7777) !== 0o400) {
+      fail('DATABASE_SNAPSHOT_FILE_INVALID', 'database verification snapshot file identity or mode is invalid', {
+        path: entry.path,
+      });
+    }
+  }
+  for (const directory of [...directories].sort((left, right) => right.length - left.length)) {
+    fs.chmodSync(directory, 0o500);
+    fsyncDirectory(directory);
+  }
+  fsyncDirectory(quarantine.path);
+
+  const snapshotBefore = await enumerateTree(snapshotRoot, { progress });
+  const snapshotFiles = snapshotBefore.entries.filter((entry) => entry.type === 'file');
+  const expectedPaths = familySet.entries.map((entry) => entry.path);
+  const actualPaths = snapshotFiles.map((entry) => entry.path);
+  if (JSON.stringify(actualPaths) !== JSON.stringify(expectedPaths)
+      || snapshotBefore.entries.some((entry) => entry.type === 'directory' && entry.mode !== 0o500)
+      || snapshotFiles.some((entry) => entry.mode !== 0o400)) {
+    fail('DATABASE_SNAPSHOT_LAYOUT_MISMATCH', 'database verification snapshot layout or permissions are not exact', {
+      expectedPaths,
+      actualPaths,
+    });
+  }
+  const copiedByPath = new Map(snapshotFiles.map((entry) => [entry.path, entry]));
+  const mismatches = familySet.entries.flatMap((entry) => {
+    const copied = copiedByPath.get(entry.path);
+    return copied && copied.bytes === entry.bytes && copied.sha256 === entry.sha256
+      ? []
+      : [{
+        path: entry.path,
+        expectedBytes: entry.bytes,
+        actualBytes: copied?.bytes ?? null,
+        expectedSha256: entry.sha256,
+        actualSha256: copied?.sha256 ?? null,
+      }];
+  });
+  if (mismatches.length) {
+    fail('DATABASE_SNAPSHOT_CONTENT_MISMATCH', 'database verification snapshot bytes do not match the source tree', {
+      mismatches,
+    });
+  }
+
+  const databases = verifyDatabases(snapshotRoot, snapshotBefore, options);
+  const snapshotAfter = await enumerateTree(snapshotRoot, { progress });
+  assertTreeUnchanged(
+    snapshotBefore,
+    snapshotAfter,
+    'DATABASE_SNAPSHOT_MUTATED_DURING_VERIFICATION',
+    'read-only database verification changed its private snapshot',
+  );
+  const sourceAfter = await enumerateTree(source.path, { progress });
+  assertTreeUnchanged(
+    sourceTree,
+    sourceAfter,
+    'DATABASE_VERIFICATION_MUTATED_SOURCE',
+    'database verification changed the staged or live source tree',
+  );
+  return Object.freeze({
+    schema: DATABASE_VERIFICATION_SNAPSHOT_SCHEMA,
+    snapshotRoot,
+    namespace,
+    copyMode: adapters.databaseVerificationCopyMode,
+    helperIdentity: swapHelperReceiptIdentity(helper),
+    retainedForForensics: true,
+    directoryMode: 0o500,
+    fileMode: 0o400,
+    familyCount: familySet.families.length,
+    fileCount: familySet.fileCount,
+    byteCount: familySet.byteCount,
+    familySetDigest: familySet.familySetDigest,
+    families: familySet.families,
+    snapshotTreeDigest: snapshotBefore.treeDigest,
+    sourceTreeDigest: sourceTree.treeDigest,
+    sourceTreeDigestAfterVerification: sourceAfter.treeDigest,
+    sourceTreeUnchanged: true,
+    databases,
   });
 }
 
@@ -2073,6 +2374,10 @@ async function restoreRecoveryCore(options, executionToken) {
   }
   const transactionId = `${token}-${acquisition.nonce.slice(0, 16)}`;
   const transactionPath = path.join(receiptRoot, `backend-data-transaction-${transactionId}.json`);
+  const databaseVerificationSnapshotRoot = path.join(
+    quarantineRoot,
+    `database-verification-restore-${transactionId}`,
+  );
   let marker;
   try {
     marker = createActiveRecoveryMarker({
@@ -2097,6 +2402,7 @@ async function restoreRecoveryCore(options, executionToken) {
     stagingData,
     oldTargetQuarantine: quarantine,
     failedTarget,
+    databaseVerificationSnapshotRoot,
     sourceRemoved: false,
     claudeProjectsAccessed: false,
   };
@@ -2156,7 +2462,7 @@ async function restoreRecoveryCore(options, executionToken) {
     fs.mkdirSync(quarantineRoot, { recursive: true, mode: 0o700 });
     const quarantineEntry = exactDirectory(quarantineRoot, 'recovery quarantine root');
     if (quarantineEntry.stat.dev !== targetParent.stat.dev) fail('STAGING_FILESYSTEM_MISMATCH', 'staging is not on the canonical internal filesystem');
-    for (const candidate of [stagingRoot, quarantine, failedTarget]) {
+    for (const candidate of [stagingRoot, quarantine, failedTarget, databaseVerificationSnapshotRoot]) {
       if (fs.existsSync(candidate)) fail('RECOVERY_PATH_EXISTS', 'a recovery transaction path already exists', { candidate });
     }
     fs.mkdirSync(stagingRoot, { mode: 0o700 });
@@ -2165,30 +2471,42 @@ async function restoreRecoveryCore(options, executionToken) {
     adapters.copyTree(expectedSourceData, stagingData);
     const stagedTree = await enumerateTree(stagingData, { progress: options.progress });
     compareTrees(parsed.tree, stagedTree);
-    const stagedDatabases = verifyDatabases(stagingData, stagedTree, options);
+    // Compile and authenticate the one native producer before any database-family
+    // snapshot allocation. The same pinned helper performs every fclonefileat clone,
+    // the staged durability sync, and the atomic promotion exchange.
+    swapHelper = adapters.compileSwapHelper();
+    const databaseVerificationSnapshot = await verifyDatabasesThroughSnapshot({
+      sourceRoot: stagingData,
+      sourceTree: stagedTree,
+      quarantineRoot,
+      namespace: `restore-${transactionId}`,
+      helper: swapHelper,
+      adapters,
+      options,
+      progress: options.progress,
+    });
+    const stagedDatabases = databaseVerificationSnapshot.databases;
     if (!stagedDatabases.ok) fail('STAGING_DATABASE_INVALID', 'one or more staged databases failed verification', { stagedDatabases });
     const stagedEntry = exactDirectory(stagingData, 'staged backend data');
     if (stagedEntry.stat.dev !== targetParent.stat.dev) fail('STAGING_FILESYSTEM_MISMATCH', 'staged data is not on the canonical internal filesystem');
-    // G5 exact order: compile/authenticate -> full-sync -> POST-SYNC staged re-enumerate/
-    // hash+SQLite -> fresh statfs/reserve -> prepared. The fresh capacity sample is taken
-    // AFTER full-sync (F_FULLFSYNC/fsync can allocate journal/extents that change the
-    // capacity picture), and the prepared receipt carries the POST-sync staged digest
-    // (the pre-sync digest alone would attest a state full-sync could have altered).
-    swapHelper = adapters.compileSwapHelper();
+    // G5 exact order: compile/authenticate -> snapshot clone+SQLite -> full-sync ->
+    // POST-SYNC staged re-enumerate/rehash -> fresh statfs/reserve -> prepared. The
+    // fresh capacity sample is taken after all clone and durability allocations.
     adapters.fullSyncTree(stagingData, swapHelper);
     // POST-sync re-enumerate + rehash + SQLite. full-sync is durability-only and must not
     // alter content, so the post-sync staged digest must equal the pre-sync staged digest;
     // a drift here means the sync (or a race) changed bytes - fail rather than promote.
     const syncedTree = await enumerateTree(stagingData, { progress: options.progress });
-    if (syncedTree.treeDigest !== stagedTree.treeDigest) {
-      fail('STAGED_TREE_DRIFTED_AFTER_SYNC', 'staged tree digest changed after full-sync (durability must not alter content)', {
-        beforeSync: stagedTree.treeDigest,
-        afterSync: syncedTree.treeDigest,
-      });
-    }
-    const syncedDatabases = verifyDatabases(stagingData, syncedTree, options);
-    if (!syncedDatabases.ok) fail('STAGED_DATABASE_INVALID_AFTER_SYNC', 'staged databases failed verification after full-sync', { syncedDatabases });
-    // Fresh statfs capacity AFTER compile + full-sync so both allocations are accounted.
+    assertTreeUnchanged(
+      stagedTree,
+      syncedTree,
+      'STAGED_TREE_DRIFTED_AFTER_SYNC',
+      'staged tree digest changed after full-sync (durability must not alter content)',
+    );
+    // The one staged snapshot verdict is reusable only because the exact staged tree
+    // (content plus governed metadata) is unchanged after full-sync. Fresh statfs is
+    // intentionally sampled after snapshot creation + verification + compile + full-sync,
+    // so any real APFS COW allocation is already reflected in the reserve evidence.
     const postStageCapacity = assertCapacityEvidencePostStage(
       capacityEvidencePostStage(parsed.tree.byteCount, adapters.sampleFilesystem(options.capacityRoot)),
       parsed.tree.byteCount,
@@ -2200,6 +2518,7 @@ async function restoreRecoveryCore(options, executionToken) {
       stagedIdentity: { device: stagedEntry.stat.dev, inode: stagedEntry.stat.ino },
       preSyncStagedTreeDigest: stagedTree.treeDigest,
       stagedTreeDigest: syncedTree.treeDigest,
+      databaseVerificationSnapshot,
       postStageCapacity,
       swapHelperIdentity: {
         path: swapHelper.path,
@@ -2260,8 +2579,13 @@ async function restoreRecoveryCore(options, executionToken) {
     ensureQuiescent(target, adapters);
     const promotedTree = await enumerateTree(target, { progress: options.progress });
     compareTrees(parsed.tree, promotedTree);
-    const promotedDatabases = verifyDatabases(target, promotedTree, options);
-    if (!promotedDatabases.ok) fail('PROMOTED_DATABASE_INVALID', 'promoted databases failed verification', { promotedDatabases });
+    assertTreeUnchanged(
+      syncedTree,
+      promotedTree,
+      'PROMOTED_TREE_DRIFTED_FROM_VERIFIED_STAGE',
+      'promoted tree differs from the exact staged tree covered by the database snapshot verdict',
+    );
+    const promotedDatabases = stagedDatabases;
     ensureQuiescent(target, adapters);
     writeTransaction(transactionPath, transactionBase, 'verified', {
       updatedAt: adapters.now().toISOString(),
@@ -2305,6 +2629,7 @@ async function restoreRecoveryCore(options, executionToken) {
       promotedIdentity: { device: promoted.stat.dev, inode: promoted.stat.ino },
       tree: promotedTree,
       databases: promotedDatabases,
+      databaseVerificationSnapshot,
       capacity,
       postStageCapacity,
       swapHelperIdentity: {
@@ -2542,6 +2867,7 @@ async function verifyRecoveryCore(options, executionToken) {
   assertExpectedTree(manifest.parsed.tree, expected);
   const target = normalizeAbsolute(options.canonicalTarget, 'canonical backend target');
   if (manifest.parsed.canonicalTarget !== target) fail('CANONICAL_TARGET_CHANGED', 'canonical target differs from the reviewed manifest');
+  const quarantineRoot = normalizeAbsolute(options.quarantineRoot, 'recovery quarantine root');
   const adapters = options.adapters;
   const lease = await adapters.acquireOperationLock({
     purpose: 'verify',
@@ -2570,7 +2896,18 @@ async function verifyRecoveryCore(options, executionToken) {
     ensureQuiescent(target, adapters);
     const tree = await enumerateTree(target, { progress: options.progress });
     compareTrees(manifest.parsed.tree, tree);
-    const databases = verifyDatabases(target, tree, options);
+    const verificationHelper = adapters.compileSwapHelper();
+    const databaseVerificationSnapshot = await verifyDatabasesThroughSnapshot({
+      sourceRoot: target,
+      sourceTree: tree,
+      quarantineRoot,
+      namespace: `verify-${acquisition.nonce.slice(0, 16)}`,
+      helper: verificationHelper,
+      adapters,
+      options,
+      progress: options.progress,
+    });
+    const databases = databaseVerificationSnapshot.databases;
     if (!databases.ok) fail('LIVE_DATABASE_INVALID', 'one or more promoted databases failed verification', { databases });
     ensureQuiescent(target, adapters);
     lease.assertHeld();
@@ -2587,6 +2924,7 @@ async function verifyRecoveryCore(options, executionToken) {
       targetIdentity,
       tree,
       databases,
+      databaseVerificationSnapshot,
       runtimePolicy: {
         storageMode: 'internal-apfs',
         externalRuntimeImageRequired: false,
@@ -2815,6 +3153,16 @@ function createContainedFixtureAdapters(root, paths, suppliedAdapters, nativeHel
       assertFixtureContainedPath(root, destination, 'fixture staging destination');
       return adapterSource.copyTree(source, destination);
     },
+    copyDatabaseVerificationFile(source, destination, helper) {
+      assertFixtureContainedPath(root, source, 'fixture database verification source');
+      assertFixtureContainedPath(root, destination, 'fixture database verification destination');
+      assertFixtureHelperIdentity(root, helper, 'fixture database verification helper');
+      if (typeof suppliedAdapters.copyDatabaseVerificationFile === 'function') {
+        return suppliedAdapters.copyDatabaseVerificationFile(source, destination, helper);
+      }
+      return fs.copyFileSync(source, destination, fs.constants.COPYFILE_EXCL);
+    },
+    databaseVerificationCopyMode: 'fixture-byte-copy',
     swapTrees(left, right, helper) {
       assertFixtureContainedPath(root, left, 'fixture swap left');
       assertFixtureContainedPath(root, right, 'fixture swap right');
@@ -2978,6 +3326,7 @@ export function createBackendDataRecoveryFixtureApi(options = {}, ...extraArgume
       manifestSha256: input.manifestSha256,
       expected: input.expected,
       canonicalTarget: paths.canonicalTarget,
+      quarantineRoot: paths.quarantineRoot,
       receiptRoot: paths.receiptRoot,
       operationLockPath: paths.operationLockPath,
       operationLockBinRoot: paths.operationLockBinRoot,
@@ -3064,6 +3413,7 @@ async function runProductionVerify(input, progress = null) {
     manifestSha256: input.manifestSha256,
     expected: EXPECTED_SOURCE,
     canonicalTarget: CANONICAL_TARGET,
+    quarantineRoot: QUARANTINE_ROOT,
     receiptRoot: RECEIPT_ROOT,
     operationLockPath: BACKEND_OPERATION_LOCK_PATH,
     operationLockBinRoot: BACKEND_HELPER_BIN_ROOT,

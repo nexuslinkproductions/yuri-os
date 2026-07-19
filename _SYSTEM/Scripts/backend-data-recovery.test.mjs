@@ -22,6 +22,7 @@ import {
   restoreRecovery as productionRestoreRecovery,
   verifyRecovery as productionVerifyRecovery,
   SWAP_HELPER_SOURCE_PATH,
+  SWAP_HELPER_SOURCE_SHA256,
 } from './backend-data-recovery.mjs';
 import {
   acquireBackendOperationLock,
@@ -162,7 +163,16 @@ function fixture() {
     },
     listOpenFiles: () => [],
     sampleFilesystem: (targetRoot) => fs.statfsSync(targetRoot),
-    compileSwapHelper: () => Object.freeze({ path: path.join(root, 'bin/backend-data-swap'), device: 0, inode: 0, uid: process.getuid(), mode: 0o500, sha256: 'stub-helper-sha256', sourceSha256: 'stub-source-sha256' }),
+    compileSwapHelper: () => Object.freeze({
+      path: path.join(root, 'bin/backend-data-swap'),
+      device: 0,
+      inode: 0,
+      uid: process.getuid(),
+      mode: 0o500,
+      sha256: 'stub-helper-sha256',
+      sourceSha256: 'stub-source-sha256',
+      snapshotSha256: 'stub-source-snapshot-sha256',
+    }),
     fullSyncTree: () => {},
   };
   const recoveryWith = (adapterOverrides = {}, factoryOptions = {}) => createBackendDataRecoveryFixtureApi({
@@ -185,6 +195,47 @@ function fixture() {
     lockEvents,
     targetIdentity,
   };
+}
+
+function removeFixtureRoot(root) {
+  const makeWritable = (candidate) => {
+    let entry;
+    try {
+      entry = fs.lstatSync(candidate);
+    } catch (error) {
+      if (error?.code === 'ENOENT') return;
+      throw error;
+    }
+    if (entry.isSymbolicLink()) return;
+    if (entry.isDirectory()) {
+      fs.chmodSync(candidate, 0o700);
+      for (const name of fs.readdirSync(candidate)) makeWritable(path.join(candidate, name));
+      return;
+    }
+    if (entry.isFile()) fs.chmodSync(candidate, 0o600);
+  };
+  makeWritable(root);
+  fs.rmSync(root, { recursive: true, force: true });
+}
+
+function compileNativeSwapHelperFixture(root) {
+  const helperPath = path.join(root, 'backend-data-swap');
+  const compiled = spawnSync('/usr/bin/clang', [
+    '-std=c11', '-Os', '-Wall', '-Wextra', '-Werror', SWAP_HELPER_SOURCE_PATH, '-o', helperPath,
+  ], { encoding: 'utf8', env: RECOVERY_CHILD_ENVIRONMENT });
+  assert.equal(compiled.status, 0, compiled.stderr || compiled.stdout);
+  fs.chmodSync(helperPath, 0o500);
+  const helperStat = fs.lstatSync(helperPath);
+  return Object.freeze({
+    path: helperPath,
+    device: helperStat.dev,
+    inode: helperStat.ino,
+    uid: helperStat.uid,
+    mode: helperStat.mode & 0o777,
+    sha256: crypto.createHash('sha256').update(fs.readFileSync(helperPath)).digest('hex'),
+    sourceSha256: SWAP_HELPER_SOURCE_SHA256,
+    snapshotSha256: SWAP_HELPER_SOURCE_SHA256,
+  });
 }
 
 test('Darwin helper atomically exchanges two real same-filesystem directories', {
@@ -356,7 +407,7 @@ test('Darwin swap helper boundary: full-sync positive + dev/ino/path/argc/symlin
     assert.equal(compiled.status, 0, compiled.stderr || compiled.stdout);
     const run = (...args) => {
       const r = spawnSync(binary, args, { encoding: 'utf8' });
-      return { status: r.status, stderr: (r.stderr || '').trim() };
+      return { status: r.status, stdout: (r.stdout || '').trim(), stderr: (r.stderr || '').trim() };
     };
     const expectOk = (desc, r) => assert.equal(r.status, 0, `${desc}: expected exit 0, got ${r.status}: ${r.stderr}`);
     const expectReject = (desc, r) => assert.notEqual(r.status, 0, `${desc}: expected non-zero exit, got 0`);
@@ -368,6 +419,70 @@ test('Darwin swap helper boundary: full-sync positive + dev/ino/path/argc/symlin
     fs.writeFileSync(path.join(syncRoot, 'sub', 'b.txt'), 'b');
     const syncStat = fs.lstatSync(syncRoot, { bigint: true });
     expectOk('full-sync positive', run('full-sync', syncRoot, syncStat.dev.toString(), syncStat.ino.toString()));
+
+    // --- native fclonefileat producer: exact source + pinned destination parent ---
+    const cloneSource = path.join(root, 'clone-source.db');
+    const cloneParent = path.join(root, 'clone-destination');
+    const cloneDestination = path.join(cloneParent, 'snapshot.db');
+    fs.writeFileSync(cloneSource, Buffer.from('native-fclonefileat-boundary'));
+    fs.mkdirSync(cloneParent);
+    const cloneSourceStat = fs.lstatSync(cloneSource, { bigint: true });
+    const cloneParentStat = fs.lstatSync(cloneParent, { bigint: true });
+    const cloneArgs = (destination, overrides = {}) => [
+      'clone-file',
+      overrides.source ?? cloneSource,
+      destination,
+      overrides.sourceDev ?? cloneSourceStat.dev.toString(),
+      overrides.sourceIno ?? cloneSourceStat.ino.toString(),
+      overrides.parentDev ?? cloneParentStat.dev.toString(),
+      overrides.parentIno ?? cloneParentStat.ino.toString(),
+      overrides.sourceSize ?? cloneSourceStat.size.toString(),
+    ];
+    const cloned = run(...cloneArgs(cloneDestination));
+    expectOk('clone-file positive', cloned);
+    assert.equal(cloned.stdout, 'BACKEND_DATA_CLONE_PASS');
+    assert.deepEqual(fs.readFileSync(cloneDestination), fs.readFileSync(cloneSource));
+    const cloneDestinationStat = fs.lstatSync(cloneDestination, { bigint: true });
+    assert.equal(cloneDestinationStat.dev, cloneSourceStat.dev);
+    assert.notEqual(cloneDestinationStat.ino, cloneSourceStat.ino);
+    assert.equal(cloneDestinationStat.size, cloneSourceStat.size);
+
+    const rejectClone = (description, leaf, overrides = {}) => {
+      const destination = path.join(cloneParent, leaf);
+      expectReject(description, run(...cloneArgs(destination, overrides)));
+      assert.equal(fs.existsSync(destination), false, `${description}: failed clone cannot create destination`);
+    };
+    rejectClone('clone stale source dev', 'stale-source-dev.db', {
+      sourceDev: (cloneSourceStat.dev + 1n).toString(),
+    });
+    rejectClone('clone stale source ino', 'stale-source-ino.db', {
+      sourceIno: (cloneSourceStat.ino + 1n).toString(),
+    });
+    rejectClone('clone stale source size', 'stale-source-size.db', {
+      sourceSize: (cloneSourceStat.size + 1n).toString(),
+    });
+    rejectClone('clone stale destination parent dev', 'stale-parent-dev.db', {
+      parentDev: (cloneParentStat.dev + 1n).toString(),
+    });
+    rejectClone('clone stale destination parent ino', 'stale-parent-ino.db', {
+      parentIno: (cloneParentStat.ino + 1n).toString(),
+    });
+    expectReject('clone destination exists', run(...cloneArgs(cloneDestination)));
+
+    const cloneSourceLink = path.join(root, 'clone-source-link.db');
+    fs.symlinkSync(cloneSource, cloneSourceLink);
+    rejectClone('clone source symlink', 'source-symlink.db', { source: cloneSourceLink });
+    const realCloneParent = path.join(root, 'real-clone-parent');
+    const linkCloneParent = path.join(root, 'link-clone-parent');
+    fs.mkdirSync(realCloneParent);
+    fs.symlinkSync(realCloneParent, linkCloneParent);
+    const realCloneParentStat = fs.lstatSync(realCloneParent, { bigint: true });
+    const linkedDestination = path.join(linkCloneParent, 'through-link.db');
+    expectReject('clone destination intermediate symlink', run(...cloneArgs(linkedDestination, {
+      parentDev: realCloneParentStat.dev.toString(),
+      parentIno: realCloneParentStat.ino.toString(),
+    })));
+    assert.equal(fs.existsSync(path.join(realCloneParent, 'through-link.db')), false);
 
     // --- identity negatives: stale ino, malformed dev (-1/+5/non-numeric) ---
     const staleSyncIno = syncStat.ino === 0n ? 1n : syncStat.ino - 1n;
@@ -409,6 +524,70 @@ test('Darwin swap helper boundary: full-sync positive + dev/ino/path/argc/symlin
     expectReject('swap stale left ino', run('swap', left, right, leftStat.dev.toString(), staleLeftIno.toString(), rightStat.dev.toString(), rightStat.ino.toString()));
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('native clone post-create failure retains forensic evidence and a fresh path remains usable', {
+  skip: process.platform !== 'darwin',
+}, () => {
+  const root = fs.realpathSync.native(fs.mkdtempSync(path.join('/private/tmp', 'yuri-clone-retention-boundary-')));
+  try {
+    const source = path.join(root, 'source.db');
+    const destinationRoot = path.join(root, 'snapshot');
+    const destination = path.join(destinationRoot, 'source.db');
+    const freshDestination = path.join(destinationRoot, 'source-fresh-nonce.db');
+    fs.writeFileSync(source, Buffer.from('post-clone-retained-forensics'));
+    fs.mkdirSync(destinationRoot, { mode: 0o700 });
+    const faultBinary = path.join(root, 'backend-data-swap-fault');
+    const compiled = spawnSync('/usr/bin/clang', [
+      '-std=c11', '-Os', '-Wall', '-Wextra', '-Werror',
+      '-DBACKEND_DATA_SWAP_CLONE_TEST_FAIL_AFTER_CREATE',
+      SWAP_HELPER_SOURCE_PATH, '-o', faultBinary,
+    ], { encoding: 'utf8', env: RECOVERY_CHILD_ENVIRONMENT });
+    assert.equal(compiled.status, 0, compiled.stderr || compiled.stdout);
+    const sourceStat = fs.lstatSync(source, { bigint: true });
+    const parentStat = fs.lstatSync(destinationRoot, { bigint: true });
+    const args = [
+      'clone-file', source, destination,
+      sourceStat.dev.toString(), sourceStat.ino.toString(),
+      parentStat.dev.toString(), parentStat.ino.toString(), sourceStat.size.toString(),
+    ];
+    const failed = spawnSync(faultBinary, args, { encoding: 'utf8', env: RECOVERY_CHILD_ENVIRONMENT });
+    assert.notEqual(failed.status, 0, 'fault injection must fail after creating the clone');
+    assert.match(failed.stderr, /injected post-clone failure: Input\/output error/u);
+    assert.match(failed.stderr, /clone retained for forensics/u);
+    assert.match(
+      failed.stderr,
+      /destination-close=0\/0; source-close=0\/0; parent-fsync=0\/0/u,
+      'failure telemetry must record bounded descriptor-close and parent-fsync outcomes',
+    );
+    assert.equal(fs.existsSync(destination), true, 'the partial clone is retained as forensic evidence');
+    assert.deepEqual(fs.readFileSync(destination), fs.readFileSync(source));
+
+    const helper = compileNativeSwapHelperFixture(root);
+    const sameDestinationRetry = spawnSync(helper.path, args, {
+      encoding: 'utf8', env: RECOVERY_CHILD_ENVIRONMENT,
+    });
+    assert.notEqual(sameDestinationRetry.status, 0, 'same-destination retry must fail closed');
+    assert.match(sameDestinationRetry.stderr, /destination must be absent/u);
+    assert.deepEqual(fs.readFileSync(destination), fs.readFileSync(source), 'failed retry preserves evidence');
+
+    const freshArgs = [...args];
+    freshArgs[2] = freshDestination;
+    const recovered = spawnSync(helper.path, freshArgs, { encoding: 'utf8', env: RECOVERY_CHILD_ENVIRONMENT });
+    assert.equal(recovered.status, 0, recovered.stderr || recovered.stdout);
+    assert.equal(recovered.stdout.trim(), 'BACKEND_DATA_CLONE_PASS');
+    assert.deepEqual(fs.readFileSync(freshDestination), fs.readFileSync(source));
+    assert.deepEqual(fs.readFileSync(destination), fs.readFileSync(source));
+
+    const helperSource = fs.readFileSync(SWAP_HELPER_SOURCE_PATH, 'utf8');
+    assert.doesNotMatch(
+      helperSource,
+      /unlinkat\s*\(\s*destination_parent_fd/u,
+      'post-create clone failures must never delete a destination name',
+    );
+  } finally {
+    removeFixtureRoot(root);
   }
 });
 
@@ -690,7 +869,7 @@ test('internal APFS attestation is owner-gated, override-closed, T7-free, and du
     );
   } finally {
     fs.chmodSync(fx.receiptRoot, 0o700);
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -730,7 +909,7 @@ test('internal APFS receipt writer isolates Python startup from hostile cwd and 
       if (value === undefined) delete process.env[key];
       else process.env[key] = value;
     }
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -853,7 +1032,7 @@ test('fixture factory rejects non-private roots, symlink roots, call overrides, 
     );
   } finally {
     try { fs.unlinkSync(symlink); } catch (error) { if (error?.code !== 'ENOENT') throw error; }
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -910,6 +1089,63 @@ test('CLI summary exposes only action-qualified tri-state storage facts', () => 
   assert.equal(closed.externalRuntimeImageRequiredAfterClosure, false, 'explicit false must not collapse to absent');
   assert.equal(closed.recoverySourceDriveRequiredAfterClosure, false, 'explicit false must not collapse to absent');
   assert.equal(closed.physicalT7ConnectedAtSummary, null, 'runtime policy does not prove physical drive absence');
+});
+
+test('production database verification copy seam requires the authenticated native fclonefileat helper', {
+  skip: process.platform !== 'darwin',
+}, () => {
+  const root = fs.realpathSync.native(fs.mkdtempSync(path.join('/private/tmp', 'yuri-database-snapshot-cow-')));
+  try {
+    const source = path.join(root, 'source.db');
+    const destination = path.join(root, 'snapshot.db');
+    fs.writeFileSync(source, Buffer.from('forced-cow-snapshot'));
+    const adapters = createSystemAdapters();
+    assert.equal(adapters.databaseVerificationCopyMode, 'native-fclonefileat-authenticated');
+    assert.throws(
+      () => adapters.copyDatabaseVerificationFile(source, destination),
+      (error) => error?.code === 'DATABASE_SNAPSHOT_HELPER_REQUIRED',
+    );
+    assert.equal(fs.existsSync(destination), false);
+
+    const unavailablePath = path.join(root, 'backend-data-swap-unavailable');
+    fs.writeFileSync(unavailablePath, '#!/bin/sh\nexit 73\n', { mode: 0o500 });
+    const unavailableStat = fs.lstatSync(unavailablePath);
+    const unavailableHelper = Object.freeze({
+      path: unavailablePath,
+      device: unavailableStat.dev,
+      inode: unavailableStat.ino,
+      uid: unavailableStat.uid,
+      mode: unavailableStat.mode & 0o777,
+      sha256: crypto.createHash('sha256').update(fs.readFileSync(unavailablePath)).digest('hex'),
+      sourceSha256: SWAP_HELPER_SOURCE_SHA256,
+      snapshotSha256: SWAP_HELPER_SOURCE_SHA256,
+    });
+    assert.throws(
+      () => adapters.copyDatabaseVerificationFile(source, destination, unavailableHelper),
+      (error) => error?.code === 'DATABASE_SNAPSHOT_REFLINK_UNAVAILABLE'
+        && error?.details?.commandDetails?.status === 73,
+    );
+    assert.equal(fs.existsSync(destination), false, 'native producer failure cannot fall back to a byte copy');
+
+    const helper = compileNativeSwapHelperFixture(root);
+    adapters.copyDatabaseVerificationFile(source, destination, helper);
+    assert.deepEqual(fs.readFileSync(destination), fs.readFileSync(source));
+    const sourceStat = fs.lstatSync(source, { bigint: true });
+    const destinationStat = fs.lstatSync(destination, { bigint: true });
+    assert.equal(destinationStat.dev, sourceStat.dev);
+    assert.notEqual(destinationStat.ino, sourceStat.ino, 'clone must be a newly created inode');
+    assert.equal(destinationStat.size, sourceStat.size);
+    assert.throws(
+      () => adapters.copyDatabaseVerificationFile(source, destination, helper),
+      (error) => error?.code === 'DATABASE_SNAPSHOT_DESTINATION_EXISTS',
+      'an existing destination must fail before native invocation',
+    );
+    const moduleSource = fs.readFileSync(new URL('./backend-data-recovery.mjs', import.meta.url), 'utf8');
+    assert.doesNotMatch(moduleSource, /COPYFILE_FICLONE_FORCE/u, 'Node clone flags are not the production producer');
+    assert.match(moduleSource, /'clone-file'/u, 'production cloning must invoke the authenticated native helper');
+  } finally {
+    removeFixtureRoot(root);
+  }
 });
 
 test('inspects, stages, verifies, atomically promotes, and preserves the old target', async () => {
@@ -1010,7 +1246,322 @@ test('inspects, stages, verifies, atomically promotes, and preserves the old tar
       'a post-closure byte change must fail the writer barrier',
     );
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
+  }
+});
+
+test('WAL verification snapshots preserve uncheckpointed committed data without touching source families', {
+  timeout: 30_000,
+}, async () => {
+  const fx = fixture();
+  let writer = null;
+  try {
+    const databasePath = path.join(fx.sourceData, 'wal-only.db');
+    assert.equal(fs.existsSync(databasePath), false, 'WAL fixture path must be fresh and non-colliding');
+    const baseline = spawnSync('/usr/bin/sqlite3', [databasePath, [
+      'PRAGMA user_version=0;',
+      'CREATE TABLE baseline(id INTEGER PRIMARY KEY);',
+      'INSERT INTO baseline VALUES(1);',
+    ].join(' ')], { encoding: 'utf8', env: RECOVERY_CHILD_ENVIRONMENT });
+    assert.equal(baseline.status, 0, baseline.stderr || baseline.stdout);
+    writer = spawn('/usr/bin/sqlite3', [databasePath], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: RECOVERY_CHILD_ENVIRONMENT,
+    });
+    writer.stdout.setEncoding('utf8');
+    writer.stderr.setEncoding('utf8');
+    let stdout = '';
+    let stderr = '';
+    const ready = new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error(`WAL fixture did not become ready: ${stderr}`)), 5000);
+      writer.stdout.on('data', (chunk) => {
+        stdout += chunk;
+        if (stdout.includes('WAL_READY')) {
+          clearTimeout(timer);
+          resolve();
+        }
+      });
+      writer.stderr.on('data', (chunk) => { stderr += chunk; });
+      writer.once('error', (error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+      writer.once('exit', (code, signal) => {
+        if (!stdout.includes('WAL_READY')) {
+          clearTimeout(timer);
+          reject(new Error(`WAL fixture exited before ready: code=${code} signal=${signal} stderr=${stderr}`));
+        }
+      });
+    });
+    writer.stdin.write([
+      '.bail on',
+      '.timeout 5000',
+      'PRAGMA journal_mode=WAL;',
+      'PRAGMA wal_autocheckpoint=0;',
+      'PRAGMA wal_checkpoint(TRUNCATE);',
+      'BEGIN IMMEDIATE;',
+      'CREATE TABLE wal_only_sentinel(value TEXT NOT NULL);',
+      "INSERT INTO wal_only_sentinel VALUES('snapshot-visible');",
+      'PRAGMA user_version=1;',
+      'COMMIT;',
+      '.print WAL_READY',
+      '',
+    ].join('\n'));
+    await ready;
+    writer.kill('SIGKILL');
+    await once(writer, 'close');
+    writer = null;
+
+    const familyPaths = [databasePath, `${databasePath}-wal`, `${databasePath}-shm`];
+    for (const candidate of familyPaths) {
+      assert.equal(fs.existsSync(candidate), true, `${path.basename(candidate)} must exist`);
+      assert.equal(fs.lstatSync(candidate).isFile(), true);
+    }
+    assert.ok(fs.statSync(`${databasePath}-wal`).size > 0, 'the committed WAL must be non-empty');
+    const mainOnly = path.join(fx.root, 'main-without-wal.db');
+    const mainOnlyBytes = fs.readFileSync(databasePath);
+    assert.equal(mainOnlyBytes.readUInt32BE(60), 0, 'the main-file header must retain user_version zero');
+    // Make the disposable control copy rollback-journal readable without its WAL.
+    // Production never rewrites a database header and never uses immutable=1.
+    mainOnlyBytes[18] = 1;
+    mainOnlyBytes[19] = 1;
+    fs.writeFileSync(mainOnly, mainOnlyBytes, { mode: 0o400 });
+    const mainOnlyVersion = spawnSync('/usr/bin/sqlite3', [
+      '-readonly', '-batch', '-noheader', mainOnly,
+      'PRAGMA user_version;',
+    ], { encoding: 'utf8', env: RECOVERY_CHILD_ENVIRONMENT });
+    assert.equal(mainOnlyVersion.status, 0, mainOnlyVersion.stderr || mainOnlyVersion.stdout);
+    assert.equal(mainOnlyVersion.stdout.trim(), '0', 'main-only baseline must remain at schema version zero');
+    const absentWithoutWal = spawnSync('/usr/bin/sqlite3', [
+      '-readonly', '-batch', '-noheader', mainOnly,
+      "SELECT value FROM wal_only_sentinel;",
+    ], { encoding: 'utf8', env: RECOVERY_CHILD_ENVIRONMENT });
+    assert.notEqual(absentWithoutWal.status, 0, 'the sentinel schema must be committed only in the WAL');
+
+    for (const candidate of familyPaths) fs.chmodSync(candidate, 0o400);
+    for (const candidate of [path.join(fx.sourceData, 'nested'), fx.sourceData]) fs.chmodSync(candidate, 0o500);
+    const familyHashes = () => Object.fromEntries(familyPaths.map((candidate) => [
+      path.basename(candidate),
+      crypto.createHash('sha256').update(fs.readFileSync(candidate)).digest('hex'),
+    ]));
+    const before = familyHashes();
+    const { expected, capacity, inspected } = await inspectFixture(fx);
+    assert.deepEqual(familyHashes(), before, 'read-only backup inspection must not change main/WAL/SHM bytes');
+    assert.equal(
+      (await enumerateTree(fx.sourceData)).treeDigest,
+      inspected.payload.tree.treeDigest,
+      'read-only backup inspection must preserve the exact source-tree digest',
+    );
+
+    let snapshotCopyCount = 0;
+    let snapshotObservedAtCapacitySample = false;
+    const walRecovery = fx.recoveryWith({
+      copyTree(source, destination) {
+        const copied = spawnSync('/usr/bin/ditto', [
+          '--rsrc', '--extattr', '--acl', '--noqtn', '--nocache', source, destination,
+        ], { encoding: 'utf8', env: RECOVERY_CHILD_ENVIRONMENT });
+        assert.equal(copied.status, 0, copied.stderr || copied.stdout);
+      },
+      swapTrees(left, right) {
+        const stagedMode = fs.lstatSync(right).mode & 0o7777;
+        fs.chmodSync(right, 0o700);
+        fx.adapters.swapTrees(left, right);
+        fs.chmodSync(left, stagedMode);
+      },
+      copyDatabaseVerificationFile(source, destination) {
+        snapshotCopyCount += 1;
+        fs.copyFileSync(source, destination, fs.constants.COPYFILE_EXCL);
+      },
+      sampleFilesystem(targetRoot) {
+        snapshotObservedAtCapacitySample = fs.readdirSync(fx.quarantineRoot)
+          .some((name) => name.startsWith('database-verification-restore-'));
+        return fs.statfsSync(targetRoot);
+      },
+    });
+    const restored = await walRecovery.restore({
+      ownerApproved: true,
+      manifestPath: inspected.manifestPath,
+      manifestSha256: inspected.manifestSha256,
+      expected,
+      capacity,
+    });
+    const restoreSnapshot = restored.receipt.databaseVerificationSnapshot;
+    assert.equal(restoreSnapshot.schema, 'yuri.backend-data-recovery.database-verification-snapshot.v1');
+    assert.equal(restoreSnapshot.copyMode, 'fixture-byte-copy');
+    assert.deepEqual(restoreSnapshot.helperIdentity, {
+      path: path.join(fx.root, 'bin/backend-data-swap'),
+      device: 0,
+      inode: 0,
+      uid: process.getuid(),
+      mode: 0o500,
+      sha256: 'stub-helper-sha256',
+      sourceSha256: 'stub-source-sha256',
+      snapshotSha256: 'stub-source-snapshot-sha256',
+    });
+    assert.equal(restoreSnapshot.retainedForForensics, true);
+    assert.equal(restoreSnapshot.sourceTreeUnchanged, true);
+    assert.equal(restoreSnapshot.directoryMode, 0o500);
+    assert.equal(restoreSnapshot.fileMode, 0o400);
+    assert.equal(restoreSnapshot.databases.ok, true);
+    const walFamily = restoreSnapshot.families.find((family) => family.mainPath === 'wal-only.db');
+    assert.equal(walFamily?.fileCount, 3, 'the WAL fixture is snapshotted as exact main/WAL/SHM');
+    assert.deepEqual(walFamily?.companionPaths, ['wal-only.db-wal', 'wal-only.db-shm']);
+    assert.equal(snapshotCopyCount, 4, 'restore clones the three-file WAL family plus the unchanged default database');
+    assert.equal(snapshotObservedAtCapacitySample, true, 'post-stage statfs runs after snapshot allocation');
+    assert.equal(
+      restoreSnapshot.databases.checks.find((check) => check.path === 'wal-only.db')?.schemaVersion,
+      1,
+      'the database verdict must observe the schema version committed only in WAL',
+    );
+    const restoreSnapshotDatabase = path.join(restoreSnapshot.snapshotRoot, 'wal-only.db');
+    const restoreSentinel = spawnSync('/usr/bin/sqlite3', [
+      '-readonly', '-batch', '-noheader', restoreSnapshotDatabase,
+      "SELECT value FROM wal_only_sentinel;",
+    ], { encoding: 'utf8', env: RECOVERY_CHILD_ENVIRONMENT });
+    assert.equal(restoreSentinel.status, 0, restoreSentinel.stderr || restoreSentinel.stdout);
+    assert.equal(restoreSentinel.stdout.trim(), 'snapshot-visible');
+    for (const suffix of ['', '-wal', '-shm']) {
+      assert.equal(fs.lstatSync(`${restoreSnapshotDatabase}${suffix}`).mode & 0o7777, 0o400);
+    }
+    assert.deepEqual(
+      Object.fromEntries(familyPaths.map((candidate) => {
+        const promoted = path.join(fx.target, path.basename(candidate));
+        return [path.basename(candidate), crypto.createHash('sha256').update(fs.readFileSync(promoted)).digest('hex')];
+      })),
+      before,
+      'the exact promoted main/WAL/SHM family remains byte-identical to the source tree',
+    );
+
+    const verified = await walRecovery.verify({
+      ownerApproved: true,
+      manifestPath: inspected.manifestPath,
+      manifestSha256: inspected.manifestSha256,
+      expected,
+    });
+    const verifySnapshot = verified.payload.databaseVerificationSnapshot;
+    assert.notEqual(verifySnapshot.snapshotRoot, restoreSnapshot.snapshotRoot, 'verify must create a fresh snapshot');
+    assert.deepEqual(verifySnapshot.helperIdentity, restoreSnapshot.helperIdentity);
+    assert.equal(snapshotCopyCount, 8, 'verify adds one fresh four-file snapshot; restore never re-snapshots after sync/promotion');
+    assert.equal(verifySnapshot.retainedForForensics, true);
+    const verifySentinel = spawnSync('/usr/bin/sqlite3', [
+      '-readonly', '-batch', '-noheader', path.join(verifySnapshot.snapshotRoot, 'wal-only.db'),
+      "SELECT value FROM wal_only_sentinel;",
+    ], { encoding: 'utf8', env: RECOVERY_CHILD_ENVIRONMENT });
+    assert.equal(verifySentinel.status, 0, verifySentinel.stderr || verifySentinel.stdout);
+    assert.equal(verifySentinel.stdout.trim(), 'snapshot-visible');
+    assert.deepEqual(familyHashes(), before, 'snapshot-only restore and verify never change the backup family');
+
+    const moduleSource = fs.readFileSync(new URL('./backend-data-recovery.mjs', import.meta.url), 'utf8');
+    assert.doesNotMatch(moduleSource, /immutable=1/u, 'WAL visibility must not be bypassed with SQLite immutable mode');
+  } finally {
+    if (writer && writer.exitCode === null && writer.signalCode === null) writer.kill('SIGKILL');
+    removeFixtureRoot(fx.root);
+  }
+});
+
+test('lone SHM without WAL fails the database-family gate before cloning or promotion', async () => {
+  const fx = fixture();
+  try {
+    const databasePath = path.join(fx.sourceData, 'yuri.db');
+    const loneShm = `${databasePath}-shm`;
+    fs.writeFileSync(loneShm, Buffer.alloc(32 * 1024), { mode: 0o400 });
+    assert.equal(fs.existsSync(`${databasePath}-wal`), false);
+    assert.equal(fs.existsSync(loneShm), true);
+    fs.chmodSync(databasePath, 0o400);
+    fs.chmodSync(path.join(fx.sourceData, 'nested'), 0o500);
+    fs.chmodSync(fx.sourceData, 0o500);
+    const sourceBefore = await enumerateTree(fx.sourceData);
+    const { expected, capacity, inspected } = await inspectFixture(fx);
+    assert.equal(inspected.payload.tree.treeDigest, sourceBefore.treeDigest);
+    assert.equal((await enumerateTree(fx.sourceData)).treeDigest, sourceBefore.treeDigest);
+
+    let cloneCount = 0;
+    const incomplete = fx.recoveryWith({
+      copyTree(source, destination) {
+        const copied = spawnSync('/usr/bin/ditto', [
+          '--rsrc', '--extattr', '--acl', '--noqtn', '--nocache', source, destination,
+        ], { encoding: 'utf8', env: RECOVERY_CHILD_ENVIRONMENT });
+        assert.equal(copied.status, 0, copied.stderr || copied.stdout);
+      },
+      copyDatabaseVerificationFile() {
+        cloneCount += 1;
+        throw new Error('incomplete family must be rejected before the clone seam');
+      },
+    });
+    await assert.rejects(
+      incomplete.restore({
+        ownerApproved: true,
+        manifestPath: inspected.manifestPath,
+        manifestSha256: inspected.manifestSha256,
+        expected,
+        capacity,
+      }),
+      (error) => {
+        assert.equal(error?.code, 'DATABASE_FAMILY_INCOMPLETE');
+        assert.equal(error?.details?.causeCode, 'DATABASE_FAMILY_INCOMPLETE');
+        return true;
+      },
+    );
+    assert.equal(cloneCount, 0, 'no family member is cloned after incomplete-family detection');
+    assert.equal(
+      fs.readdirSync(fx.quarantineRoot).some((name) => name.startsWith('database-verification-')),
+      false,
+      'the private snapshot namespace is not allocated for an incomplete family',
+    );
+    assert.equal(fs.readFileSync(path.join(fx.target, 'old.txt'), 'utf8'), 'preserve-old');
+    assert.equal(fs.existsSync(path.join(fx.target, 'payload.bin')), false, 'incomplete staging is never promoted');
+    assert.equal(fx.recovery.assertRecoveryStateAllowsWriter().ok, true);
+    assert.equal((await enumerateTree(fx.sourceData)).treeDigest, sourceBefore.treeDigest);
+  } finally {
+    removeFixtureRoot(fx.root);
+  }
+});
+
+test('database-family source drift between clone seams fails closed before promotion', async () => {
+  const fx = fixture();
+  try {
+    const auxiliaryDatabase = path.join(fx.sourceData, 'nested', 'aux.sqlite');
+    const created = spawnSync('/usr/bin/sqlite3', [auxiliaryDatabase, [
+      'PRAGMA user_version=2;',
+      'CREATE TABLE auxiliary(value TEXT NOT NULL);',
+      "INSERT INTO auxiliary VALUES('stable-before-snapshot');",
+    ].join(' ')], { encoding: 'utf8', env: RECOVERY_CHILD_ENVIRONMENT });
+    assert.equal(created.status, 0, created.stderr || created.stdout);
+    const { expected, capacity, inspected } = await inspectFixture(fx);
+    let cloneCount = 0;
+    let mutatedStagedDatabase = null;
+    const racing = fx.recoveryWith({
+      copyDatabaseVerificationFile(source, destination) {
+        cloneCount += 1;
+        fs.copyFileSync(source, destination, fs.constants.COPYFILE_EXCL);
+        if (cloneCount === 1) {
+          const firstIsAuxiliary = path.basename(source) === 'aux.sqlite';
+          mutatedStagedDatabase = firstIsAuxiliary
+            ? path.join(path.dirname(path.dirname(source)), 'yuri.db')
+            : path.join(path.dirname(source), 'nested', 'aux.sqlite');
+          assert.equal(fs.existsSync(mutatedStagedDatabase), true);
+          fs.appendFileSync(mutatedStagedDatabase, Buffer.from('between-family-clones'));
+        }
+      },
+    });
+    await assert.rejects(
+      racing.restore({
+        ownerApproved: true,
+        manifestPath: inspected.manifestPath,
+        manifestSha256: inspected.manifestSha256,
+        expected,
+        capacity,
+      }),
+      (error) => error?.code === 'DATABASE_SNAPSHOT_CONTENT_MISMATCH',
+      'a later family changed after the first clone must invalidate the whole snapshot verdict',
+    );
+    assert.ok(cloneCount >= 2, 'the injected mutation occurs strictly between family clones');
+    assert.match(mutatedStagedDatabase, /\/full-data-stage-[^/]+\/data\//u);
+    assert.equal(fs.readFileSync(path.join(fx.target, 'old.txt'), 'utf8'), 'preserve-old');
+    assert.equal(fs.existsSync(path.join(fx.target, 'payload.bin')), false, 'unverified staging is never promoted');
+    assert.equal(fx.recovery.assertRecoveryStateAllowsWriter().ok, true);
+  } finally {
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -1063,7 +1614,7 @@ test('rejects payload drift before staging and requires owner approval for resto
     );
     assert.equal(fs.readFileSync(path.join(fx.target, 'old.txt'), 'utf8'), 'preserve-old');
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -1103,7 +1654,7 @@ test('refuses active writers before promotion and preserves the live target', as
     );
     assert.equal(fs.readFileSync(path.join(fx.target, 'old.txt'), 'utf8'), 'preserve-old');
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -1164,7 +1715,7 @@ test('rejects a digest-valid manifest that redirects the protected source path',
     assert.equal(liveInspectionCalls, 0, 'rejected manifest must not touch source or live target');
     assert.equal(fs.readFileSync(fx.claudeSentinel, 'utf8'), 'untouched');
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -1225,7 +1776,7 @@ test('restore and verify reject a manifest inside a protected-like live target b
     assert.equal(fs.readFileSync(inspected.manifestPath, 'utf8').includes('inspect.v1'), true);
   } finally {
     fs.chmodSync(path.join(fx.target, 'operator-manifest.json'), 0o600);
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -1267,7 +1818,7 @@ test('rejects malformed manifest aggregates even when the caller supplies their 
       (error) => error.code === 'MANIFEST_INVALID',
     );
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -1312,7 +1863,7 @@ test('stale manifest cannot replace a different target inode', async () => {
     assert.equal(fs.readFileSync(path.join(fx.target, 'replacement.txt'), 'utf8'), 'do-not-replace');
     assert.equal(fs.readFileSync(path.join(original, 'old.txt'), 'utf8'), 'preserve-old');
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -1362,7 +1913,7 @@ test('post-swap writer detection atomically restores old target and preserves fa
     assert.equal(fs.readFileSync(path.join(failed, 'payload.bin'), 'utf8'), 'payload');
     assert.equal(fs.existsSync(path.join(fx.receiptRoot, 'backend-data-recovery.lock')), false);
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -1413,7 +1964,7 @@ test('writer barrier blocks active, incomplete, and malformed recovery state', (
       'a symlink receipt root must block rather than appear absent',
     );
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -1448,7 +1999,7 @@ test('full-sync drift is rehashed before the fresh capacity sample and never pro
     assert.equal(fs.readFileSync(path.join(fx.target, 'old.txt'), 'utf8'), 'preserve-old');
     assert.equal(fx.recovery.assertRecoveryStateAllowsWriter().ok, true);
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -1506,7 +2057,7 @@ test('contained native workflow proves G4/G5 exact dev/ino args, re-attestation,
     assert.equal(swap.args[6], promotedIdentity.ino.toString(), 'swap right inode pins the staged/promoted tree');
     assert.equal(restored.receipt.fullSyncCompleted, true);
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -1584,7 +2135,7 @@ test('native recovery subprocesses remain hermetic under a hostile parent enviro
       if (value === undefined) delete process.env[key];
       else process.env[key] = value;
     }
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -1620,7 +2171,7 @@ test('helper error after a real exchange is observed and rolled back without a s
     const failed = path.join(fx.quarantineRoot, `failed-data-${inspected.manifestSha256.slice(0, 16)}`);
     assert.equal(fs.readFileSync(path.join(failed, 'payload.bin'), 'utf8'), 'payload');
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -2139,7 +2690,7 @@ test('unknown topology with a marker identity contradiction preserves the incomp
       'the unchanged non-final transaction remains the persistent writer barrier',
     );
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -2172,7 +2723,7 @@ test('oldLocation changes immediately after quarantine rename so a following fau
     assert.match(observedOldLocation, /old-data-/u);
     assert.equal(fs.readFileSync(path.join(fx.target, 'old.txt'), 'utf8'), 'preserve-old');
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -2209,7 +2760,7 @@ test('Phase-A seal forbids rollback when native release cannot be proven', async
       (error) => error.code === 'RECOVERY_STATE_ACTIVE',
     );
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -2254,7 +2805,7 @@ test('lease loss after exchange causes fail-hold and no unleased rollback mutati
     assert.equal(fs.readFileSync(path.join(fx.target, 'payload.bin'), 'utf8'), 'payload');
     assert.equal(fs.existsSync(path.join(fx.receiptRoot, 'backend-data-recovery.lock')), true);
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -2312,7 +2863,7 @@ test('lease loss immediately after rollback swap stops before failed-tree rename
       'failed-tree rename must not occur after post-swap lease loss');
     assert.equal(fs.existsSync(path.join(fx.receiptRoot, 'backend-data-recovery.lock')), true);
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -2365,7 +2916,7 @@ test('lease loss at the successful quarantine boundary stops the rename and reta
       'old-target quarantine rename must not occur without a fresh held assertion');
     assert.equal(fs.existsSync(path.join(fx.receiptRoot, 'backend-data-recovery.lock')), true);
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 
@@ -2410,7 +2961,7 @@ test('verify seals under its lease and reports incomplete finalization without a
       true,
     );
   } finally {
-    fs.rmSync(fx.root, { recursive: true, force: true });
+    removeFixtureRoot(fx.root);
   }
 });
 

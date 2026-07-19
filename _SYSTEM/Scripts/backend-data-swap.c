@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/clonefile.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -261,7 +262,256 @@ static int verify_dir_identity(int parent_fd, const char *name,
     return 0;
 }
 
+static int same_file_state(const struct stat *left, const struct stat *right) {
+    return left->st_dev == right->st_dev
+        && left->st_ino == right->st_ino
+        && left->st_mode == right->st_mode
+        && left->st_size == right->st_size
+        && left->st_mtimespec.tv_sec == right->st_mtimespec.tv_sec
+        && left->st_mtimespec.tv_nsec == right->st_mtimespec.tv_nsec
+        && left->st_ctimespec.tv_sec == right->st_ctimespec.tv_sec
+        && left->st_ctimespec.tv_nsec == right->st_ctimespec.tv_nsec;
+}
+
+/* A successful fclonefileat creates the destination atomically. On every later
+ * validation or durability failure, retain that name and its snapshot namespace
+ * as forensic evidence: same-destination retry must fail closed, while a later
+ * recovery transaction can use its fresh nonce/path. Never unlink by pathname.
+ * Close every held descriptor, make one best-effort parent durability attempt,
+ * and emit one bounded telemetry line without replacing the primary errno. */
+static int retain_failed_clone(int source_parent_fd, int source_fd,
+                               int destination_parent_fd, int destination_fd,
+                               const char *destination_base, int primary_errno) {
+    int destination_close_rc = 0, destination_close_errno = 0;
+    int source_close_rc = 0, source_close_errno = 0;
+    if (destination_fd >= 0) {
+        errno = 0;
+        destination_close_rc = close(destination_fd);
+        destination_close_errno = errno;
+    }
+    if (source_fd >= 0) {
+        errno = 0;
+        source_close_rc = close(source_fd);
+        source_close_errno = errno;
+    }
+
+    errno = 0;
+    int parent_fsync_rc = fsync(destination_parent_fd);
+    int parent_fsync_errno = errno;
+
+    errno = 0;
+    int source_parent_close_rc = close(source_parent_fd);
+    int source_parent_close_errno = errno;
+    errno = 0;
+    int destination_parent_close_rc = close(destination_parent_fd);
+    int destination_parent_close_errno = errno;
+    fprintf(stderr,
+            "BACKEND_DATA_SWAP_FAILED clone retained for forensics "
+            "(destination=%.*s; primary-errno=%d; destination-close=%d/%d; "
+            "source-close=%d/%d; parent-fsync=%d/%d; source-parent-close=%d/%d; "
+            "destination-parent-close=%d/%d)\n",
+            NAME_MAX, destination_base, primary_errno,
+            destination_close_rc, destination_close_errno,
+            source_close_rc, source_close_errno,
+            parent_fsync_rc, parent_fsync_errno,
+            source_parent_close_rc, source_parent_close_errno,
+            destination_parent_close_rc, destination_parent_close_errno);
+    errno = primary_errno != 0 ? primary_errno : EIO;
+    return 1;
+}
+
+/* clone-file <source> <destination> <source-dev> <source-ino>
+ *            <destination-parent-dev> <destination-parent-ino> <source-size>
+ *
+ * Source and destination parents are reached through walk_to_parent(), whose
+ * openat(O_DIRECTORY|O_NOFOLLOW) chain rejects every symlink component. The
+ * source itself is opened O_NOFOLLOW and pinned to the JS-observed dev/ino/size.
+ * fclonefileat() atomically creates a new APFS clone in an exact, pinned parent;
+ * there is deliberately no byte-copy fallback. The new file is re-attested as
+ * regular, same-filesystem, different-inode, same-size, then F_FULLFSYNC'd and
+ * its parent fsync'd. Source fd + pathname identity/state must remain unchanged
+ * across the entire operation. Once created, any failed clone remains in its
+ * fresh snapshot namespace for forensics; this command never deletes it. */
+static int clone_file_exact(const char *source_path, const char *destination_path,
+                            unsigned long long expected_source_dev,
+                            unsigned long long expected_source_ino,
+                            unsigned long long expected_parent_dev,
+                            unsigned long long expected_parent_ino,
+                            unsigned long long expected_source_size) {
+    char source_base[NAME_MAX + 1], destination_base[NAME_MAX + 1];
+    int source_parent_fd = walk_to_parent(source_path, source_base, sizeof(source_base));
+    if (source_parent_fd < 0) return 1;
+    int destination_parent_fd = walk_to_parent(
+        destination_path, destination_base, sizeof(destination_base));
+    if (destination_parent_fd < 0) {
+        close(source_parent_fd);
+        return 1;
+    }
+
+    struct stat destination_parent;
+    if (fstat(destination_parent_fd, &destination_parent) != 0
+        || !S_ISDIR(destination_parent.st_mode)
+        || (unsigned long long)destination_parent.st_dev != expected_parent_dev
+        || (unsigned long long)destination_parent.st_ino != expected_parent_ino) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED clone destination parent identity mismatch\n");
+        close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+
+    struct stat source_path_before;
+    if (fstatat(source_parent_fd, source_base, &source_path_before, AT_SYMLINK_NOFOLLOW) != 0
+        || !S_ISREG(source_path_before.st_mode)
+        || S_ISLNK(source_path_before.st_mode)
+        || source_path_before.st_size < 0
+        || (unsigned long long)source_path_before.st_dev != expected_source_dev
+        || (unsigned long long)source_path_before.st_ino != expected_source_ino
+        || (unsigned long long)source_path_before.st_size != expected_source_size) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED clone source identity mismatch\n");
+        close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+    if (source_path_before.st_dev != destination_parent.st_dev) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED clone source and destination are not on the same filesystem\n");
+        close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+
+    int source_fd = openat(source_parent_fd, source_base, O_RDONLY | O_NOFOLLOW | O_CLOEXEC);
+    if (source_fd < 0) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED clone source openat(%s): %s\n",
+                source_base, strerror(errno));
+        close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+    struct stat source_opened;
+    if (fstat(source_fd, &source_opened) != 0
+        || !same_file_state(&source_path_before, &source_opened)) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED clone source replacement before open\n");
+        close(source_fd); close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+
+    struct stat unexpected_destination;
+    errno = 0;
+    if (fstatat(destination_parent_fd, destination_base, &unexpected_destination,
+                AT_SYMLINK_NOFOLLOW) == 0 || errno != ENOENT) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED clone destination must be absent\n");
+        close(source_fd); close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+    if (fclonefileat(source_fd, destination_parent_fd, destination_base, 0) != 0) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED fclonefileat(%s): %s\n",
+                destination_base, strerror(errno));
+        close(source_fd); close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+
+    int destination_fd = -1;
+    int primary_errno = 0;
+#ifdef BACKEND_DATA_SWAP_CLONE_TEST_FAIL_AFTER_CREATE
+    errno = EIO;
+    primary_errno = errno;
+    fprintf(stderr, "BACKEND_DATA_SWAP_FAILED injected post-clone failure: %s\n",
+            strerror(primary_errno));
+    goto clone_failed;
+#endif
+
+    destination_fd = openat(destination_parent_fd, destination_base,
+                            O_RDONLY | O_NOFOLLOW | O_CLOEXEC);
+    if (destination_fd < 0) {
+        primary_errno = errno;
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED clone destination openat(%s): %s\n",
+                destination_base, strerror(primary_errno));
+        goto clone_failed;
+    }
+    struct stat destination_opened;
+    errno = 0;
+    if (fstat(destination_fd, &destination_opened) != 0
+        || !S_ISREG(destination_opened.st_mode)
+        || destination_opened.st_dev != source_opened.st_dev
+        || destination_opened.st_ino == source_opened.st_ino
+        || destination_opened.st_size != source_opened.st_size) {
+        primary_errno = errno != 0 ? errno : ESTALE;
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED clone destination identity mismatch\n");
+        goto clone_failed;
+    }
+    if (fcntl(destination_fd, F_FULLFSYNC) != 0) {
+        primary_errno = errno;
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED clone F_FULLFSYNC(%s): %s\n",
+                destination_base, strerror(primary_errno));
+        goto clone_failed;
+    }
+    if (fsync(destination_parent_fd) != 0) {
+        primary_errno = errno;
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED clone destination parent fsync: %s\n",
+                strerror(primary_errno));
+        goto clone_failed;
+    }
+
+    struct stat destination_after, destination_path_after;
+    struct stat source_after, source_path_after;
+    errno = 0;
+    if (fstat(destination_fd, &destination_after) != 0
+        || fstatat(destination_parent_fd, destination_base, &destination_path_after,
+                   AT_SYMLINK_NOFOLLOW) != 0
+        || destination_after.st_dev != destination_opened.st_dev
+        || destination_after.st_ino != destination_opened.st_ino
+        || destination_after.st_size != destination_opened.st_size
+        || destination_path_after.st_dev != destination_opened.st_dev
+        || destination_path_after.st_ino != destination_opened.st_ino
+        || !S_ISREG(destination_path_after.st_mode)
+        || fstat(source_fd, &source_after) != 0
+        || fstatat(source_parent_fd, source_base, &source_path_after,
+                   AT_SYMLINK_NOFOLLOW) != 0
+        || !same_file_state(&source_opened, &source_after)
+        || !same_file_state(&source_after, &source_path_after)) {
+        primary_errno = errno != 0 ? errno : ESTALE;
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED clone post-operation identity changed\n");
+        goto clone_failed;
+    }
+
+    errno = 0;
+    int destination_close_rc = close(destination_fd);
+    int destination_close_errno = errno;
+    destination_fd = -1;
+    errno = 0;
+    int source_close_rc = close(source_fd);
+    int source_close_errno = errno;
+    source_fd = -1;
+    if (destination_close_rc != 0 || source_close_rc != 0) {
+        primary_errno = destination_close_rc != 0
+            ? destination_close_errno : source_close_errno;
+        fprintf(stderr,
+                "BACKEND_DATA_SWAP_FAILED clone close (destination rc=%d errno=%d:%s; source rc=%d errno=%d:%s)\n",
+                destination_close_rc, destination_close_errno, strerror(destination_close_errno),
+                source_close_rc, source_close_errno, strerror(source_close_errno));
+        goto clone_failed;
+    }
+    close(source_parent_fd);
+    close(destination_parent_fd);
+    return 0;
+
+clone_failed:
+    return retain_failed_clone(
+        source_parent_fd, source_fd,
+        destination_parent_fd, destination_fd,
+        destination_base, primary_errno);
+}
+
 int main(int argc, char **argv) {
+    if (argc == 9 && strcmp(argv[1], "clone-file") == 0) {
+        unsigned long long source_dev, source_ino, parent_dev, parent_ino, source_size;
+        if (parse_uint64(argv[4], &source_dev, "source-dev") != 0) return 1;
+        if (parse_uint64(argv[5], &source_ino, "source-ino") != 0) return 1;
+        if (parse_uint64(argv[6], &parent_dev, "destination-parent-dev") != 0) return 1;
+        if (parse_uint64(argv[7], &parent_ino, "destination-parent-ino") != 0) return 1;
+        if (parse_uint64(argv[8], &source_size, "source-size") != 0) return 1;
+        if (clone_file_exact(argv[2], argv[3], source_dev, source_ino,
+                             parent_dev, parent_ino, source_size) != 0) return 1;
+        puts("BACKEND_DATA_CLONE_PASS");
+        return 0;
+    }
+
     /* full-sync <root> <expected-dev> <expected-ino>:
      *   descriptor-relative recursive F_FULLFSYNC (files) + fsync (dirs, deepest-first).
      *   Root reached via parent-fd walk (defeats intermediate-component TOCTOU) then
@@ -369,5 +619,5 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    return fail("usage: backend-data-swap full-sync <root> <expected-dev> <expected-ino> | swap <left> <right> <left-dev> <left-ino> <right-dev> <right-ino>");
+    return fail("usage: backend-data-swap clone-file <source> <destination> <source-dev> <source-ino> <destination-parent-dev> <destination-parent-ino> <source-size> | full-sync <root> <expected-dev> <expected-ino> | swap <left> <right> <left-dev> <left-ino> <right-dev> <right-ino>");
 }
