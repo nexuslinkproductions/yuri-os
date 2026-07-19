@@ -1,55 +1,85 @@
 #!/usr/bin/env node
 
+/**
+ * Production backend writer guard.
+ *
+ * This module accepts only the canonical schema-v2 internal-APFS topology.
+ * Legacy external-storage acceptance is isolated in a fixture-only module
+ * and is never imported here.
+ */
+
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 import path from 'node:path';
 import process from 'node:process';
-import { spawn, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const THIS_FILE = fileURLToPath(import.meta.url);
-const REPO_ROOT = path.resolve(path.dirname(THIS_FILE), '../..');
+import {
+  BACKEND_OPERATION_LOCK_PATH,
+  BACKEND_WRITER_LEASE_FD,
+  prepareGuardedBackendWriter,
+  validateBackendOperationGuardianTerminalEvidence,
+} from './backend-operation-lock.mjs';
+import {
+  assertRecoveryStateAllowsWriter,
+  RECOVERY_LOCK_PATH as RECOVERY_MARKER_PATH,
+} from './backend-data-recovery.mjs';
 
+const THIS_FILE = fileURLToPath(import.meta.url);
+export const REPO_ROOT = path.resolve(path.dirname(THIS_FILE), '../..');
 export const CANONICAL_MOUNT_POINT = path.join(REPO_ROOT, '_SYSTEM/backend/data');
-export const CANONICAL_BROKER_PATH = path.join(
+export const FIXED_CONFIG_PATH = path.join(
   REPO_ROOT,
-  '_SYSTEM/state/backend-volume/bin/backend-volume-broker',
+  '_SYSTEM/state/backend-volume/config.json',
 );
-export const CANONICAL_IMAGE_PATH = '/Volumes/T7/YURI-Backend-Runtime-v1.sparsebundle';
+export const INTERNAL_APFS_EXPECTED_VOLUME_UUID = '72584B80-CAD6-4B42-B491-ED5369347294';
+export const CANONICAL_NODE_BINARY = '/opt/homebrew/Cellar/node/26.4.0/bin/node';
+export const CANONICAL_BACKEND_SERVER_ARTIFACT = path.join(
+  REPO_ROOT,
+  '_SYSTEM/backend/dist/server.js',
+);
+// Enrollment is deliberately absent until a reviewed prebuilt artifact lands.
+export const CANONICAL_BACKEND_SERVER_SHA256 = null;
 export const CONFIG_KEYS = Object.freeze([
-  'brokerPath',
-  'expectedBrokerSha256',
-  'expectedHostUuid',
   'expectedVolumeUuid',
-  'imagePath',
+  'mode',
   'mountPoint',
   'schemaVersion',
 ]);
-export const BROKER_PURPOSE = 'yuri-backend-phase1';
-export const BROKER_ATTACH_RESPONSE_KEYS = Object.freeze([
-  'deviceIdentifier',
-  'hostVolumeUUID',
-  'imagePath',
-  'mountPoint',
-  'ok',
-  'purpose',
-  'volumeUUID',
-]);
-export const BROKER_DETACH_RESPONSE_KEYS = Object.freeze([
-  'deviceIdentifier',
-  'hostVolumeUUID',
-  'mountPoint',
-  'ok',
-  'volumeUUID',
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+const DEFAULT_MONITOR_INTERVAL_MS = 1_000;
+const SIGNALS = Object.freeze(['SIGTERM', 'SIGINT', 'SIGHUP']);
+const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
+const SYSTEM_INSPECTION_TIMEOUT_MS = 5_000;
+const PRODUCTION_WRITER_ENVIRONMENT = Object.freeze({
+  LANG: 'en_US.UTF-8',
+  LC_ALL: 'en_US.UTF-8',
+  PATH: [path.dirname(CANONICAL_NODE_BINARY), '/usr/bin', '/bin', '/usr/sbin', '/sbin']
+    .join(path.delimiter),
+});
+const DIRECT_CLI_FORBIDDEN_ENVIRONMENT_KEYS = new Set([
+  'BACKEND_CONFIG_PATH',
+  'BACKEND_DATA_PATH',
+  'DOTENV_CONFIG_PATH',
+  'NODE_OPTIONS',
+  'NODE_PATH',
+  'SYSTEM_ROOT',
+  'YURI_BACKEND_CONFIG',
+  'YURI_BACKEND_DATA_PATH',
+  'YURI_DB_PATH',
+  'YURI_MEMORY_DB_PATH',
+  'YURI_ROOT',
 ]);
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const DEFAULT_MONITOR_INTERVAL_MS = 1_000;
-const DEFAULT_TERM_GRACE_MS = 5_000;
-const DEFAULT_KILL_GRACE_MS = 2_000;
-// The broker owns a 10-minute child timeout and cleanup; the outer guard waits
-// one additional minute so it never orphans a live hdiutil operation.
-export const BROKER_EXEC_TIMEOUT_MS = 660_000;
+export {
+  BACKEND_OPERATION_LOCK_PATH,
+  BACKEND_WRITER_LEASE_FD,
+  prepareGuardedBackendWriter,
+  validateBackendOperationGuardianTerminalEvidence,
+  RECOVERY_MARKER_PATH,
+};
 
 export class BackendStorageGuardError extends Error {
   constructor(code, message, details = {}) {
@@ -74,7 +104,8 @@ function exactKeys(value, expected, label) {
   if (!isPlainObject(value)) fail('SCHEMA_INVALID', `${label} must be a JSON object`);
   const actual = Object.keys(value).sort();
   const wanted = [...expected].sort();
-  if (actual.length !== wanted.length || actual.some((key, index) => key !== wanted[index])) {
+  if (actual.length !== wanted.length
+      || actual.some((key, index) => key !== wanted[index])) {
     fail('SCHEMA_INVALID', `${label} keys do not match the closed schema`, {
       actual,
       expected: wanted,
@@ -83,11 +114,11 @@ function exactKeys(value, expected, label) {
 }
 
 function exactAbsolutePath(value, field) {
-  if (typeof value !== 'string' || value.length === 0 || value.includes('\0')) {
-    fail('SCHEMA_INVALID', `${field} must be a non-empty absolute path`);
-  }
-  if (!path.isAbsolute(value) || path.resolve(value) !== value) {
-    fail('SCHEMA_INVALID', `${field} must be absolute and normalized`, { value });
+  if (typeof value !== 'string' || value.length === 0 || value.includes('\0')
+      || !path.isAbsolute(value) || path.resolve(value) !== value) {
+    fail('SCHEMA_INVALID', `${field} must be a non-empty normalized absolute path`, {
+      value,
+    });
   }
   return value;
 }
@@ -105,75 +136,46 @@ function sameUuid(left, right) {
     && left.toUpperCase() === right.toUpperCase();
 }
 
-function within(root, candidate) {
-  const relative = path.relative(root, candidate);
-  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
-}
-
 export function validateConfig(raw, options = {}) {
   exactKeys(raw, CONFIG_KEYS, 'backend storage config');
-  if (raw.schemaVersion !== 1) {
-    fail('SCHEMA_INVALID', 'schemaVersion must equal 1', { value: raw.schemaVersion });
+  if (raw.schemaVersion !== 2) {
+    fail('SCHEMA_INVALID', 'production backend storage requires schemaVersion 2', {
+      value: raw.schemaVersion,
+    });
   }
-
-  const expectedCanonicalMountPoint = exactAbsolutePath(
+  if (raw.mode !== 'internal-apfs') {
+    fail('SCHEMA_INVALID', "production backend storage mode must equal 'internal-apfs'", {
+      value: raw.mode,
+    });
+  }
+  const mountPoint = exactAbsolutePath(raw.mountPoint, 'mountPoint');
+  const expectedMountPoint = exactAbsolutePath(
     options.expectedCanonicalMountPoint ?? CANONICAL_MOUNT_POINT,
     'expectedCanonicalMountPoint',
   );
-  const mountPoint = exactAbsolutePath(raw.mountPoint, 'mountPoint');
-  const imagePath = exactAbsolutePath(raw.imagePath, 'imagePath');
-  const brokerPath = exactAbsolutePath(raw.brokerPath, 'brokerPath');
-  const expectedImagePath = exactAbsolutePath(
-    options.expectedImagePath ?? CANONICAL_IMAGE_PATH,
-    'expectedImagePath',
-  );
-  const expectedBrokerPath = exactAbsolutePath(
-    options.expectedBrokerPath ?? CANONICAL_BROKER_PATH,
-    'expectedBrokerPath',
-  );
-
-  if (mountPoint !== expectedCanonicalMountPoint) {
-    fail('SCHEMA_INVALID', 'mountPoint is not the exact canonical backend mountpoint', {
+  if (mountPoint !== expectedMountPoint) {
+    fail('SCHEMA_INVALID', 'mountPoint is not the exact canonical backend data path', {
       actual: mountPoint,
-      expected: expectedCanonicalMountPoint,
+      expected: expectedMountPoint,
     });
   }
-  if (imagePath !== expectedImagePath) {
-    fail('SCHEMA_INVALID', 'imagePath is not the exact enrolled Phase-1 image path', {
-      actual: imagePath,
-      expected: expectedImagePath,
+  const expectedVolumeUuid = exactUuid(raw.expectedVolumeUuid, 'expectedVolumeUuid');
+  const pin = exactUuid(
+    options.expectedInternalVolumeUuid ?? INTERNAL_APFS_EXPECTED_VOLUME_UUID,
+    'expectedInternalVolumeUuid',
+  );
+  if (!sameUuid(pin, INTERNAL_APFS_EXPECTED_VOLUME_UUID)
+      || !sameUuid(expectedVolumeUuid, pin)) {
+    fail('SCHEMA_INVALID', 'expectedVolumeUuid does not equal the canonical internal APFS pin', {
+      actual: expectedVolumeUuid,
+      expected: INTERNAL_APFS_EXPECTED_VOLUME_UUID,
     });
   }
-  if (brokerPath !== expectedBrokerPath) {
-    fail('SCHEMA_INVALID', 'brokerPath is not the exact enrolled broker path', {
-      actual: brokerPath,
-      expected: expectedBrokerPath,
-    });
-  }
-  if (!imagePath.endsWith('.sparsebundle')) {
-    fail('SCHEMA_INVALID', 'imagePath must identify a .sparsebundle', { imagePath });
-  }
-  if (within(mountPoint, imagePath) || within(imagePath, mountPoint)) {
-    fail('SCHEMA_INVALID', 'imagePath and mountPoint must not contain one another');
-  }
-  if (brokerPath === imagePath || brokerPath === mountPoint) {
-    fail('SCHEMA_INVALID', 'brokerPath must be distinct from imagePath and mountPoint');
-  }
-
   return Object.freeze({
-    schemaVersion: 1,
-    expectedBrokerSha256: (() => {
-      if (typeof raw.expectedBrokerSha256 !== 'string'
-          || !/^[0-9a-f]{64}$/i.test(raw.expectedBrokerSha256)) {
-        fail('SCHEMA_INVALID', 'expectedBrokerSha256 must be a SHA-256 digest');
-      }
-      return raw.expectedBrokerSha256.toLowerCase();
-    })(),
-    expectedHostUuid: exactUuid(raw.expectedHostUuid, 'expectedHostUuid'),
-    imagePath,
-    expectedVolumeUuid: exactUuid(raw.expectedVolumeUuid, 'expectedVolumeUuid'),
+    schemaVersion: 2,
+    mode: 'internal-apfs',
     mountPoint,
-    brokerPath,
+    expectedVolumeUuid,
   });
 }
 
@@ -182,7 +184,8 @@ export function loadConfig(configPath, options = {}) {
   let parsed;
   try {
     const entry = fs.lstatSync(absolute);
-    if (!entry.isFile() || entry.isSymbolicLink() || fs.realpathSync.native(absolute) !== absolute) {
+    if (!entry.isFile() || entry.isSymbolicLink()
+        || fs.realpathSync.native(absolute) !== absolute) {
       fail('CONFIG_READ_FAILED', 'config path must be an exact regular file without symlinks');
     }
     if ((entry.mode & 0o022) !== 0) {
@@ -202,6 +205,8 @@ function commandResult(command, args, options = {}) {
   const result = spawnSync(command, args, {
     encoding: 'utf8',
     maxBuffer: 1024 * 1024,
+    timeout: SYSTEM_INSPECTION_TIMEOUT_MS,
+    killSignal: 'SIGKILL',
     ...options,
   });
   if (result.error || result.status !== 0) {
@@ -215,15 +220,20 @@ function commandResult(command, args, options = {}) {
   return String(result.stdout || '');
 }
 
-function parseDfMountPoint(output) {
-  const lines = output.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+function parseDfMountRecord(output) {
+  const lines = output.split(/\r?\n/u).map((line) => line.trim()).filter(Boolean);
   const dataLine = lines.at(-1);
   if (!dataLine) fail('SYSTEM_INSPECTION_FAILED', 'df returned no mount record');
-  const fields = dataLine.split(/\s+/);
+  const fields = dataLine.split(/\s+/u);
   if (fields.length < 6) {
-    fail('SYSTEM_INSPECTION_FAILED', 'df returned an unrecognized mount record', { dataLine });
+    fail('SYSTEM_INSPECTION_FAILED', 'df returned an unrecognized mount record', {
+      dataLine,
+    });
   }
-  return fields.slice(5).join(' ');
+  return Object.freeze({
+    sourceDevice: fields[0],
+    mountPoint: fields.slice(5).join(' '),
+  });
 }
 
 function plistToJson(plist) {
@@ -231,6 +241,8 @@ function plistToJson(plist) {
     input: plist,
     encoding: 'utf8',
     maxBuffer: 1024 * 1024,
+    timeout: SYSTEM_INSPECTION_TIMEOUT_MS,
+    killSignal: 'SIGKILL',
   });
   if (result.error || result.status !== 0) {
     fail('SYSTEM_INSPECTION_FAILED', 'plutil failed to decode diskutil output', {
@@ -250,23 +262,20 @@ function plistToJson(plist) {
 
 export function inspectEntrySystem(target) {
   try {
-    const lstat = fs.lstatSync(target);
-    const stat = fs.statSync(target);
-    return {
+    const link = fs.lstatSync(target);
+    const entry = fs.statSync(target);
+    return Object.freeze({
       exists: true,
-      isSymbolicLink: lstat.isSymbolicLink(),
-      isDirectory: stat.isDirectory(),
-      isFile: stat.isFile(),
+      isSymbolicLink: link.isSymbolicLink(),
+      isDirectory: entry.isDirectory(),
+      isFile: entry.isFile(),
       realPath: fs.realpathSync.native(target),
-      deviceId: String(stat.dev),
-      mode: stat.mode,
-      sha256: stat.isFile()
-        ? crypto.createHash('sha256').update(fs.readFileSync(target)).digest('hex')
-        : null,
-    };
+      deviceId: String(entry.dev),
+      mode: entry.mode,
+    });
   } catch (error) {
     if (error?.code === 'ENOENT') {
-      return {
+      return Object.freeze({
         exists: false,
         isSymbolicLink: false,
         isDirectory: false,
@@ -274,7 +283,7 @@ export function inspectEntrySystem(target) {
         realPath: null,
         deviceId: null,
         mode: 0,
-      };
+      });
     }
     fail('SYSTEM_INSPECTION_FAILED', `unable to inspect ${target}`, {
       cause: error instanceof Error ? error.message : String(error),
@@ -282,726 +291,887 @@ export function inspectEntrySystem(target) {
   }
 }
 
-export function inspectMountSystem(target) {
-  const df = commandResult('/bin/df', ['-P', target]);
-  const dfMountPoint = parseDfMountPoint(df);
-  const plist = commandResult('/usr/sbin/diskutil', ['info', '-plist', dfMountPoint]);
-  const info = plistToJson(plist);
-  const entry = inspectEntrySystem(target);
-  const fsType = info.FilesystemType
-    ?? info.TypeBundle
-    ?? info.FileSystemPersonality
-    ?? info['File System Personality']
-    ?? null;
-  const writable = info.Writable === true || info.WritableVolume === true;
-  const readOnly = info.ReadOnlyVolume === true || info.ReadOnly === true;
-  const ownersEnabled = info.Owners === true
-    || info.GlobalPermissionsEnabled === true
-    || info.OwnershipEnabled === true;
-
-  return {
-    mountPoint: info.MountPoint ?? dfMountPoint,
-    volumeUuid: info.VolumeUUID ?? null,
-    fsType,
-    writable,
-    readOnly,
-    ownersEnabled,
-    deviceIdentifier: info.DeviceIdentifier ?? null,
-    deviceId: entry.deviceId,
-  };
+function normalizeTristateBool(value) {
+  if (value === true) return 'true';
+  if (value === false) return 'false';
+  return 'unknown';
 }
 
-export function isDirectoryEmptySystem(target) {
-  let directory;
-  try {
-    directory = fs.opendirSync(target);
-    return directory.readSync() === null;
-  } catch (error) {
-    if (error?.code === 'ENOENT') return true;
-    fail('SYSTEM_INSPECTION_FAILED', `unable to test mountpoint emptiness: ${target}`, {
-      cause: error instanceof Error ? error.message : String(error),
-    });
-  } finally {
-    directory?.closeSync();
-  }
+function normalizeRemovableFromLocation(deviceLocation) {
+  if (typeof deviceLocation !== 'string') return 'unknown';
+  const token = deviceLocation.trim().toLowerCase();
+  if (token === 'removable') return 'true';
+  if (token === 'fixed') return 'false';
+  return 'unknown';
 }
 
-export function createSystemAdapters(overrides = {}) {
-  return {
-    inspectEntry: inspectEntrySystem,
-    inspectMount: inspectMountSystem,
-    isDirectoryEmpty: isDirectoryEmptySystem,
-    execBroker(brokerPath, args, execOptions = {}) {
-      return spawnSync(brokerPath, args, {
-        encoding: 'utf8',
-        maxBuffer: 1024 * 1024,
-        stdio: ['ignore', 'pipe', 'pipe'],
-        timeout: execOptions.timeoutMs ?? BROKER_EXEC_TIMEOUT_MS,
-        killSignal: 'SIGKILL',
-      });
-    },
-    spawnWriter(command, args, spawnOptions) {
-      return spawn(command, args, spawnOptions);
-    },
-    killProcessGroup(pid, signal) {
-      process.kill(-pid, signal);
-    },
-    processGroupAlive(pid) {
-      try {
-        process.kill(-pid, 0);
-        return true;
-      } catch (error) {
-        if (error?.code === 'ESRCH') return false;
-        throw error;
-      }
-    },
-    sleep(ms) {
-      return new Promise((resolve) => setTimeout(resolve, ms));
-    },
-    ...overrides,
-  };
+function booleanConflict(values) {
+  const present = values.filter((value) => value !== undefined);
+  if (present.some((value) => value !== true && value !== false)) return true;
+  return new Set(present).size > 1;
 }
 
-export async function collectIdentity(config, adapters = createSystemAdapters()) {
-  if (typeof adapters.collectIdentity === 'function') {
-    return adapters.collectIdentity(config);
-  }
-  const [imageEntry, brokerEntry, hostMount, targetEntry, parentEntry] = await Promise.all([
-    adapters.inspectEntry(config.imagePath),
-    adapters.inspectEntry(config.brokerPath),
-    adapters.inspectMount(config.imagePath),
-    adapters.inspectEntry(config.mountPoint),
-    adapters.inspectEntry(path.dirname(config.mountPoint)),
-  ]);
-  const targetIsBare = targetEntry?.exists
-    && parentEntry?.exists
-    && String(targetEntry.deviceId) === String(parentEntry.deviceId);
-  const targetMount = await adapters.inspectMount(
-    targetIsBare ? path.dirname(config.mountPoint) : config.mountPoint,
-  );
-  return {
-    backing: { imageEntry, brokerEntry, hostMount },
-    mounted: { targetEntry, parentEntry, targetMount },
-  };
+function hasOwn(value, key) {
+  return Object.prototype.hasOwnProperty.call(value, key);
 }
 
-export function validateBackingIdentity(config, backing) {
-  const { imageEntry, brokerEntry, hostMount } = backing ?? {};
-  if (!imageEntry?.exists || !imageEntry.isDirectory) {
-    fail('BACKING_IMAGE_INVALID', 'sparsebundle does not exist as a directory');
-  }
-  if (imageEntry.isSymbolicLink || imageEntry.realPath !== config.imagePath) {
-    fail('BACKING_IMAGE_INVALID', 'sparsebundle path must not traverse a symlink', {
-      realPath: imageEntry.realPath,
+function normalizedAliasFamily(info, keys, normalize, options = {}) {
+  const present = keys.filter((key) => hasOwn(info, key));
+  if (present.length === 0) {
+    return Object.freeze({
+      conflict: options.required === true,
+      keys: Object.freeze([]),
+      value: null,
     });
   }
-  validateBrokerIdentity(config, brokerEntry);
-  if (!hostMount || !sameUuid(hostMount.volumeUuid, config.expectedHostUuid)) {
-    fail('HOST_IDENTITY_MISMATCH', 'backing image host UUID does not match the T7 pin', {
-      actual: hostMount?.volumeUuid ?? null,
-      expected: config.expectedHostUuid,
-    });
-  }
-  if (hostMount.readOnly === true || hostMount.writable !== true) {
-    fail('HOST_IDENTITY_MISMATCH', 'backing image host is not writable');
-  }
-  if (typeof hostMount.mountPoint !== 'string' || !within(hostMount.mountPoint, config.imagePath)) {
-    fail('HOST_IDENTITY_MISMATCH', 'image path is not contained by the pinned host mount', {
-      hostMountPoint: hostMount?.mountPoint ?? null,
-      imagePath: config.imagePath,
-    });
-  }
-  return backing;
-}
-
-export function validateBrokerIdentity(config, brokerEntry) {
-  if (!brokerEntry?.exists || !brokerEntry.isFile) {
-    fail('BROKER_INVALID', 'broker path does not identify a regular file');
-  }
-  if (brokerEntry.isSymbolicLink || brokerEntry.realPath !== config.brokerPath) {
-    fail('BROKER_INVALID', 'broker path must not traverse a symlink', {
-      realPath: brokerEntry.realPath,
-    });
-  }
-  if ((Number(brokerEntry.mode) & 0o111) === 0) {
-    fail('BROKER_INVALID', 'broker must be executable');
-  }
-  if ((Number(brokerEntry.mode) & 0o022) !== 0) {
-    fail('BROKER_INVALID', 'broker must not be group- or world-writable');
-  }
-  if (brokerEntry.sha256 !== config.expectedBrokerSha256) {
-    fail('BROKER_INVALID', 'broker SHA-256 does not match the enrolled digest');
-  }
-  return brokerEntry;
-}
-
-function normalizedFsType(value) {
-  return String(value ?? '').trim().toLowerCase();
-}
-
-export function validateMountIdentity(config, mounted) {
-  const { targetEntry, parentEntry, targetMount } = mounted ?? {};
-  if (!targetEntry?.exists || !targetEntry.isDirectory) {
-    fail('MOUNT_IDENTITY_MISMATCH', 'canonical mountpoint is absent');
-  }
-  if (targetEntry.isSymbolicLink || targetEntry.realPath !== config.mountPoint) {
-    fail('MOUNT_IDENTITY_MISMATCH', 'canonical mountpoint must not traverse a symlink', {
-      realPath: targetEntry.realPath,
-    });
-  }
-  if (targetMount?.mountPoint !== config.mountPoint) {
-    fail('MOUNT_IDENTITY_MISMATCH', 'target is not an exact filesystem mountpoint', {
-      actual: targetMount?.mountPoint ?? null,
-      expected: config.mountPoint,
-    });
-  }
-  const fsType = normalizedFsType(targetMount.fsType);
-  if (fsType !== 'apfs' && !fsType.includes('apple_apfs')) {
-    fail('MOUNT_IDENTITY_MISMATCH', 'mounted filesystem is not APFS', { fsType });
-  }
-  if (targetMount.readOnly === true || targetMount.writable !== true) {
-    fail('MOUNT_IDENTITY_MISMATCH', 'mounted APFS volume is not writable');
-  }
-  if (targetMount.ownersEnabled !== true) {
-    fail('MOUNT_IDENTITY_MISMATCH', 'mounted APFS volume does not have ownership enabled');
-  }
-  if (!sameUuid(targetMount.volumeUuid, config.expectedVolumeUuid)) {
-    fail('MOUNT_IDENTITY_MISMATCH', 'mounted APFS UUID does not match the pin', {
-      actual: targetMount?.volumeUuid ?? null,
-      expected: config.expectedVolumeUuid,
-    });
-  }
-  if (!targetMount.deviceIdentifier || typeof targetMount.deviceIdentifier !== 'string') {
-    fail('MOUNT_IDENTITY_MISMATCH', 'mounted APFS device identifier is missing');
-  }
-  const targetDevice = String(targetEntry.deviceId ?? targetMount.deviceId ?? '');
-  const parentDevice = String(parentEntry?.deviceId ?? '');
-  if (!targetDevice || !parentDevice || targetDevice === parentDevice) {
-    fail('BARE_LOCAL_FALLBACK', 'canonical mountpoint is on the parent filesystem');
-  }
-  if (targetMount.deviceId !== undefined
-      && targetMount.deviceId !== null
-      && String(targetMount.deviceId) !== targetDevice) {
-    fail('MOUNT_IDENTITY_MISMATCH', 'mount record and target device do not agree');
-  }
-  return mounted;
-}
-
-export function validateIdentity(config, identity) {
-  validateBackingIdentity(config, identity?.backing);
-  validateMountIdentity(config, identity?.mounted);
-  return identity;
-}
-
-function parseBrokerResponse(stdout, action) {
-  const text = String(stdout ?? '').trim();
-  if (!text) fail('BROKER_PROTOCOL_ERROR', 'broker returned no JSON response');
-  let response;
-  try {
-    response = JSON.parse(text);
-  } catch (error) {
-    fail('BROKER_PROTOCOL_ERROR', 'broker returned invalid JSON', {
-      cause: error instanceof Error ? error.message : String(error),
-    });
-  }
-  exactKeys(
-    response,
-    action === 'attach' ? BROKER_ATTACH_RESPONSE_KEYS : BROKER_DETACH_RESPONSE_KEYS,
-    `broker ${action} response`,
-  );
-  return response;
-}
-
-function validateBrokerResponse(config, action, response) {
-  if (response.ok !== true) fail('BROKER_REJECTED', `broker ${action} did not report success`);
-  if (response.mountPoint !== config.mountPoint) {
-    fail('BROKER_PROTOCOL_ERROR', `broker ${action} mountPoint does not match the pin`);
-  }
-  if (action === 'attach') {
-    if (response.purpose !== BROKER_PURPOSE) {
-      fail('BROKER_PROTOCOL_ERROR', 'broker attach purpose does not match the Phase-1 contract');
-    }
-    if (response.imagePath !== config.imagePath) {
-      fail('BROKER_PROTOCOL_ERROR', 'broker attach imagePath does not match the pin');
-    }
-    if (typeof response.deviceIdentifier !== 'string' || response.deviceIdentifier.length === 0) {
-      fail('BROKER_PROTOCOL_ERROR', 'broker attach deviceIdentifier is missing');
-    }
-    if (!sameUuid(response.volumeUUID, config.expectedVolumeUuid)) {
-      fail('BROKER_PROTOCOL_ERROR', 'broker attach volume UUID does not match the pin');
-    }
-    if (!sameUuid(response.hostVolumeUUID, config.expectedHostUuid)) {
-      fail('BROKER_PROTOCOL_ERROR', 'broker attach host UUID does not match the pin');
-    }
-  } else {
-    if (typeof response.deviceIdentifier !== 'string' || response.deviceIdentifier.length === 0) {
-      fail('BROKER_PROTOCOL_ERROR', 'broker detach deviceIdentifier is missing');
-    }
-    if (!sameUuid(response.volumeUUID, config.expectedVolumeUuid)) {
-      fail('BROKER_PROTOCOL_ERROR', 'broker detach volume UUID does not match the pin');
-    }
-    if (!sameUuid(response.hostVolumeUUID, config.expectedHostUuid)) {
-      fail('BROKER_PROTOCOL_ERROR', 'broker detach host UUID does not match the pin');
-    }
-  }
-  return response;
-}
-
-export function brokerArgs(config, action) {
-  if (action === 'attach') {
-    return [
-      'attach',
-      '--image', config.imagePath,
-      '--mountpoint', config.mountPoint,
-      '--expected-volume-uuid', config.expectedVolumeUuid,
-      '--expected-host-uuid', config.expectedHostUuid,
-      '--json',
-    ];
-  }
-  if (action === 'detach') {
-    return [
-      'detach',
-      '--mountpoint', config.mountPoint,
-      '--expected-volume-uuid', config.expectedVolumeUuid,
-      '--expected-host-uuid', config.expectedHostUuid,
-      '--json',
-    ];
-  }
-  fail('BROKER_PROTOCOL_ERROR', `unsupported broker action: ${action}`);
-}
-
-export function runBroker(config, action, adapters = createSystemAdapters()) {
-  if (typeof adapters.inspectEntry !== 'function') {
-    fail('BROKER_INVALID', 'broker execution requires a fresh executable identity probe');
-  }
-  validateBrokerIdentity(config, adapters.inspectEntry(config.brokerPath));
-  const result = adapters.execBroker(
-    config.brokerPath,
-    brokerArgs(config, action),
-    { timeoutMs: BROKER_EXEC_TIMEOUT_MS },
-  );
-  if (result?.error || result?.status !== 0) {
-    fail('BROKER_EXEC_FAILED', `broker ${action} failed`, {
-      status: result?.status ?? null,
-      stderr: String(result?.stderr || '').trim(),
-      cause: result?.error?.message ?? null,
-    });
-  }
-  return validateBrokerResponse(config, action, parseBrokerResponse(result.stdout, action));
-}
-
-async function bestEffortDetach(config, adapters) {
-  try {
-    const response = await runBroker(config, 'detach', adapters);
-    const identity = await collectIdentity(config, adapters);
-    await validateDetachedIdentity(config, identity, adapters);
-    return { ok: true, response, identity };
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-      code: error?.code ?? null,
-    };
-  }
-}
-
-async function detachRequired(config, adapters, context) {
-  try {
-    const response = await runBroker(config, 'detach', adapters);
-    const identity = await collectIdentity(config, adapters);
-    await validateDetachedIdentity(config, identity, adapters);
-    return response;
-  } catch (error) {
-    throw new BackendStorageGuardError(
-      'CONTROLLED_DETACH_FAILED',
-      `${context}: broker detach failed: ${error instanceof Error ? error.message : String(error)}`,
-      { causeCode: error?.code ?? null },
-    );
-  }
-}
-
-export async function validateDetachedIdentity(config, identity, adapters = createSystemAdapters()) {
-  validateBackingIdentity(config, identity?.backing);
-  const entry = identity?.mounted?.targetEntry;
-  const parent = identity?.mounted?.parentEntry;
-  const mount = identity?.mounted?.targetMount;
-  if (!entry?.exists || !entry.isDirectory || entry.isSymbolicLink || entry.realPath !== config.mountPoint) {
-    fail('POST_DETACH_VALIDATION_FAILED', 'detached mountpoint is not the exact underlying directory');
-  }
-  if (!parent?.exists || String(entry.deviceId) !== String(parent.deviceId)) {
-    fail('POST_DETACH_VALIDATION_FAILED', 'APFS device remains mounted after broker detach');
-  }
-  if (mount?.mountPoint === config.mountPoint) {
-    fail('POST_DETACH_VALIDATION_FAILED', 'exact APFS mountpoint remains present after broker detach');
-  }
-  if ((Number(entry.mode) & 0o7777) !== 0) {
-    fail('POST_DETACH_VALIDATION_FAILED', 'underlying mountpoint mode is not exactly 000 after detach');
-  }
-  // The broker proves emptiness through a stable descriptor immediately before
-  // attach. The hidden underlying directory remains mode 000 for the complete
-  // mounted lifetime, so reopening it here would only turn the required seal
-  // into EACCES. Preserve explicit closed-fixture evidence when it is present.
-  if (entry.isEmpty === false) {
-    fail('POST_DETACH_VALIDATION_FAILED', 'underlying mountpoint is not empty after detach');
-  }
-  return identity;
-}
-
-export async function attachThroughBroker(config, adapters = createSystemAdapters()) {
-  let before = await collectIdentity(config, adapters);
-  validateBackingIdentity(config, before.backing);
-
-  try {
-    validateMountIdentity(config, before.mounted);
-    await detachRequired(config, adapters, 'already-mounted identity reset');
-    before = await collectIdentity(config, adapters);
-    validateBackingIdentity(config, before.backing);
-  } catch (error) {
-    if (error?.code === 'CONTROLLED_DETACH_FAILED') throw error;
-    if (looksLikeExactMount(config, before)) {
-      const detach = await bestEffortDetach(config, adapters);
-      throw new BackendStorageGuardError(
-        'MOUNT_MISMATCH_DETACHED',
-        `an unexpected exact mount was detached and refused: ${error.message}`,
-        { causeCode: error?.code ?? null, detach },
-      );
-    }
-  }
-
-  await assertBareMountpointSafeForAttach(config, before.mounted, adapters);
-
-  let attachStarted = false;
-  try {
-    attachStarted = true;
-    const broker = await runBroker(config, 'attach', adapters);
-    const identity = await collectIdentity(config, adapters);
-    validateIdentity(config, identity);
-    if (identity.mounted.targetMount.deviceIdentifier !== broker.deviceIdentifier) {
-      fail('BROKER_PROTOCOL_ERROR', 'broker and local device identifiers do not agree', {
-        broker: broker.deviceIdentifier,
-        local: identity.mounted.targetMount.deviceIdentifier,
-      });
-    }
-    return { broker, identity, alreadyMounted: false };
-  } catch (error) {
-    const detach = attachStarted ? await bestEffortDetach(config, adapters) : null;
-    throw new BackendStorageGuardError(
-      'ATTACH_VALIDATION_FAILED',
-      `broker attach was not accepted: ${error instanceof Error ? error.message : String(error)}`,
-      { causeCode: error?.code ?? null, detach },
-    );
-  }
-}
-
-function looksLikeExactMount(config, identity) {
-  return identity?.mounted?.targetMount?.mountPoint === config.mountPoint
-    && identity?.mounted?.targetEntry?.deviceId !== identity?.mounted?.parentEntry?.deviceId;
-}
-
-async function assertBareMountpointSafeForAttach(config, mounted, adapters) {
-  const entry = mounted?.targetEntry;
-  const parent = mounted?.parentEntry;
-  if (!entry?.exists) {
-    fail('BARE_MOUNTPOINT_UNSAFE', 'bare canonical mountpoint does not exist');
-  }
-  if (!entry.isDirectory || entry.isSymbolicLink || entry.realPath !== config.mountPoint) {
-    fail('BARE_MOUNTPOINT_UNSAFE', 'bare canonical mountpoint is not an exact real directory');
-  }
-  if (!parent?.exists || String(entry.deviceId) !== String(parent.deviceId)) {
-    fail('BARE_MOUNTPOINT_UNSAFE', 'bare canonical mountpoint is not on its parent filesystem');
-  }
-  if ((Number(entry.mode) & 0o7777) !== 0) {
-    fail('BARE_MOUNTPOINT_UNSAFE', 'bare canonical mountpoint mode is not exactly 000');
-  }
-  // A real mode-000 directory cannot be opened by the guard. The broker owns
-  // the authoritative descriptor-based emptiness check and reseals before
-  // hdiutil starts; explicit negative evidence is still rejected here.
-  if (entry.isEmpty === false) {
-    fail('BARE_MOUNTPOINT_NOT_EMPTY', 'refusing to hide a non-empty bare canonical mountpoint');
-  }
-}
-
-export async function ensureMounted(config, adapters = createSystemAdapters()) {
-  return attachThroughBroker(config, adapters);
-}
-
-function childExitPromise(child) {
-  if (child.exitCode !== null || child.signalCode !== null) {
-    return Promise.resolve({ code: child.exitCode, signal: child.signalCode, error: null });
-  }
-  return new Promise((resolve) => {
-    let settled = false;
-    const finish = (value) => {
-      if (settled) return;
-      settled = true;
-      child.removeListener('exit', onExit);
-      child.removeListener('error', onError);
-      resolve(value);
-    };
-    const onExit = (code, signal) => finish({ code, signal, error: null });
-    const onError = (error) => finish({ code: null, signal: null, error });
-    child.once('exit', onExit);
-    child.once('error', onError);
+  const values = present.map((key) => normalize(info[key]));
+  const conflict = values.some((value) => value === null)
+    || new Set(values).size !== 1;
+  return Object.freeze({
+    conflict,
+    keys: Object.freeze([...present]),
+    value: conflict ? null : values[0],
   });
 }
 
-async function waitForExit(exitPromise, timeoutMs, adapters) {
-  return Promise.race([
-    exitPromise.then((exit) => ({ exited: true, exit })),
-    adapters.sleep(timeoutMs).then(() => ({ exited: false, exit: null })),
-  ]);
+function normalizeFilesystemAlias(value) {
+  if (typeof value !== 'string' || value !== value.trim() || value.length === 0
+      || value.includes('\0')) return null;
+  const token = value.toLowerCase();
+  if (!/^[a-z0-9][a-z0-9._ -]*$/u.test(token)) return null;
+  if (token === 'apfs' || token === 'apple_apfs' || token === 'apple apfs') return 'apfs';
+  return token;
 }
 
-function processGroupAlive(adapters, child) {
-  if (typeof adapters.processGroupAlive === 'function') {
-    return adapters.processGroupAlive(child.pid);
-  }
-  return child.exitCode === null && child.signalCode === null;
+function normalizeMountPathAlias(value) {
+  if (typeof value !== 'string' || value !== value.trim() || value.length === 0
+      || value.includes('\0') || !path.isAbsolute(value)
+      || path.resolve(value) !== value) return null;
+  return value;
 }
 
-async function waitForProcessGroupGone(adapters, child, timeoutMs) {
-  if (!processGroupAlive(adapters, child)) return true;
-  if (typeof adapters.processGroupAlive !== 'function') return false;
-  const intervalMs = 50;
-  const attempts = Math.max(1, Math.ceil(timeoutMs / intervalMs));
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    await adapters.sleep(Math.min(intervalMs, timeoutMs));
-    if (!processGroupAlive(adapters, child)) return true;
-  }
-  return !processGroupAlive(adapters, child);
+function normalizeDeviceIdentifierAlias(value) {
+  if (typeof value !== 'string' || value !== value.trim() || value.length === 0
+      || value.includes('\0')) return null;
+  const token = value.startsWith('/dev/') ? value.slice('/dev/'.length) : value;
+  return /^disk[0-9]+(?:s[0-9]+)*$/u.test(token) ? token : null;
 }
 
-export async function terminateWriterProcessGroup(child, options = {}) {
-  const adapters = options.adapters ?? createSystemAdapters();
-  const termGraceMs = options.termGraceMs ?? DEFAULT_TERM_GRACE_MS;
-  const killGraceMs = options.killGraceMs ?? DEFAULT_KILL_GRACE_MS;
-  if (!Number.isInteger(child?.pid) || child.pid <= 0) {
-    fail('WRITER_PROCESS_INVALID', 'writer child has no valid process-group leader PID');
+function normalizeUuidAlias(value) {
+  if (typeof value !== 'string' || value !== value.trim() || !UUID_PATTERN.test(value)) {
+    return null;
   }
-  const exitPromise = options.exitPromise ?? childExitPromise(child);
-  if (child.exitCode !== null || child.signalCode !== null) {
-    const exit = await exitPromise;
-    if (!processGroupAlive(adapters, child)) {
-      return { terminated: true, escalated: false, exit };
-    }
-  }
+  return value.toUpperCase();
+}
 
-  try {
-    adapters.killProcessGroup(child.pid, 'SIGTERM');
-  } catch (error) {
-    if (error?.code !== 'ESRCH') throw error;
-  }
-  const graceful = await waitForExit(exitPromise, termGraceMs, adapters);
-  const gracefulGroupGone = await waitForProcessGroupGone(adapters, child, termGraceMs);
-  if (gracefulGroupGone) {
-    return { terminated: true, escalated: false, exit: graceful.exit };
-  }
+function normalizeDeviceLocationAlias(value) {
+  if (typeof value !== 'string' || value !== value.trim() || value.length === 0) return null;
+  const token = value.toLowerCase();
+  return ['external', 'fixed', 'internal', 'removable'].includes(token) ? token : null;
+}
 
-  try {
-    adapters.killProcessGroup(child.pid, 'SIGKILL');
-  } catch (error) {
-    if (error?.code !== 'ESRCH') throw error;
+export function decideInternalSignalForInspection(signals, internalConflict, removableConflict) {
+  const claimsInternal = signals.plistInternalTrue === true
+    || signals.deviceLocationInternal === true;
+  const claimsExternal = signals.plistInternalFalse === true
+    || signals.removableTrue === true
+    || signals.deviceLocationExternal === true;
+  const parseConflict = internalConflict === true
+    || removableConflict === true
+    || (claimsInternal && claimsExternal);
+  return Object.freeze({
+    internal: !parseConflict && claimsInternal && signals.removableTrue !== true,
+    parseConflict,
+  });
+}
+
+export function decideInternalFromPlistInfo(info) {
+  if (!isPlainObject(info)) {
+    fail('SYSTEM_INSPECTION_FAILED', 'diskutil plist must decode to a JSON object');
   }
-  const forced = await waitForExit(exitPromise, killGraceMs, adapters);
-  const forcedGroupGone = await waitForProcessGroupGone(adapters, child, killGraceMs);
-  if (!forcedGroupGone || (!forced.exited && child.exitCode === null && child.signalCode === null)) {
-    fail('WRITER_TERMINATION_FAILED', 'writer process group did not exit after SIGKILL', {
-      pid: child.pid,
+  const internalValues = [info.Internal, info.internal].filter((value) => value !== undefined);
+  const removableValues = [info.Removable, info.RemovableMedia]
+    .filter((value) => value !== undefined);
+  const writableValues = [info.Writable, info.WritableVolume]
+    .filter((value) => value !== undefined);
+  const readOnlyValues = [info.ReadOnlyVolume, info.ReadOnly]
+    .filter((value) => value !== undefined);
+  const ownershipValues = [info.Owners, info.GlobalPermissionsEnabled, info.OwnershipEnabled]
+    .filter((value) => value !== undefined);
+  const internalConflict = booleanConflict(internalValues);
+  const removableConflict = booleanConflict(removableValues);
+  const writableConflict = booleanConflict(writableValues);
+  const readOnlyConflict = booleanConflict(readOnlyValues);
+  const ownershipConflict = booleanConflict(ownershipValues);
+  const plistInternal = internalValues.length === 0 || internalConflict
+    ? 'unknown'
+    : normalizeTristateBool(internalValues[0]);
+  const plistRemovable = removableValues.length === 0 || removableConflict
+    ? 'unknown'
+    : normalizeTristateBool(removableValues[0]);
+  const deviceLocationAlias = normalizedAliasFamily(
+    info,
+    ['DeviceLocation', 'deviceLocation'],
+    normalizeDeviceLocationAlias,
+  );
+  const deviceLocation = deviceLocationAlias.value;
+  const locationRemovable = normalizeRemovableFromLocation(deviceLocation);
+  const deviceLocationRemovableConflict = plistRemovable !== 'unknown'
+    && locationRemovable !== 'unknown'
+    && plistRemovable !== locationRemovable;
+  const removableMedia = plistRemovable !== 'unknown'
+    ? plistRemovable
+    : locationRemovable;
+  const signals = Object.freeze({
+    plistInternalTrue: plistInternal === 'true',
+    plistInternalFalse: plistInternal === 'false',
+    removableTrue: removableMedia === 'true',
+    removableFalse: removableMedia === 'false',
+    deviceLocationInternal: deviceLocation === 'internal',
+    deviceLocationExternal: deviceLocation === 'external',
+  });
+  return Object.freeze({
+    signals,
+    internalConflict,
+    removableConflict,
+    plistInternal,
+    removableMedia,
+    deviceLocation,
+    ...decideInternalSignalForInspection(
+      signals,
+      internalConflict || writableConflict || readOnlyConflict || ownershipConflict
+        || deviceLocationAlias.conflict || deviceLocationRemovableConflict,
+      removableConflict || deviceLocationRemovableConflict,
+    ),
+    writable: writableValues.length > 0 && writableValues.every((value) => value === true),
+    readOnly: readOnlyValues.some((value) => value === true),
+    ownersEnabled: ownershipValues.length > 0
+      && ownershipValues.every((value) => value === true),
+    writableConflict,
+    readOnlyConflict,
+    ownershipConflict,
+    deviceLocationConflict: deviceLocationAlias.conflict,
+    deviceLocationRemovableConflict,
+  });
+}
+
+export function normalizeDiskutilMountInfo(info, dfRecord, inspectedPath, deviceId) {
+  if (!isPlainObject(info) || !isPlainObject(dfRecord)) {
+    fail('SYSTEM_INSPECTION_FAILED', 'mount inspection evidence must be plain objects');
+  }
+  const decision = decideInternalFromPlistInfo(info);
+  const filesystem = normalizedAliasFamily(
+    info,
+    ['FilesystemType', 'TypeBundle', 'FileSystemPersonality', 'File System Personality'],
+    normalizeFilesystemAlias,
+    { required: true },
+  );
+  const mount = normalizedAliasFamily(
+    info,
+    ['MountPoint', 'mountPoint'],
+    normalizeMountPathAlias,
+    { required: true },
+  );
+  const device = normalizedAliasFamily(
+    info,
+    ['DeviceIdentifier', 'DeviceNode', 'deviceIdentifier'],
+    normalizeDeviceIdentifierAlias,
+    { required: true },
+  );
+  const volumeUuid = normalizedAliasFamily(
+    info,
+    ['VolumeUUID', 'APFSVolumeUUID', 'volumeUUID'],
+    normalizeUuidAlias,
+    { required: true },
+  );
+  const dfMountPoint = normalizeMountPathAlias(dfRecord.mountPoint);
+  const dfDeviceIdentifier = normalizeDeviceIdentifierAlias(dfRecord.sourceDevice);
+  const exactInspectedPath = normalizeMountPathAlias(inspectedPath);
+  const aliasConflict = filesystem.conflict || mount.conflict || device.conflict
+    || volumeUuid.conflict || dfMountPoint === null || dfDeviceIdentifier === null
+    || exactInspectedPath === null || mount.value !== dfMountPoint
+    || device.value !== dfDeviceIdentifier;
+  return Object.freeze({
+    ...decision,
+    aliasConflicts: Object.freeze({
+      device: device.conflict,
+      filesystem: filesystem.conflict,
+      mountPoint: mount.conflict || mount.value !== dfMountPoint,
+      volumeUuid: volumeUuid.conflict,
+    }),
+    deviceId: deviceId === null || deviceId === undefined ? null : String(deviceId),
+    deviceIdentifier: device.value,
+    dfDeviceIdentifier,
+    dfMountPoint,
+    fsType: filesystem.value,
+    inspectedPath: exactInspectedPath,
+    mountPoint: mount.value,
+    parseConflict: decision.parseConflict || aliasConflict,
+    volumeUuid: volumeUuid.value,
+  });
+}
+
+export function inspectMountSystem(target) {
+  const dfRecord = parseDfMountRecord(commandResult('/bin/df', ['-P', target]));
+  const info = plistToJson(commandResult('/usr/sbin/diskutil', [
+    'info',
+    '-plist',
+    dfRecord.mountPoint,
+  ]));
+  const entry = inspectEntrySystem(target);
+  return normalizeDiskutilMountInfo(info, dfRecord, target, entry.deviceId);
+}
+
+function normalizedFsType(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+export function validateInternalApfsIdentity(config, identity) {
+  const target = identity?.targetEntry;
+  const parent = identity?.parentEntry;
+  const volume = identity?.parentMount;
+  const expectedParent = path.dirname(config.mountPoint);
+  if (!target?.exists || !target.isDirectory || target.isSymbolicLink
+      || target.realPath !== config.mountPoint) {
+    fail('INTERNAL_MOUNTPOINT_INVALID', 'canonical backend data path is not an exact real directory');
+  }
+  if (!parent?.exists || !parent.isDirectory || parent.isSymbolicLink
+      || parent.realPath !== expectedParent) {
+    fail('INTERNAL_MOUNTPOINT_INVALID', 'canonical backend parent is not an exact real directory');
+  }
+  if (!target.deviceId || !parent.deviceId
+      || String(target.deviceId) !== String(parent.deviceId)) {
+    fail('BARE_LOCAL_OVERLAY', 'canonical backend data path is wrapped by another filesystem');
+  }
+  if (!volume || volume.parseConflict === true) {
+    fail('INTERNAL_MOUNTPOINT_INVALID', 'containing-volume identity is missing or contradictory');
+  }
+  const inspectedPath = normalizeMountPathAlias(volume.inspectedPath);
+  const volumeMountPoint = normalizeMountPathAlias(volume.mountPoint);
+  const dfMountPoint = normalizeMountPathAlias(volume.dfMountPoint);
+  const deviceIdentifier = normalizeDeviceIdentifierAlias(volume.deviceIdentifier);
+  const dfDeviceIdentifier = normalizeDeviceIdentifierAlias(volume.dfDeviceIdentifier);
+  if (inspectedPath !== expectedParent || volumeMountPoint === null
+      || dfMountPoint === null || volumeMountPoint !== dfMountPoint
+      || deviceIdentifier === null || dfDeviceIdentifier === null
+      || deviceIdentifier !== dfDeviceIdentifier) {
+    fail('INTERNAL_MOUNTPOINT_INVALID', 'containing-volume mount or device evidence is not coherently bound', {
+      deviceIdentifier,
+      dfDeviceIdentifier,
+      dfMountPoint,
+      inspectedPath,
+      volumeMountPoint,
     });
   }
-  return { terminated: true, escalated: true, exit: forced.exit };
+  if (!volume.deviceId || String(volume.deviceId) !== String(parent.deviceId)) {
+    fail('INTERNAL_MOUNTPOINT_INVALID', 'containing-volume inspection is not bound to the backend parent device');
+  }
+  const fsType = normalizedFsType(volume.fsType);
+  if (fsType !== 'apfs') {
+    fail('INTERNAL_MOUNTPOINT_INVALID', 'containing filesystem is not APFS', { fsType });
+  }
+  if (volume.readOnly === true || volume.writable !== true
+      || volume.ownersEnabled !== true || volume.internal !== true) {
+    fail('INTERNAL_MOUNTPOINT_INVALID', 'containing APFS volume is not internal, writable, and ownership-enabled');
+  }
+  if (!sameUuid(volume.volumeUuid, config.expectedVolumeUuid)) {
+    fail('INTERNAL_MOUNTPOINT_INVALID', 'containing APFS UUID does not match the canonical pin', {
+      actual: volume.volumeUuid ?? null,
+      expected: config.expectedVolumeUuid,
+    });
+  }
+  return identity;
 }
 
-function writerSpawnOptions(options) {
-  return {
-    cwd: options.cwd ?? REPO_ROOT,
-    env: options.env ?? process.env,
-    stdio: options.stdio ?? 'inherit',
-    detached: true,
+export async function collectInternalIdentity(config, adapters) {
+  const parentPath = path.dirname(config.mountPoint);
+  const [targetEntry, parentEntry, parentMount] = await Promise.all([
+    adapters.inspectEntry(config.mountPoint),
+    adapters.inspectEntry(parentPath),
+    adapters.inspectMount(parentPath),
+  ]);
+  return Object.freeze({ targetEntry, parentEntry, parentMount });
+}
+
+export async function ensureMounted(config, adapters = createSystemAdapters()) {
+  const identity = await collectInternalIdentity(config, adapters);
+  validateInternalApfsIdentity(config, identity);
+  return Object.freeze({
+    alreadyMounted: true,
+    identity,
+    mode: 'internal-apfs',
+  });
+}
+
+function pipeGuardianOutput(stdout, stderr) {
+  if (stdout && typeof stdout.pipe === 'function') stdout.pipe(process.stdout, { end: false });
+  if (stderr && typeof stderr.pipe === 'function') stderr.pipe(process.stderr, { end: false });
+  return () => {
+    stdout?.unpipe?.(process.stdout);
+    stderr?.unpipe?.(process.stderr);
   };
 }
 
-function subscribeSupervisorSignals(source) {
-  if (!source || typeof source.on !== 'function' || typeof source.removeListener !== 'function') {
-    return { promise: new Promise(() => {}), signal: null, cleanup() {} };
+export function createSystemAdapters(overrides = {}) {
+  return Object.freeze({
+    inspectEntry: inspectEntrySystem,
+    inspectMount: inspectMountSystem,
+    prepareGuardian(options) {
+      return prepareGuardedBackendWriter(options);
+    },
+    assertRecoveryBarrier() {
+      return assertRecoveryStateAllowsWriter();
+    },
+    validateGuardianTerminal(evidence, options) {
+      return validateBackendOperationGuardianTerminalEvidence(evidence, options);
+    },
+    pipeGuardianOutput,
+    sleep(milliseconds) {
+      return new Promise((resolve) => setTimeout(resolve, milliseconds));
+    },
+    ...overrides,
+  });
+}
+
+function assertAdapters(adapters) {
+  const required = [
+    'inspectEntry',
+    'inspectMount',
+    'prepareGuardian',
+    'assertRecoveryBarrier',
+    'validateGuardianTerminal',
+    'pipeGuardianOutput',
+    'sleep',
+  ];
+  const missing = required.filter((name) => typeof adapters?.[name] !== 'function');
+  if (missing.length > 0) {
+    fail('ADAPTER_INVALID', 'backend storage adapters are incomplete', { missing });
   }
-  const signals = ['SIGTERM', 'SIGINT', 'SIGHUP'];
-  let settled = false;
+  return adapters;
+}
+
+function subscribeSupervisorSignals(source) {
+  if (!source || typeof source.on !== 'function'
+      || typeof source.removeListener !== 'function') {
+    fail('SUPERVISOR_SIGNAL_SOURCE_INVALID', 'signal source must implement on/removeListener');
+  }
   let receivedSignal = null;
   let resolveSignal;
   const promise = new Promise((resolve) => { resolveSignal = resolve; });
-  const handlers = new Map(signals.map((signal) => [signal, () => {
-    if (settled) return;
-    settled = true;
+  const handlers = new Map(SIGNALS.map((signal) => [signal, () => {
+    if (receivedSignal !== null) return;
     receivedSignal = signal;
     resolveSignal(signal);
   }]));
-  for (const [signal, handler] of handlers) source.on(signal, handler);
-  return {
+  try {
+    for (const [signal, handler] of handlers) source.on(signal, handler);
+  } catch (error) {
+    for (const [signal, handler] of handlers) {
+      try { source.removeListener(signal, handler); } catch {}
+    }
+    fail('SUPERVISOR_SIGNAL_SOURCE_INVALID', 'unable to subscribe supervisor signals', {
+      cause: error instanceof Error ? error.message : String(error),
+    });
+  }
+  return Object.freeze({
     promise,
     get signal() { return receivedSignal; },
     cleanup() {
       for (const [signal, handler] of handlers) source.removeListener(signal, handler);
     },
-  };
+  });
 }
 
-async function shutdownBeforeWriter(config, adapters, ready, signal, context) {
-  const detach = await detachRequired(config, adapters, `${context} signal cleanup`);
-  return {
-    code: null,
-    signal,
-    supervisorSignal: signal,
-    termination: null,
-    detach,
+function sameFileIdentity(left, right) {
+  return left.dev === right.dev
+    && left.ino === right.ino
+    && left.mode === right.mode
+    && left.nlink === right.nlink
+    && left.size === right.size
+    && left.mtimeMs === right.mtimeMs;
+}
+
+function exactWriterFile(candidate, label, executable, hashContents = false) {
+  let fd;
+  try {
+    const pathnameBefore = fs.lstatSync(candidate);
+    if (pathnameBefore.isSymbolicLink() || !pathnameBefore.isFile()
+        || pathnameBefore.nlink !== 1
+        || fs.realpathSync.native(candidate) !== candidate
+        || (pathnameBefore.mode & 0o022) !== 0
+        || (executable && (pathnameBefore.mode & 0o111) === 0)) {
+      fail(
+        label === 'prebuilt backend server'
+          ? 'WRITER_ARTIFACT_INVALID'
+          : 'WRITER_EXECUTABLE_INVALID',
+        `${label} failed exact file identity validation`,
+        { path: candidate },
+      );
+    }
+    if (executable) fs.accessSync(candidate, fs.constants.X_OK);
+    fd = fs.openSync(
+      candidate,
+      fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0),
+    );
+    const openedBefore = fs.fstatSync(fd);
+    if (!sameFileIdentity(pathnameBefore, openedBefore)) {
+      fail(
+        label === 'prebuilt backend server'
+          ? 'WRITER_ARTIFACT_INVALID'
+          : 'WRITER_EXECUTABLE_INVALID',
+        `${label} changed while opening`,
+        { path: candidate },
+      );
+    }
+    const digest = hashContents
+      ? crypto.createHash('sha256').update(fs.readFileSync(fd)).digest('hex')
+      : null;
+    const openedAfter = fs.fstatSync(fd);
+    const pathnameAfter = fs.lstatSync(candidate);
+    if (!sameFileIdentity(openedBefore, openedAfter)
+        || !sameFileIdentity(openedAfter, pathnameAfter)) {
+      fail(
+        label === 'prebuilt backend server'
+          ? 'WRITER_ARTIFACT_INVALID'
+          : 'WRITER_EXECUTABLE_INVALID',
+        `${label} changed while reading`,
+        { path: candidate },
+      );
+    }
+    return Object.freeze({ digest, stat: openedAfter });
+  } catch (error) {
+    if (error instanceof BackendStorageGuardError) throw error;
+    fail(
+      label === 'prebuilt backend server'
+        ? 'WRITER_ARTIFACT_MISSING'
+        : 'WRITER_EXECUTABLE_INVALID',
+      `${label} is unavailable`,
+      { path: candidate, cause: error?.code ?? error?.message },
+    );
+  } finally {
+    if (fd !== undefined) {
+      try { fs.closeSync(fd); } catch {}
+    }
+  }
+}
+
+function validateWriterArgv(writerArgv, options = {}) {
+  if (!Array.isArray(writerArgv) || writerArgv.length !== 2
+      || writerArgv.some((argument) => typeof argument !== 'string'
+        || argument.length === 0 || argument.includes('\0'))) {
+    fail('WRITER_COMMAND_INVALID', 'writer argv must be exactly direct Node + prebuilt server');
+  }
+  if (!path.isAbsolute(writerArgv[0]) || path.resolve(writerArgv[0]) !== writerArgv[0]
+      || !path.isAbsolute(writerArgv[1]) || path.resolve(writerArgv[1]) !== writerArgv[1]) {
+    fail('WRITER_COMMAND_INVALID', 'writer executable and prebuilt server must be normalized absolute paths');
+  }
+  const fixture = options.fixtureWriterIdentity;
+  if (fixture !== undefined && options.allowFixtureWriterIdentity !== true) {
+    fail('WRITER_COMMAND_INVALID', 'fixture writer identity requires explicit test-only enablement');
+  }
+  const expectedNode = fixture?.nodePath ?? CANONICAL_NODE_BINARY;
+  const expectedServer = fixture?.serverPath ?? CANONICAL_BACKEND_SERVER_ARTIFACT;
+  const expectedSha256 = fixture?.serverSha256 ?? CANONICAL_BACKEND_SERVER_SHA256;
+  if (writerArgv[0] !== expectedNode || writerArgv[1] !== expectedServer) {
+    fail('WRITER_COMMAND_INVALID', 'writer argv does not match the enrolled direct Node/server pair', {
+      expectedNode,
+      expectedServer,
+    });
+  }
+  exactWriterFile(expectedNode, 'enrolled Node executable', true);
+  const server = exactWriterFile(expectedServer, 'prebuilt backend server', false, true);
+  if (typeof expectedSha256 !== 'string' || !SHA256_PATTERN.test(expectedSha256)) {
+    fail('WRITER_ARTIFACT_PIN_MISSING', 'prebuilt backend server has no reviewed SHA-256 pin');
+  }
+  const actualSha256 = server.digest;
+  if (actualSha256 !== expectedSha256) {
+    fail('WRITER_ARTIFACT_DIGEST_MISMATCH', 'prebuilt backend server digest drifted', {
+      expectedSha256,
+      actualSha256,
+    });
+  }
+  return Object.freeze({
+    argv: Object.freeze([...writerArgv]),
+    nodePath: expectedNode,
+    serverPath: expectedServer,
+    serverSha256: actualSha256,
+  });
+}
+
+function writerEnvironment(options = {}) {
+  if (Object.hasOwn(options, 'env')) {
+    fail(
+      'WRITER_ENV_OVERRIDE_FORBIDDEN',
+      'arbitrary writer environment overrides are forbidden',
+    );
+  }
+  if (options.fixtureWriterEnvironment === undefined) {
+    return PRODUCTION_WRITER_ENVIRONMENT;
+  }
+  if (options.allowFixtureWriterEnvironment !== true
+      || options.allowFixtureWriterIdentity !== true
+      || options.fixtureWriterIdentity === undefined
+      || options.adapters === undefined
+      || !isPlainObject(options.fixtureWriterEnvironment)) {
+    fail(
+      'WRITER_ENV_OVERRIDE_FORBIDDEN',
+      'fixture writer environment requires the complete explicit test-only seam',
+    );
+  }
+  const environment = Object.create(null);
+  for (const [key, value] of Object.entries(options.fixtureWriterEnvironment)) {
+    if (typeof value !== 'string' || value.includes('\0')) {
+      fail('WRITER_ENV_OVERRIDE_FORBIDDEN', 'fixture writer environment is malformed');
+    }
+    environment[key] = value;
+  }
+  return Object.freeze(environment);
+}
+
+function assertDirectCliEnvironmentSafe(environment = process.env) {
+  const forbidden = Object.keys(environment).filter((key) => (
+    DIRECT_CLI_FORBIDDEN_ENVIRONMENT_KEYS.has(key)
+      || key.startsWith('DYLD_')
+      || key.startsWith('LD_')
+  ));
+  if (forbidden.length > 0) {
+    fail(
+      'DIRECT_CLI_ENVIRONMENT_FORBIDDEN',
+      'direct production CLI refuses inherited preload or backend path overrides',
+      { forbidden: forbidden.sort() },
+    );
+  }
+}
+
+function assertGuardianShape(guardian) {
+  const methods = ['assertHeld', 'start', 'abort', 'terminate', 'terminateAfterLoss'];
+  const missing = methods.filter((name) => typeof guardian?.[name] !== 'function');
+  if (!guardian || missing.length > 0
+      || guardian.phase !== 'prepared'
+      || typeof guardian.loss?.then !== 'function'
+      || typeof guardian.closed?.then !== 'function') {
+    fail('GUARDIAN_ADAPTER_INVALID', 'prepareGuardian returned an incomplete guardian', {
+      missing,
+    });
+  }
+  return guardian;
+}
+
+async function assertRecoveryBarrier(adapters) {
+  const receipt = await adapters.assertRecoveryBarrier();
+  if (!receipt || receipt.ok !== true || receipt.markerAbsent !== true
+      || !Number.isSafeInteger(receipt.transactionsChecked)
+      || receipt.transactionsChecked < 0
+      || !Number.isSafeInteger(receipt.finalClosuresChecked)
+      || receipt.finalClosuresChecked < 0) {
+    fail('RECOVERY_BARRIER_INVALID', 'recovery-state adapter returned malformed acceptance evidence');
+  }
+  return receipt;
+}
+
+function resultFromTerminal(terminal, ready, extras = {}) {
+  const termSignal = terminal.writerTermSignal;
+  const exitCode = terminal.writerExitCode;
+  return Object.freeze({
+    code: Number.isInteger(exitCode) && exitCode >= 0 ? exitCode : null,
+    signal: Number.isInteger(termSignal) && termSignal > 0 ? termSignal : null,
+    writerStarted: terminal.runningEvent !== null,
     alreadyMounted: ready.alreadyMounted,
     stoppedForIdentityLoss: false,
-    writerStarted: false,
-  };
+    terminal,
+    ...extras,
+  });
+}
+
+async function validateTerminal(adapters, terminal, options = {}) {
+  try {
+    const validated = await adapters.validateGuardianTerminal(terminal);
+    const allowedReleaseReasons = options.allowedReleaseReasons ?? [];
+    if (options.requireExactRelease === true
+        && (validated.released !== true
+          || validated.releaseVerified !== true
+          || validated.releasedEvent === null
+          || validated.exitCode !== 0
+          || validated.signal !== null
+          || validated.unexpected !== false
+          || !allowedReleaseReasons.includes(validated.releasedEvent?.reason))) {
+      fail('GUARDIAN_TERMINAL_INVALID', 'guardian did not provide an exact non-loss release');
+    }
+    return validated;
+  } catch (error) {
+    throw new BackendStorageGuardError(
+      'GUARDIAN_TERMINAL_INVALID',
+      'guardian terminal evidence failed exact validation',
+      { causeCode: error?.code ?? null },
+    );
+  }
+}
+
+async function cleanupGuardian(guardian, adapters, writerStarted, reason) {
+  try {
+    let terminal;
+    let allowedReleaseReasons;
+    if (guardian.phase === 'closed') {
+      terminal = await guardian.closed;
+      allowedReleaseReasons = ['abort_prepared', 'terminate_request', 'writer_group_exit'];
+    } else if (writerStarted) {
+      terminal = await guardian.terminate();
+      allowedReleaseReasons = ['terminate_request'];
+    } else {
+      terminal = await guardian.abort();
+      allowedReleaseReasons = ['abort_prepared'];
+    }
+    await validateTerminal(adapters, terminal, {
+      requireExactRelease: true,
+      allowedReleaseReasons,
+    });
+    return terminal;
+  } catch (error) {
+    throw new BackendStorageGuardError(
+      'GUARDIAN_CLEANUP_FAILED',
+      `guardian cleanup failed during ${reason}`,
+      { causeCode: error?.code ?? null },
+    );
+  }
+}
+
+async function lossAlreadySettled(lossPromise) {
+  return Promise.race([
+    lossPromise.then(() => true, () => true),
+    new Promise((resolve) => setTimeout(resolve, 0, false)),
+  ]);
+}
+
+async function terminalSettledWithinTick(closedPromise) {
+  return Promise.race([
+    closedPromise.then((terminal) => ({ settled: true, terminal })),
+    new Promise((resolve) => setTimeout(resolve, 0, { settled: false, terminal: null })),
+  ]);
 }
 
 export async function superviseWriter(config, writerArgv, options = {}) {
-  if (!Array.isArray(writerArgv) || writerArgv.length === 0
-      || writerArgv.some((arg) => typeof arg !== 'string' || arg.length === 0)) {
-    fail('WRITER_COMMAND_INVALID', 'writer command must be a non-empty argv array');
+  if (hasOwn(options, 'recoveryStateOptions')) {
+    fail(
+      'RECOVERY_BARRIER_OVERRIDE_FORBIDDEN',
+      'writer supervision accepts only the canonical or factory-bound zero-argument recovery barrier',
+    );
   }
   const checkedConfig = validateConfig(config, {
-    expectedCanonicalMountPoint: options.expectedCanonicalMountPoint ?? CANONICAL_MOUNT_POINT,
-    expectedImagePath: options.expectedImagePath ?? CANONICAL_IMAGE_PATH,
-    expectedBrokerPath: options.expectedBrokerPath ?? CANONICAL_BROKER_PATH,
+    expectedCanonicalMountPoint: options.expectedCanonicalMountPoint,
+    expectedInternalVolumeUuid: options.expectedInternalVolumeUuid,
   });
-  const adapters = options.adapters ?? createSystemAdapters();
-  const monitorIntervalMs = options.monitorIntervalMs ?? DEFAULT_MONITOR_INTERVAL_MS;
+  const writerIdentity = validateWriterArgv(writerArgv, options);
+  const argv = writerIdentity.argv;
+  const guardedWriterEnvironment = writerEnvironment(options);
+  const adapters = assertAdapters(options.adapters ?? createSystemAdapters());
   const supervisorSignals = subscribeSupervisorSignals(options.signalSource ?? process);
+  const monitorIntervalMs = options.monitorIntervalMs ?? DEFAULT_MONITOR_INTERVAL_MS;
+  let guardian = null;
+  let writerStarted = false;
+  let cleanupAttempted = false;
+  let ready = null;
+  let outputCleanup = () => {};
 
   try {
-    const ready = await ensureMounted(checkedConfig, adapters);
-    if (supervisorSignals.signal) {
-      return await shutdownBeforeWriter(
-        checkedConfig,
+    guardian = assertGuardianShape(await adapters.prepareGuardian({
+      purpose: 'writer',
+      lockPath: BACKEND_OPERATION_LOCK_PATH,
+      command: argv[0],
+      args: argv.slice(1),
+      cwd: options.cwd ?? REPO_ROOT,
+      env: guardedWriterEnvironment,
+      timeoutMs: options.guardianTimeoutMs,
+      acquireCloseTimeoutMs: options.guardianAcquireCloseTimeoutMs,
+      startCleanupCloseTimeoutMs: options.guardianStartCleanupCloseTimeoutMs,
+    }));
+    guardian.assertHeld();
+    await assertRecoveryBarrier(adapters);
+
+    ready = await ensureMounted(checkedConfig, adapters);
+    if (supervisorSignals.signal !== null) {
+      cleanupAttempted = true;
+      const terminal = await cleanupGuardian(
+        guardian,
         adapters,
-        ready,
-        supervisorSignals.signal,
-        'attach-phase shutdown',
+        false,
+        'pre-start supervisor signal',
       );
+      return resultFromTerminal(terminal, ready, {
+        supervisorSignal: supervisorSignals.signal,
+      });
     }
 
-    // A second, fresh inspection closes the attach-to-spawn time-of-check gap.
-    try {
-      const freshIdentity = await collectIdentity(checkedConfig, adapters);
-      validateIdentity(checkedConfig, freshIdentity);
-    } catch (error) {
-      const detach = await bestEffortDetach(checkedConfig, adapters);
-      throw new BackendStorageGuardError(
-        'PRESPAWN_IDENTITY_FAILED',
-        `fresh storage validation failed before writer spawn: ${error.message}`,
-        { causeCode: error?.code ?? null, detach },
-      );
-    }
-
-    if (supervisorSignals.signal) {
-      return await shutdownBeforeWriter(
-        checkedConfig,
+    guardian.assertHeld();
+    await assertRecoveryBarrier(adapters);
+    const freshIdentity = await collectInternalIdentity(checkedConfig, adapters);
+    validateInternalApfsIdentity(checkedConfig, freshIdentity);
+    if (supervisorSignals.signal !== null) {
+      cleanupAttempted = true;
+      const terminal = await cleanupGuardian(
+        guardian,
         adapters,
-        ready,
-        supervisorSignals.signal,
-        'pre-spawn shutdown',
+        false,
+        'final pre-start supervisor signal',
       );
+      return resultFromTerminal(terminal, ready, {
+        supervisorSignal: supervisorSignals.signal,
+      });
+    }
+    guardian.assertHeld();
+    validateWriterArgv(argv, options);
+    if (await lossAlreadySettled(guardian.loss)) {
+      cleanupAttempted = true;
+      let cleanupError = null;
+      try { await guardian.terminateAfterLoss(); } catch (error) { cleanupError = error; }
+      fail('OPERATION_LOCK_LOST', 'operation guardian reported loss before writer start', {
+        cleanupCode: cleanupError?.code ?? null,
+      });
     }
 
-    let child;
+    const cleanupOutput = adapters.pipeGuardianOutput(guardian.stdout, guardian.stderr);
+    if (cleanupOutput !== undefined && typeof cleanupOutput !== 'function') {
+      fail('ADAPTER_INVALID', 'pipeGuardianOutput must return a cleanup function or undefined');
+    }
+    outputCleanup = cleanupOutput ?? (() => {});
     try {
-      child = adapters.spawnWriter(
-        writerArgv[0],
-        writerArgv.slice(1),
-        writerSpawnOptions(options),
-      );
-      if (!Number.isInteger(child?.pid) || child.pid <= 0) {
-        fail('WRITER_SPAWN_FAILED', 'writer did not return a process-group leader PID');
-      }
+      await guardian.start();
     } catch (error) {
-      const detach = await bestEffortDetach(checkedConfig, adapters);
       throw new BackendStorageGuardError(
-        'WRITER_SPAWN_FAILED',
-        `writer spawn failed; storage detached: ${error instanceof Error ? error.message : String(error)}`,
-        { causeCode: error?.code ?? null, detach },
+        'WRITER_START_FAILED',
+        'operation guardian could not start the direct writer',
+        { causeCode: error?.code ?? null },
       );
     }
-    const exitPromise = childExitPromise(child);
-    let stoppedForIdentityLoss = false;
+    writerStarted = true;
+    const closed = guardian.closed.then((terminal) => ({ kind: 'closed', terminal }));
+    const loss = guardian.loss.then((evidence) => ({ kind: 'loss', evidence }));
 
-    while (true) {
+    for (;;) {
       const outcome = await Promise.race([
-        exitPromise.then((exit) => ({ kind: 'exit', exit })),
+        closed,
+        loss,
         supervisorSignals.promise.then((signal) => ({ kind: 'supervisor-signal', signal })),
         adapters.sleep(monitorIntervalMs).then(() => ({ kind: 'probe' })),
       ]);
-      if (outcome.kind === 'exit') {
-        const termination = await terminateWriterProcessGroup(child, {
-          adapters,
-          exitPromise,
-          termGraceMs: options.termGraceMs,
-          killGraceMs: options.killGraceMs,
+      if (outcome.kind === 'closed') {
+        cleanupAttempted = true;
+        const terminal = await validateTerminal(adapters, outcome.terminal, {
+          requireExactRelease: true,
+          allowedReleaseReasons: ['writer_group_exit'],
         });
-        const detach = await detachRequired(checkedConfig, adapters, 'writer exit cleanup');
-        if (outcome.exit.error) {
-          throw new BackendStorageGuardError(
-            'WRITER_SPAWN_FAILED',
-            `writer process emitted an error: ${outcome.exit.error.message}`,
-            { termination, detach },
-          );
+        return resultFromTerminal(terminal, ready);
+      }
+      if (outcome.kind === 'loss') {
+        cleanupAttempted = true;
+        let terminal = null;
+        let cleanupError = null;
+        try {
+          terminal = await guardian.terminateAfterLoss({
+            timeoutMs: options.guardianLossCleanupTimeoutMs,
+          });
+          await validateTerminal(adapters, terminal);
+        } catch (error) {
+          cleanupError = error;
         }
-        return {
-          ...outcome.exit,
-          termination,
-          detach,
-          alreadyMounted: ready.alreadyMounted,
-          stoppedForIdentityLoss,
-        };
+        throw new BackendStorageGuardError(
+          'OPERATION_LOCK_LOST',
+          'operation guardian reported loss while the writer was active',
+          {
+            nativeEvent: outcome.evidence?.nativeEvent ?? null,
+            terminal,
+            cleanupCode: cleanupError?.code ?? null,
+          },
+        );
       }
       if (outcome.kind === 'supervisor-signal') {
-        const termination = await terminateWriterProcessGroup(child, {
+        cleanupAttempted = true;
+        const terminal = await cleanupGuardian(
+          guardian,
           adapters,
-          exitPromise,
-          termGraceMs: options.termGraceMs,
-          killGraceMs: options.killGraceMs,
-        });
-        const detach = await detachRequired(checkedConfig, adapters, 'supervisor signal cleanup');
-        return {
-          code: termination.exit?.code ?? null,
-          signal: termination.exit?.signal ?? outcome.signal,
+          true,
+          'supervisor signal',
+        );
+        return resultFromTerminal(terminal, ready, {
           supervisorSignal: outcome.signal,
-          termination,
-          detach,
-          alreadyMounted: ready.alreadyMounted,
-          stoppedForIdentityLoss,
-        };
+        });
       }
 
       try {
-        const identity = await collectIdentity(checkedConfig, adapters);
-        validateIdentity(checkedConfig, identity);
+        guardian.assertHeld();
+        const currentIdentity = await collectInternalIdentity(checkedConfig, adapters);
+        validateInternalApfsIdentity(checkedConfig, currentIdentity);
       } catch (error) {
-        stoppedForIdentityLoss = true;
-        const termination = await terminateWriterProcessGroup(child, {
+        const concurrentClose = await terminalSettledWithinTick(guardian.closed);
+        if (concurrentClose.settled) {
+          cleanupAttempted = true;
+          const terminal = await validateTerminal(adapters, concurrentClose.terminal, {
+            requireExactRelease: true,
+            allowedReleaseReasons: ['writer_group_exit'],
+          });
+          return resultFromTerminal(terminal, ready);
+        }
+        if (await lossAlreadySettled(guardian.loss)) {
+          cleanupAttempted = true;
+          let terminal = null;
+          let cleanupError = null;
+          try {
+            terminal = await guardian.terminateAfterLoss({
+              timeoutMs: options.guardianLossCleanupTimeoutMs,
+            });
+            await validateTerminal(adapters, terminal);
+          } catch (lossCleanupError) {
+            cleanupError = lossCleanupError;
+          }
+          throw new BackendStorageGuardError(
+            'OPERATION_LOCK_LOST',
+            'operation guardian lost the lease during an identity probe',
+            {
+              causeCode: error?.code ?? null,
+              terminal,
+              cleanupCode: cleanupError?.code ?? null,
+            },
+          );
+        }
+        cleanupAttempted = true;
+        const terminal = await cleanupGuardian(
+          guardian,
           adapters,
-          exitPromise,
-          termGraceMs: options.termGraceMs,
-          killGraceMs: options.killGraceMs,
-        });
-        const detach = await bestEffortDetach(checkedConfig, adapters);
+          true,
+          'storage identity loss',
+        );
         throw new BackendStorageGuardError(
-          'MOUNT_IDENTITY_LOST',
-          `storage identity changed; writer stopped and will not restart: ${error.message}`,
+          error?.code === 'LOCK_NOT_OBSERVED_HELD'
+            ? 'OPERATION_LOCK_LOST'
+            : 'MOUNT_IDENTITY_LOST',
+          'backend writer stopped after guarded identity validation failed',
+          { causeCode: error?.code ?? null, terminal },
+        );
+      }
+    }
+  } catch (error) {
+    if (guardian && !cleanupAttempted && guardian.phase !== 'closed') {
+      cleanupAttempted = true;
+      try {
+        await cleanupGuardian(
+          guardian,
+          adapters,
+          writerStarted,
+          'error unwind',
+        );
+      } catch (cleanupError) {
+        throw new BackendStorageGuardError(
+          'GUARDIAN_CLEANUP_FAILED',
+          'guardian cleanup failed while preserving an earlier error',
           {
             causeCode: error?.code ?? null,
-            termination,
-            detach,
+            cleanupCode: cleanupError?.code ?? null,
           },
         );
       }
     }
+    throw error;
   } finally {
+    try { outputCleanup(); } catch {}
     supervisorSignals.cleanup();
   }
 }
@@ -1021,50 +1191,52 @@ function parseCli(argv) {
       fail('CLI_USAGE', `unknown argument: ${rest[index]}`);
     }
   }
-  const writerArgv = separator >= 0 ? rest.slice(separator + 1) : [];
-  return { command, configPath, writerArgv };
+  return Object.freeze({
+    command,
+    configPath,
+    writerArgv: separator >= 0 ? rest.slice(separator + 1) : [],
+  });
 }
 
-export async function main(argv = process.argv.slice(2), options = {}) {
+export async function main(argv = process.argv.slice(2)) {
   const parsed = parseCli(argv);
   if (parsed.command === 'help' || parsed.command === '--help' || parsed.command === '-h') {
     process.stdout.write([
       'Usage:',
-      '  backend-storage-guard.mjs supervise --config <absolute-json> -- <writer> [args...]',
+      `  backend-storage-guard.mjs supervise --config ${FIXED_CONFIG_PATH} -- <node> <prebuilt-server>`,
       '',
     ].join('\n'));
     return 0;
   }
-  if (!parsed.configPath) fail('CLI_USAGE', '--config is required');
-  const config = loadConfig(parsed.configPath, {
-    expectedCanonicalMountPoint: options.expectedCanonicalMountPoint,
-    expectedImagePath: options.expectedImagePath,
-    expectedBrokerPath: options.expectedBrokerPath,
-  });
-  const adapters = options.adapters ?? createSystemAdapters();
-
-  if (parsed.command === 'supervise') {
-    if (parsed.writerArgv.length === 0) fail('CLI_USAGE', 'supervise requires a writer after --');
-    const result = await superviseWriter(config, parsed.writerArgv, {
-      ...options,
-      adapters,
+  assertDirectCliEnvironmentSafe();
+  if (parsed.configPath !== FIXED_CONFIG_PATH) {
+    fail('CONFIG_PATH_INVALID', 'production guard requires the fixed backend config path', {
+      actual: parsed.configPath,
+      expected: FIXED_CONFIG_PATH,
     });
-    return Number.isInteger(result.code) ? result.code : (result.signal ? 1 : 0);
   }
-  fail('CLI_USAGE', `unknown command: ${parsed.command}`);
+  const config = loadConfig(parsed.configPath);
+  if (parsed.command !== 'supervise' || parsed.writerArgv.length < 2) {
+    fail('CLI_USAGE', 'supervise requires direct Node + prebuilt server argv');
+  }
+  const result = await superviseWriter(config, parsed.writerArgv);
+  if (result.signal || result.supervisorSignal) return 1;
+  if (Number.isInteger(result.code) && result.code >= 0 && result.code <= 255) {
+    return result.code;
+  }
+  return 0;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(THIS_FILE)) {
   main().then(
     (code) => { process.exitCode = code; },
     (error) => {
-      const payload = {
+      process.stderr.write(`${JSON.stringify({
         ok: false,
         code: error?.code ?? 'BACKEND_STORAGE_GUARD_FAILED',
         error: error instanceof Error ? error.message : String(error),
         details: error?.details ?? {},
-      };
-      process.stderr.write(`${JSON.stringify(payload)}\n`);
+      })}\n`);
       process.exitCode = 1;
     },
   );

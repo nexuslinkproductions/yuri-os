@@ -8,7 +8,7 @@ import {
   CANONICAL_BROKER_PATH,
   CANONICAL_IMAGE_PATH,
   main as runGuard,
-} from './backend-storage-guard.mjs';
+} from './backend-storage-guard-legacy-v1-fixture.mjs';
 
 function fail(message) {
   throw new Error(`PHASE1_FIXTURE_REFUSED: ${message}`);

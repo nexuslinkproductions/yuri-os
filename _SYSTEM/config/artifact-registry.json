@@ -2620,6 +2620,78 @@
       "notes": "Covers the Formula Foundry bakeoff harness and promotion/demotion ledger."
     },
     {
+      "path": "_SYSTEM/Scripts/backend-data-recovery.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "The owner-gated full backend runtime-data recovery wrapper lives in _SYSTEM/Scripts/; non-secret manifests and receipts stay in ignored _SYSTEM/state/backend-volume/, and preserved old targets stay in ignored _SYSTEM/recovery/backend-db/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-data-recovery.test.mjs. Production inspect pins the read-only T7 recovery source and restore rechecks it, while both enforce internal APFS capacity and identity, preserve the old target, and require explicit owner approval; verification and runtime acceptance are T7-free.",
+      "notes": "Recovers the complete protected backend data tree through canonical-only APIs, a native dual-escrow operation lease, durable two-phase receipts, descriptor-relative atomic exchange, observation-based rollback, and source-time-only T7 provenance; it never deletes source, old target, failed target, or accesses Claude projects."
+    },
+    {
+      "path": "_SYSTEM/Scripts/backend-data-recovery.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Synthetic full-directory recovery fixtures live beside the wrapper in _SYSTEM/Scripts/ and use only private temporary trees.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-data-recovery.test.mjs; no production mount, protected runtime, or external drive is accessed by the test.",
+      "notes": "Covers payload pinning, SQLite verification, capacity evidence, owner approval, writer quiescence, atomic promotion, old-target preservation, and independent post-restore verification."
+    },
+    {
+      "path": "_SYSTEM/Scripts/backend-data-swap.c",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "The macOS-only atomic directory exchange helper source lives beside the backend recovery wrapper in _SYSTEM/Scripts/; a content-addressed mode-0500 binary is compiled into ignored _SYSTEM/state/backend-volume/bin/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-data-recovery.test.mjs; the Darwin fixture must prove RENAME_SWAP exchanges two same-filesystem directories without a missing-target interval.",
+      "notes": "Provides the narrow descriptor-relative renameatx_np(RENAME_SWAP) primitive with exact BigInt device/inode identity arguments, component-wise O_NOFOLLOW parent traversal, post-exchange verification, and independent parent fsync; it rejects malformed, stale, symlinked, non-directory, and cross-filesystem inputs."
+    },
+    {
+      "path": "_SYSTEM/Scripts/backend-operation-lock.c",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "The native dual-OFD-escrow guardian source lives in _SYSTEM/Scripts/; callers compile a fresh private mode-0500 helper under ignored backend-volume state and attest its source, snapshot, binary identity, owner, mode, and digest before execution.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-operation-lock.test.mjs; prove OFD serialization, prepared-to-running handoff, sentinel/controller death behavior, irreversible descendant fail-hold, exact release evidence, and explicit teardown stress.",
+      "notes": "Provides real cross-process exclusion and dual escrow across the complete backend writer lifetime and protected recovery transaction; any observed descendant creation is an irreversible fail-hold rather than a clean release."
+    },
+    {
+      "path": "_SYSTEM/Scripts/backend-operation-lock.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Kernel-lock compilation, authentication, acquisition, and release orchestration lives in _SYSTEM/Scripts/; runtime binaries and the persistent lock inode stay in ignored backend-volume state.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-operation-lock.test.mjs.",
+      "notes": "Shared by internal backend supervision and recovery so writer spawn cannot race an atomic data promotion."
+    },
+    {
+      "path": "_SYSTEM/Scripts/backend-operation-lock.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Non-protected temporary kernel-lock fixtures live beside the implementation in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-operation-lock.test.mjs.",
+      "notes": "Proves mutual exclusion, release, persistent lock-file safety, and fresh helper attestation."
+    },
+    {
       "path": "_SYSTEM/Scripts/backend-release-gate.mjs",
       "type": "script",
       "class": "system_control_plane",
@@ -2723,9 +2795,9 @@
       "status": "active",
       "readByDefault": false,
       "protected": false,
-      "storageRule": "Fixed encrypted T7 volume-broker source lives in _SYSTEM/Scripts/; its compiled runtime binary and non-secret receipt stay in ignored _SYSTEM/state/backend-volume/.",
+      "storageRule": "Legacy V1 encrypted-T7 fixture broker source lives in _SYSTEM/Scripts/; any compiled fixture binary and non-secret receipt stay in ignored _SYSTEM/state/backend-volume/ and are not part of the internal-APFS production writer path.",
       "rebuildRule": "Compile with Swift warnings as errors, then run node --test _SYSTEM/Scripts/backend-volume-broker.test.mjs and the separately gated fixture-only acceptance suite.",
-      "notes": "Keychain-backed AES-256 APFS sparsebundle broker pinned to the dedicated T7 image; it exposes no protected dataset content and permits only fail-closed governed attach/detach operations."
+      "notes": "Retained for isolated V1 compatibility and acceptance fixtures only. Production recovery treats T7 as a read-only source-time input, and the final internal-APFS runtime must neither invoke this broker nor require the image."
     },
     {
       "path": "_SYSTEM/Scripts/backend-volume-broker.test.mjs",
@@ -2747,9 +2819,9 @@
       "status": "active",
       "readByDefault": false,
       "protected": false,
-      "storageRule": "Fail-closed backend storage supervisor source lives in _SYSTEM/Scripts/ and accepts only the fixed encrypted T7 broker contract.",
+      "storageRule": "Fail-closed internal-APFS backend storage supervisor source lives in _SYSTEM/Scripts/; production has no T7 broker, image, mount, detach, package-manager, shell, or PATH-fallback hop.",
       "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-storage-guard.test.mjs and fixture-only APFS acceptance before any separately authorized protected recovery.",
-      "notes": "Supervises writer process groups, continuously validates pinned mount identity, and shuts writers down before detach; Phase-1 operation does not access the protected dataset."
+      "notes": "Holds the native dual-escrow guardian before the canonical zero-argument recovery barrier, contradiction-closes and revalidates exact df/diskutil APFS identity, starts only an enrolled direct Node/server pair with a closed environment, and accepts only exact clean release evidence."
     },
     {
       "path": "_SYSTEM/Scripts/backend-storage-guard.test.mjs",
@@ -2761,7 +2833,31 @@
       "protected": false,
       "storageRule": "Fail-closed supervisor regression tests live beside the supervisor in _SYSTEM/Scripts/.",
       "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-storage-guard.test.mjs using mocks and fixtures only; never point the test at the protected dataset.",
-      "notes": "Covers the fixed encrypted T7 identity contract, closed configuration schema, writer shutdown, detach ordering, and refusal of bare-local fallback."
+      "notes": "Covers internal-APFS schema and UUID pins, df/diskutil alias and mount/device coherence, zero-argument recovery-barrier integration, closed writer environment, typed loss cleanup, exact terminal release, enrolled-artifact disarm, and a real no-fork fixture writer."
+    },
+    {
+      "path": "_SYSTEM/Scripts/backend-storage-guard-legacy-v1-fixture.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "The legacy encrypted-T7 V1 supervisor is isolated beside the production V2 guard as a fixture-only compatibility surface and must never be imported by the production writer or launchd owner.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-storage-guard-legacy-v1-fixture.test.mjs and verify its importers remain test/fixture-only.",
+      "notes": "Preserves historical broker, attach/detach, and external-image acceptance evidence without making T7 a live runtime dependency."
+    },
+    {
+      "path": "_SYSTEM/Scripts/backend-storage-guard-legacy-v1-fixture.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Legacy V1 compatibility regression tests live beside the isolated fixture implementation and use only non-protected temporary evidence.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-storage-guard-legacy-v1-fixture.test.mjs; never point it at the protected dataset or activate a live external runtime.",
+      "notes": "Proves the retired external-storage contract remains bounded to explicit fixtures while production stays internal-APFS-only."
     },
     {
       "path": "_SYSTEM/Scripts/backend-volume-apfs.test.mjs",
@@ -2771,9 +2867,9 @@
       "status": "active",
       "readByDefault": false,
       "protected": false,
-      "storageRule": "Fixture-only APFS acceptance tests for the fixed encrypted T7 image live in _SYSTEM/Scripts/.",
-      "rebuildRule": "Run the opt-in Phase-1 suite only with its dedicated private fixture mount and pinned broker digest; do not access or restore the protected dataset.",
-      "notes": "Validates filesystem semantics, SQLite/WAL behavior, detach/reattach, fail-closed writer shutdown, and isolated launchd persistence against non-protected fixtures only."
+      "storageRule": "Legacy encrypted-APFS-image acceptance tests live in _SYSTEM/Scripts/ and import only the isolated V1 fixture guard.",
+      "rebuildRule": "Run the default non-protected helper-contract suite for the isolated legacy fixture; run the real encrypted-image case only as an explicit private fixture with a pinned legacy broker digest.",
+      "notes": "Validates isolated legacy filesystem, SQLite/WAL, detach/reattach, shutdown, and persistence evidence; the real external-image case remains intentionally opt-in, and internal-production identity is covered by backend-storage-guard.test.mjs."
     },
     {
       "path": "_SYSTEM/Scripts/backend-volume-launchd-fixture.mjs",
@@ -2783,9 +2879,33 @@
       "status": "active",
       "readByDefault": false,
       "protected": false,
-      "storageRule": "Temporary launchd fixture helper for the fixed encrypted T7 acceptance path lives in _SYSTEM/Scripts/.",
+      "storageRule": "Temporary launchd fixture helper for legacy encrypted-image acceptance lives in _SYSTEM/Scripts/ and imports only the isolated V1 fixture guard.",
       "rebuildRule": "Exercise only through backend-volume-apfs.test.mjs with a private fixture mount and fail-closed supervisor; never install it as the live protected runtime.",
       "notes": "Provides isolated restart and persistence evidence without touching the live LaunchAgent, canonical mount, or protected dataset."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-session-launchd.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "The production macOS launchd owner lives in _SYSTEM/Scripts/ and emits one direct, enrolled Node-to-storage-guard run chain with canonical OS-account paths, bounded administrative calls, and a closed environment.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-session-launchd.test.mjs; production must remain disarmed until a separately reviewed server artifact digest is enrolled.",
+      "notes": "Owns bounded runtime logs, validates all fixed identities before install, rejects inherited HOME and command/config overrides, and contains no npm, ts-node, PM2, shell, cleanup, or PATH-lookup writer hop."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-session-launchd.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI runtime",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Production launchd-owner regression tests live beside the wrapper and use virtual fixed-file identities plus non-protected temporary log fixtures.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-session-launchd.test.mjs; no live LaunchAgent is installed, removed, restarted, or trusted by the test.",
+      "notes": "Covers canonical HOME under hostile inheritance, 5-second SIGKILL-bounded launchctl with closed environment, direct enrolled argv, fail-closed artifact/config identity, signal forwarding, and bounded log behavior."
     },
     {
       "path": "_SYSTEM/Scripts/backend-volume-sqlite-worker.py",
@@ -2795,9 +2915,9 @@
       "status": "active",
       "readByDefault": false,
       "protected": false,
-      "storageRule": "SQLite/WAL fixture worker for the fixed encrypted T7 acceptance path lives in _SYSTEM/Scripts/.",
-      "rebuildRule": "Run only through backend-volume-apfs.test.mjs under the fail-closed supervisor and private fixture root; do not open the protected dataset.",
-      "notes": "Exercises non-protected lock, contention, WAL, integrity, checkpoint, and abrupt-exit cases for Phase-1 acceptance."
+      "storageRule": "SQLite/WAL fixture worker for APFS acceptance lives in _SYSTEM/Scripts/ and is never part of the production runtime chain.",
+      "rebuildRule": "Run only through backend-volume-apfs.test.mjs under a fail-closed fixture supervisor and private non-protected root; do not open the protected dataset.",
+      "notes": "Exercises non-protected lock, contention, WAL, integrity, checkpoint, and abrupt-exit cases only for the isolated legacy V1 encrypted-image fixture suite."
     },
     {
       "path": "_SYSTEM/config/october-capability-registry.json",

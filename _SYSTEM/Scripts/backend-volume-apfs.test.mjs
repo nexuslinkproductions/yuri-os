@@ -33,7 +33,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { superviseWriter } from './backend-storage-guard.mjs';
+import { superviseWriter } from './backend-storage-guard-legacy-v1-fixture.mjs';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(SCRIPT_DIR, '..', '..');

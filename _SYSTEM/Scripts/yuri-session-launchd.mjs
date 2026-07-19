@@ -1,23 +1,53 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-export const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI';
+import {
+  CANONICAL_BACKEND_SERVER_ARTIFACT,
+  CANONICAL_BACKEND_SERVER_SHA256,
+  CANONICAL_NODE_BINARY,
+  FIXED_CONFIG_PATH,
+  REPO_ROOT as CANONICAL_REPO_ROOT,
+} from './backend-storage-guard.mjs';
+
+export const REPO_ROOT = CANONICAL_REPO_ROOT;
 export const LABEL = 'com.yuri-os-musubi.yuri-session-runtime';
 export const GUARD_PATH = path.join(REPO_ROOT, '_SYSTEM/Scripts/backend-storage-guard.mjs');
-export const CONFIG_PATH = path.join(REPO_ROOT, '_SYSTEM/state/backend-volume/config.json');
-export const BACKEND_PREFIX = path.join(REPO_ROOT, '_SYSTEM/backend');
-export const NODE_BINARY = '/opt/homebrew/Cellar/node/26.4.0/bin/node';
-export const NPM_CLI = '/opt/homebrew/Cellar/node/26.4.0/libexec/lib/node_modules/npm/bin/npm-cli.js';
+export const CONFIG_PATH = FIXED_CONFIG_PATH;
+export const NODE_BINARY = CANONICAL_NODE_BINARY;
+export const BACKEND_SERVER_ARTIFACT_PATH = CANONICAL_BACKEND_SERVER_ARTIFACT;
+// No reviewed prebuilt artifact exists yet. Production therefore remains
+// fail-closed until a separate build/review lane enrolls the exact digest.
+export const BACKEND_SERVER_ARTIFACT_SHA256 = CANONICAL_BACKEND_SERVER_SHA256;
 
-const HOME = os.homedir();
-const LAUNCH_AGENTS_DIR = path.join(HOME, 'Library/LaunchAgents');
-const LOG_DIR = path.join(HOME, 'Library/Logs/YURI-OS-MUSUBI');
+function canonicalOsAccount() {
+  const account = os.userInfo();
+  if (!account || !Number.isInteger(account.uid) || account.uid < 0
+      || typeof account.username !== 'string' || account.username.length === 0
+      || typeof account.homedir !== 'string' || account.homedir.length === 0
+      || account.homedir.includes('\0') || !path.isAbsolute(account.homedir)
+      || path.resolve(account.homedir) !== account.homedir) {
+    throw new Error('OS account record does not provide an exact canonical identity');
+  }
+  return Object.freeze({
+    homedir: account.homedir,
+    uid: account.uid,
+    username: account.username,
+  });
+}
+
+const CANONICAL_ACCOUNT = canonicalOsAccount();
+export const CANONICAL_HOME = CANONICAL_ACCOUNT.homedir;
+export const CANONICAL_USERNAME = CANONICAL_ACCOUNT.username;
+export const CANONICAL_UID = CANONICAL_ACCOUNT.uid;
+const LAUNCH_AGENTS_DIR = path.join(CANONICAL_HOME, 'Library/LaunchAgents');
+const LOG_DIR = path.join(CANONICAL_HOME, 'Library/Logs/YURI-OS-MUSUBI');
 export const PLIST_PATH = path.join(LAUNCH_AGENTS_DIR, `${LABEL}.plist`);
 export const OUT_LOG = path.join(LOG_DIR, 'yuri-session-runtime.out.log');
 export const ERR_LOG = path.join(LOG_DIR, 'yuri-session-runtime.err.log');
@@ -28,6 +58,29 @@ const WRAPPER_PATH = path.join(REPO_ROOT, '_SYSTEM/Scripts/yuri-session-launchd.
 const FORWARDED_SIGNALS = Object.freeze(['SIGINT', 'SIGTERM', 'SIGHUP']);
 const LOG_COPY_BUFFER_BYTES = 8 * 1024 ** 2;
 const NULL_DEVICE = '/dev/null';
+const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
+export const LAUNCHCTL_TIMEOUT_MS = 5_000;
+const LAUNCHCTL_ENVIRONMENT = Object.freeze({
+  HOME: CANONICAL_HOME,
+  LANG: 'C',
+  LC_ALL: 'C',
+  LOGNAME: CANONICAL_USERNAME,
+  PATH: '/usr/bin:/bin:/usr/sbin:/sbin',
+  USER: CANONICAL_USERNAME,
+});
+
+export class YuriSessionLaunchdError extends Error {
+  constructor(code, message, details = {}) {
+    super(message);
+    this.name = 'YuriSessionLaunchdError';
+    this.code = code;
+    this.details = details;
+  }
+}
+
+function fail(code, message, details = {}) {
+  throw new YuriSessionLaunchdError(code, message, details);
+}
 
 function runtimeLogStatus(adapter, candidate) {
   if (!adapter.existsSync(candidate)) return null;
@@ -226,9 +279,8 @@ function realpath(adapter, candidate) {
 
 function validateExactFile(adapter, candidate, label, { executable = false, missingCode = null } = {}) {
   if (!adapter.existsSync(candidate)) {
-    const error = new Error(`${label} is missing: ${candidate}`);
-    if (missingCode) error.code = missingCode;
-    throw error;
+    if (missingCode) fail(missingCode, `${label} is missing: ${candidate}`, { path: candidate });
+    throw new Error(`${label} is missing: ${candidate}`);
   }
   const linkStatus = adapter.lstatSync(candidate);
   if (linkStatus?.isSymbolicLink?.() === true) throw new Error(`${label} must not be a symlink`);
@@ -236,6 +288,7 @@ function validateExactFile(adapter, candidate, label, { executable = false, miss
   if (resolved !== candidate) throw new Error(`${label} must resolve to its exact enrolled path`);
   const status = adapter.statSync(resolved);
   if (status?.isFile?.() !== true) throw new Error(`${label} is not a regular file`);
+  if (Number(status.nlink) !== 1) throw new Error(`${label} must have exactly one hard link`);
   if ((Number(status.mode) & 0o022) !== 0) {
     throw new Error(`${label} is group/world writable and is refused`);
   }
@@ -256,6 +309,82 @@ function requireFixedRuntimeFile(adapter, candidate, label) {
   });
 }
 
+function validateBackendServerArtifact(adapter, expectedSha256) {
+  let artifact;
+  try {
+    artifact = validateExactFile(
+      adapter,
+      BACKEND_SERVER_ARTIFACT_PATH,
+      'prebuilt backend server artifact',
+      { missingCode: 'BACKEND_BUILD_ARTIFACT_MISSING' },
+    );
+  } catch (error) {
+    if (error?.code === 'BACKEND_BUILD_ARTIFACT_MISSING') throw error;
+    throw new YuriSessionLaunchdError(
+      'BACKEND_BUILD_ARTIFACT_INVALID',
+      `prebuilt backend server artifact failed identity validation: ${error.message}`,
+      { causeCode: error?.code ?? null },
+    );
+  }
+  if (typeof expectedSha256 !== 'string' || !SHA256_PATTERN.test(expectedSha256)) {
+    fail(
+      'BACKEND_BUILD_ARTIFACT_PIN_MISSING',
+      'prebuilt backend server artifact has no reviewed SHA-256 enrollment',
+      { artifact },
+    );
+  }
+  let actualSha256;
+  let fd;
+  try {
+    const pathnameBefore = adapter.lstatSync(artifact);
+    fd = adapter.openSync(
+      artifact,
+      fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0),
+    );
+    const openedBefore = adapter.fstatSync(fd);
+    const sameIdentity = (left, right) => left.dev === right.dev
+      && left.ino === right.ino
+      && left.mode === right.mode
+      && left.nlink === right.nlink
+      && left.size === right.size
+      && left.mtimeMs === right.mtimeMs;
+    if (!sameIdentity(pathnameBefore, openedBefore)) {
+      fail('BACKEND_BUILD_ARTIFACT_INVALID', 'prebuilt backend server artifact changed while opening', {
+        artifact,
+      });
+    }
+    actualSha256 = crypto.createHash('sha256')
+      .update(adapter.readFileSync(fd))
+      .digest('hex');
+    const openedAfter = adapter.fstatSync(fd);
+    const pathnameAfter = adapter.lstatSync(artifact);
+    if (!sameIdentity(openedBefore, openedAfter)
+        || !sameIdentity(openedAfter, pathnameAfter)) {
+      fail('BACKEND_BUILD_ARTIFACT_INVALID', 'prebuilt backend server artifact changed while reading', {
+        artifact,
+      });
+    }
+  } catch (error) {
+    if (error instanceof YuriSessionLaunchdError) throw error;
+    fail('BACKEND_BUILD_ARTIFACT_INVALID', 'prebuilt backend server artifact cannot be hashed', {
+      artifact,
+      cause: error instanceof Error ? error.message : String(error),
+    });
+  } finally {
+    if (fd !== undefined) {
+      try { adapter.closeSync(fd); } catch {}
+    }
+  }
+  if (actualSha256 !== expectedSha256) {
+    fail('BACKEND_BUILD_ARTIFACT_DIGEST_MISMATCH', 'prebuilt backend server artifact digest drifted', {
+      artifact,
+      expectedSha256,
+      actualSha256,
+    });
+  }
+  return Object.freeze({ path: artifact, sha256: actualSha256 });
+}
+
 function sanitizedEnvironment(nodeBinary) {
   const safePath = Array.from(new Set([
     path.dirname(nodeBinary),
@@ -264,23 +393,32 @@ function sanitizedEnvironment(nodeBinary) {
     '/usr/sbin',
     '/sbin',
   ])).join(path.delimiter);
-  const username = os.userInfo().username;
   return {
-    HOME,
+    HOME: CANONICAL_HOME,
     LANG: 'en_US.UTF-8',
     LC_ALL: 'en_US.UTF-8',
-    LOGNAME: username,
+    LOGNAME: CANONICAL_USERNAME,
     PATH: safePath,
-    USER: username,
+    USER: CANONICAL_USERNAME,
     YURI_SESSION_RUNTIME_ENABLED: '1',
   };
 }
 
-export function buildRunSpec(adapter = fs) {
+export function buildRunSpec(adapter = fs, options = {}) {
   requireFixedRuntimeFile(adapter, CONFIG_PATH, 'backend volume config');
   requireFixedRuntimeFile(adapter, GUARD_PATH, 'backend storage guard');
   const nodeBinary = validateEnrolledExecutable(NODE_BINARY, 'enrolled node', adapter);
-  const npmCli = validateEnrolledExecutable(NPM_CLI, 'enrolled npm CLI', adapter);
+  let artifactSha256 = BACKEND_SERVER_ARTIFACT_SHA256;
+  if (options.fixtureBackendServerSha256 !== undefined) {
+    if (options.allowFixtureArtifactPin !== true || adapter === fs) {
+      fail(
+        'FIXTURE_ARTIFACT_OVERRIDE_FORBIDDEN',
+        'fixture artifact enrollment is allowed only with an explicit non-system filesystem adapter',
+      );
+    }
+    artifactSha256 = options.fixtureBackendServerSha256;
+  }
+  const serverArtifact = validateBackendServerArtifact(adapter, artifactSha256);
   return Object.freeze({
     executable: nodeBinary,
     args: Object.freeze([
@@ -289,14 +427,12 @@ export function buildRunSpec(adapter = fs) {
       '--config', CONFIG_PATH,
       '--',
       nodeBinary,
-      npmCli,
-      '--prefix', BACKEND_PREFIX,
-      'run', 'dev',
+      serverArtifact.path,
     ]),
     cwd: REPO_ROOT,
     env: Object.freeze(sanitizedEnvironment(nodeBinary)),
     nodeBinary,
-    npmCli,
+    serverArtifact,
   });
 }
 
@@ -317,7 +453,10 @@ export function run(options = {}) {
   };
   let spec;
   try {
-    spec = buildRunSpec(adapter);
+    spec = buildRunSpec(adapter, {
+      fixtureBackendServerSha256: options.fixtureBackendServerSha256,
+      allowFixtureArtifactPin: options.allowFixtureArtifactPin,
+    });
   } catch (error) {
     log('stderr', error instanceof Error ? error.stack || error.message : String(error));
     logSink.close();
@@ -415,9 +554,8 @@ export function run(options = {}) {
   };
 }
 
-export function renderPlist(adapter = fs) {
-  const nodeBinary = validateEnrolledExecutable(NODE_BINARY, 'enrolled node', adapter);
-  validateEnrolledExecutable(NPM_CLI, 'enrolled npm CLI', adapter);
+export function renderPlist(adapter = fs, options = {}) {
+  const nodeBinary = buildRunSpec(adapter, options).nodeBinary;
   const env = sanitizedEnvironment(nodeBinary);
   const envXml = Object.entries(env)
     .map(([key, value]) => `\n    <key>${plistEscape(key)}</key>\n    <string>${plistEscape(value)}</string>`)
@@ -427,7 +565,17 @@ export function renderPlist(adapter = fs) {
 }
 
 function launchctl(args, allowFailure = false, spawnSyncImpl = spawnSync) {
-  const result = spawnSyncImpl('/bin/launchctl', args, { stdio: 'inherit' });
+  const result = spawnSyncImpl('/bin/launchctl', args, {
+    env: LAUNCHCTL_ENVIRONMENT,
+    killSignal: 'SIGKILL',
+    stdio: 'inherit',
+    timeout: LAUNCHCTL_TIMEOUT_MS,
+  });
+  if (result.error) {
+    fail('LAUNCHCTL_EXEC_FAILED', `launchctl ${args[0] ?? 'command'} did not complete safely`, {
+      cause: result.error instanceof Error ? result.error.message : String(result.error),
+    });
+  }
   if (!allowFailure && result.status !== 0) {
     throw new Error(`launchctl ${args.join(' ')} failed with code ${result.status ?? 1}`);
   }
@@ -445,15 +593,24 @@ export function install(options = {}) {
   const platform = options.platform ?? process.platform;
   const logger = options.logger ?? console;
   if (platform !== 'darwin') throw new Error('launchd install is only supported on macOS');
-  buildRunSpec(adapter);
-  const plist = renderPlist(adapter);
+  buildRunSpec(adapter, {
+    fixtureBackendServerSha256: options.fixtureBackendServerSha256,
+    allowFixtureArtifactPin: options.allowFixtureArtifactPin,
+  });
+  const plist = renderPlist(adapter, {
+    fixtureBackendServerSha256: options.fixtureBackendServerSha256,
+    allowFixtureArtifactPin: options.allowFixtureArtifactPin,
+  });
   ensureDirs(adapter);
   adapter.writeFileSync(PLIST_PATH, plist, { encoding: 'utf8', mode: 0o600 });
-  const uid = typeof process.getuid === 'function' ? process.getuid() : os.userInfo().uid;
+  const uid = CANONICAL_UID;
   launchctl(['enable', `gui/${uid}/${LABEL}`], true, spawnSyncImpl);
   try {
     launchctl(['bootstrap', `gui/${uid}`, PLIST_PATH], false, spawnSyncImpl);
-  } catch {
+  } catch (error) {
+    if (error instanceof YuriSessionLaunchdError && error.code === 'LAUNCHCTL_EXEC_FAILED') {
+      throw error;
+    }
     launchctl(['remove', LABEL], true, spawnSyncImpl);
     launchctl(['bootstrap', `gui/${uid}`, PLIST_PATH], false, spawnSyncImpl);
   }
@@ -462,7 +619,7 @@ export function install(options = {}) {
 
 function uninstall() {
   if (process.platform !== 'darwin') throw new Error('launchd uninstall is only supported on macOS');
-  const uid = typeof process.getuid === 'function' ? process.getuid() : os.userInfo().uid;
+  const uid = CANONICAL_UID;
   launchctl(['disable', `gui/${uid}/${LABEL}`], true);
   launchctl(['remove', LABEL], true);
   if (fs.existsSync(PLIST_PATH)) fs.rmSync(PLIST_PATH);
@@ -471,13 +628,13 @@ function uninstall() {
 
 function status() {
   if (process.platform !== 'darwin') throw new Error('launchd status is only supported on macOS');
-  const uid = typeof process.getuid === 'function' ? process.getuid() : os.userInfo().uid;
+  const uid = CANONICAL_UID;
   return launchctl(['print', `gui/${uid}/${LABEL}`], true);
 }
 
 function restart() {
   if (process.platform !== 'darwin') throw new Error('launchd restart is only supported on macOS');
-  const uid = typeof process.getuid === 'function' ? process.getuid() : os.userInfo().uid;
+  const uid = CANONICAL_UID;
   launchctl(['kickstart', '-k', `gui/${uid}/${LABEL}`]);
   console.log(`restarted ${LABEL}`);
 }
