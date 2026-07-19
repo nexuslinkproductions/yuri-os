@@ -7,6 +7,7 @@ import path from 'node:path';
 import test from 'node:test';
 import {
   classifyArtifactPath,
+  createRepositoryPathPresence,
   loadArtifactRegistry,
   validateArtifactRegistry,
 } from './artifact-registry.mjs';
@@ -71,6 +72,56 @@ test('artifact registry CLI emits valid JSON', () => {
 
   assert.equal(result.classification, 'placement_rule');
   assert.equal(result.ruleId, 'system-doc');
+});
+
+test('repository path presence accepts only sparse-index omissions when the path is absent', () => {
+  const root = mkdtempSync(path.join(os.tmpdir(), 'artreg-presence-'));
+  const states = new Map([
+    ['_SYSTEM/docs/sparse.md', 'S'],
+    ['_SYSTEM/docs/missing.md', 'H'],
+    ['_SYSTEM/Scripts/yuri/tool.mjs', 'S'],
+  ]);
+  const pathExists = createRepositoryPathPresence(root, states);
+
+  assert.equal(pathExists('_SYSTEM/docs/sparse.md'), true);
+  assert.equal(pathExists('_SYSTEM/Scripts/yuri/'), true);
+  assert.equal(pathExists('_SYSTEM/docs/missing.md'), false);
+  assert.equal(pathExists('_SYSTEM/docs/untracked.md'), false);
+  assert.equal(pathExists('/tmp'), false);
+  assert.equal(pathExists('../../../tmp'), false);
+  assert.equal(pathExists('foo/../.env'), false);
+  assert.equal(pathExists('./_SYSTEM/docs/sparse.md'), false);
+  rmSync(root, { recursive: true, force: true });
+});
+
+test('artifact registry rejects noncanonical and out-of-root artifact paths', () => {
+  const registry = loadArtifactRegistry();
+  registry.artifacts.push(
+    {
+      path: '/tmp', type: 'script', class: 'system_control_plane', owner: 'YURI', status: 'planned',
+      storageRule: 'invalid fixture', rebuildRule: 'invalid fixture', protected: false,
+    },
+    {
+      path: 'foo/../.env', type: 'script', class: 'system_control_plane', owner: 'YURI', status: 'planned',
+      storageRule: 'invalid fixture', rebuildRule: 'invalid fixture', protected: false,
+    },
+  );
+  const result = validateArtifactRegistry(registry);
+
+  assert.ok(result.errors.includes('/tmp must be a canonical repository-relative path'));
+  assert.ok(result.errors.includes('foo/../.env must be a canonical repository-relative path'));
+});
+
+test('must-register checks sparse-indexed durable files without materializing the zone', () => {
+  const root = mkdtempSync(path.join(os.tmpdir(), 'artreg-index-zone-'));
+  const result = validateArtifactRegistry(zoneRegistry(), {
+    repoRoot: root,
+    folderClasses: new Set(),
+    indexPathStates: new Map([['_SYSTEM/Scripts/math/hidden.mjs', 'S']]),
+  });
+
+  assert.ok(result.errors.some((error) => error.includes('hidden.mjs')));
+  rmSync(root, { recursive: true, force: true });
 });
 
 // --- attack regressions: must-register zone enforcement (recursive / ext / symlink) ---

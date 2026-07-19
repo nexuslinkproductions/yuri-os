@@ -29,6 +29,15 @@ try {
   const registryReport = validateTruthPromotionRegistryRuntime(registry, { checkFiles: false });
   assert.equal(registryReport.ok, true, 'complete truth-promotion registry surface should pass');
 
+  const sparseAwareReport = validateTruthPromotionRegistryRuntime(registry, {
+    pathExists: () => true,
+  });
+  assert.equal(sparseAwareReport.ok, true, 'caller-supplied sparse-aware path presence should satisfy file checks');
+
+  const currentRegistry = JSON.parse(fs.readFileSync(path.join(__dirname, '../config/artifact-registry.json'), 'utf8'));
+  const currentRegistryReport = validateTruthPromotionRegistryRuntime(currentRegistry);
+  assert.equal(currentRegistryReport.ok, true, currentRegistryReport.errors.join('\n'));
+
   const missingRegistry = {
     artifacts: registry.artifacts.filter((artifact) => artifact.path !== '_SYSTEM/Scripts/yuri-canonical-memory-import.mjs'),
   };

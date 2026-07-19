@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createRepositoryPathPresence, loadGitIndexPathStates } from './_lib/repository-path-presence.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -43,6 +44,8 @@ export const TRUTH_PROMOTION_RUNTIME_ARTIFACTS = Object.freeze([
 export function validateTruthPromotionRegistryRuntime(registry = {}, options = {}) {
   const repoRoot = options.repoRoot || REPO_ROOT;
   const checkFiles = options.checkFiles !== false;
+  const indexPathStates = options.indexPathStates || loadGitIndexPathStates(repoRoot);
+  const pathExists = options.pathExists || createRepositoryPathPresence(repoRoot, indexPathStates);
   const artifacts = Array.isArray(registry.artifacts) ? registry.artifacts : [];
   const byPath = new Map(artifacts.map((artifact) => [artifact.path, artifact]));
   const errors = [];
@@ -68,7 +71,7 @@ export function validateTruthPromotionRegistryRuntime(registry = {}, options = {
     if (!artifact.owner || !/YURI|Codex/i.test(artifact.owner)) {
       warnings.push(`${required.path} owner should identify YURI/Codex control-plane ownership`);
     }
-    if (checkFiles && !['planned', 'retired'].includes(artifact.status) && !fs.existsSync(path.join(repoRoot, artifact.path))) {
+    if (checkFiles && !['planned', 'retired'].includes(artifact.status) && !pathExists(artifact.path)) {
       errors.push(`${required.path} is registered for truth promotion but does not exist`);
     }
   }

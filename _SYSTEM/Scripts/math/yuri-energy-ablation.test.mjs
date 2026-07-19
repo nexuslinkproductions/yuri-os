@@ -130,6 +130,22 @@ describe('YURI energy component ablation', () => {
     assert.equal(zeta.carriesSignal, true, 'zeta (staleness penalty) flips T_z reject→accept when zeroed');
   });
 
+  it('fixture isolates beta from mu while still exercising the mu severity term', () => {
+    const beta = defaultRun.steps.find((step) => step.label === 'T_b:drift-reject');
+    const mu = defaultRun.steps.find((step) => step.label === 'T_m:overconfidence-signal');
+    assert.ok(beta && mu);
+    assert.equal(beta.componentDeltas.overconfidenceDrift ?? 0, 0, 'uniform claim must isolate beta from mu');
+    assert.ok(Math.abs(mu.componentDeltas.overconfidenceDrift ?? 0) > 1e-10, 'T_m must exercise mu');
+  });
+
+  it('fixture is immutable, deterministic data with 12 unique transition labels', () => {
+    assert.equal(scenario.length, 12);
+    assert.equal(new Set(scenario.map((step) => step.label)).size, 12);
+    assert.equal(Object.isFrozen(scenario), true);
+    assert.equal(Object.isFrozen(scenario[0].stateBefore), true);
+    assert.equal(JSON.stringify(scenario).includes('timestamp'), false);
+  });
+
   it('determinism: runAblation({seed:7}) twice produces identical tables', () => {
     const r1 = runAblation({ seed: 7 });
     const r2 = runAblation({ seed: 7 });

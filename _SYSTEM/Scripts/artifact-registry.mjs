@@ -2,8 +2,11 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { canonicalRepositoryPath, createRepositoryPathPresence, loadGitIndexPathStates } from './_lib/repository-path-presence.mjs';
 import { validateTruthPromotionRegistryRuntime } from './yuri-truth-promotion-enforcement.mjs';
 import { PROTECTED_SURFACE_PREFIXES } from './lane-kernel.mjs';
+
+export { canonicalRepositoryPath, createRepositoryPathPresence, loadGitIndexPathStates } from './_lib/repository-path-presence.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -112,6 +115,8 @@ export function classifyArtifactPath(inputPath, registry = loadArtifactRegistry(
 export function validateArtifactRegistry(registry = loadArtifactRegistry(), options = {}) {
   const repoRoot = options.repoRoot || REPO_ROOT;
   const folderClasses = options.folderClasses || loadFolderClasses();
+  const indexPathStates = options.indexPathStates || loadGitIndexPathStates(repoRoot);
+  const pathExists = options.pathExists || createRepositoryPathPresence(repoRoot, indexPathStates);
   const errors = [];
   const warnings = [];
   const seen = new Set();
@@ -123,6 +128,9 @@ export function validateArtifactRegistry(registry = loadArtifactRegistry(), opti
   for (const artifact of registry.artifacts || []) {
     const label = artifact.path || '(missing path)';
     if (!artifact.path) errors.push('artifact missing path');
+    if (artifact.path && !canonicalRepositoryPath(artifact.path)) {
+      errors.push(`${label} must be a canonical repository-relative path`);
+    }
     if (seen.has(artifact.path)) errors.push(`duplicate artifact path: ${artifact.path}`);
     seen.add(artifact.path);
 
@@ -137,7 +145,7 @@ export function validateArtifactRegistry(registry = loadArtifactRegistry(), opti
       errors.push(`${label} is under a protected prefix but is not marked protected`);
     }
 
-    if (artifact.status !== 'planned' && artifact.status !== 'retired' && !existsSync(path.join(repoRoot, artifact.path))) {
+    if (artifact.status !== 'planned' && artifact.status !== 'retired' && !pathExists(artifact.path)) {
       errors.push(`${label} does not exist`);
     }
   }
@@ -160,13 +168,14 @@ export function validateArtifactRegistry(registry = loadArtifactRegistry(), opti
   // entry. A new file here fails --validate until registered ("nothing slips
   // past"). Scoped on purpose: only zones small enough to keep fully registered.
   for (const prefix of registry.mustRegisterPrefixes || []) {
+    const durablePaths = new Set();
     let dirEntries;
     try {
       // Recursive (attack-finding fix): a subdirectory file slipped the old top-level
       // scan. Broadened extensions + symlink-following close the other reported gaps.
       dirEntries = readdirSync(path.join(repoRoot, prefix), { withFileTypes: true, recursive: true });
     } catch {
-      continue; // zone directory absent -> nothing to enforce
+      dirEntries = []; // zone may be sparse-absent; the Git index is checked below
     }
     for (const dirent of dirEntries) {
       const parent = dirent.parentPath || dirent.path || path.join(repoRoot, prefix);
@@ -181,7 +190,21 @@ export function validateArtifactRegistry(registry = loadArtifactRegistry(), opti
       // Any durable source/config file must register (not just .mjs/.cjs); tests exempt.
       if (!/\.(mjs|cjs|js|ts|tsx|jsx|py|json)$/.test(dirent.name)) continue;
       if (/\.test\.(mjs|cjs|js|ts|tsx|jsx)$/.test(dirent.name) || /_test\.py$/.test(dirent.name)) continue;
-      const relPath = normalizeRepoPath(fullPath, repoRoot);
+      durablePaths.add(normalizeRepoPath(fullPath, repoRoot));
+    }
+
+    // A sparse checkout may omit the whole must-register zone. The Git index is
+    // still authoritative for tracked durable files, so validate those paths too
+    // without changing sparse state or materializing the files.
+    for (const indexedPath of indexPathStates.keys()) {
+      if (!indexedPath.startsWith(prefix)) continue;
+      const name = path.posix.basename(indexedPath);
+      if (!/\.(mjs|cjs|js|ts|tsx|jsx|py|json)$/.test(name)) continue;
+      if (/\.test\.(mjs|cjs|js|ts|tsx|jsx)$/.test(name) || /_test\.py$/.test(name)) continue;
+      durablePaths.add(indexedPath);
+    }
+
+    for (const relPath of durablePaths) {
       if (!seen.has(relPath)) {
         errors.push(`unregistered durable artifact in must-register zone ${prefix}: ${relPath}`);
       }
@@ -189,7 +212,7 @@ export function validateArtifactRegistry(registry = loadArtifactRegistry(), opti
   }
 
   if ((registry.artifacts || []).length < 10) warnings.push('artifact registry seed has fewer than 10 artifacts');
-  const truthPromotionRuntime = validateTruthPromotionRegistryRuntime(registry, { repoRoot });
+  const truthPromotionRuntime = validateTruthPromotionRegistryRuntime(registry, { repoRoot, pathExists });
   errors.push(...truthPromotionRuntime.errors.map((error) => `truth promotion runtime: ${error}`));
   warnings.push(...truthPromotionRuntime.warnings.map((warning) => `truth promotion runtime: ${warning}`));
 
