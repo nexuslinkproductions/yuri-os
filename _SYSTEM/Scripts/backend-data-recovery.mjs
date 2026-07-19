@@ -2411,21 +2411,69 @@ async function restoreRecoveryCore(options, executionToken) {
       if (rollback.observedOutcome === 'unknown'
           || (rollback.observedOutcome === 'exchanged' && rollback.oldRestored !== true)
           || (rollback.preservedNewLocation === failedTarget && rollback.newQuarantined !== true)) {
-        try { releaseEvidence = await releaseHeldLease(lease, acquisition, 'restore', adapters); } catch {}
+        // Unknown or incompletely restored topology is not a releasable terminal state.
+        // Do not request native release: its kernel hold lasts for this owning
+        // controller/process lifetime and naturally closes on owner exit/EOF. Only
+        // the exact observation below may establish the persistent marker as active;
+        // otherwise the existing incomplete transaction remains the durable barrier.
+        let observedMarker;
         try {
-          writeTransaction(transactionPath, transactionBase, 'fail-hold', {
-            updatedAt: adapters.now().toISOString(),
+          observedMarker = assertMarkerIdentity(marker);
+        } catch (markerError) {
+          // Do not rewrite the last durable transaction state when the marker cannot be
+          // proven exact. Its existing non-final state remains the persistent writer
+          // barrier after this owning process (and therefore its native lease) exits.
+          fail('RESTORE_TOPOLOGY_UNKNOWN_HELD', 'restore topology is unknown and the active marker cannot be verified; the incomplete transaction remains blocked', {
             cause: error.message,
             causeCode: error?.code ?? null,
             rollback,
-            markerActive: markerNotProvenAbsent(marker.path),
+            markerIdentityVerified: false,
+            markerActive: null,
+            activeMarker: null,
+            markerObservationError: {
+              code: markerError?.code ?? null,
+              message: markerError?.message || String(markerError),
+              expectedPath: marker.path,
+            },
+            incompleteTransaction: transactionPath,
+            releaseRequested: false,
           });
-        } catch {}
+        }
+        const markerActive = observedMarker.payload?.schema === ACTIVE_MARKER_SCHEMA
+          && observedMarker.payload?.state === 'active'
+          && observedMarker.payload?.startupBlocked === true
+          && observedMarker.payload?.transactionId === transactionId;
+        const activeMarker = markerActive ? observedMarker.path : null;
+        if (!markerActive) {
+          fail('RESTORE_TOPOLOGY_UNKNOWN_HELD', 'restore topology is unknown and the verified marker does not attest the active transaction; the incomplete transaction remains blocked', {
+            cause: error.message,
+            causeCode: error?.code ?? null,
+            rollback,
+            markerIdentityVerified: true,
+            markerActive,
+            activeMarker,
+            incompleteTransaction: transactionPath,
+            releaseRequested: false,
+          });
+        }
+        writeTransaction(transactionPath, transactionBase, 'fail-hold', {
+          updatedAt: adapters.now().toISOString(),
+          cause: error.message,
+          causeCode: error?.code ?? null,
+          rollback,
+          markerActive,
+          activeMarker,
+          markerIdentityVerified: true,
+          releaseRequested: false,
+        });
         fail('RESTORE_TOPOLOGY_UNKNOWN_HELD', 'restore topology is unknown or rollback could not restore the old target; startup remains blocked', {
           cause: error.message,
           causeCode: error?.code ?? null,
           rollback,
-          activeMarker: markerNotProvenAbsent(marker.path) ? marker.path : null,
+          markerIdentityVerified: true,
+          markerActive,
+          activeMarker,
+          releaseRequested: false,
         });
       }
     }
@@ -2814,7 +2862,7 @@ function fixtureLayout(root) {
     quarantineRoot: path.join(liveRoot, '_SYSTEM/recovery/backend-db'),
     receiptRoot: path.join(liveRoot, '_SYSTEM/state/backend-volume'),
     capacityRoot: liveRoot,
-    operationLockPath: path.join(root, 'backend-operation.lock'),
+    operationLockPath: path.join(root, 'backend-operation-lock-anchor', 'backend-operation.lock'),
     operationLockBinRoot: path.join(root, 'bin'),
   };
   for (const [label, candidate] of Object.entries(paths)) {

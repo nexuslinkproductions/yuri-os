@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
+import { once } from 'node:events';
 import test from 'node:test';
 
 import {
@@ -23,13 +24,17 @@ import {
   SWAP_HELPER_SOURCE_PATH,
 } from './backend-data-recovery.mjs';
 import {
+  acquireBackendOperationLock,
   bootstrapBackendOperationLockAnchor,
   BACKEND_OPERATION_LOCK_SOURCE,
+  compileFreshC,
 } from './backend-operation-lock.mjs';
 import {
   INTERNAL_APFS_EXPECTED_VOLUME_UUID,
   normalizeDiskutilMountInfo,
 } from './backend-storage-guard.mjs';
+
+const OPERATION_LOCK_MODULE_URL = new URL('./backend-operation-lock.mjs', import.meta.url).href;
 
 function fixture() {
   const root = fs.realpathSync.native(fs.mkdtempSync(path.join('/private/tmp', 'yuri-backend-data-recovery-')));
@@ -1614,6 +1619,525 @@ test('helper error after a real exchange is observed and rolled back without a s
     assert.equal(fs.readFileSync(path.join(fx.target, 'old.txt'), 'utf8'), 'preserve-old');
     const failed = path.join(fx.quarantineRoot, `failed-data-${inspected.manifestSha256.slice(0, 16)}`);
     assert.equal(fs.readFileSync(path.join(failed, 'payload.bin'), 'utf8'), 'payload');
+  } finally {
+    fs.rmSync(fx.root, { recursive: true, force: true });
+  }
+});
+
+test('unknown promotion topology retains the native lease and active marker in fail-hold', {
+  timeout: 45_000,
+}, async () => {
+  const fx = fixture();
+  let ownerProcess = null;
+  let postMortemLease = null;
+  try {
+    const { expected, capacity, inspected } = await inspectFixture(fx);
+    const markerPath = path.join(fx.receiptRoot, 'backend-data-recovery.lock');
+    const acquire = fx.adapters.acquireOperationLock;
+    let nativeLeaseHeld = false;
+    let releaseCalls = 0;
+    let acquisitionCalls = 0;
+    let swapCalls = 0;
+    let oldTargetRenameHooks = 0;
+    let markerBeforeFailure = null;
+    let targetBeforePromotion = null;
+    let dataTopologyAfterInjectedFault = null;
+    let preservedPromotedTree = null;
+    let preservedOldTargetTree = null;
+
+    const stableIdentity = (candidate) => {
+      const stat = fs.lstatSync(candidate, { bigint: true });
+      return {
+        device: stat.dev.toString(),
+        inode: stat.ino.toString(),
+        mode: Number(stat.mode),
+        size: stat.size.toString(),
+        mtimeNs: stat.mtimeNs.toString(),
+        ctimeNs: stat.ctimeNs.toString(),
+      };
+    };
+    const captureTopology = (root) => {
+      const records = [];
+      const visit = (candidate) => {
+        const stat = fs.lstatSync(candidate, { bigint: true });
+        const relative = path.relative(root, candidate) || '.';
+        const record = {
+          relative,
+          device: stat.dev.toString(),
+          inode: stat.ino.toString(),
+          mode: Number(stat.mode),
+          size: stat.size.toString(),
+          type: stat.isDirectory() ? 'directory' : (stat.isFile() ? 'file' : 'other'),
+        };
+        if (stat.isFile()) {
+          record.sha256 = crypto.createHash('sha256').update(fs.readFileSync(candidate)).digest('hex');
+        }
+        records.push(record);
+        if (stat.isDirectory()) {
+          for (const name of fs.readdirSync(candidate).sort()) visit(path.join(candidate, name));
+        }
+      };
+      visit(root);
+      return records;
+    };
+
+    const recovery = fx.recoveryWith({
+      ...fx.adapters,
+      async acquireOperationLock(options) {
+        acquisitionCalls += 1;
+        if (nativeLeaseHeld) {
+          const error = new Error('fixture native lease remains held by the unknown-topology restore');
+          error.code = 'OPERATION_LOCK_HELD';
+          throw error;
+        }
+        const lease = await acquire(options);
+        nativeLeaseHeld = true;
+        return Object.freeze({
+          ...lease,
+          async release() {
+            releaseCalls += 1;
+            const evidence = await lease.release();
+            nativeLeaseHeld = false;
+            return evidence;
+          },
+        });
+      },
+      swapTrees(left, right) {
+        swapCalls += 1;
+        assert.equal(left, fx.target);
+        assert.equal(fs.existsSync(markerPath), true, 'active marker must precede the promotion seam');
+        markerBeforeFailure = {
+          identity: stableIdentity(markerPath),
+          bytes: fs.readFileSync(markerPath),
+        };
+        targetBeforePromotion = {
+          identity: stableIdentity(left),
+          oldPayload: fs.readFileSync(path.join(left, 'old.txt'), 'utf8'),
+        };
+        fx.adapters.swapTrees(left, right);
+        preservedOldTargetTree = right;
+        preservedPromotedTree = `${left}.unknown-promoted`;
+        fs.renameSync(left, preservedPromotedTree);
+        fs.mkdirSync(left, { mode: 0o700 });
+        dataTopologyAfterInjectedFault = {
+          backend: captureTopology(path.dirname(fx.target)),
+          quarantine: captureTopology(fx.quarantineRoot),
+        };
+        throw new Error('fixture injected an unknown post-helper topology');
+      },
+      afterOldTargetRenamed() {
+        oldTargetRenameHooks += 1;
+      },
+    });
+
+    await assert.rejects(
+      recovery.restore({
+        ownerApproved: true,
+        manifestPath: inspected.manifestPath,
+        manifestSha256: inspected.manifestSha256,
+        expected,
+        capacity,
+      }),
+      (error) => error.code === 'RESTORE_TOPOLOGY_UNKNOWN_HELD'
+        && error.details.activeMarker === markerPath
+        && error.details.markerActive === true
+        && error.details.markerIdentityVerified === true
+        && error.details.releaseRequested === false
+        && error.details.rollback.observedOutcome === 'unknown',
+    );
+
+    assert.equal(acquisitionCalls, 1);
+    assert.equal(releaseCalls, 0, 'unknown topology must never release its native lease');
+    assert.equal(nativeLeaseHeld, true);
+    assert.equal(swapCalls, 1, 'no rollback swap may follow an unknown observation');
+    assert.equal(oldTargetRenameHooks, 0, 'no archive/quarantine rename may follow an unknown observation');
+    assert.deepEqual(stableIdentity(markerPath), markerBeforeFailure.identity);
+    assert.deepEqual(fs.readFileSync(markerPath), markerBeforeFailure.bytes, 'active marker bytes stay unchanged');
+    const preservedOldIdentity = stableIdentity(preservedOldTargetTree);
+    assert.deepEqual(
+      { device: preservedOldIdentity.device, inode: preservedOldIdentity.inode },
+      { device: targetBeforePromotion.identity.device, inode: targetBeforePromotion.identity.inode },
+      'the original target identity remains preserved at the exchanged staging path',
+    );
+    assert.equal(fs.readFileSync(path.join(preservedOldTargetTree, 'old.txt'), 'utf8'), targetBeforePromotion.oldPayload);
+    assert.equal(fs.readFileSync(path.join(preservedPromotedTree, 'payload.bin'), 'utf8'), 'payload');
+    assert.deepEqual(fs.readdirSync(fx.target), [], 'the unknown replacement target stays untouched');
+    assert.deepEqual(
+      {
+        backend: captureTopology(path.dirname(fx.target)),
+        quarantine: captureTopology(fx.quarantineRoot),
+      },
+      dataTopologyAfterInjectedFault,
+      'no recovery mutation may follow the injected unknown topology',
+    );
+
+    const transactionNames = fs.readdirSync(fx.receiptRoot)
+      .filter((name) => /^backend-data-transaction-[a-z0-9-]+\.json$/u.test(name));
+    assert.equal(transactionNames.length, 1);
+    const transaction = JSON.parse(fs.readFileSync(path.join(fx.receiptRoot, transactionNames[0]), 'utf8'));
+    assert.equal(transaction.state, 'fail-hold');
+    assert.equal(transaction.markerActive, true);
+    assert.equal(transaction.activeMarker, markerPath);
+    assert.equal(transaction.markerIdentityVerified, true);
+    assert.equal(transaction.releaseRequested, false);
+    assert.equal(transaction.rollback.observedOutcome, 'unknown');
+    assert.equal(transaction.rollback.attempted, false);
+    assert.equal(
+      fs.readdirSync(fx.receiptRoot).some((name) => /^backend-data-(?:marker|final)-/u.test(name)
+        || /^internal-restore-phase-a-/u.test(name)),
+      false,
+      'fail-hold must not archive the marker or emit final closure evidence',
+    );
+
+    assert.throws(
+      () => recovery.assertRecoveryStateAllowsWriter(),
+      (error) => error.code === 'RECOVERY_STATE_ACTIVE',
+      'the active marker independently blocks writers',
+    );
+    await assert.rejects(
+      recovery.restore({
+        ownerApproved: true,
+        manifestPath: inspected.manifestPath,
+        manifestSha256: inspected.manifestSha256,
+        expected,
+        capacity,
+      }),
+      (error) => error.code === 'OPERATION_LOCK_HELD',
+      'a fresh restore is blocked by the retained native lease',
+    );
+    assert.equal(acquisitionCalls, 2);
+    assert.equal(releaseCalls, 0, 'blocked follow-up attempts cannot release the retained lease');
+    assert.deepEqual(stableIdentity(markerPath), markerBeforeFailure.identity);
+    assert.deepEqual(fs.readFileSync(markerPath), markerBeforeFailure.bytes);
+    assert.deepEqual(
+      {
+        backend: captureTopology(path.dirname(fx.target)),
+        quarantine: captureTopology(fx.quarantineRoot),
+      },
+      dataTopologyAfterInjectedFault,
+    );
+
+    // Part B: the in-process invariant above does not make the native mutex
+    // immortal. A real owner first proves live contention, then exits when its
+    // supervisor closes stdin. The kernel lock becomes acquirable again while
+    // the durable marker remains the recovery/writer exclusion layer.
+    if (process.platform !== 'darwin') return;
+    const withDeadline = async (promise, timeoutMs, label) => {
+      let timer;
+      try {
+        return await Promise.race([
+          promise,
+          new Promise((_, reject) => {
+            timer = setTimeout(() => reject(new Error(label)), timeoutMs);
+          }),
+        ]);
+      } finally {
+        clearTimeout(timer);
+      }
+    };
+    const nativeLockPath = fx.recovery.paths.operationLockPath;
+    bootstrapBackendOperationLockAnchor({ ownerApproved: true, lockPath: nativeLockPath });
+    const ownerBinRoot = path.join(fx.root, 'owner-lock-bin');
+    const ownerCode = [
+      "import fs from 'node:fs';",
+      `import { acquireBackendOperationLock } from ${JSON.stringify(OPERATION_LOCK_MODULE_URL)};`,
+      'const lease = await acquireBackendOperationLock({',
+      "  purpose: 'restore',",
+      `  lockPath: ${JSON.stringify(nativeLockPath)},`,
+      `  binRoot: ${JSON.stringify(ownerBinRoot)},`,
+      '  timeoutMs: 5000,',
+      '});',
+      "fs.writeSync(1, `${JSON.stringify({ event: 'OWNER_READY', ownerPid: process.pid, helperPid: lease.pid, nonce: lease.nonce })}\\n`);",
+      'process.stdin.resume();',
+      "await new Promise((resolve, reject) => { process.stdin.once('end', resolve); process.stdin.once('error', reject); });",
+      'process.exit(0);',
+    ].join('\n');
+    ownerProcess = spawn(process.execPath, ['--input-type=module', '-e', ownerCode], {
+      cwd: fx.root,
+      env: {
+        PATH: '/usr/bin:/bin:/usr/sbin:/sbin',
+        LANG: 'C',
+        LC_ALL: 'C',
+        TMPDIR: '/private/tmp',
+      },
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    let ownerStdout = '';
+    let ownerStderr = '';
+    let ownerReadySettled = false;
+    const ownerReadyPromise = new Promise((resolve, reject) => {
+      ownerProcess.stdout.on('data', (chunk) => {
+        ownerStdout += chunk.toString('utf8');
+        const newline = ownerStdout.indexOf('\n');
+        if (ownerReadySettled || newline < 0) return;
+        try {
+          ownerReadySettled = true;
+          resolve(JSON.parse(ownerStdout.slice(0, newline)));
+        } catch (error) {
+          ownerReadySettled = true;
+          reject(error);
+        }
+      });
+      ownerProcess.once('error', (error) => {
+        if (!ownerReadySettled) {
+          ownerReadySettled = true;
+          reject(error);
+        }
+      });
+      ownerProcess.once('exit', (code, signal) => {
+        if (!ownerReadySettled) {
+          ownerReadySettled = true;
+          reject(new Error(`spawned lock owner exited before readiness: code=${code} signal=${signal}`));
+        }
+      });
+    });
+    ownerProcess.stderr.on('data', (chunk) => { ownerStderr += chunk.toString('utf8'); });
+    const ownerExitPromise = once(ownerProcess, 'exit');
+    const ownerReady = await withDeadline(
+      ownerReadyPromise,
+      15_000,
+      'spawned lock owner did not attest readiness within the bounded deadline',
+    );
+    assert.equal(ownerReady.event, 'OWNER_READY');
+    assert.equal(Number.isSafeInteger(ownerReady.ownerPid), true);
+    assert.equal(Number.isSafeInteger(ownerReady.helperPid), true);
+    assert.equal(ownerProcess.exitCode, null, 'OWNER_READY must describe a still-live lock owner');
+    assert.equal(ownerProcess.signalCode, null);
+
+    const supervisorHelper = compileFreshC({
+      binRoot: path.join(fx.root, 'supervisor-lock-bin'),
+      label: 'recovery-owner-exit-probe',
+    });
+    await assert.rejects(
+      withDeadline(
+        acquireBackendOperationLock({
+          purpose: 'restore',
+          lockPath: nativeLockPath,
+          helper: supervisorHelper,
+          timeoutMs: 1_000,
+          acquireCloseTimeoutMs: 1_000,
+        }),
+        5_000,
+        'same-path contention probe exceeded its bounded deadline',
+      ),
+      (error) => error.code === 'BACKEND_OPERATION_BUSY',
+      'a third party must observe the live owner holding this exact kernel lock',
+    );
+    assert.equal(ownerProcess.exitCode, null, 'contention is proved while the owner remains alive');
+    ownerProcess.stdin.end();
+    const [ownerExitCode, ownerSignal] = await withDeadline(
+      ownerExitPromise,
+      10_000,
+      'spawned lock owner did not exit after its supervisor closed stdin',
+    );
+    assert.equal(ownerExitCode, 0, ownerStderr);
+    assert.equal(ownerSignal, null);
+    const ownerLines = ownerStdout.trim().split('\n').filter(Boolean);
+    assert.equal(ownerLines.length, 1, 'dead owner reports readiness only; no post-mortem release frame is expected');
+    assert.doesNotMatch(ownerStdout, /RELEASED/u);
+
+    const acquireAfterOwnerExit = async () => {
+      const deadline = Date.now() + 10_000;
+      let lastBusy = null;
+      while (Date.now() < deadline) {
+        try {
+          return await acquireBackendOperationLock({
+            purpose: 'restore',
+            lockPath: nativeLockPath,
+            helper: supervisorHelper,
+            timeoutMs: 1_000,
+            acquireCloseTimeoutMs: 1_000,
+          });
+        } catch (error) {
+          if (error?.code !== 'BACKEND_OPERATION_BUSY') throw error;
+          lastBusy = error;
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+      }
+      throw new Error(`kernel lock remained unavailable after owner exit: ${lastBusy?.message ?? 'timeout'}`);
+    };
+    postMortemLease = await withDeadline(
+      acquireAfterOwnerExit(),
+      12_000,
+      'third-party lock-availability probe exceeded its bounded deadline',
+    );
+    assert.equal(postMortemLease.assertHeld().held, true);
+
+    let freshLeaseDelivered = false;
+    let freshReleaseCalls = 0;
+    let postMortemCopyCalls = 0;
+    let postMortemSwapCalls = 0;
+    const postMortemRecovery = fx.recoveryWith({
+      ...fx.adapters,
+      async acquireOperationLock(options) {
+        assert.equal(options.lockPath, nativeLockPath);
+        assert.equal(freshLeaseDelivered, false, 'the fresh native lease is a single-use capability');
+        freshLeaseDelivered = true;
+        return Object.freeze({
+          ...postMortemLease,
+          async release() {
+            freshReleaseCalls += 1;
+            return postMortemLease.release();
+          },
+        });
+      },
+      copyTree(...args) {
+        postMortemCopyCalls += 1;
+        return fx.adapters.copyTree(...args);
+      },
+      swapTrees(...args) {
+        postMortemSwapCalls += 1;
+        return fx.adapters.swapTrees(...args);
+      },
+    });
+    assert.throws(
+      () => postMortemRecovery.assertRecoveryStateAllowsWriter(),
+      (error) => error.code === 'RECOVERY_STATE_ACTIVE',
+      'the persistent marker blocks writers after the dead owner kernel lock is available',
+    );
+    await assert.rejects(
+      postMortemRecovery.restore({
+        ownerApproved: true,
+        manifestPath: inspected.manifestPath,
+        manifestSha256: inspected.manifestSha256,
+        expected,
+        capacity,
+      }),
+      (error) => error.code === 'RECOVERY_STATE_ACTIVE',
+      'fresh restore acquires and then releases the kernel lease without reaching staging',
+    );
+    assert.equal(freshLeaseDelivered, true);
+    assert.equal(freshReleaseCalls, 1, 'the fresh post-mortem lease is explicitly released');
+    assert.equal(postMortemCopyCalls, 0);
+    assert.equal(postMortemSwapCalls, 0);
+    assert.throws(
+      () => postMortemLease.assertHeld(),
+      (error) => error.code === 'LOCK_NOT_OBSERVED_HELD',
+    );
+    assert.deepEqual(stableIdentity(markerPath), markerBeforeFailure.identity);
+    assert.deepEqual(fs.readFileSync(markerPath), markerBeforeFailure.bytes);
+    assert.deepEqual(
+      {
+        backend: captureTopology(path.dirname(fx.target)),
+        quarantine: captureTopology(fx.quarantineRoot),
+      },
+      dataTopologyAfterInjectedFault,
+    );
+  } finally {
+    if (ownerProcess?.exitCode === null && ownerProcess?.signalCode === null) ownerProcess.kill('SIGKILL');
+    if (postMortemLease) {
+      try {
+        postMortemLease.assertHeld();
+        await postMortemLease.release();
+      } catch {}
+    }
+    if (process.platform === 'darwin') {
+      spawnSync('/usr/bin/chflags', ['-R', 'nouchg', fx.root], { encoding: 'utf8' });
+      spawnSync('/bin/chmod', ['-R', 'u+w', fx.root], { encoding: 'utf8' });
+    }
+    await fs.promises.rm(fx.root, { recursive: true, force: true, maxRetries: 20, retryDelay: 100 });
+  }
+});
+
+test('unknown topology with a marker identity contradiction preserves the incomplete transaction', async () => {
+  const fx = fixture();
+  try {
+    const { expected, capacity, inspected } = await inspectFixture(fx);
+    const markerPath = path.join(fx.receiptRoot, 'backend-data-recovery.lock');
+    const movedMarkerPath = `${markerPath}.contradiction`;
+    const acquire = fx.adapters.acquireOperationLock;
+    let leaseHeld = false;
+    let releaseCalls = 0;
+    let swapCalls = 0;
+    let markerIdentityBefore = null;
+    let markerBytesBefore = null;
+    let transactionPath = null;
+    let transactionBytesBefore = null;
+    let preservedPromotedTree = null;
+    let preservedOldTargetTree = null;
+
+    const recovery = fx.recoveryWith({
+      ...fx.adapters,
+      async acquireOperationLock(options) {
+        const lease = await acquire(options);
+        leaseHeld = true;
+        return Object.freeze({
+          ...lease,
+          async release() {
+            releaseCalls += 1;
+            const evidence = await lease.release();
+            leaseHeld = false;
+            return evidence;
+          },
+        });
+      },
+      swapTrees(left, right) {
+        swapCalls += 1;
+        fx.adapters.swapTrees(left, right);
+        preservedOldTargetTree = right;
+        preservedPromotedTree = `${left}.unknown-promoted`;
+        fs.renameSync(left, preservedPromotedTree);
+        fs.mkdirSync(left, { mode: 0o700 });
+
+        const transactionNames = fs.readdirSync(fx.receiptRoot)
+          .filter((name) => /^backend-data-transaction-[a-z0-9-]+\.json$/u.test(name));
+        assert.equal(transactionNames.length, 1);
+        transactionPath = path.join(fx.receiptRoot, transactionNames[0]);
+        transactionBytesBefore = fs.readFileSync(transactionPath);
+        const markerStat = fs.lstatSync(markerPath, { bigint: true });
+        markerIdentityBefore = {
+          device: markerStat.dev.toString(),
+          inode: markerStat.ino.toString(),
+        };
+        markerBytesBefore = fs.readFileSync(markerPath);
+        fs.renameSync(markerPath, movedMarkerPath);
+        throw new Error('fixture injected unknown topology plus marker-path contradiction');
+      },
+    });
+
+    await assert.rejects(
+      recovery.restore({
+        ownerApproved: true,
+        manifestPath: inspected.manifestPath,
+        manifestSha256: inspected.manifestSha256,
+        expected,
+        capacity,
+      }),
+      (error) => error.code === 'RESTORE_TOPOLOGY_UNKNOWN_HELD'
+        && error.details.markerIdentityVerified === false
+        && error.details.markerActive === null
+        && error.details.activeMarker === null
+        && error.details.incompleteTransaction === transactionPath
+        && error.details.markerObservationError.expectedPath === markerPath
+        && error.details.releaseRequested === false,
+    );
+
+    assert.equal(swapCalls, 1);
+    assert.equal(releaseCalls, 0, 'marker contradiction must preserve the owning native lease');
+    assert.equal(leaseHeld, true);
+    assert.equal(fs.existsSync(markerPath), false);
+    const movedMarkerStat = fs.lstatSync(movedMarkerPath, { bigint: true });
+    assert.deepEqual(
+      { device: movedMarkerStat.dev.toString(), inode: movedMarkerStat.ino.toString() },
+      markerIdentityBefore,
+      'the contradictory marker remains preserved at its sibling identity',
+    );
+    assert.deepEqual(fs.readFileSync(movedMarkerPath), markerBytesBefore);
+    assert.deepEqual(
+      fs.readFileSync(transactionPath),
+      transactionBytesBefore,
+      'unverified marker evidence must not rewrite the last durable transaction state',
+    );
+    const transaction = JSON.parse(transactionBytesBefore.toString('utf8'));
+    assert.equal(transaction.state, 'prepared');
+    assert.equal(fs.readFileSync(path.join(preservedOldTargetTree, 'old.txt'), 'utf8'), 'preserve-old');
+    assert.equal(fs.readFileSync(path.join(preservedPromotedTree, 'payload.bin'), 'utf8'), 'payload');
+    assert.deepEqual(fs.readdirSync(fx.target), []);
+    assert.throws(
+      () => recovery.assertRecoveryStateAllowsWriter(),
+      (error) => error.code === 'RECOVERY_STATE_INCOMPLETE',
+      'the unchanged non-final transaction remains the persistent writer barrier',
+    );
   } finally {
     fs.rmSync(fx.root, { recursive: true, force: true });
   }
