@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-07-17",
+  "updated": "2026-07-19",
   "purpose": "Master YURI artifact registry seed. This extends folder classification into durable docs, scripts, registries, reports, skills, runtime state, and generated artifacts.",
   "rules": {
     "readByDefault": "Only canonical anchors and context selectors may be read by default.",
@@ -361,7 +361,7 @@
       "protected": false,
       "storageRule": "Generated projection truth lives in one deterministic manifest; individual .agents/skills adapters contain only normalized metadata plus a governed-source read instruction and are never authorities.",
       "rebuildRule": "Run node _SYSTEM/Scripts/yuri-codex-skill-projector.mjs --sync, then --check and the focused projector test.",
-      "notes": "Records exact canonical and cyber source hashes, adapter hashes, counts, risk classes, and provenance for native Codex discovery."
+      "notes": "Records exact canonical and cyber source hashes, adapter and sidecar hashes, invocation states, counts, risk classes, and provenance. Generated agents/openai.yaml sidecars are the sole governed invocation authority; the full manifest remains the recall corpus."
     },
     {
       "path": "_SYSTEM/skill-hash-registry.json",
@@ -395,9 +395,21 @@
       "status": "active",
       "readByDefault": false,
       "protected": false,
-      "storageRule": "Non-secret expected collision paths live in _SYSTEM/config; user Codex config holds reversible exact-path disables and is never copied into the repository.",
-      "rebuildRule": "Refresh after Codex skill-root changes; require projector collision-ledger parity plus a fresh codex debug prompt-input zero-occurrence receipt.",
-      "notes": "Prevents bundled, global, workspace, sparse, and full-checkout duplicates from competing with governed .agents adapters without deleting legacy files."
+      "storageRule": "Non-secret expected collision paths and required native states live in _SYSTEM/config; user Codex config is changed only through the supported skills/config/write API and is never copied into the repository.",
+      "rebuildRule": "Refresh after Codex skill-root changes; require projector collision-ledger parity plus a fresh codex debug prompt-input bounded full-description receipt.",
+      "notes": "Resolves 14 global/repository native-path states without deleting skill bodies or writing governed adapter state: five global system paths plus repository humanizer are preferred, their alternates and two latent paths are disabled."
+    },
+    {
+      "path": "_SYSTEM/config/codex-native-skill-activation.json",
+      "type": "config",
+      "class": "skill_library",
+      "owner": "YURI skills",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Codex-specific native collision-only policy lives in _SYSTEM/config; generated sidecars remain the sole authority for governed invocation and canonical bodies remain in governed skill roots.",
+      "rebuildRule": "Run yuri-codex-skill-activation tests, --check, and a session-only --probe; after separately owner-gated supported API activation, require a fresh --probe-live receipt.",
+      "notes": "Pins exactly 14 duplicate native path states and zero governed adapter writes while retaining all 464 governed sources through sidecar discovery and skill-recall."
     },
     {
       "path": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
@@ -409,7 +421,7 @@
       "protected": false,
       "storageRule": "Deterministic Codex discovery projection logic lives in _SYSTEM/Scripts; canonical bodies remain in their governed source roots.",
       "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-codex-skill-projector.test.mjs and both projector --sync and --check modes.",
-      "notes": "Projects canonical plus owner-authorized armed and lab-gated cyber skills to pointer-only .agents/skills adapters while preserving risk labels and collision, traversal, symlink, and provenance gates."
+      "notes": "Projects canonical plus owner-authorized armed and lab-gated cyber skills to pointer-only .agents/skills adapters and generated invocation sidecars while preserving risk labels and collision, traversal, symlink, and provenance gates."
     },
     {
       "path": "_SYSTEM/Scripts/yuri-codex-skill-projector.test.mjs",
@@ -422,6 +434,30 @@
       "storageRule": "Focused projection fixtures live beside the projector in _SYSTEM/Scripts.",
       "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-codex-skill-projector.test.mjs.",
       "notes": "Proves exact-set parity across canonical, armed, and lab-gated cyber classes, deterministic output, sparse-hidden materialization, and fail-closed adapter safety."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-codex-skill-activation.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI skills",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Codex native collision planning, separately owner-gated supported user-layer reconciliation, and fresh-prompt verification live in _SYSTEM/Scripts.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-codex-skill-activation.test.mjs, then --check, --probe, and --probe-live after activation.",
+      "notes": "Builds exactly 14 native collision rules and zero governed adapter writes, uses Codex app-server skills/config/write with zero config reads, rejects managed-ID or exact-path duplicates plus omitted, blank, shortened, non-preferred, or leaked metadata, and reports unmanaged-ID duplicates as advisory."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-codex-skill-activation.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI skills",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Codex native activation regression tests live beside the implementation in _SYSTEM/Scripts.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-codex-skill-activation.test.mjs.",
+      "notes": "Proves 464 sidecar-authoritative adapters (1 implicit/463 explicit-only), 14 collision states, path and symlink rejection, owner gating, zero config reads, deterministic overrides, partial receipts, child cleanup, and prompt acceptance failure shapes."
     },
     {
       "path": "_SYSTEM/Scripts/yuri-skill-loader.mjs",
