@@ -1,0 +1,3 @@
+# GENERATED:YURI-CODEX-SKILL-POLICY:v1
+policy:
+  allow_implicit_invocation: false

@@ -1,86 +1,88 @@
 {
   "schemaVersion": 1,
   "updated": "2026-07-19",
-  "purpose": "Non-secret registry of native Codex skill paths that must remain disabled because a governed YURI adapter owns the same model-visible capability.",
-  "resolution": "exact-user-config-disable",
+  "purpose": "Non-secret path-level reconciliation for duplicate native Codex skill roots. Generated agents/openai.yaml sidecars are the sole invocation authority for all governed YURI adapters; this registry never targets .agents/skills and no skill body is deleted.",
+  "resolution": "native-collision-only-exact-path-state",
   "rules": {
     "deleteLegacyFiles": false,
-    "projectionAuthority": ".agents/skills",
+    "projectionAuthority": "generated-agents-openai-yaml-sidecars",
+    "reconciliationScope": "native-collision-only",
+    "governedAdapterWrites": 0,
     "projectConfigIsNotRuntimeProof": true,
-    "runtimeProof": "codex-debug-prompt-input-zero-path-occurrences"
+    "runtimeProof": "codex-debug-prompt-input-bounded-full-description-receipt"
   },
   "collisions": [
     {
       "adapterId": "imagegen",
       "legacyPath": "/Users/marcelspatz/.codex/skills/.system/imagegen/SKILL.md",
       "state": "current",
-      "requiredEnabled": false
+      "requiredEnabled": true
     },
     {
       "adapterId": "openai-docs",
       "legacyPath": "/Users/marcelspatz/.codex/skills/.system/openai-docs/SKILL.md",
       "state": "current",
-      "requiredEnabled": false
+      "requiredEnabled": true
     },
     {
       "adapterId": "plugin-creator",
       "legacyPath": "/Users/marcelspatz/.codex/skills/.system/plugin-creator/SKILL.md",
       "state": "current",
-      "requiredEnabled": false
+      "requiredEnabled": true
     },
     {
       "adapterId": "skill-creator",
       "legacyPath": "/Users/marcelspatz/.codex/skills/.system/skill-creator/SKILL.md",
       "state": "current",
-      "requiredEnabled": false
+      "requiredEnabled": true
     },
     {
       "adapterId": "skill-installer",
       "legacyPath": "/Users/marcelspatz/.codex/skills/.system/skill-installer/SKILL.md",
       "state": "current",
-      "requiredEnabled": false
+      "requiredEnabled": true
     },
     {
       "adapterId": "humanizer",
       "legacyPath": "/Users/marcelspatz/.codex/skills/humanizer/SKILL.md",
-      "state": "current",
+      "state": "disabled-global-alternate",
       "requiredEnabled": false
     },
     {
       "adapterId": "imagegen",
       "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/.system/imagegen/SKILL.md",
-      "state": "current-alternate-runtime-root",
+      "state": "disabled-repository-alternate",
       "requiredEnabled": false
     },
     {
       "adapterId": "openai-docs",
       "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/.system/openai-docs/SKILL.md",
-      "state": "current-alternate-runtime-root",
+      "state": "disabled-repository-alternate",
       "requiredEnabled": false
     },
     {
       "adapterId": "plugin-creator",
       "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/.system/plugin-creator/SKILL.md",
-      "state": "current-alternate-runtime-root",
+      "state": "disabled-repository-alternate",
       "requiredEnabled": false
     },
     {
       "adapterId": "skill-creator",
       "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/.system/skill-creator/SKILL.md",
-      "state": "current-alternate-runtime-root",
+      "state": "disabled-repository-alternate",
       "requiredEnabled": false
     },
     {
       "adapterId": "skill-installer",
       "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/.system/skill-installer/SKILL.md",
-      "state": "current-alternate-runtime-root",
+      "state": "disabled-repository-alternate",
       "requiredEnabled": false
     },
     {
       "adapterId": "humanizer",
       "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/humanizer/SKILL.md",
       "state": "current",
-      "requiredEnabled": false
+      "requiredEnabled": true
     },
     {
       "adapterId": "hatch-pet",

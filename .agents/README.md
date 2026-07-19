@@ -32,7 +32,7 @@ This keeps "agent" as an interpretable composition pattern instead of a hidden p
 ## Rules
 
 - `.agents/` may contain recipes, route metadata, command adapters, and generated skill-discovery adapters.
-- `.agents/skills/` contains metadata-and-pointer-only projections for Codex/Open Agent Skills discovery. Each tiny instruction body requires a complete read of one governed source and must not duplicate source instructions.
+- `.agents/skills/` contains metadata-and-pointer-only projections for Codex/Open Agent Skills discovery. Each tiny instruction body requires a complete read of one governed source and must not duplicate source instructions. Each generated `agents/openai.yaml` sidecar is the sole native invocation authority: `activate-yuri-skills` is implicit and the other 463 adapters are explicit-only but remain reachable through deterministic `skill-recall`.
 - Lab-gated cyber adapters record owner-authorized discovery and `runtimeAuthorization: false`; seeing or selecting one never authorizes an action.
 - `.agents/` must not contain canonical skill bodies.
 - Agent recipes reference `skills/<skill-id>` by ID.
@@ -48,3 +48,4 @@ This keeps "agent" as an interpretable composition pattern instead of a hidden p
 | `.agents/commands/` | Compatibility command adapters. |
 | `.agents/skills/` | Generated metadata-and-pointer-only Codex skill-discovery adapters. |
 | `.agents/skills/.yuri-projection.json` | Deterministic projection provenance and parity manifest. |
+| `_SYSTEM/config/codex-native-skill-activation.json` | Native collision-only reconciliation policy for 14 global/repository Codex paths; it never writes `.agents/skills` state. |

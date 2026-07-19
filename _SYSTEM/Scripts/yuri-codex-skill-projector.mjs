@@ -22,12 +22,15 @@ const REPO_ROOT = path.resolve(HERE, '../..');
 export const PROJECTOR_SCHEMA_VERSION = 1;
 export const PROJECTOR_ID = '_SYSTEM/Scripts/yuri-codex-skill-projector.mjs';
 export const GENERATED_ADAPTER_MARKER = '<!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->';
+export const GENERATED_NATIVE_POLICY_MARKER = '# GENERATED:YURI-CODEX-SKILL-POLICY:v1';
 export const SKILL_INDEX_PATH = 'skills/skill-index.json';
 export const CYBER_MANIFEST_PATH = '_SYSTEM/config/cyber-skill-registry.json';
 export const INTEGRITY_REGISTRY_PATH = '_SYSTEM/skill-hash-registry.json';
 export const COLLISION_REGISTRY_PATH = '_SYSTEM/config/codex-skill-collision-registry.json';
 export const PROJECTION_ROOT = '.agents/skills';
 export const PROJECTION_MANIFEST_PATH = '.agents/skills/.yuri-projection.json';
+export const NATIVE_POLICY_RELATIVE_PATH = 'agents/openai.yaml';
+export const NATIVE_IMPLICIT_SKILL_ID = 'activate-yuri-skills';
 
 export const LABGATED_BANNER = '> AUTHORIZED-LAB ONLY. Offensive/dual-use capability. Use exclusively against systems you own or have explicit written authorization to test. Owner-authorized metadata discovery does not authorize runtime actions; use requires an explicit authorized-engagement decision.';
 
@@ -297,6 +300,10 @@ function adapterBody(source) {
   return `${source.adapterFrontmatter}\n\n${GENERATED_ADAPTER_MARKER}\n\n# YURI skill adapter\n\nAuthoritative source: \`${source.sourcePath}\`\n\nAuthoritative source SHA-256: \`${source.sourceSha256}\`\n\n${risk.join('\n')}\n\n${status.join('\n')}\n`;
 }
 
+function nativePolicyBody(allowImplicitInvocation) {
+  return `${GENERATED_NATIVE_POLICY_MARKER}\npolicy:\n  allow_implicit_invocation: ${allowImplicitInvocation ? 'true' : 'false'}\n`;
+}
+
 function buildSource({
   repoRoot,
   index,
@@ -398,14 +405,14 @@ function discoverLegacyConflicts(repoRoot, index, projectedIds) {
     .filter((entry) => projectedIds.has(entry.adapterId))
     .map((entry) => {
       assertSafeId(entry.adapterId);
-      if (entry.requiredEnabled !== false || typeof entry.legacyPath !== 'string' || !path.isAbsolute(entry.legacyPath)) {
+      if (typeof entry.requiredEnabled !== 'boolean' || typeof entry.legacyPath !== 'string' || !path.isAbsolute(entry.legacyPath)) {
         fail('INVALID_COLLISION_REGISTRY', `invalid collision entry for ${entry.adapterId}`);
       }
       return {
         id: entry.adapterId,
         legacyPath: entry.legacyPath,
         state: entry.state,
-        requiredEnabled: false,
+        requiredEnabled: entry.requiredEnabled,
         registryResolution: registry.resolution,
         runtimeProofRequired: registry.rules?.runtimeProof ?? null,
       };
@@ -451,6 +458,16 @@ function projectionManifest({ skillIndexRaw, cyberManifestRaw, sources, legacyCo
     sourceMatchesGitIndex: source.sourceMatchesGitIndex,
     operationalStatus: source.operationalStatus,
     statusReason: source.statusReason,
+    nativeInvocation: {
+      allowImplicitInvocation: source.allowImplicitInvocation,
+      sidecarPath: source.nativePolicyPath,
+      sidecarSha256: sha256(source.nativePolicy),
+      provenance: {
+        generatedBy: PROJECTOR_ID,
+        governedSkillId: source.id,
+        policyClass: source.allowImplicitInvocation ? 'implicit-meta-router' : 'explicit-only',
+      },
+    },
     ...(source.sourceClass === 'labgated' ? {
       ownerAuthorizedDiscovery: true,
       runtimeAuthorization: false,
@@ -483,6 +500,17 @@ function projectionManifest({ skillIndexRaw, cyberManifestRaw, sources, legacyCo
       root: PROJECTION_ROOT,
       count: sources.length,
       aggregateSha256: sha256(JSON.stringify(skills)),
+      nativeInvocation: {
+        sidecarRelativePath: NATIVE_POLICY_RELATIVE_PATH,
+        provenance: PROJECTOR_ID,
+        implicit: {
+          count: sources.filter((source) => source.allowImplicitInvocation).length,
+          ids: sources.filter((source) => source.allowImplicitInvocation).map((source) => source.id),
+        },
+        explicitOnly: {
+          count: sources.filter((source) => !source.allowImplicitInvocation).length,
+        },
+      },
     },
     externalNativeCollisionLedger: legacyConflicts,
     skills,
@@ -505,7 +533,7 @@ function listStaleAdapters(repoRoot, expectedIds) {
   return stale;
 }
 
-function classifyDestination(repoRoot, relativePath, desired, isManifest = false) {
+function classifyDestination(repoRoot, relativePath, desired, { isManifest = false, managedMarker = GENERATED_ADAPTER_MARKER } = {}) {
   const absolute = absolutePath(repoRoot, relativePath);
   assertNoSymlinkComponents(repoRoot, relativePath);
   if (!existsSync(absolute)) return 'missing';
@@ -514,7 +542,7 @@ function classifyDestination(repoRoot, relativePath, desired, isManifest = false
   if (current === desired) return 'clean';
   const managed = isManifest
     ? (() => { try { return JSON.parse(current).generatedBy === PROJECTOR_ID; } catch { return false; } })()
-    : current.includes(GENERATED_ADAPTER_MARKER);
+    : current.includes(managedMarker);
   if (!managed) fail('UNMANAGED_OVERWRITE_REFUSED', `refusing to overwrite unmanaged file: ${relativePath}`);
   return 'drift';
 }
@@ -557,6 +585,9 @@ export function buildProjectionPlan(repoRoot = REPO_ROOT, options = {}) {
   for (const source of sources) {
     source.adapterPath = `${PROJECTION_ROOT}/${source.id}/SKILL.md`;
     source.adapter = adapterBody(source);
+    source.allowImplicitInvocation = source.id === NATIVE_IMPLICIT_SKILL_ID;
+    source.nativePolicyPath = `${PROJECTION_ROOT}/${source.id}/${NATIVE_POLICY_RELATIVE_PATH}`;
+    source.nativePolicy = nativePolicyBody(source.allowImplicitInvocation);
   }
   const expectedIds = new Set(sources.map((source) => source.id));
   const legacyCoverage = discoverLegacyConflicts(repoRoot, index, expectedIds);
@@ -578,7 +609,15 @@ export function buildProjectionPlan(repoRoot = REPO_ROOT, options = {}) {
     path: source.adapterPath,
     status: classifyDestination(repoRoot, source.adapterPath, source.adapter),
   }));
-  const manifestStatus = classifyDestination(repoRoot, PROJECTION_MANIFEST_PATH, manifest, true);
+  const nativePolicies = sources.map((source) => ({
+    id: source.id,
+    path: source.nativePolicyPath,
+    allowImplicitInvocation: source.allowImplicitInvocation,
+    status: classifyDestination(repoRoot, source.nativePolicyPath, source.nativePolicy, {
+      managedMarker: GENERATED_NATIVE_POLICY_MARKER,
+    }),
+  }));
+  const manifestStatus = classifyDestination(repoRoot, PROJECTION_MANIFEST_PATH, manifest, { isManifest: true });
   const staleAdapters = listStaleAdapters(repoRoot, expectedIds);
   const labgatedBannerDrift = sources
     .filter((source) => source.labgatedBannerDrift)
@@ -590,6 +629,7 @@ export function buildProjectionPlan(repoRoot = REPO_ROOT, options = {}) {
     manifest,
     manifestValue,
     adapters,
+    nativePolicies,
     manifestStatus,
     materialization: [],
     labgatedBannerDrift,
@@ -602,6 +642,8 @@ export function buildProjectionPlan(repoRoot = REPO_ROOT, options = {}) {
       armed: sources.filter((source) => source.sourceClass === 'cyber-armed').length,
       labgated: sources.filter((source) => source.sourceClass === 'labgated').length,
       total: sources.length,
+      nativeImplicit: sources.filter((source) => source.allowImplicitInvocation).length,
+      nativeExplicitOnly: sources.filter((source) => !source.allowImplicitInvocation).length,
     },
   };
 }
@@ -621,7 +663,10 @@ function atomicWrite(repoRoot, relativePath, content, mode = '100644') {
 function reportFor(plan, mode, written = []) {
   const missingAdapters = plan.adapters.filter((entry) => entry.status === 'missing').map((entry) => entry.path);
   const driftedAdapters = plan.adapters.filter((entry) => entry.status === 'drift').map((entry) => entry.path);
+  const missingNativePolicySidecars = plan.nativePolicies.filter((entry) => entry.status === 'missing').map((entry) => entry.path);
+  const driftedNativePolicySidecars = plan.nativePolicies.filter((entry) => entry.status === 'drift').map((entry) => entry.path);
   const ok = !missingAdapters.length && !driftedAdapters.length && plan.manifestStatus === 'clean' &&
+    !missingNativePolicySidecars.length && !driftedNativePolicySidecars.length &&
     !plan.staleAdapters.length && !plan.unresolvedLegacyConflicts.length && !plan.integrityMismatches.length;
   return {
     ok,
@@ -632,6 +677,8 @@ function reportFor(plan, mode, written = []) {
     drift: {
       missingAdapters,
       driftedAdapters,
+      missingNativePolicySidecars,
+      driftedNativePolicySidecars,
       manifest: plan.manifestStatus,
       missingOrRewrittenSources: plan.materialization.map((entry) => entry.sourcePath),
       sourceSnapshotWarnings: {
@@ -660,6 +707,11 @@ export function syncProjection(repoRoot = REPO_ROOT, options = {}) {
     if (status !== 'clean') {
       atomicWrite(repoRoot, source.adapterPath, source.adapter);
       written.push(source.adapterPath);
+    }
+    const nativePolicyStatus = initial.nativePolicies.find((entry) => entry.id === source.id)?.status;
+    if (nativePolicyStatus !== 'clean') {
+      atomicWrite(repoRoot, source.nativePolicyPath, source.nativePolicy);
+      written.push(source.nativePolicyPath);
     }
   }
   if (initial.manifestStatus !== 'clean') {

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 2,
+  "updated": "2026-07-19",
+  "purpose": "Reconcile only duplicate native Codex skill paths. All 464 governed YURI adapters remain installed and are controlled exclusively by their generated agents/openai.yaml implicit-invocation sidecars.",
+  "promptAcceptance": {
+    "codexVersionTested": "0.144.5",
+    "metadataContextPercent": 2,
+    "requireNoOmissions": true,
+    "requireFullDescriptions": true,
+    "sourceComparisonScope": "implicit-governed-and-enabled-native-exact-paths"
+  },
+  "governedProjection": {
+    "authority": "generated-agents-openai-yaml-sidecars",
+    "manifestPath": ".agents/skills/.yuri-projection.json",
+    "expected": {
+      "canonical": 125,
+      "armed": 300,
+      "labgated": 39,
+      "total": 464,
+      "implicit": 1,
+      "explicitOnly": 463
+    },
+    "implicitSkillIds": [
+      "activate-yuri-skills"
+    ],
+    "recallCommand": "node _SYSTEM/Scripts/skill-recall.mjs \"<task>\" --top 12 --json",
+    "showCommand": "node _SYSTEM/Scripts/skill-recall.mjs --show <skill-id>"
+  },
+  "nativeCollisionPolicy": {
+    "registryPath": "_SYSTEM/config/codex-skill-collision-registry.json",
+    "expectedRuleCount": 14,
+    "approvedRoots": [
+      {
+        "id": "global",
+        "path": "/Users/marcelspatz/.codex/skills"
+      },
+      {
+        "id": "repository",
+        "path": ".codex/skills"
+      }
+    ],
+    "capabilities": {
+      "imagegen": {
+        "expectedPathCount": 2,
+        "enabledRoot": "global",
+        "enabledRelativePath": ".system/imagegen/SKILL.md"
+      },
+      "openai-docs": {
+        "expectedPathCount": 2,
+        "enabledRoot": "global",
+        "enabledRelativePath": ".system/openai-docs/SKILL.md"
+      },
+      "plugin-creator": {
+        "expectedPathCount": 2,
+        "enabledRoot": "global",
+        "enabledRelativePath": ".system/plugin-creator/SKILL.md"
+      },
+      "skill-creator": {
+        "expectedPathCount": 2,
+        "enabledRoot": "global",
+        "enabledRelativePath": ".system/skill-creator/SKILL.md"
+      },
+      "skill-installer": {
+        "expectedPathCount": 2,
+        "enabledRoot": "global",
+        "enabledRelativePath": ".system/skill-installer/SKILL.md"
+      },
+      "humanizer": {
+        "expectedPathCount": 2,
+        "enabledRoot": "repository",
+        "enabledRelativePath": "humanizer/SKILL.md"
+      },
+      "hatch-pet": {
+        "expectedPathCount": 1,
+        "enabledRoot": null,
+        "enabledRelativePath": null
+      },
+      "browser-harness": {
+        "expectedPathCount": 1,
+        "enabledRoot": null,
+        "enabledRelativePath": null
+      }
+    }
+  },
+  "runtime": {
+    "projectSkillsConfigSupported": false,
+    "persistenceApi": "skills/config/write",
+    "persistenceTransport": "codex app-server stdio",
+    "configReadProhibited": true,
+    "freshSessionRequired": true,
+    "ownerGate": {
+      "required": true,
+      "confirmationToken": "YURI-CODEX-NATIVE-COLLISION-APPLY-V1"
+    }
+  }
+}

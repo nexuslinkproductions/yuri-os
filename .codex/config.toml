@@ -4,10 +4,12 @@ approval_policy = "untrusted"
 sandbox_mode = "workspace-write"
 
 # Codex discovers the generated repository projection at `.agents/skills/`.
-# `skills.config` is a per-skill enable/disable selector, not a discovery-root list;
-# canonical bodies remain in root `skills/` and are never duplicated here.
-# Current Codex ignores project-layer per-skill filters, so exact collision
-# disables live in the user Codex config and are verified by the projector gate.
+# Canonical bodies remain in governed roots and are never duplicated here.
+# Generated `agents/openai.yaml` sidecars are the sole invocation authority for
+# all 464 governed adapters (one implicit meta-router, 463 explicit-only).
+# Codex 0.144.5 ignores project-layer `skills.config` filters, so the separate
+# 14-path native-collision state can be reconciled through the official
+# `skills/config/write` API with zero config reads. It never targets `.agents`.
 
 [sandbox_workspace_write]
 network_access = true

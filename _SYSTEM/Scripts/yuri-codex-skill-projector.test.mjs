@@ -15,6 +15,9 @@ import path from 'node:path';
 import { test } from 'node:test';
 import {
   GENERATED_ADAPTER_MARKER,
+  GENERATED_NATIVE_POLICY_MARKER,
+  NATIVE_IMPLICIT_SKILL_ID,
+  NATIVE_POLICY_RELATIVE_PATH,
   assertUniqueSourceIds,
   buildProjectionPlan,
   checkProjection,
@@ -155,6 +158,31 @@ function minimalFixture(canonicalId) {
   return root;
 }
 
+function nativeInvocationFixture() {
+  const root = initRepo();
+  const bodies = {
+    [NATIVE_IMPLICIT_SKILL_ID]: skill(NATIVE_IMPLICIT_SKILL_ID, 'Recall governed YURI skills before substantive work.'),
+    alpha: skill('alpha', 'Explicit-only alpha fixture.', 'SOURCE_ALPHA_ONLY'),
+  };
+  for (const [id, body] of Object.entries(bodies)) write(root, `skills/${id}/SKILL.md`, body);
+  writeControlFiles(root, {
+    canonical: [NATIVE_IMPLICIT_SKILL_ID, 'alpha'],
+    integrity: Object.fromEntries(Object.entries(bodies).map(([id, body]) => [id, {
+      source_path: `skills/${id}/SKILL.md`,
+      hash: stableHash(body),
+    }])),
+  });
+  git(root, ['add', '--',
+    `skills/${NATIVE_IMPLICIT_SKILL_ID}/SKILL.md`,
+    'skills/alpha/SKILL.md',
+    'skills/skill-index.json',
+    '_SYSTEM/config/cyber-skill-registry.json',
+    '_SYSTEM/config/codex-skill-collision-registry.json',
+    '_SYSTEM/skill-hash-registry.json',
+  ]);
+  return root;
+}
+
 test('adapter metadata is bounded and normalized IDs collide before unsafe publication', () => {
   const frontmatter = '---\nname: upstream-name\ndescription: >\n  A long fixture description.\n---';
   const normalized = normalizeAdapterFrontmatter(frontmatter, 'governed-name', {
@@ -176,19 +204,32 @@ test('adapter metadata is bounded and normalized IDs collide before unsafe publi
 test('projection is exact, pointer-only, and honest for tracked plus pending sources', () => {
   const { root, bodies } = normalFixture();
   const before = buildProjectionPlan(root, SMALL_COUNTS);
-  assert.deepEqual(before.counts, { canonical: 2, armed: 1, labgated: 1, total: 4 });
+  assert.deepEqual(before.counts, {
+    canonical: 2,
+    armed: 1,
+    labgated: 1,
+    total: 4,
+    nativeImplicit: 0,
+    nativeExplicitOnly: 4,
+  });
   assert.equal(before.integrityMismatches.length, 0);
   assert.equal(before.unresolvedLegacyConflicts.length, 0);
   assert.equal(before.labgatedBannerDrift.length, 1, 'historical source-banner drift is warning-only');
 
   const synced = syncProjection(root, SMALL_COUNTS);
   assert.equal(synced.ok, true);
-  assert.equal(synced.written.length, 5, 'four adapters plus one manifest');
+  assert.equal(synced.written.length, 9, 'four adapters plus four native policies plus one manifest');
   const checked = checkProjection(root, SMALL_COUNTS);
   assert.equal(checked.ok, true);
 
   const manifest = JSON.parse(readFileSync(path.join(root, '.agents/skills/.yuri-projection.json'), 'utf8'));
   assert.equal(manifest.projection.count, 4);
+  assert.deepEqual(manifest.projection.nativeInvocation, {
+    sidecarRelativePath: NATIVE_POLICY_RELATIVE_PATH,
+    provenance: '_SYSTEM/Scripts/yuri-codex-skill-projector.mjs',
+    implicit: { count: 0, ids: [] },
+    explicitOnly: { count: 4 },
+  });
   const pending = manifest.skills.find((entry) => entry.id === 'pending');
   assert.equal(pending.tracked, false);
   assert.equal(pending.durability, 'pending-commit');
@@ -208,7 +249,7 @@ test('projection is exact, pointer-only, and honest for tracked plus pending sou
     const adapter = readFileSync(adapterPath, 'utf8');
     assert.equal(lstatSync(adapterPath).isFile(), true);
     assert.equal(lstatSync(adapterPath).isSymbolicLink(), false);
-    assert.deepEqual(readdirSync(path.dirname(adapterPath)), ['SKILL.md']);
+    assert.deepEqual(readdirSync(path.dirname(adapterPath)).sort(), ['SKILL.md', 'agents']);
     assert.ok(adapter.includes(GENERATED_ADAPTER_MARKER));
     assert.ok(adapter.includes(entry.sourcePath));
     assert.ok(adapter.includes(entry.sourceSha256));
@@ -216,6 +257,21 @@ test('projection is exact, pointer-only, and honest for tracked plus pending sou
     assert.equal(adapter.includes('SOURCE_PENDING_ONLY'), false);
     assert.equal(adapter.includes('SOURCE_ARMED_ONLY'), false);
     assert.equal(adapter.includes('SOURCE_LAB_ONLY'), false);
+
+    const nativePolicyPath = path.join(root, entry.nativeInvocation.sidecarPath);
+    const nativePolicyDirectory = path.dirname(nativePolicyPath);
+    const nativePolicy = readFileSync(nativePolicyPath, 'utf8');
+    assert.equal(lstatSync(nativePolicyDirectory).isDirectory(), true);
+    assert.equal(lstatSync(nativePolicyDirectory).isSymbolicLink(), false);
+    assert.equal(lstatSync(nativePolicyPath).isFile(), true);
+    assert.equal(lstatSync(nativePolicyPath).isSymbolicLink(), false);
+    assert.deepEqual(readdirSync(nativePolicyDirectory), ['openai.yaml']);
+    assert.equal(nativePolicy, `${GENERATED_NATIVE_POLICY_MARKER}\npolicy:\n  allow_implicit_invocation: false\n`);
+    assert.equal(createHash('sha256').update(nativePolicy).digest('hex'), entry.nativeInvocation.sidecarSha256);
+    assert.equal(entry.nativeInvocation.allowImplicitInvocation, false);
+    assert.equal(entry.nativeInvocation.provenance.governedSkillId, entry.id);
+    assert.equal(entry.nativeInvocation.provenance.policyClass, 'explicit-only');
+    assert.equal(nativePolicy.includes('SOURCE_'), false, 'native policy must never duplicate skill instructions');
   }
   const labAdapter = readFileSync(path.join(root, '.agents/skills/cyber-dual-lab/SKILL.md'), 'utf8');
   assert.ok(labAdapter.includes('Runtime/action authorization: `false`'));
@@ -231,6 +287,57 @@ test('projection is exact, pointer-only, and honest for tracked plus pending sou
   assert.equal(shown.content, bodies.pending);
   assert.equal(shown.skill.tracked, false);
   assert.equal(shown.skill.durability, 'pending-commit');
+});
+
+test('native policy keeps only the recall meta-router implicit and detects sidecar drift without deletion', () => {
+  const root = nativeInvocationFixture();
+  const options = { expectedArmedCount: 0, expectedGatedCount: 0 };
+  const before = checkProjection(root, options);
+  assert.equal(before.ok, false);
+  assert.equal(before.drift.missingNativePolicySidecars.length, 2);
+
+  const synced = syncProjection(root, options);
+  assert.equal(synced.ok, true);
+  assert.deepEqual(synced.counts, {
+    canonical: 2,
+    armed: 0,
+    labgated: 0,
+    total: 2,
+    nativeImplicit: 1,
+    nativeExplicitOnly: 1,
+  });
+  const manifest = JSON.parse(readFileSync(path.join(root, '.agents/skills/.yuri-projection.json'), 'utf8'));
+  assert.deepEqual(manifest.projection.nativeInvocation.implicit, {
+    count: 1,
+    ids: [NATIVE_IMPLICIT_SKILL_ID],
+  });
+  assert.deepEqual(manifest.projection.nativeInvocation.explicitOnly, { count: 1 });
+
+  const implicitPolicyPath = path.join(
+    root,
+    '.agents/skills',
+    NATIVE_IMPLICIT_SKILL_ID,
+    ...NATIVE_POLICY_RELATIVE_PATH.split('/'),
+  );
+  assert.equal(
+    readFileSync(implicitPolicyPath, 'utf8'),
+    `${GENERATED_NATIVE_POLICY_MARKER}\npolicy:\n  allow_implicit_invocation: true\n`,
+  );
+
+  const explicitPolicyPath = path.join(root, '.agents/skills/alpha', ...NATIVE_POLICY_RELATIVE_PATH.split('/'));
+  writeFileSync(explicitPolicyPath, `${GENERATED_NATIVE_POLICY_MARKER}\npolicy:\n  allow_implicit_invocation: true\n`, 'utf8');
+  const drifted = checkProjection(root, options);
+  assert.equal(drifted.ok, false);
+  assert.deepEqual(drifted.drift.driftedNativePolicySidecars, ['.agents/skills/alpha/agents/openai.yaml']);
+  assert.equal(existsSync(explicitPolicyPath), true, 'check must preserve a drifted managed policy');
+
+  const repaired = syncProjection(root, options);
+  assert.equal(repaired.ok, true);
+  assert.equal(existsSync(explicitPolicyPath), true, 'sync repairs in place and never deletes the policy');
+  assert.equal(
+    readFileSync(explicitPolicyPath, 'utf8'),
+    `${GENERATED_NATIVE_POLICY_MARKER}\npolicy:\n  allow_implicit_invocation: false\n`,
+  );
 });
 
 test('sparse-hidden Git mode 120000 skill sources fail closed', () => {

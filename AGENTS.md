@@ -44,7 +44,7 @@ For every substantive task, run deterministic canonical recall before implementa
 node _SYSTEM/Scripts/skill-recall.mjs "<task>" --top 12 --json
 ```
 
-Read each selected source `SKILL.md` completely before acting. When a selected tracked source is sparse-hidden, run `node _SYSTEM/Scripts/skill-recall.mjs --show <skill-id>` and read its complete verified output instead of treating absence as missing capability. This recall step is required even when Codex's bounded initial skill-metadata list shortens or omits entries. `.agents/skills/` is a generated metadata-and-pointer-only Codex discovery projection; each pointer routes to one governed source and never owns or duplicates its instructions.
+Read each selected source `SKILL.md` completely before acting. When a selected tracked source is sparse-hidden, run `node _SYSTEM/Scripts/skill-recall.mjs --show <skill-id>` and read its complete verified output instead of treating absence as missing capability. This recall step is required even when a provider's bounded initial skill-metadata list omits an entry. `.agents/skills/` is a generated metadata-and-pointer-only Codex discovery projection; each pointer routes to one governed source and never owns or duplicates its instructions. Its generated `agents/openai.yaml` sidecars are the sole Codex invocation authority: `activate-yuri-skills` is implicit and the other 463 adapters are explicit-only. `_SYSTEM/config/codex-native-skill-activation.json` reconciles only the 14 duplicate native Codex paths and never writes governed adapter state.
 
 ## Root-Agent Conventions
 
