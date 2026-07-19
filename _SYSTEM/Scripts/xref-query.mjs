@@ -1083,7 +1083,9 @@ function run() {
 // Fail-open: any error (module/read failure) returns [] and xref behaves exactly as before.
 function skillRecallHits(query) {
   try {
-    return rankSkills(query, { top: 2 }).filter((s) => s.score >= 4);
+    return rankSkills(query, { top: 2 }).filter((s) =>
+      s.score >= 4 && (s.matchedTermCount >= 2 || s.namePhraseMatch),
+    );
   } catch {
     return [];
   }

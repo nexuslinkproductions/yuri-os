@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
-import { buildRegistry, recommendSkills, stableSkillBody } from './yuri-skill-loader.mjs';
+import { buildRegistry, enforceTotalBodyCap, recommendSkills, stableSkillBody } from './yuri-skill-loader.mjs';
 
 test('skill recommendations are body-free and prefer canonical YURI memory/research skills', () => {
   const result = recommendSkills(
@@ -71,6 +71,24 @@ test('skill registry prunes loaded bodies under total cap while preserving metad
   assert.ok(totalBody <= 15_000);
   assert.ok(registry.skills.some((skill) => skill.bodyPruned === true));
   assert.ok(registry.skills.every((skill) => skill.name && skill.source_path && skill.hash));
+});
+
+test('total body cap prunes provider bodies before canonical source_type bodies regardless of discovery order', () => {
+  const skills = [
+    { name: 'provider-first', source_type: 'codex_plugin_cache_skill', body: 'p'.repeat(8) },
+    { name: 'canonical-a', source_type: 'yuri_skill', body: 'a'.repeat(8) },
+    { name: 'lab-canonical', source_type: 'yuri_labgated_skill', body: 'l'.repeat(8) },
+    { name: 'canonical-b', source_type: 'yuri_skill', body: 'b'.repeat(8) },
+  ];
+
+  enforceTotalBodyCap(skills, 24);
+
+  assert.equal(skills[0].body, '', 'provider body must be pruned first even when it appears first');
+  assert.equal(skills[0].bodyPruned, true);
+  assert.equal(skills[1].body.length, 8, 'canonical body A must be retained');
+  assert.equal(skills[2].body.length, 8, 'lab-gated canonical body must be retained');
+  assert.equal(skills[3].body.length, 8, 'canonical body B must be retained');
+  assert.equal(skills.some((skill) => Object.hasOwn(skill, 'type')), false, 'regression must exercise source_type, not the prior nonexistent type field');
 });
 
 test('root skills are canonical and Superpowers imports are visible from skills root', () => {

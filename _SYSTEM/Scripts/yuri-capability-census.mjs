@@ -64,6 +64,7 @@ const KNOWN_ROOTS = [
   '.claude/plugins',
   '.claude/mcp-servers',
   '.agents/commands',
+  '.agents/skills',
   'skills',
   '.codex/skills',
   '.codex/skills/.system',

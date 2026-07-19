@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-07-17",
+  "updated": "2026-07-19",
   "canonicalRoot": "skills",
   "sourceOfTruth": true,
-  "count": 121,
+  "count": 125,
   "rules": {
     "skillBodyPath": "skills/<skill-id>/SKILL.md",
     "providerCaches": "reference_only",
@@ -18,6 +18,11 @@
     "retiredAliasesNotPromoted": []
   },
   "skills": [
+    {
+      "id": "activate-yuri-skills",
+      "path": "skills/activate-yuri-skills/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
     {
       "id": "ad-creative",
       "path": "skills/ad-creative/SKILL.md",
@@ -81,7 +86,21 @@
     {
       "id": "cgs-mold",
       "path": "skills/cgs-mold/SKILL.md",
-      "sourceFamily": "yuri_native_migrated"
+      "sourceFamily": "yuri_native_migrated",
+      "supportFiles": [
+        {
+          "path": "skills/cgs-mold/METHOD-NOTES.md",
+          "sha256": "b12a4ac150dd80292c0342fbe580e7d458716a4e25ce8206c1dc016be68695a1"
+        },
+        {
+          "path": "skills/cgs-mold/params/hk45.json",
+          "sha256": "c6bbfd0901bd5952853fe412d2c2a248317a977a7602396b19d7dc35d6cddaf3"
+        },
+        {
+          "path": "skills/cgs-mold/scripts/cgs_mold.py",
+          "sha256": "51a2ce3247a0a6ec349e829f4da55e35e47fb773458a0c5fba0bbbb17361c281"
+        }
+      ]
     },
     {
       "id": "claude-codex-capability-bridge",
@@ -166,7 +185,9 @@
     {
       "id": "fleet-economy",
       "path": "skills/fleet-economy/SKILL.md",
-      "sourceFamily": "yuri_native_migrated"
+      "sourceFamily": "yuri_native_migrated",
+      "operationalStatus": "quarantined-stale",
+      "statusReason": "References archival/excluded Fable 5 as mandatory doctrine; preserved for explicit read-only archaeology until MURE task t-63a57bfd repairs it."
     },
     {
       "id": "frontend-design",
@@ -289,6 +310,20 @@
       "sourceFamily": "claude_import"
     },
     {
+      "id": "mure-advisor",
+      "path": "skills/mure-advisor/SKILL.md",
+      "sourceFamily": "yuri_native",
+      "operationalStatus": "consult-only",
+      "statusReason": "Advisory context only until canonical MURE role cards and executable topology are recovered by task t-63a57bfd."
+    },
+    {
+      "id": "mure-role-variant-matrix",
+      "path": "skills/mure-role-variant-matrix/SKILL.md",
+      "sourceFamily": "yuri_native",
+      "operationalStatus": "quarantined-stale",
+      "statusReason": "Declares retired OpenClaw residue authoritative; preserved for explicit read-only archaeology until MURE task t-63a57bfd repairs it."
+    },
+    {
       "id": "nen-phase-detector",
       "path": "skills/nen-phase-detector/SKILL.md",
       "sourceFamily": "claude_import"
@@ -306,7 +341,13 @@
     {
       "id": "nexus-security-hardening",
       "path": "skills/nexus-security-hardening/SKILL.md",
-      "sourceFamily": "yuri_native_migrated"
+      "sourceFamily": "yuri_native_migrated",
+      "supportFiles": [
+        {
+          "path": "skills/nexus-security-hardening/scripts/antipattern-scan.mjs",
+          "sha256": "27f5a06125ac09ff1a2fabf4fc3ff19f867fa00a6aacab6235b6d382b94741fb"
+        }
+      ]
     },
     {
       "id": "non-destructive-infinity-guard",
@@ -317,6 +358,11 @@
       "id": "objection-source-diagnoser",
       "path": "skills/objection-source-diagnoser/SKILL.md",
       "sourceFamily": "claude_import"
+    },
+    {
+      "id": "omp-moe-dispatch",
+      "path": "skills/omp-moe-dispatch/SKILL.md",
+      "sourceFamily": "yuri_native"
     },
     {
       "id": "openai-codex-workflow",
@@ -331,7 +377,9 @@
     {
       "id": "opus-fleet",
       "path": "skills/opus-fleet/SKILL.md",
-      "sourceFamily": "yuri_native"
+      "sourceFamily": "yuri_native",
+      "operationalStatus": "consult-only",
+      "statusReason": "Substrate advice only; it is not current MURE role, topology, or provider-binding authority pending task t-63a57bfd."
     },
     {
       "id": "oracle-adapters",

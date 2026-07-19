@@ -3,24 +3,11 @@
 approval_policy = "untrusted"
 sandbox_mode = "workspace-write"
 
-# Keep the skill surface focused in this workspace.
-# Large research / sandbox trees create noisy sessions and skill-list overflow.
-
-[[skills.config]]
-path = "skills"
-enabled = true
-
-[[skills.config]]
-path = "03_RESOURCES/RESEARCH/ruflo"
-enabled = false
-
-[[skills.config]]
-path = "01_PROJECTS/superpowers"
-enabled = false
-
-[[skills.config]]
-path = "01_PROJECTS/claude-cookbooks"
-enabled = false
+# Codex discovers the generated repository projection at `.agents/skills/`.
+# `skills.config` is a per-skill enable/disable selector, not a discovery-root list;
+# canonical bodies remain in root `skills/` and are never duplicated here.
+# Current Codex ignores project-layer per-skill filters, so exact collision
+# disables live in the user Codex config and are verified by the projector gate.
 
 [sandbox_workspace_write]
 network_access = true

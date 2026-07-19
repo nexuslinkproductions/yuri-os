@@ -162,7 +162,16 @@
       "readByDefault": false,
       "protected": false,
       "status": "active",
-      "notes": "Agent assembly and role-composition layer. It references skills; it does not own canonical skill bodies."
+      "notes": "Agent assembly and role-composition layer. .agents/skills/ is a generated metadata-and-pointer-only discovery projection: it references governed skill sources, never owns or duplicates their instructions, and must contain no symlinks."
+    },
+    {
+      "path": ".agents/skills",
+      "class": "generated_artifact",
+      "owner": "YURI skills",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active_projection",
+      "notes": "Generated metadata-and-pointer-only Codex discovery projection. Regular files only: no symlinks, scripts, assets, or copied source instructions. Lab-gated discovery records owner-authorized visibility, not permission to execute actions."
     },
     {
       "path": "skills",

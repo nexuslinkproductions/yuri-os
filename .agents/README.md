@@ -31,7 +31,9 @@ This keeps "agent" as an interpretable composition pattern instead of a hidden p
 
 ## Rules
 
-- `.agents/` may contain recipes, route metadata, and command adapters.
+- `.agents/` may contain recipes, route metadata, command adapters, and generated skill-discovery adapters.
+- `.agents/skills/` contains metadata-and-pointer-only projections for Codex/Open Agent Skills discovery. Each tiny instruction body requires a complete read of one governed source and must not duplicate source instructions.
+- Lab-gated cyber adapters record owner-authorized discovery and `runtimeAuthorization: false`; seeing or selecting one never authorizes an action.
 - `.agents/` must not contain canonical skill bodies.
 - Agent recipes reference `skills/<skill-id>` by ID.
 - Provider agents, MCPs, plugins, and caches are optional plumbing.
@@ -44,4 +46,5 @@ This keeps "agent" as an interpretable composition pattern instead of a hidden p
 | `.agents/README.md` | Human/model explanation of agent assembly. |
 | `.agents/agent-index.json` | Machine-readable recipes that compose skills into agents. |
 | `.agents/commands/` | Compatibility command adapters. |
-
+| `.agents/skills/` | Generated metadata-and-pointer-only Codex skill-discovery adapters. |
+| `.agents/skills/.yuri-projection.json` | Deterministic projection provenance and parity manifest. |

@@ -5,7 +5,7 @@
  * THE PROBLEM (audited 2026-06-16): skills live in three drifting roots —
  *   - skills/            (99) canonical source per domain-index.json (canonicalRoot:skills)
  *   - .claude/skills/    (64) the ONLY root the harness loads (startup-offload.js SKILLS_DIR)
- *   - .agents/skills/    (55) untracked legacy, NOT in yuri-skill-loader discovery paths
+ *   - .agents/skills/    generated metadata-only Codex discovery projection, never a body source
  * 36 of 52 shared skills drifted bidirectionally; the good daily-driver skills (grill-me,
  * to-prd, to-issues, triage, zoom-out, caveman, ...) are STRANDED in skills/ and never
  * surfaced into .claude/skills/, so they are mechanically un-invokable. That is why skills
@@ -20,7 +20,9 @@
  *      (domain-index ids + daily-drivers + whatever is already surfaced) so the harness sees them.
  *   3. Registry: callers run `yuri-skill-loader.mjs --write-manifest` afterward to refresh
  *      skill-hash-registry.json with the loader's OWN hash (we do not reimplement it).
- * Idempotent. --check is read-only (default). --sync writes. .agents/skills/ is OUT OF SCOPE.
+ * Idempotent. --check is read-only (default). --sync writes. The dedicated
+ * yuri-codex-skill-projector owns .agents/skills/; this body synchronizer must
+ * neither read from nor write to that projection.
  *
  * @capability: skill-sync
  * @serves: skill drift | consolidate skills | surface stranded skill | mirror skills to harness | skill single source of truth | why skill not invokable | publish skill to .claude/skills

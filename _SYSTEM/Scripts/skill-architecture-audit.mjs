@@ -16,7 +16,7 @@ import path from 'node:path';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
 const CANON = 'skills';
-const PUBLISHED = '.claude/skills';
+const PUBLISHED_ROOTS = ['.agents/skills', '.claude/skills'];
 
 // severity: FAIL = skill will not route / is structurally broken; WARN = quality/architecture smell.
 export const RULES = [
@@ -43,7 +43,7 @@ function grabKey(block, k) {
   return out.join(' ').trim() || null;
 }
 
-// audit a single skill given its on-disk path + whether a published mirror exists
+// Audit a canonical body plus whether at least one harness discovery adapter exists.
 export function auditSkill(skillPath, { published = true } = {}) {
   const raw = readFileSync(skillPath, 'utf8').replace(/^﻿/, '');
   const findings = [];
@@ -67,7 +67,7 @@ export function auditSkill(skillPath, { published = true } = {}) {
   const sizeOk = lines <= 150;
   add('SIZE', sizeOk, sizeOk ? '' : lines > 400 ? `${lines} lines — bloated, split into a kit (SKILL.md <100 + refs)` : `${lines} lines — consider progressive disclosure (<150)`);
 
-  add('PUBLISHED', published, published ? '' : 'in skills/ but not .claude/skills/ — harness will not load it');
+  add('PUBLISHED', published, published ? '' : 'in skills/ but absent from native discovery adapters — no harness can route it');
 
   const hasNotes = /^##\s+Session Notes/m.test(raw);
   add('HAS_SESSION_NOTES', hasNotes, hasNotes ? '' : 'no "## Session Notes" section (YURI skill-creation rule)');
@@ -82,9 +82,16 @@ export function auditSkill(skillPath, { published = true } = {}) {
 
 export function auditAll(root = REPO_ROOT) {
   const canonAbs = path.join(root, CANON);
-  const pubNames = existsSync(path.join(root, PUBLISHED))
-    ? new Set(readdirSync(path.join(root, PUBLISHED), { withFileTypes: true }).filter((e) => e.isDirectory() && existsSync(path.join(root, PUBLISHED, e.name, 'SKILL.md'))).map((e) => e.name))
-    : new Set();
+  const pubNames = new Set();
+  for (const publishedRoot of PUBLISHED_ROOTS) {
+    const rootPath = path.join(root, publishedRoot);
+    if (!existsSync(rootPath)) continue;
+    for (const entry of readdirSync(rootPath, { withFileTypes: true })) {
+      if (entry.isDirectory() && existsSync(path.join(rootPath, entry.name, 'SKILL.md'))) {
+        pubNames.add(entry.name);
+      }
+    }
+  }
   const results = [];
   if (existsSync(canonAbs)) {
     for (const e of readdirSync(canonAbs, { withFileTypes: true })) {

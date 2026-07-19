@@ -38,6 +38,14 @@ Routing: Track A for anything another lane should know. Track B for Claude-only 
 
 Canonical skills live in root `skills/` and are loaded through the YURI skill indexes. Provider-specific skill folders are compatibility surfaces only. Honor injected skill-recall hints and invoke matching skills before substantial work.
 
+For every substantive task, run deterministic canonical recall before implementation:
+
+```bash
+node _SYSTEM/Scripts/skill-recall.mjs "<task>" --top 12 --json
+```
+
+Read each selected source `SKILL.md` completely before acting. When a selected tracked source is sparse-hidden, run `node _SYSTEM/Scripts/skill-recall.mjs --show <skill-id>` and read its complete verified output instead of treating absence as missing capability. This recall step is required even when Codex's bounded initial skill-metadata list shortens or omits entries. `.agents/skills/` is a generated metadata-and-pointer-only Codex discovery projection; each pointer routes to one governed source and never owns or duplicates its instructions.
+
 ## Root-Agent Conventions
 
 - **Sub-agents** — use for bounded parallel work; never present Codex subagents as MURE route/model evidence.

@@ -49,7 +49,7 @@
   },
   "cgs-mold": {
     "source_path": "skills/cgs-mold/SKILL.md",
-    "hash": "6632b99e2246bcf2"
+    "hash": "38df17a49e11d443"
   },
   "claude-codex-capability-bridge": {
     "source_path": "skills/claude-codex-capability-bridge/SKILL.md",
@@ -237,7 +237,7 @@
   },
   "nexus-security-hardening": {
     "source_path": "skills/nexus-security-hardening/SKILL.md",
-    "hash": "ee341a8772f69be6"
+    "hash": "8dfd6320497c2abd"
   },
   "non-destructive-infinity-guard": {
     "source_path": "skills/non-destructive-infinity-guard/SKILL.md",
@@ -1702,5 +1702,165 @@
   "yuri-xref-preflight": {
     "source_path": ".codex/skills/yuri-xref-preflight/SKILL.md",
     "hash": "c974e81803fa8dc7"
+  },
+  "activate-yuri-skills": {
+    "source_path": "skills/activate-yuri-skills/SKILL.md",
+    "hash": "438cb0823393f313"
+  },
+  "cyber-abusing-dpapi-for-credential-access": {
+    "source_path": ".claude/skills-labgated/cyber-abusing-dpapi-for-credential-access/SKILL.md",
+    "hash": "a9d0ef1bf8f7f36c"
+  },
+  "cyber-abusing-shadow-credentials-for-privesc": {
+    "source_path": ".claude/skills-labgated/cyber-abusing-shadow-credentials-for-privesc/SKILL.md",
+    "hash": "e18a447bd5102040"
+  },
+  "cyber-attacking-entra-id-with-roadtools": {
+    "source_path": ".claude/skills-labgated/cyber-attacking-entra-id-with-roadtools/SKILL.md",
+    "hash": "7d6e625e19b9a1c9"
+  },
+  "cyber-attacking-oauth-with-device-code-phishing": {
+    "source_path": ".claude/skills-labgated/cyber-attacking-oauth-with-device-code-phishing/SKILL.md",
+    "hash": "b5a696958aed3beb"
+  },
+  "cyber-bypassing-authentication-with-forced-browsing": {
+    "source_path": ".claude/skills-labgated/cyber-bypassing-authentication-with-forced-browsing/SKILL.md",
+    "hash": "3ce15c54138ae083"
+  },
+  "cyber-exploiting-active-directory-certificate-services-esc1": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-active-directory-certificate-services-esc1/SKILL.md",
+    "hash": "121e9c13ad99e3c3"
+  },
+  "cyber-exploiting-active-directory-with-bloodhound": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-active-directory-with-bloodhound/SKILL.md",
+    "hash": "b5f3f544ba283bcf"
+  },
+  "cyber-exploiting-adcs-with-certipy": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-adcs-with-certipy/SKILL.md",
+    "hash": "2c095e1071838c67"
+  },
+  "cyber-exploiting-api-injection-vulnerabilities": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-api-injection-vulnerabilities/SKILL.md",
+    "hash": "0f8f6ea5b19c0bf8"
+  },
+  "cyber-exploiting-aws-with-pacu": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-aws-with-pacu/SKILL.md",
+    "hash": "fd10ab36b7c11d89"
+  },
+  "cyber-exploiting-bgp-hijacking-vulnerabilities": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-bgp-hijacking-vulnerabilities/SKILL.md",
+    "hash": "e90799e1369db85b"
+  },
+  "cyber-exploiting-broken-function-level-authorization": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-broken-function-level-authorization/SKILL.md",
+    "hash": "709c882192263358"
+  },
+  "cyber-exploiting-broken-link-hijacking": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-broken-link-hijacking/SKILL.md",
+    "hash": "7643d1bf32ed815c"
+  },
+  "cyber-exploiting-constrained-delegation-abuse": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-constrained-delegation-abuse/SKILL.md",
+    "hash": "4710f3ac4f011d13"
+  },
+  "cyber-exploiting-deeplink-vulnerabilities": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-deeplink-vulnerabilities/SKILL.md",
+    "hash": "9694482c433c1141"
+  },
+  "cyber-exploiting-excessive-data-exposure-in-api": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-excessive-data-exposure-in-api/SKILL.md",
+    "hash": "5bd65dc48fc33b3a"
+  },
+  "cyber-exploiting-http-request-smuggling": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-http-request-smuggling/SKILL.md",
+    "hash": "30cae53ee3aa30fc"
+  },
+  "cyber-exploiting-idor-vulnerabilities": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-idor-vulnerabilities/SKILL.md",
+    "hash": "7a6c8a2508754155"
+  },
+  "cyber-exploiting-insecure-data-storage-in-mobile": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-insecure-data-storage-in-mobile/SKILL.md",
+    "hash": "91d429d5be70b121"
+  },
+  "cyber-exploiting-insecure-deserialization": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-insecure-deserialization/SKILL.md",
+    "hash": "9c140d2f6a65473a"
+  },
+  "cyber-exploiting-ipv6-vulnerabilities": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-ipv6-vulnerabilities/SKILL.md",
+    "hash": "5bcf51960a9ccae7"
+  },
+  "cyber-exploiting-jwt-algorithm-confusion-attack": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-jwt-algorithm-confusion-attack/SKILL.md",
+    "hash": "adfbbe46aa41c9c6"
+  },
+  "cyber-exploiting-kerberoasting-with-impacket": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-kerberoasting-with-impacket/SKILL.md",
+    "hash": "6264542a064da56c"
+  },
+  "cyber-exploiting-mass-assignment-in-rest-apis": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-mass-assignment-in-rest-apis/SKILL.md",
+    "hash": "252688a3a4d5fe7d"
+  },
+  "cyber-exploiting-ms17-010-eternalblue-vulnerability": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-ms17-010-eternalblue-vulnerability/SKILL.md",
+    "hash": "4155e516c0a9579b"
+  },
+  "cyber-exploiting-nopac-cve-2021-42278-42287": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-nopac-cve-2021-42278-42287/SKILL.md",
+    "hash": "f1f0f313e8d51b16"
+  },
+  "cyber-exploiting-nosql-injection-vulnerabilities": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-nosql-injection-vulnerabilities/SKILL.md",
+    "hash": "2f4aed09c40c1c15"
+  },
+  "cyber-exploiting-oauth-misconfiguration": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-oauth-misconfiguration/SKILL.md",
+    "hash": "3c7cd865b9bfbbf9"
+  },
+  "cyber-exploiting-prototype-pollution-in-javascript": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-prototype-pollution-in-javascript/SKILL.md",
+    "hash": "83ad472ce9df58f0"
+  },
+  "cyber-exploiting-race-condition-vulnerabilities": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-race-condition-vulnerabilities/SKILL.md",
+    "hash": "ff38452170ab8ca7"
+  },
+  "cyber-exploiting-server-side-request-forgery": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-server-side-request-forgery/SKILL.md",
+    "hash": "e7f6c77cd57c6dee"
+  },
+  "cyber-exploiting-smb-vulnerabilities-with-metasploit": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-smb-vulnerabilities-with-metasploit/SKILL.md",
+    "hash": "2391c54919b569bc"
+  },
+  "cyber-exploiting-sql-injection-vulnerabilities": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-sql-injection-vulnerabilities/SKILL.md",
+    "hash": "f36a634041415506"
+  },
+  "cyber-exploiting-sql-injection-with-sqlmap": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-sql-injection-with-sqlmap/SKILL.md",
+    "hash": "731d82a5f7b51c3c"
+  },
+  "cyber-exploiting-template-injection-vulnerabilities": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-template-injection-vulnerabilities/SKILL.md",
+    "hash": "a3e7e9dab220a63f"
+  },
+  "cyber-exploiting-type-juggling-vulnerabilities": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-type-juggling-vulnerabilities/SKILL.md",
+    "hash": "7813d67a87c25667"
+  },
+  "cyber-exploiting-vulnerabilities-with-metasploit-framework": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-vulnerabilities-with-metasploit-framework/SKILL.md",
+    "hash": "075bbaacad8c3e70"
+  },
+  "cyber-exploiting-websocket-vulnerabilities": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-websocket-vulnerabilities/SKILL.md",
+    "hash": "52727e424de7f023"
+  },
+  "cyber-exploiting-zerologon-vulnerability-cve-2020-1472": {
+    "source_path": ".claude/skills-labgated/cyber-exploiting-zerologon-vulnerability-cve-2020-1472/SKILL.md",
+    "hash": "5d9babb20f537f9e"
   }
 }

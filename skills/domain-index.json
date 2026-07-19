@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-06-07",
+  "updated": "2026-07-19",
   "canonicalRoot": "skills",
   "orderMatters": true,
   "domains": [
@@ -18,7 +18,14 @@
         "bankai-manifest",
         "izanagi-simulator",
         "geass-lock",
-        "prompt-engineering"
+        "prompt-engineering",
+        "anime-dna-extensions",
+        "compact-optimizer",
+        "oracle-adapters",
+        "oracle-voice",
+        "organ-yuri-decode",
+        "organ-yuri-nerve",
+        "yuri-shura"
       ]
     },
     {
@@ -31,7 +38,23 @@
         "subagent-driven-development",
         "bg",
         "oracle-router",
-        "anthropic-managed-agents"
+        "anthropic-managed-agents",
+        "agent-reach",
+        "agent-scout",
+        "fleet-economy",
+        "gpt-oss-local-runtime",
+        "kimi-k2-6-server-adapter",
+        "mure-advisor",
+        "mure-role-variant-matrix",
+        "omp-moe-dispatch",
+        "organ-lane-telemetry-cockpit",
+        "organ-openprocess-pool",
+        "parallel-clone-orchestrator",
+        "peer-signal-build",
+        "receipt-subscription-cleaner",
+        "to-issues",
+        "to-prd",
+        "triage"
       ]
     },
     {
@@ -49,7 +72,15 @@
         "systematic-debugging",
         "diagnose",
         "tdd",
-        "using-git-worktrees"
+        "using-git-worktrees",
+        "audit-log-firewall",
+        "git-guardrails-claude-code",
+        "nexus-security-hardening",
+        "organ-discovery-precision-gate",
+        "organ-filing-assessor",
+        "plan-review",
+        "setup-pre-commit",
+        "trade-edge-audit"
       ]
     },
     {
@@ -66,7 +97,10 @@
         "gitnexus-pr-review",
         "openai-codex-workflow",
         "yuri-code-intelligence",
-        "improve-codebase-architecture"
+        "improve-codebase-architecture",
+        "cross-reference-navigation",
+        "gitnexus-guide",
+        "migrate-to-shoehorn"
       ]
     },
     {
@@ -79,7 +113,18 @@
         "pattern-mirror-core",
         "sharingan",
         "research-artifact-factory",
-        "probabilistic-decision-core"
+        "probabilistic-decision-core",
+        "extraction-sprint",
+        "grill-me",
+        "grill-with-docs",
+        "math-curve-loaders",
+        "organ-formula-foundry",
+        "organ-formula-foundry-bakeoff",
+        "pilot-feedback",
+        "quantum-hypothesis-simulation",
+        "trade-decision-sim",
+        "visual-introspection",
+        "zoom-out"
       ]
     },
     {
@@ -93,7 +138,9 @@
         "skill-creator",
         "skill-installer",
         "plugin-creator",
-        "setup-matt-pocock-skills"
+        "setup-matt-pocock-skills",
+        "activate-yuri-skills",
+        "using-superpowers"
       ]
     },
     {
@@ -101,7 +148,6 @@
       "label": "Design Content Business",
       "purpose": "Design, course generation, reports, video, sales, business intelligence, and deliverables.",
       "skillIds": [
-        "design-master",
         "frontend-design",
         "design-source-pack",
         "design-assistant-inbox",
@@ -112,7 +158,15 @@
         "nex-deliverables",
         "nex-vault",
         "ad-creative",
-        "viz-lab"
+        "viz-lab",
+        "caveman",
+        "cgs-mold",
+        "objection-source-diagnoser",
+        "remotion-best-practices",
+        "remotion-motion-design",
+        "scaffold-exercises",
+        "videodb",
+        "visual-plan"
       ]
     },
     {

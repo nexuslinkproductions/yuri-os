@@ -8,13 +8,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const XREF = path.join(__dirname, 'xref-query.mjs');
 const ROOT = path.resolve(__dirname, '../..');
+const projectionIds = new Set(JSON.parse(
+  readFileSync(path.join(ROOT, '.agents/skills/.yuri-projection.json'), 'utf8'),
+).skills.map((skill) => skill.id));
 
 function xref(query) {
   try {
@@ -42,14 +45,12 @@ test('RED code-internals query does NOT surface a spurious skill (gate works)', 
 
 // ======================= GREY =======================
 // Independent oracle: every skill the seam surfaces must resolve to a REAL live skill
-// directory (skills/ or .claude/skills/) — never an archive/backup path or a dangler.
+// governed projection entry — sparse absence must not be mistaken for a dangler.
 test('GREY every surfaced skill resolves to a live skill dir (no archive/phantom)', () => {
   const out = xref('generate facebook ad headline variations at scale');
   const names = [...out.matchAll(/^\s*▸ \/([a-z0-9-]+) —/gm)].map((m) => m[1]);
   assert.ok(names.length >= 1, 'expected at least one surfaced skill');
   for (const n of names) {
-    const live = existsSync(path.join(ROOT, 'skills', n, 'SKILL.md')) ||
-                 existsSync(path.join(ROOT, '.claude/skills', n, 'SKILL.md'));
-    assert.ok(live, `surfaced skill /${n} is not a live skill dir`);
+    assert.ok(projectionIds.has(n), `surfaced skill /${n} is not governed by the projection`);
   }
 });

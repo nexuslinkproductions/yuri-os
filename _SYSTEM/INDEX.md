@@ -22,6 +22,8 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `.agents/README.md` | Agent assembly layer: agents are recipes, not hidden provider magic. |
 | `skills/README.md` | Canonical root-visible skill library entrypoint. |
 | `skills/skill-index.json` | Machine-readable root skill index. |
+| `_SYSTEM/config/cyber-skill-registry.json` | Governed vetted cyber-skill selection: 300 armed plus 39 owner-authorized lab-gated discovery entries; visibility is not action authorization. |
+| `_SYSTEM/config/codex-skill-collision-registry.json` | Non-secret exact collision inventory for reversible user-level Codex skill disables; projector parity plus a fresh prompt diagnostic proves deduplication. |
 | `_SYSTEM/Scripts/llm-compat-contract.mjs` | Lane routing and model contract. |
 | `_SYSTEM/Scripts/xref-query.mjs` | Current xref-first navigation surface across FTS5, circuitry graph, GitNexus, spectrum, and provenance scoring. Defaults to a 200-result request floor; use `--top N`, `--scan N`, or `--all` for thousand-hit recall. |
 | `_SYSTEM/config/october-capability-registry.json` | Versioned searchable projection of October's authoritative MCP tools and generated harness adapters; contains no transient canvas/node identities. |

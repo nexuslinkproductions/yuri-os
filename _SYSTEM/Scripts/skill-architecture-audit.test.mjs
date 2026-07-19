@@ -71,6 +71,16 @@ test('GREEN stranded (not published) is WARN PUBLISHED; auditAll counts add up',
   assert.equal(summary.fail, 2); // broken + nodesc
 });
 
+test('GREEN metadata-and-pointer-only .agents adapter counts as published reachability', () => {
+  const root = fixtureRoot();
+  write(root, 'skills/codex-native', cleanSkill());
+  write(root, '.agents/skills/codex-native', `---\nname: codex-native\ndescription: ${GOOD_DESC}\n---\n\nGoverned source: skills/codex-native/SKILL.md\n`);
+  const { results } = auditAll(root);
+  const projected = results.find((r) => r.name === 'codex-native');
+  assert(projected, 'projected canonical skill missing from audit');
+  assert.equal(projected.warns.some((finding) => finding.rule === 'PUBLISHED'), false);
+});
+
 // ======================= RED =======================
 // Load-bearing property: byte-0 detection must use STARTS-WITH, not CONTAINS. A mutant that
 // checks raw.includes('---') passes a pre-frontmatter-comment skill -> the bug ships. Caught here.

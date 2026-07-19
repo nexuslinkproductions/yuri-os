@@ -40,6 +40,7 @@ const MANIFEST_PATH = path.join(REPO_ROOT, '_SYSTEM', 'skill-hash-registry.json'
 // Discovery paths (order = precedence; first match wins for duplicate names)
 const DISCOVERY_PATHS = [
   { prefix: 'skills', sourceType: 'yuri_skill', kind: 'skill_md' },
+  { prefix: '.claude/skills-labgated', sourceType: 'yuri_labgated_skill', kind: 'skill_md' },
   { prefix: '.claude/skills', sourceType: 'claude_skill', kind: 'flat_md' },
   { prefix: '.claude/skills', sourceType: 'claude_skill', kind: 'skill_md' },
   { prefix: '.codex/skills', sourceType: 'codex_skill', kind: 'skill_md' },
@@ -291,26 +292,26 @@ function discoverSparseTrackedSurfaceFiles(surface) {
   return discovered
 }
 
-function enforceTotalBodyCap(skills) {
+export function enforceTotalBodyCap(skills, maxTotal = SKILL_BODY_MAX_TOTAL) {
   let total = skills.reduce((sum, skill) => sum + String(skill.body || '').length, 0)
-  if (total <= SKILL_BODY_MAX_TOTAL) return
+  if (total <= maxTotal) return
 
   // wave-3 S.10: canonical-skill priority — prune plugin-cache bodies FIRST so the
   // cap can never silently strip a canonical yuri_skill while cache entries survive.
   // Sort a prune-order view (cache entries last → reverse loop hits them first);
   // the skills array itself keeps its original order for callers.
   const pruneOrder = [...skills].sort((a, b) => {
-    const aCanonical = a.type === 'yuri_skill' ? 0 : 1
-    const bCanonical = b.type === 'yuri_skill' ? 0 : 1
+    const aCanonical = isCanonicalSkillType(a.source_type) ? 0 : 1
+    const bCanonical = isCanonicalSkillType(b.source_type) ? 0 : 1
     return aCanonical - bCanonical
   })
-  for (let index = pruneOrder.length - 1; index >= 0 && total > SKILL_BODY_MAX_TOTAL; index--) {
+  for (let index = pruneOrder.length - 1; index >= 0 && total > maxTotal; index--) {
     const skill = pruneOrder[index]
     const bodyLength = String(skill.body || '').length
     if (!bodyLength) continue
     skill.body = ''
     skill.bodyPruned = true
-    skill.bodyPruneReason = `total skill body cap ${SKILL_BODY_MAX_TOTAL} exceeded`
+    skill.bodyPruneReason = `total skill body cap ${maxTotal} exceeded`
     total -= bodyLength
   }
 }
@@ -621,7 +622,7 @@ function unique(values) {
 }
 
 function isCanonicalSurface(surface) {
-  return surface?.sourceType === 'yuri_skill'
+  return isCanonicalSkillType(surface?.sourceType)
 }
 
 function isReferenceOnlySkill(skill) {
@@ -630,7 +631,14 @@ function isReferenceOnlySkill(skill) {
 }
 
 function isReferenceOnlySourcePath(sourcePath = '') {
-  return String(sourcePath || '').startsWith('.codex/plugins/cache/')
+  const source = String(sourcePath || '')
+  if (source.startsWith('.codex/plugins/cache/') || source.startsWith('.codex/skills/')) return true
+  if (source.startsWith('.claude/skills/') && !source.startsWith('.claude/skills/cyber-')) return true
+  return false
+}
+
+function isCanonicalSkillType(sourceType) {
+  return sourceType === 'yuri_skill' || sourceType === 'yuri_labgated_skill'
 }
 
 function normalizeSkillId(value) {
