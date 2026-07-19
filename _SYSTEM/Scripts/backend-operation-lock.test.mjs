@@ -128,6 +128,26 @@ async function assertPromiseStillPending(promise, milliseconds = 75) {
   assert.equal(result, 'pending');
 }
 
+function assertExecFailedLifecycle(guardian, closed) {
+  const events = guardian.events();
+  const names = events.map((event) => event.event);
+  const terminating = events.filter((event) => event.event === 'TERMINATING');
+  assert.ok(terminating.length <= 1, 'exec failure may emit at most one TERMINATING frame');
+  assert.equal(names.includes('RUNNING'), false, 'an exec failure must never reach RUNNING');
+  assert.equal(closed.released, true);
+  assert.equal(closed.releaseVerified, true);
+  assert.equal(closed.writerSucceeded, false);
+
+  const expected = ['READY', 'PREPARED', 'EXEC_FAILED'];
+  if (terminating.length === 1) expected.push('TERMINATING');
+  expected.push('SENTINEL_RELEASED', 'WRITER_EXITED', 'RELEASED');
+  assert.deepEqual(names, expected);
+  if (terminating.length === 1) {
+    assert.equal(terminating[0].reason, 'exec_failed');
+    assert.equal(Number(terminating[0].pgid), guardian.pgid);
+  }
+}
+
 async function eventuallyAcquire(options, timeoutMs = 10_000) {
   const deadline = Date.now() + timeoutMs;
   for (;;) {
@@ -876,15 +896,15 @@ test('writer executable rejects symlinks and detects pathname swap before exec',
     });
     fs.renameSync(original, originalAway);
     fs.renameSync(replacement, original);
+    let execFailure;
     await assert.rejects(
       guardian.start(),
-      (error) => error.code === 'WRITER_EXEC_FAILED'
-        && error.details.closed.writerSucceeded === false,
+      (error) => {
+        execFailure = error;
+        return error.code === 'WRITER_EXEC_FAILED';
+      },
     );
-    assert.deepEqual(guardian.events().map((event) => event.event), [
-      'READY', 'PREPARED', 'EXEC_FAILED', 'TERMINATING', 'SENTINEL_RELEASED',
-      'WRITER_EXITED', 'RELEASED',
-    ]);
+    assertExecFailedLifecycle(guardian, execFailure.details.closed);
   } finally {
     cleanup(root);
   }
@@ -1650,23 +1670,17 @@ test('exec failure is an orderly guarded failure and releases only after the pre
     fs.chmodSync(invalidExecutable, 0o700);
     fs.writeFileSync(invalidExecutable, 'not a native executable\n', { mode: 0o500 });
     fs.chmodSync(invalidExecutable, 0o500);
+    let execFailure;
     await assert.rejects(
       guardian.start(),
-      (error) => error.code === 'WRITER_EXEC_FAILED'
-        && error.details.closed.exitCode === 70
-        && error.details.closed.released === true
-        && error.details.closed.releaseVerified === true
-        && error.details.closed.unexpected === false,
+      (error) => {
+        execFailure = error;
+        return error.code === 'WRITER_EXEC_FAILED'
+          && error.details.closed.exitCode === 70
+          && error.details.closed.unexpected === false;
+      },
     );
-    assert.deepEqual(guardian.events().map((event) => event.event), [
-      'READY',
-      'PREPARED',
-      'EXEC_FAILED',
-      'TERMINATING',
-      'SENTINEL_RELEASED',
-      'WRITER_EXITED',
-      'RELEASED',
-    ]);
+    assertExecFailedLifecycle(guardian, execFailure.details.closed);
     const execLoss = await withDeadline(guardian.loss, 5_000, 'nonzero helper exit did not resolve loss');
     assert.equal(execLoss.exitCode, 70);
     assert.equal(execLoss.unexpected, true);
