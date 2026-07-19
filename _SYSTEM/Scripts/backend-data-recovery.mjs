@@ -83,17 +83,125 @@ const GIB = 1024n ** 3n;
 const SQLITE_BIN = '/usr/bin/sqlite3';
 const MAX_COMMAND_BUFFER = 64 * 1024 * 1024;
 const MANIFEST_SCHEMA = 'yuri.backend-data-recovery.inspect.v1';
+const INTERNAL_VOLUME_ATTESTATION_SCHEMA = 'yuri.backend-data-recovery.internal-apfs-attestation.v1';
 const ACTIVE_MARKER_SCHEMA = 'yuri.backend-data-recovery.active.v2';
 const TRANSACTION_SCHEMA = 'yuri.backend-data-recovery.transaction.v2';
 const RESTORE_PHASE_A_SCHEMA = 'yuri.backend-data-recovery.restore.phase-a.v2';
 const RESTORE_FINAL_SCHEMA = 'yuri.backend-data-recovery.restore.final.v2';
 const VERIFY_SCHEMA = 'yuri.backend-data-recovery.verify.sealed.v2';
 const VERIFY_FINAL_SCHEMA = 'yuri.backend-data-recovery.verify.final.v2';
+const DESCRIPTOR_RELATIVE_RECEIPT_WRITER = String.raw`
+import hashlib
+import json
+import os
+import stat
+import sys
+
+MAX_RECEIPT_BYTES = 1024 * 1024
+
+def abort(message):
+    raise RuntimeError(message)
+
+if len(sys.argv) != 5:
+    abort('usage: <destination> <parent-dev> <parent-ino> <uid>')
+
+destination = sys.argv[1]
+expected_parent_dev = int(sys.argv[2])
+expected_parent_ino = int(sys.argv[3])
+expected_uid = int(sys.argv[4])
+if not os.path.isabs(destination) or os.path.normpath(destination) != destination:
+    abort('destination must be absolute and normalized')
+components = destination.split('/')[1:]
+if len(components) < 2 or any(not part or part in ('.', '..') for part in components):
+    abort('destination has an invalid component')
+leaf = components[-1]
+if '/' in leaf or not leaf.startswith('internal-volume-attestation-') or not leaf.endswith('.json'):
+    abort('destination leaf is outside the attestation namespace')
+
+data = sys.stdin.buffer.read(MAX_RECEIPT_BYTES + 1)
+if not data or len(data) > MAX_RECEIPT_BYTES:
+    abort('receipt bytes are empty or exceed the bound')
+
+directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
+parent_fd = os.open('/', directory_flags)
+try:
+    for component in components[:-1]:
+        next_fd = os.open(component, directory_flags, dir_fd=parent_fd)
+        opened = os.fstat(next_fd)
+        if not stat.S_ISDIR(opened.st_mode):
+            os.close(next_fd)
+            abort('path component is not a directory')
+        os.close(parent_fd)
+        parent_fd = next_fd
+
+    parent_before = os.fstat(parent_fd)
+    parent_mode = stat.S_IMODE(parent_before.st_mode)
+    if (parent_before.st_dev != expected_parent_dev
+            or parent_before.st_ino != expected_parent_ino
+            or parent_before.st_uid != expected_uid
+            or parent_mode & 0o077):
+        abort('receipt parent identity or permissions changed')
+
+    leaf_flags = os.O_RDWR | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC
+    leaf_fd = os.open(leaf, leaf_flags, 0o600, dir_fd=parent_fd)
+    try:
+        os.fchmod(leaf_fd, 0o600)
+        offset = 0
+        while offset < len(data):
+            written = os.write(leaf_fd, data[offset:])
+            if written <= 0:
+                abort('short receipt write')
+            offset += written
+        os.fsync(leaf_fd)
+        os.lseek(leaf_fd, 0, os.SEEK_SET)
+        reread = bytearray()
+        while len(reread) < len(data):
+            chunk = os.read(leaf_fd, len(data) - len(reread))
+            if not chunk:
+                break
+            reread.extend(chunk)
+        if bytes(reread) != data or os.read(leaf_fd, 1):
+            abort('receipt bytes changed during descriptor reread')
+        leaf_stat = os.fstat(leaf_fd)
+        if (not stat.S_ISREG(leaf_stat.st_mode)
+                or leaf_stat.st_dev != expected_parent_dev
+                or leaf_stat.st_uid != expected_uid
+                or stat.S_IMODE(leaf_stat.st_mode) != 0o600
+                or leaf_stat.st_nlink != 1
+                or leaf_stat.st_size != len(data)):
+            abort('receipt file identity is unsafe')
+        digest = hashlib.sha256(data).hexdigest()
+    finally:
+        os.close(leaf_fd)
+
+    os.fsync(parent_fd)
+    parent_after = os.fstat(parent_fd)
+    if (parent_after.st_dev != parent_before.st_dev
+            or parent_after.st_ino != parent_before.st_ino
+            or parent_after.st_uid != parent_before.st_uid
+            or stat.S_IMODE(parent_after.st_mode) != parent_mode):
+        abort('receipt parent identity changed while held')
+    print(json.dumps({
+        'ok': True,
+        'sha256': digest,
+        'device': str(leaf_stat.st_dev),
+        'inode': str(leaf_stat.st_ino),
+        'uid': leaf_stat.st_uid,
+        'mode': stat.S_IMODE(leaf_stat.st_mode),
+        'nlink': leaf_stat.st_nlink,
+        'size': leaf_stat.st_size,
+        'parentDevice': str(parent_after.st_dev),
+        'parentInode': str(parent_after.st_ino),
+    }, separators=(',', ':')))
+finally:
+    os.close(parent_fd)
+`;
 const PRIVATE_FIXTURE_ROOT = '/private/tmp';
 const PRODUCTION_EXECUTION_TOKEN = Object.freeze({ type: 'production-recovery-execution' });
 const FIXTURE_EXECUTION_TOKENS = new WeakSet();
 
 const PRODUCTION_INPUTS = Object.freeze({
+  attestInternalVolume: new Set(['ownerApproved']),
   inspect: new Set(['ownerApproved', 'sourceRepo']),
   restore: new Set(['ownerApproved', 'sourceRepo', 'manifestPath', 'manifestSha256']),
   verify: new Set(['ownerApproved', 'manifestPath', 'manifestSha256']),
@@ -1101,12 +1209,171 @@ function writeJsonExclusiveDurable(destination, payload, existsCode = 'RECOVERY_
   return exact;
 }
 
+function writeAttestationReceiptDescriptorRelative(destination, payload, parent, parentIdentity64) {
+  const bytes = Buffer.from(serializedJson(payload));
+  const expectedSha256 = sha256Bytes(bytes);
+  const result = spawnRecoveryProcess('/usr/bin/python3', [
+    '-I',
+    '-S',
+    '-c',
+    DESCRIPTOR_RELATIVE_RECEIPT_WRITER,
+    destination,
+    parentIdentity64.dev,
+    parentIdentity64.ino,
+    String(process.getuid()),
+  ], {
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024,
+    timeout: 30_000,
+    input: bytes,
+    stdio: ['pipe', 'pipe', 'pipe'],
+    cwd: '/',
+  });
+  if (result.error || result.status !== 0) {
+    fail('INTERNAL_VOLUME_ATTESTATION_WRITE_FAILED', 'descriptor-relative receipt writer failed closed', {
+      status: result.status,
+      stderr: result.stderr?.trim() || '',
+      cause: result.error?.message || null,
+    });
+  }
+  let evidence;
+  try {
+    evidence = JSON.parse(result.stdout);
+  } catch (error) {
+    fail('INTERNAL_VOLUME_ATTESTATION_WRITE_FAILED', 'descriptor-relative receipt writer returned invalid evidence', {
+      cause: error.message,
+    });
+  }
+  const expectedKeys = [
+    'device',
+    'inode',
+    'mode',
+    'nlink',
+    'ok',
+    'parentDevice',
+    'parentInode',
+    'sha256',
+    'size',
+    'uid',
+  ];
+  if (JSON.stringify(Object.keys(evidence).sort()) !== JSON.stringify(expectedKeys)
+      || evidence.ok !== true
+      || evidence.sha256 !== expectedSha256
+      || evidence.device !== parentIdentity64.dev
+      || evidence.parentDevice !== parentIdentity64.dev
+      || evidence.parentInode !== parentIdentity64.ino
+      || evidence.uid !== process.getuid()
+      || evidence.mode !== 0o600
+      || evidence.nlink !== 1
+      || evidence.size !== bytes.length
+      || !/^\d+$/u.test(evidence.inode || '')) {
+    fail('INTERNAL_VOLUME_ATTESTATION_WRITE_FAILED', 'descriptor-relative receipt evidence is inconsistent');
+  }
+
+  const reboundParent = exactDirectory(parent.path, 'rebound recovery receipt root');
+  const reboundParentIdentity64 = exactDirectoryIdentity64(reboundParent.path, 'rebound recovery receipt root');
+  if (reboundParentIdentity64.dev !== parentIdentity64.dev
+      || reboundParentIdentity64.ino !== parentIdentity64.ino) {
+    fail('RECEIPT_ROOT_IDENTITY_MISMATCH', 'recovery receipt root changed after descriptor-relative creation');
+  }
+  const exact = readJsonArtifact(destination, 'internal APFS attestation receipt');
+  if (exact.sha256 !== expectedSha256
+      || exact.device !== evidence.device
+      || exact.inode !== evidence.inode
+      || exact.mode !== 0o600) {
+    fail('INTERNAL_VOLUME_ATTESTATION_WRITE_FAILED', 'receipt pathname no longer binds to the written descriptor');
+  }
+  const reboundAfterRead = exactDirectory(parent.path, 'post-read recovery receipt root');
+  const reboundAfterReadIdentity64 = exactDirectoryIdentity64(
+    reboundAfterRead.path,
+    'post-read recovery receipt root',
+  );
+  if (reboundAfterReadIdentity64.dev !== parentIdentity64.dev
+      || reboundAfterReadIdentity64.ino !== parentIdentity64.ino) {
+    fail('RECEIPT_ROOT_IDENTITY_MISMATCH', 'recovery receipt root changed during receipt verification');
+  }
+  return exact;
+}
+
 function writeTransaction(transactionPath, base, state, extra = {}) {
   return writeJsonAtomic(transactionPath, {
     ...base,
     state,
     updatedAt: extra.updatedAt ?? new Date().toISOString(),
     ...extra,
+  });
+}
+
+function attestInternalApfsVolumeCore(options, executionToken) {
+  requireExecutionToken(executionToken);
+  if (options.ownerApproved !== true) {
+    fail('OWNER_APPROVAL_REQUIRED', 'internal APFS attestation requires the explicit owner-approved gate');
+  }
+  const anchor = exactDirectory(options.anchorPath, 'internal APFS attestation anchor');
+  const receiptRoot = exactDirectory(options.receiptRoot, 'recovery receipt root');
+  const anchorIdentity64 = exactDirectoryIdentity64(anchor.path, 'internal APFS attestation anchor');
+  const receiptRootIdentity64 = exactDirectoryIdentity64(receiptRoot.path, 'recovery receipt root');
+  const receiptMode = receiptRoot.stat.mode & 0o7777;
+  if (receiptRoot.stat.uid !== process.getuid() || (receiptMode & 0o077) !== 0) {
+    fail('RECEIPT_ROOT_IDENTITY_MISMATCH', 'recovery receipt root must be uid-owned and private', {
+      path: receiptRoot.path,
+      uid: receiptRoot.stat.uid,
+      mode: receiptMode,
+    });
+  }
+
+  const identity = options.inspectIdentity(anchor.path);
+  if (identity.inspectedPath !== anchor.path || String(identity.deviceId) !== String(anchor.stat.dev)) {
+    fail('INTERNAL_TARGET_IDENTITY_MISMATCH', 'attested mount identity does not bind to the fixed non-protected anchor');
+  }
+  if (!sameUuid(identity.volumeUuid, INTERNAL_APFS_EXPECTED_VOLUME_UUID)
+      || identity.filesystem !== 'apfs'
+      || identity.internal !== true
+      || identity.writable !== true
+      || identity.readOnly !== false
+      || identity.ownersEnabled !== true
+      || identity.parseConflict !== false
+      || identity.t7RequiredAtRuntime !== false) {
+    fail('INTERNAL_TARGET_IDENTITY_MISMATCH', 'attested mount identity does not satisfy the pinned internal APFS policy');
+  }
+  if (receiptRootIdentity64.dev !== anchorIdentity64.dev) {
+    fail('RECEIPT_ROOT_IDENTITY_MISMATCH', 'recovery receipt root is not on the attested internal APFS volume');
+  }
+
+  const generatedAt = options.now().toISOString();
+  const payload = Object.freeze({
+    schema: INTERNAL_VOLUME_ATTESTATION_SCHEMA,
+    generatedAt,
+    anchorPath: anchor.path,
+    receiptRoot: receiptRoot.path,
+    expectedVolumeUuid: INTERNAL_APFS_EXPECTED_VOLUME_UUID,
+    observedVolumeUuid: identity.volumeUuid,
+    identity,
+    scope: Object.freeze({
+      protectedBackendDataAccessed: false,
+      claudeProjectsAccessed: false,
+      t7Inspected: false,
+      physicalT7ConnectedAtSummary: null,
+      backendDataReadinessAttested: false,
+    }),
+    nextGate: 'inspectRecovery re-attests target identity and binds it to the protected-source manifest',
+  });
+  const receiptPath = path.join(
+    receiptRoot.path,
+    `internal-volume-attestation-${timestampSlug(new Date(generatedAt))}-${crypto.randomBytes(8).toString('hex')}.json`,
+  );
+  options.beforeReceiptWrite();
+  const receipt = writeAttestationReceiptDescriptorRelative(
+    receiptPath,
+    payload,
+    receiptRoot,
+    receiptRootIdentity64,
+  );
+  return Object.freeze({
+    ok: true,
+    receiptPath: receipt.path,
+    receiptSha256: receipt.sha256,
+    payload,
   });
 }
 
@@ -2461,6 +2728,13 @@ function createContainedFixtureAdapters(root, paths, suppliedAdapters, nativeHel
       assertFixturePathEquals(root, target, paths.canonicalTarget, 'fixture canonical target');
       return adapterSource.inspectTargetIdentity(target);
     },
+    inspectInternalVolumeIdentity(anchor) {
+      assertFixturePathEquals(root, anchor, paths.internalVolumeAnchor, 'fixture internal APFS anchor');
+      return adapterSource.inspectTargetIdentity(anchor);
+    },
+    beforeAttestationReceiptWrite() {
+      return adapterSource.beforeAttestationReceiptWrite?.();
+    },
     copyTree(source, destination) {
       assertFixturePathEquals(root, source, paths.sourceData, 'fixture protected-like source data');
       assertFixtureContainedPath(root, destination, 'fixture staging destination');
@@ -2509,6 +2783,7 @@ function fixtureLayout(root) {
     sourceRepo,
     sourceData: path.join(sourceRepo, '_SYSTEM/backend/data'),
     canonicalTarget: path.join(liveRoot, '_SYSTEM/backend/data'),
+    internalVolumeAnchor: path.join(liveRoot, '_SYSTEM/backend'),
     quarantineRoot: path.join(liveRoot, '_SYSTEM/recovery/backend-db'),
     receiptRoot: path.join(liveRoot, '_SYSTEM/state/backend-volume'),
     capacityRoot: liveRoot,
@@ -2555,11 +2830,26 @@ export function createBackendDataRecoveryFixtureApi(options = {}, ...extraArgume
   const trace = [];
   const adapters = createContainedFixtureAdapters(root, paths, options.adapters, options.nativeHelper === true, trace);
   const fixtureInputs = Object.freeze({
+    attestInternalVolume: new Set(['ownerApproved']),
     inspect: new Set(['ownerApproved', 'expected', 'capacity', 'progress']),
     restore: new Set(['ownerApproved', 'manifestPath', 'manifestSha256', 'expected', 'capacity', 'progress']),
     verify: new Set(['ownerApproved', 'manifestPath', 'manifestSha256', 'expected', 'progress']),
   });
 
+  const attestInternalVolume = Object.freeze(async (input = {}, ...extraArguments) => {
+    requireOwnerApprovalFirst(input, 'internal APFS attestation requires the explicit owner-approved gate');
+    if (extraArguments.length !== 0) fail('FIXTURE_OVERRIDE_REFUSED', 'fixture attestation accepts exactly one input object');
+    rejectFixtureCallOverrides(input, fixtureInputs.attestInternalVolume, 'attestInternalVolume');
+    revalidateFixtureLayout(rootBinding, paths);
+    return attestInternalApfsVolumeCore({
+      ownerApproved: input.ownerApproved,
+      anchorPath: paths.internalVolumeAnchor,
+      receiptRoot: paths.receiptRoot,
+      inspectIdentity: adapters.inspectInternalVolumeIdentity,
+      now: adapters.now,
+      beforeReceiptWrite: adapters.beforeAttestationReceiptWrite,
+    }, token);
+  });
   const inspect = Object.freeze(async (input = {}, ...extraArguments) => {
     requireOwnerApprovalFirst(input, 'inspection requires the explicit owner-approved gate');
     if (extraArguments.length !== 0) fail('FIXTURE_OVERRIDE_REFUSED', 'fixture inspect accepts exactly one input object');
@@ -2636,6 +2926,7 @@ export function createBackendDataRecoveryFixtureApi(options = {}, ...extraArgume
   }))));
   return Object.freeze({
     paths,
+    attestInternalVolume,
     inspect,
     restore,
     verify,
@@ -2655,6 +2946,18 @@ async function runProductionInspect(input, progress = null) {
     receiptRoot: RECEIPT_ROOT,
     adapters: createSystemAdapters(),
     progress,
+  }, PRODUCTION_EXECUTION_TOKEN);
+}
+
+async function runProductionAttestInternalVolume(input) {
+  requireOwnerApprovalFirst(input, 'internal APFS attestation requires the explicit owner-approved gate');
+  return attestInternalApfsVolumeCore({
+    ownerApproved: input.ownerApproved,
+    anchorPath: path.dirname(CANONICAL_TARGET),
+    receiptRoot: RECEIPT_ROOT,
+    inspectIdentity: inspectTargetIdentitySystem,
+    now: () => new Date(),
+    beforeReceiptWrite: () => {},
   }, PRODUCTION_EXECUTION_TOKEN);
 }
 
@@ -2700,6 +3003,13 @@ export async function inspectRecovery(options = {}, ...extraArguments) {
   if (extraArguments.length !== 0) fail('PRODUCTION_OVERRIDE_REFUSED', 'inspect accepts exactly one production input object');
   rejectProductionOverrides(options, 'inspect');
   return runProductionInspect(options);
+}
+
+export async function attestInternalApfsVolume(options = {}, ...extraArguments) {
+  requireOwnerApprovalFirst(options, 'internal APFS attestation requires the explicit owner-approved gate');
+  if (extraArguments.length !== 0) fail('PRODUCTION_OVERRIDE_REFUSED', 'internal APFS attestation accepts exactly one production input object');
+  rejectProductionOverrides(options, 'attestInternalVolume');
+  return runProductionAttestInternalVolume(options);
 }
 
 export async function restoreRecovery(options = {}, ...extraArguments) {
@@ -2764,6 +3074,7 @@ function parseCli(argv) {
 function printHelp() {
   process.stdout.write([
     'Usage:',
+    '  backend-data-recovery.mjs attest-internal-volume --owner-approved [--json]',
     '  backend-data-recovery.mjs inspect --source-repo <mounted-backup-repo> --owner-approved [--json]',
     '  backend-data-recovery.mjs restore --source-repo <mounted-backup-repo> --manifest <file> --manifest-sha256 <sha256> --owner-approved [--json]',
     '  backend-data-recovery.mjs verify --manifest <file> --manifest-sha256 <sha256> --owner-approved [--json]',
@@ -2832,7 +3143,12 @@ async function main(argv = process.argv.slice(2)) {
     ? null
     : (event) => process.stderr.write(`BACKEND_DATA_RECOVERY_PROGRESS ${JSON.stringify(event)}\n`);
   let result;
-  if (parsed.action === 'inspect') {
+  if (parsed.action === 'attest-internal-volume') {
+    if (parsed.sourceRepo || parsed.manifestPath || parsed.manifestSha256) {
+      fail('CLI_USAGE', 'attest-internal-volume accepts no source or manifest arguments');
+    }
+    result = await runProductionAttestInternalVolume({ ownerApproved: parsed.ownerApproved });
+  } else if (parsed.action === 'inspect') {
     if (!parsed.sourceRepo) fail('CLI_USAGE', 'inspect requires --source-repo');
     result = await runProductionInspect({
       sourceRepo: parsed.sourceRepo,

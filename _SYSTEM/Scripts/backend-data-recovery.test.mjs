@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 
 import {
+  attestInternalApfsVolume as productionAttestInternalApfsVolume,
   assertRecoveryStateAllowsWriter as productionWriterBarrier,
   cliSummary,
   createBackendDataRecoveryFixtureApi,
@@ -141,7 +142,11 @@ function fixture() {
     validateOperationAcquisition: (value) => value,
     validateOperationRelease: (value) => value,
     inspectSourceIdentity: () => identity,
-    inspectTargetIdentity: () => targetIdentity,
+    inspectTargetIdentity: (targetPath) => Object.freeze({
+      ...targetIdentity,
+      inspectedPath: targetPath,
+      deviceId: String(fs.lstatSync(targetPath).dev),
+    }),
     copyTree: (source, destination) => fs.cpSync(source, destination, { recursive: true, preserveTimestamps: true }),
     swapTrees: (left, right) => {
       const temporary = `${left}.unit-swap`;
@@ -498,6 +503,178 @@ test('inspect owner approval is the first gate and the CLI requires --owner-appr
     assert.deepEqual(fs.readdirSync(root), [], 'CLI rejection must precede source or receipt access');
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('internal APFS attestation is owner-gated, override-closed, T7-free, and durably sealed', async () => {
+  let deniedGetterCalls = 0;
+  const denied = { ownerApproved: false };
+  for (const property of ['anchorPath', 'receiptRoot', 'adapters']) {
+    Object.defineProperty(denied, property, {
+      enumerable: true,
+      get() {
+        deniedGetterCalls += 1;
+        throw new Error(`owner gate touched ${property}`);
+      },
+    });
+  }
+  await assert.rejects(
+    productionAttestInternalApfsVolume(denied),
+    (error) => error.code === 'OWNER_APPROVAL_REQUIRED',
+  );
+  assert.equal(deniedGetterCalls, 0);
+
+  let overrideGetterCalls = 0;
+  const overridden = { ownerApproved: true };
+  Object.defineProperty(overridden, 'receiptRoot', {
+    enumerable: true,
+    get() {
+      overrideGetterCalls += 1;
+      return '/private/tmp/forbidden-attestation-root';
+    },
+  });
+  await assert.rejects(
+    productionAttestInternalApfsVolume(overridden),
+    (error) => error.code === 'PRODUCTION_OVERRIDE_REFUSED' && error.details.option === 'receiptRoot',
+  );
+  assert.equal(overrideGetterCalls, 0);
+  await assert.rejects(
+    productionAttestInternalApfsVolume({ ownerApproved: true }, { adapters: 'forbidden' }),
+    (error) => error.code === 'PRODUCTION_OVERRIDE_REFUSED',
+  );
+
+  const script = path.join(path.dirname(SWAP_HELPER_SOURCE_PATH), 'backend-data-recovery.mjs');
+  const cli = spawnSync(process.execPath, [script, 'attest-internal-volume', '--json'], { encoding: 'utf8' });
+  assert.equal(cli.status, 1);
+  assert.equal(JSON.parse(cli.stderr).code, 'OWNER_APPROVAL_REQUIRED');
+
+  const fx = fixture();
+  let sourceTouches = 0;
+  let targetTouches = 0;
+  try {
+    fs.mkdirSync(fx.receiptRoot, { recursive: true, mode: 0o700 });
+    fs.chmodSync(fx.receiptRoot, 0o700);
+    const api = fx.recoveryWith({
+      inspectSourceIdentity() {
+        sourceTouches += 1;
+        throw new Error('T7/source identity must not be inspected');
+      },
+      inspectTargetIdentity(anchor) {
+        targetTouches += 1;
+        assert.equal(anchor, path.dirname(fx.target));
+        return Object.freeze({
+          ...fx.targetIdentity,
+          inspectedPath: anchor,
+          deviceId: String(fs.lstatSync(anchor).dev),
+        });
+      },
+    });
+    const attestation = await api.attestInternalVolume({ ownerApproved: true });
+    assert.equal(sourceTouches, 0);
+    assert.equal(targetTouches, 1);
+    assert.equal(attestation.ok, true);
+    assert.match(path.basename(attestation.receiptPath), /^internal-volume-attestation-.+-[a-f0-9]{16}\.json$/u);
+    const bytes = fs.readFileSync(attestation.receiptPath);
+    assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), attestation.receiptSha256);
+    assert.equal(fs.lstatSync(attestation.receiptPath).mode & 0o777, 0o600);
+    const payload = JSON.parse(bytes.toString('utf8'));
+    assert.equal(payload.schema, 'yuri.backend-data-recovery.internal-apfs-attestation.v1');
+    assert.equal(payload.anchorPath, path.dirname(fx.target));
+    assert.equal(payload.expectedVolumeUuid, INTERNAL_APFS_EXPECTED_VOLUME_UUID);
+    assert.equal(payload.observedVolumeUuid, INTERNAL_APFS_EXPECTED_VOLUME_UUID);
+    assert.deepEqual(payload.scope, {
+      protectedBackendDataAccessed: false,
+      claudeProjectsAccessed: false,
+      t7Inspected: false,
+      physicalT7ConnectedAtSummary: null,
+      backendDataReadinessAttested: false,
+    });
+
+    fs.chmodSync(fx.receiptRoot, 0o755);
+    await assert.rejects(
+      api.attestInternalVolume({ ownerApproved: true }),
+      (error) => error.code === 'RECEIPT_ROOT_IDENTITY_MISMATCH',
+    );
+    fs.chmodSync(fx.receiptRoot, 0o700);
+    const wrongUuidApi = fx.recoveryWith({
+      inspectTargetIdentity(anchor) {
+        return Object.freeze({
+          ...fx.targetIdentity,
+          inspectedPath: anchor,
+          deviceId: String(fs.lstatSync(anchor).dev),
+          volumeUuid: '00000000-0000-0000-0000-000000000000',
+        });
+      },
+    });
+    await assert.rejects(
+      wrongUuidApi.attestInternalVolume({ ownerApproved: true }),
+      (error) => error.code === 'INTERNAL_TARGET_IDENTITY_MISMATCH',
+    );
+
+    const heldReceiptRoot = `${fx.receiptRoot}.held`;
+    const parentSwapApi = fx.recoveryWith({
+      beforeAttestationReceiptWrite() {
+        fs.renameSync(fx.receiptRoot, heldReceiptRoot);
+        fs.mkdirSync(fx.receiptRoot, { mode: 0o700 });
+      },
+    });
+    await assert.rejects(
+      parentSwapApi.attestInternalVolume({ ownerApproved: true }),
+      (error) => error.code === 'INTERNAL_VOLUME_ATTESTATION_WRITE_FAILED',
+    );
+    assert.deepEqual(
+      fs.readdirSync(fx.receiptRoot),
+      [],
+      'a replacement receipt directory must remain untouched after the identity mismatch',
+    );
+    assert.equal(
+      fs.readdirSync(heldReceiptRoot).filter((name) => name.startsWith('internal-volume-attestation-')).length,
+      1,
+      'the descriptor-bound original directory retains only the already-sealed receipt',
+    );
+  } finally {
+    fs.chmodSync(fx.receiptRoot, 0o700);
+    fs.rmSync(fx.root, { recursive: true, force: true });
+  }
+});
+
+test('internal APFS receipt writer isolates Python startup from hostile cwd and user import state', async () => {
+  const source = fs.readFileSync(path.join(path.dirname(SWAP_HELPER_SOURCE_PATH), 'backend-data-recovery.mjs'), 'utf8');
+  assert.equal(
+    source.includes("spawnRecoveryProcess('/usr/bin/python3', [\n    '-I',\n    '-S',\n    '-c',"),
+    true,
+    'the embedded descriptor writer must use isolated, no-site Python startup',
+  );
+  assert.match(source, /stdio: \['pipe', 'pipe', 'pipe'\],\n\s+cwd: '\/',/u);
+
+  const fx = fixture();
+  const originalCwd = process.cwd();
+  const hostileEnvironment = new Map([
+    ['PYTHONPATH', process.env.PYTHONPATH],
+    ['PYTHONHOME', process.env.PYTHONHOME],
+    ['PYTHONSTARTUP', process.env.PYTHONSTARTUP],
+    ['PYTHONUSERBASE', process.env.PYTHONUSERBASE],
+  ]);
+  try {
+    fs.mkdirSync(fx.receiptRoot, { recursive: true, mode: 0o700 });
+    fs.chmodSync(fx.receiptRoot, 0o700);
+    for (const moduleName of ['hashlib.py', 'json.py', 'sitecustomize.py', 'usercustomize.py']) {
+      fs.writeFileSync(path.join(fx.root, moduleName), `raise RuntimeError('loaded ${moduleName}')\n`);
+    }
+    process.env.PYTHONPATH = fx.root;
+    process.env.PYTHONHOME = fx.root;
+    process.env.PYTHONSTARTUP = path.join(fx.root, 'sitecustomize.py');
+    process.env.PYTHONUSERBASE = fx.root;
+    process.chdir(fx.root);
+    const attestation = await fx.recovery.attestInternalVolume({ ownerApproved: true });
+    assert.equal(attestation.ok, true);
+  } finally {
+    process.chdir(originalCwd);
+    for (const [key, value] of hostileEnvironment) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+    fs.rmSync(fx.root, { recursive: true, force: true });
   }
 });
 

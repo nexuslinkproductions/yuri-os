@@ -2628,8 +2628,8 @@
       "readByDefault": false,
       "protected": false,
       "storageRule": "The owner-gated full backend runtime-data recovery wrapper lives in _SYSTEM/Scripts/; non-secret manifests and receipts stay in ignored _SYSTEM/state/backend-volume/, and preserved old targets stay in ignored _SYSTEM/recovery/backend-db/.",
-      "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-data-recovery.test.mjs. Production inspect pins the read-only T7 recovery source and restore rechecks it, while both enforce internal APFS capacity and identity, preserve the old target, and require explicit owner approval; verification and runtime acceptance are T7-free.",
-      "notes": "Recovers the complete protected backend data tree through canonical-only APIs, a native dual-escrow operation lease, durable two-phase receipts, descriptor-relative atomic exchange, observation-based rollback, and source-time-only T7 provenance; it never deletes source, old target, failed target, or accesses Claude projects."
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-data-recovery.test.mjs. The owner-gated attest-internal-volume action seals a UUID-pinned, T7-free receipt from the non-protected backend parent; production inspect then pins the read-only T7 recovery source and restore rechecks both capacity and target identity before promotion.",
+      "notes": "Recovers the complete protected backend data tree through canonical-only APIs, a native dual-escrow operation lease, descriptor-relative durable internal-volume attestation, two-phase recovery receipts, descriptor-relative atomic exchange, observation-based rollback, and source-time-only T7 provenance; it never deletes source, old target, failed target, or accesses Claude projects."
     },
     {
       "path": "_SYSTEM/Scripts/backend-data-recovery.test.mjs",
@@ -2641,7 +2641,7 @@
       "protected": false,
       "storageRule": "Synthetic full-directory recovery fixtures live beside the wrapper in _SYSTEM/Scripts/ and use only private temporary trees.",
       "rebuildRule": "Run node --test _SYSTEM/Scripts/backend-data-recovery.test.mjs; no production mount, protected runtime, or external drive is accessed by the test.",
-      "notes": "Covers payload pinning, SQLite verification, capacity evidence, owner approval, writer quiescence, atomic promotion, old-target preservation, and independent post-restore verification."
+      "notes": "Covers payload pinning, SQLite verification, capacity evidence, owner approval, T7-free descriptor-relative internal-volume attestation (including a parent-swap attack), writer quiescence, atomic promotion, old-target preservation, and independent post-restore verification."
     },
     {
       "path": "_SYSTEM/Scripts/backend-data-swap.c",
