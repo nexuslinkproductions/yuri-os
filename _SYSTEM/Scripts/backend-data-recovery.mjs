@@ -348,6 +348,41 @@ function plistJson(xml) {
   }
 }
 
+export function normalizeBackupSourceMountEvidence(sourceRepo, dfRecord, mounted) {
+  const sourcePath = normalizeAbsolute(sourceRepo, 'source repository');
+  const expectedSourceRepoName = 'YURI-OS-MUSUBI';
+  const mountPoint = typeof dfRecord?.mountPoint === 'string'
+    ? path.resolve(dfRecord.mountPoint)
+    : '';
+  const sourceDevice = typeof dfRecord?.sourceDevice === 'string'
+    ? dfRecord.sourceDevice
+    : '';
+  if (!path.isAbsolute(mountPoint)
+      || mountPoint !== dfRecord?.mountPoint
+      || !sourceDevice.startsWith('/dev/')
+      || !sameUuid(mounted?.VolumeUUID, BACKUP_VOLUME_UUID)
+      || String(mounted?.FilesystemType || '').toLowerCase() !== 'apfs'
+      || mounted?.Writable !== false
+      || mounted?.WritableVolume !== false
+      || mounted?.MountPoint !== mountPoint
+      || mounted?.DeviceNode !== sourceDevice
+      || sourcePath !== path.join(mountPoint, expectedSourceRepoName)) {
+    fail('BACKUP_MOUNT_IDENTITY_MISMATCH', 'the recovery source is not coherently bound to the pinned read-only APFS backup volume', {
+      sourceDevice: sourceDevice || null,
+      sourcePath,
+      dfMountPoint: mountPoint || null,
+      diskutilMountPoint: mounted?.MountPoint ?? null,
+      diskutilDeviceNode: mounted?.DeviceNode ?? null,
+    });
+  }
+  return Object.freeze({
+    mountPoint,
+    volumeUuid: String(mounted.VolumeUUID).toUpperCase(),
+    filesystem: String(mounted.FilesystemType).toLowerCase(),
+    writable: false,
+  });
+}
+
 function inspectSourceIdentitySystem(sourceRepo) {
   const source = exactDirectory(sourceRepo, 'source repository');
   const expectedSourceRepoName = 'YURI-OS-MUSUBI';
@@ -363,17 +398,9 @@ function inspectSourceIdentitySystem(sourceRepo) {
     fail('T7_IDENTITY_MISMATCH', 'the connected T7 does not match the pinned host identity');
   }
 
-  const mounted = plistJson(command('/usr/sbin/diskutil', ['info', '-plist', source.path]));
-  if (!sameUuid(mounted.VolumeUUID, BACKUP_VOLUME_UUID)
-      || String(mounted.FilesystemType || '').toLowerCase() !== 'apfs'
-      || mounted.Writable !== false
-      || mounted.WritableVolume !== false
-      || typeof mounted.MountPoint !== 'string') {
-    fail('BACKUP_MOUNT_IDENTITY_MISMATCH', 'the recovery source is not the pinned read-only APFS backup volume');
-  }
-  if (source.path !== path.join(mounted.MountPoint, expectedSourceRepoName)) {
-    fail('SOURCE_REPO_REFUSED', 'source repository is not at the exact root of the pinned backup mount');
-  }
+  const sourceMount = parseRecoveryDfMountRecord(command('/bin/df', ['-P', source.path]));
+  const mounted = plistJson(command('/usr/sbin/diskutil', ['info', '-plist', sourceMount.mountPoint]));
+  const backup = normalizeBackupSourceMountEvidence(source.path, sourceMount, mounted);
 
   const imageInfo = plistJson(command('/usr/bin/hdiutil', ['info', '-plist']));
   const images = Array.isArray(imageInfo.images) ? imageInfo.images : [];
@@ -382,7 +409,7 @@ function inspectSourceIdentitySystem(sourceRepo) {
     fail('BACKUP_IMAGE_IDENTITY_MISMATCH', 'the exact backup image is not attached read-only');
   }
   const mountedEntity = (backupImage['system-entities'] || []).find(
-    (entity) => entity['mount-point'] === mounted.MountPoint,
+    (entity) => entity['mount-point'] === backup.mountPoint,
   );
   if (!mountedEntity) {
     fail('BACKUP_IMAGE_IDENTITY_MISMATCH', 'backup image mapping does not include the verified mountpoint');
@@ -397,10 +424,10 @@ function inspectSourceIdentitySystem(sourceRepo) {
     hostFilesystem: String(host.FilesystemType).toLowerCase(),
     imagePath: BACKUP_IMAGE_PATH,
     imageWritable: false,
-    backupMountPoint: mounted.MountPoint,
-    backupVolumeUuid: String(mounted.VolumeUUID).toUpperCase(),
-    backupFilesystem: String(mounted.FilesystemType).toLowerCase(),
-    backupWritable: false,
+    backupMountPoint: backup.mountPoint,
+    backupVolumeUuid: backup.volumeUuid,
+    backupFilesystem: backup.filesystem,
+    backupWritable: backup.writable,
     sourceRepo: source.path,
     retiredRuntimeImageObservedDetachedAtInspection: true,
   });

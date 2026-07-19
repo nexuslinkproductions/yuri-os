@@ -15,6 +15,7 @@ import {
   createSystemAdapters,
   enumerateTree,
   inspectRecovery as productionInspectRecovery,
+  normalizeBackupSourceMountEvidence,
   normalizeRecoveryTargetIdentity,
   RECOVERY_CHILD_ENVIRONMENT,
   restoreRecovery as productionRestoreRecovery,
@@ -281,6 +282,56 @@ test('recovery target identity consumes contradiction-closed APFS mount evidence
       candidate.label,
     );
   }
+});
+
+test('backup source identity resolves diskutil at the df mountpoint, not the nested repository path', () => {
+  const mountPoint = '/private/tmp/yuri-backup-readonly-fixture';
+  const sourceRepo = path.join(mountPoint, 'YURI-OS-MUSUBI');
+  const dfRecord = Object.freeze({
+    sourceDevice: '/dev/disk5s1',
+    mountPoint,
+  });
+  const mounted = Object.freeze({
+    DeviceNode: '/dev/disk5s1',
+    FilesystemType: 'apfs',
+    MountPoint: mountPoint,
+    VolumeUUID: '68F64A84-0F8D-4F86-A4BB-821AFA93F835',
+    Writable: false,
+    WritableVolume: false,
+  });
+  assert.deepEqual(
+    normalizeBackupSourceMountEvidence(sourceRepo, dfRecord, mounted),
+    {
+      mountPoint,
+      volumeUuid: '68F64A84-0F8D-4F86-A4BB-821AFA93F835',
+      filesystem: 'apfs',
+      writable: false,
+    },
+  );
+
+  for (const [label, candidate] of [
+    ['nested diskutil mountpoint', { ...mounted, MountPoint: sourceRepo }],
+    ['df/diskutil device mismatch', { ...mounted, DeviceNode: '/dev/disk9s1' }],
+    ['writable source', { ...mounted, Writable: true, WritableVolume: true }],
+  ]) {
+    assert.throws(
+      () => normalizeBackupSourceMountEvidence(sourceRepo, dfRecord, candidate),
+      (error) => error?.code === 'BACKUP_MOUNT_IDENTITY_MISMATCH',
+      label,
+    );
+  }
+
+  const source = fs.readFileSync(path.join(path.dirname(SWAP_HELPER_SOURCE_PATH), 'backend-data-recovery.mjs'), 'utf8');
+  assert.match(
+    source,
+    /diskutil', \['info', '-plist', sourceMount\.mountPoint\]/u,
+    'production must ask diskutil about the df-derived mountpoint',
+  );
+  assert.doesNotMatch(
+    source,
+    /diskutil', \['info', '-plist', source\.path\]/u,
+    'production must never pass the nested source repository to diskutil',
+  );
 });
 
 test('Darwin swap helper boundary: full-sync positive + dev/ino/path/argc/symlink negatives (hermetic)', {
