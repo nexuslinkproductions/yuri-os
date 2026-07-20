@@ -90,7 +90,7 @@ function stalledDelegateProcess() {
 test('canonical registry validates hashes, roles, and dependency closure', () => {
   const registry = loadRegistry();
   const result = validateRegistry(registry);
-  assert.deepEqual(result, { ok: true, hooks: 2, hashedPaths: 8 });
+  assert.deepEqual(result, { ok: true, hooks: 3, hashedPaths: 25 });
   assert.deepEqual(registry.providerMergeContracts['claude-code'].settingsSources, [
     '.claude/settings.json',
     '.claude/settings.local.json',

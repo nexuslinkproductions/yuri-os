@@ -323,6 +323,35 @@ test('ζ staleness: config halfLifeDays sets the aging rate; default (live confi
   }
 });
 
+test('ζ staleness remains engaged when the canonical config is absent or only partially materialized', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'zeta-sparse-'));
+  const missingConfig = path.join(dir, 'not-materialized.json');
+  const previousStateDir = process.env.YURI_STATE_DIR;
+  process.env.YURI_STATE_DIR = dir;
+  try {
+    const prev = {
+      ...freshState(),
+      verifiedEvidenceCount: 1,
+      evidence: [{ base: 1, age: 0, capturedAt: '2026-06-03T00:00:00.000Z' }],
+    };
+    tickAndTrace(prev, bashOk, {
+      nowIso: '2026-06-10T00:00:00.000Z',
+      configFile: missingConfig,
+    });
+    const traceDir = path.join(dir, 'energy-trace');
+    const file = fs.readdirSync(traceDir).find((name) => name.endsWith('.jsonl'));
+    const record = JSON.parse(fs.readFileSync(path.join(traceDir, file), 'utf8').trim());
+    assert.ok(
+      record.componentContributions.staleness > 0,
+      `sparse/absent config must retain real-age ζ via the in-code 30-day default, got ${record.componentContributions.staleness}`,
+    );
+  } finally {
+    if (previousStateDir === undefined) delete process.env.YURI_STATE_DIR;
+    else process.env.YURI_STATE_DIR = previousStateDir;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('WIRE — 3 consecutive claimGateFields failures trip gateErrorVeto (bounded fail-open); SKIP ticks neither reset nor extend', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cff7c-'));
   const prevDir = process.env.YURI_STATE_DIR;

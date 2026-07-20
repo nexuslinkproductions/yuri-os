@@ -7,7 +7,13 @@
  * inventing lane truth.
  */
 
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
+
+const PROVIDER_ROUTE_REGISTRY_PATH = '_SYSTEM/config/provider-route-registry.json';
+const SOL_MOE_ROUTING_POLICY_PATH = '_SYSTEM/config/sol-moe-routing-policy.json';
+const PROVIDER_ROUTE_REGISTRY = loadCanonicalJson('../config/provider-route-registry.json');
+const SOL_MOE_ROUTING_POLICY = loadCanonicalJson('../config/sol-moe-routing-policy.json');
 
 const CLAUDE_DIR = '.claude';
 const CLAUDE_CREDENTIALS = [CLAUDE_DIR, '.credentials.json'].join('/');
@@ -46,17 +52,11 @@ export const PROTECTED_SURFACE_PREFIXES = Object.freeze([
 
 export const PROTECTED_SURFACE_LABELS = PROTECTED_SURFACE_PREFIXES;
 
-// Canonical role/credential/guard TRUST surface — semantically DISTINCT from
-// PROTECTED_SURFACE_PREFIXES. PROTECTED_SURFACE_PREFIXES is a UNIVERSAL read/write
-// block (data + secrets) enforced for everyone via isProtectedPath(). ROLE_TRUST_SURFACES
-// is a COWORKER-ONLY mutation block: the role resolver, the credential hash, and every
-// enforcement hook. The dev/owner role edits these freely (e.g. this guard-hardening work),
-// so they MUST NOT be folded into PROTECTED_SURFACE_PREFIXES or the owner could never edit a
-// hook again. Single-sourced here so bash-security-guard.js (PROTECTED_ROLE_PATHS) and
-// operator-write-guard.js (PROTECTED_ROLE_FILES/DIRS) stop maintaining divergent copies.
-// `files` = exact-path targets; `dirs` = directory prefixes (entry may not exist yet).
-// This is the UNION (fail-closed): operator-write-guard's list was already the superset, so
-// folding bash-security-guard onto it EXPANDS bash coverage from 4 -> the full surface.
+// Legacy role/credential/guard trust-surface inventory — semantically DISTINCT from
+// PROTECTED_SURFACE_PREFIXES. The coworker role guards that once consumed this export are
+// retired; the frozen shape remains for compatibility and hardening tests. Keep its path
+// inventory aligned with canonical YURI sources so it cannot advertise retired provider
+// hooks as the active energy seam.
 export const ROLE_TRUST_SURFACES = Object.freeze({
   files: Object.freeze([
     // trust roots — role resolver + credential hash + this kernel itself.
@@ -73,12 +73,10 @@ export const ROLE_TRUST_SURFACES = Object.freeze({
     '.claude/hooks/claude-protocol-guard.mjs',
     '.claude/hooks/agent-spawn-guard.js',
     '.claude/hooks/url-safety-guard.js',
-    // B3 (peer red-team catch): the energy gate's own enforcement code — PEP + tick. A coworker
-    // could Edit these to neuter the breaker (the rm vector is already caught by the blanket
-    // .claude destructive-op rule, but the Edit-tool vector was open). Same enforcement class as
-    // the guards above, so they belong in the trust surface; dev/owner edits freely.
+    // Historical enforcement inventory. The energy tick now enters through the
+    // repository-owned adapter; provider-local hook bodies remain retired.
     '.claude/hooks/energy-enforce.mjs',
-    '.claude/hooks/energy-tick.mjs',
+    '_SYSTEM/Scripts/energy-tick-adapter.mjs',
     // wave-3 G.1 (D-G1): the hook REGISTRY itself — a coworker editing settings.json
     // can delete every guard registration above, so the registry is a trust root too.
     '.claude/settings.json',
@@ -163,6 +161,70 @@ const FULL_ADVISORY_TOOLS = Object.freeze({
   edit: true,
 });
 
+export function resolveAdmittedCheapWorkerBinding(
+  providerRegistry = PROVIDER_ROUTE_REGISTRY,
+  routingPolicy = SOL_MOE_ROUTING_POLICY,
+) {
+  const worker = providerRegistry?.roleTopology?.worker;
+  const preferredModels = Array.isArray(worker?.preferredModels) ? worker.preferredModels : [];
+  const cheapModels = new Set(
+    (Array.isArray(routingPolicy?.experts) ? routingPolicy.experts : [])
+      .filter((expert) => expert?.tier === 'cheap' && typeof expert.model === 'string')
+      .map((expert) => expert.model),
+  );
+  const excludedModels = new Set(
+    (Array.isArray(providerRegistry?.excludedModels) ? providerRegistry.excludedModels : [])
+      .map((entry) => entry?.model)
+      .filter(Boolean),
+  );
+
+  if (providerRegistry?.schemaVersion !== 'yuri-provider-route-v1'
+    || routingPolicy?.providerRouteRegistry?.path !== PROVIDER_ROUTE_REGISTRY_PATH
+    || routingPolicy?.providerRouteRegistry?.unresolvedRoutesAreBlocked !== true
+    || worker?.mayExecuteWorkerTasks !== true
+    || worker?.maySpawn !== false) {
+    throw new TypeError('canonical Worker route contracts are missing or unsafe');
+  }
+
+  for (const model of preferredModels) {
+    if (!cheapModels.has(model) || excludedModels.has(model)) continue;
+    const identity = providerRegistry?.modelIdentities?.[model];
+    if (!identity || !String(identity.role || '').endsWith('worker')) continue;
+    const route = (Array.isArray(identity.routes) ? identity.routes : []).find((candidate) => (
+      candidate?.status === 'canary-proven'
+      && candidate.model === model
+      && typeof candidate.id === 'string'
+      && candidate.id.length > 0
+      && typeof candidate.agentId === 'string'
+      && candidate.agentId.length > 0
+      && typeof candidate.surface === 'string'
+      && candidate.surface.length > 0
+    ));
+    if (!route) continue;
+
+    return {
+      role: 'worker',
+      use: 'evidence-preflight',
+      tier: 'cheap',
+      model,
+      routeId: route.id,
+      agentId: route.agentId,
+      surface: route.surface,
+      status: route.status,
+      mayExecuteWorkerTasks: worker.mayExecuteWorkerTasks,
+      maySpawn: worker.maySpawn,
+      registryPath: PROVIDER_ROUTE_REGISTRY_PATH,
+      policyPath: SOL_MOE_ROUTING_POLICY_PATH,
+    };
+  }
+
+  throw new Error('no admitted canary-proven cheap Worker route is available');
+}
+
+export const SUPERAUDIT_WORKER_PREFLIGHT_BINDING = Object.freeze(
+  resolveAdmittedCheapWorkerBinding(),
+);
+
 export const LANE_KERNEL = Object.freeze({
   codex: {
     id: 'codex',
@@ -197,9 +259,9 @@ export const LANE_KERNEL = Object.freeze({
     role: 'co-main-coding-architect',
     reasoning: 'max',
     contextTier: 'million',
-    wakeModel: 'claude-haiku-4-5',
+    preflightBinding: SUPERAUDIT_WORKER_PREFLIGHT_BINDING,
     dispatchArgs: ['@claude-opus-comain'],
-    assignment: 'Wake Claude with Haiku, continue Opus 4.7 max-reasoning co-main session, draft or apply scoped code/tests/docs. Codex must independently verify every Opus change before trust.',
+    assignment: 'Run the registry-backed cheap Worker evidence preflight, then continue the exact Opus 4.7 max-reasoning co-main session for scoped code/tests/docs. Codex must independently verify every Opus change before trust.',
     tools: { ...BASE_FORBIDDEN_TOOLS, read: true, search: true, browser: false, gitnexus: false, shell: true, edit: true },
   },
   mimo: {
@@ -277,11 +339,20 @@ export function buildSuperauditDeployment() {
       'safe-telemetry-preflight',
       'deepseek-gate-1-synthesis',
       'codex-updates-deployment-packet',
-      'claude-haiku-wake',
+      'registry-cheap-worker-evidence-preflight',
       'claude-opus-comain',
       'parallel-advisory-fanout',
       'codex-synthesis-local-verification-and-opus-double-check',
     ],
     members,
+    preflightBindings: [SUPERAUDIT_WORKER_PREFLIGHT_BINDING],
   };
+}
+
+function loadCanonicalJson(relativePath) {
+  try {
+    return JSON.parse(readFileSync(new URL(relativePath, import.meta.url), 'utf8'));
+  } catch (error) {
+    throw new Error(`failed to load canonical lane dependency ${relativePath}`, { cause: error });
+  }
 }

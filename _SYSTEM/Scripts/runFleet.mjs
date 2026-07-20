@@ -60,6 +60,21 @@ function collectSidecarLeaves(plan) {
   return leaves;
 }
 
+/**
+ * Return only sidecar leaves with explicit terminal success.
+ *
+ * A parsed result object, a label, or a zero process exit is not completion
+ * truth on its own.  Failed, missing, and result-shaped packets must remain in
+ * the company fallback set so runCompany can dispatch them through runSwarm.
+ */
+export function successfulSidecarLeafIds(results = []) {
+  if (!Array.isArray(results)) return [];
+  return results
+    .filter((result) => result?.ok === true)
+    .map((result) => result?.label)
+    .filter(Boolean);
+}
+
 /** Write sidecar task JSON — primary .claude/jobs, fallback _SYSTEM/lane-output. */
 function writeSidecarTasksFile(runId, subdir, filename, payload) {
   const body = JSON.stringify(payload, null, 2);
@@ -352,7 +367,7 @@ export async function runFleet(task, opts = {}) {
       } catch {
         zaiSpawnResults = { ok: false, rawStdout: zaiStdout.slice(0, 500), stderr: zaiStderr.slice(0, 500) };
       }
-      zaiHandledLeafIds = (zaiSpawnResults?.results || []).map((r) => r.label).filter(Boolean);
+      zaiHandledLeafIds = successfulSidecarLeafIds(zaiSpawnResults?.results);
       zaiSidecar.armed = true;
       zaiSidecar.spawned = true;
       zaiSidecar.spawnExitCode = zaiExitCode;
@@ -388,7 +403,7 @@ export async function runFleet(task, opts = {}) {
         } catch {
           ollamaSpawnResults = { ok: false, rawStdout: ollamaStdout.slice(0, 500), stderr: ollamaStderr.slice(0, 500) };
         }
-        ollamaHandledLeafIds = (ollamaSpawnResults?.results || []).map((r) => r.label).filter(Boolean);
+        ollamaHandledLeafIds = successfulSidecarLeafIds(ollamaSpawnResults?.results);
         ollamaSidecar.armed = true;
         ollamaSidecar.spawned = true;
         ollamaSidecar.spawnExitCode = ollamaExitCode;

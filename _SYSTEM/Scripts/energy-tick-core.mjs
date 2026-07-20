@@ -1,23 +1,23 @@
 #!/usr/bin/env node
 /**
- * energy-tick core — turns LIVE Claude Code session transitions into real ΔU.
+ * energy-tick core — turns harness PostToolUse transitions into real ΔU.
  *
  * The everyday-workflow ΔU source that replaces the retired legacy dispatch
  * surfaces (offload/shintai/codex-final-pass). A PostToolUse hook feeds genuine
  * transitions here; this builds a real before/after control-plane state pair and
  * lets the energy gate measure descent (healthy work) vs ascent (failed
- * verification, protected-path violation). See
- * `_SYSTEM/docs/energy-landscape-integration-audit.md`.
+ * verification, protected-path violation). Operational contract:
+ * `_SYSTEM/docs/energy-gate-runbook.md`.
  *
- * Step 1 (observability-first) wires the four highest-signal terms that today
- * never fire from real usage:
+ * The observability path wires the four highest-signal transition terms:
  *   iota  — verified-evidence credit on a successful Edit/Write/passing Bash (ΔU↓)
  *   gamma — logLoss calibration: a confidently-wrong (failed) action (ΔU↑)
  *   delta — brierScore calibration sibling of the same signal (ΔU↑)
  *   eta   — protected-path violation, weight 100 → gate REJECTS (ΔU≈100)
  *
- * Staleness (zeta), claim-entropy (alpha), and informationGain (epsilon) land in
- * Step 1b. Pure functions here; the hook wrapper does stdin + snapshot I/O.
+ * Staleness (zeta), claim entropy/drift (alpha/beta/mu), information gain
+ * (epsilon), and Layer-C depth-gated surprise are also implemented. Pure
+ * functions stay here; the registered adapter owns bounded stdin and snapshot I/O.
  */
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -380,7 +380,7 @@ export function tickAndTrace(prevState, event, opts = {}) {
   // contributions but is ΔU-NEUTRAL for shared records; ΔU moves only when the
   // CAP slice drops an old record.
   const zHL = (fileCfg.staleness && Number.isFinite(fileCfg.staleness.halfLifeDays))
-    ? fileCfg.staleness.halfLifeDays : null;
+    ? fileCfg.staleness.halfLifeDays : DEFAULT_EVIDENCE_HALFLIFE_DAYS;
   const gateState = (s) => (zHL === null
     ? toGateState(s)
     : { ...toGateState(s), evidence: hydrateEvidence(s && s.evidence, nowMs, zHL) });

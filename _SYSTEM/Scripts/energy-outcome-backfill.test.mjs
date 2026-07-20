@@ -2,7 +2,7 @@
 // Hermetic — tmp dir for firings + shadow, stub signals inline. No live energy-trace reads, no live ledger writes.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, existsSync, statSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { runBackfill, loadSignalsOrStub, renderReport } from './energy-outcome-backfill.mjs';
@@ -12,6 +12,7 @@ const tmpRoot = mkdtempSync(join(tmpdir(), 'eob-test-'));
 const traceDir = join(tmpRoot, 'energy-trace');
 const shadowFile = join(tmpRoot, 'shadow.jsonl');
 const reportPath = join(tmpRoot, 'L4-backfill-report.md');
+const armedTrace = join(tmpRoot, 'absent-armed-trace.jsonl');
 
 function mkFiring(over = {}) {
   return {
@@ -64,6 +65,7 @@ test('runBackfill: --fresh truncates shadow, missing signals → all R4, meanBri
     firings: traceDir,
     report: reportPath,
     signals: join(tmpRoot, 'does-not-exist.mjs'),
+    armedTrace,
   });
   assert.equal(r.signalsSource, 'stub-missing');
   assert.equal(r.runSummary.firings, 2);
@@ -109,6 +111,7 @@ test('runBackfill: real signals → R1/R3 derived, meanBrier populated, byRule h
     firings: t2,
     report: join(tmpRoot, 'report2.md'),
     signals: sigPath,
+    armedTrace,
   });
   assert.equal(r.signalsSource, 'signals-module');
   assert.equal(r.runSummary.predicted, 3);
@@ -144,6 +147,7 @@ test('runBackfill: without --fresh, prior shadow rows are preserved (append sema
     shadow: s3, firings: t3,
     report: join(tmpRoot, 'report3.md'),
     signals: join(tmpRoot, 'does-not-exist.mjs'),
+    armedTrace,
   });
   // We added 1 prediction. Prior prediction is now "unresolved" (no matching outcome).
   assert.equal(r.runSummary.predicted, 1);
@@ -190,5 +194,8 @@ test('DISARMED contract: runBackfill does not touch _SYSTEM/state/prediction-led
     'live prediction-ledger.jsonl must be DISARMED/never-written (not a default file path)');
 });
 
-// ── cleanup ──────────────────────────────────────────────────────────────────
-test('cleanup', () => { try { rmSync(tmpRoot, { recursive: true, force: true }); } catch {} });
+// Preserve the disposable fixture for forensic inspection; this suite never deletes data.
+test('fixture is isolated under the OS temp root', () => {
+  assert.ok(tmpRoot.startsWith(tmpdir()));
+  assert.ok(!tmpRoot.includes('_SYSTEM/state'));
+});

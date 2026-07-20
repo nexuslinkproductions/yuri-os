@@ -17,6 +17,8 @@ test('energy-weights.json matches the in-code defaults (no silent drift)', () =>
   assert.deepEqual(file.salience, { ...DEFAULT_SALIENCE }, 'file.salience drifted from DEFAULT_SALIENCE');
   assert.equal(file.threshold, 0, 'file.threshold should be the default 0');
   assert.equal(file.evict.ttlDays, 90, 'file.evict.ttlDays should be the default 90');
+  assert.equal(file.weights.mu / file.weights.beta, 0.25, 'mu must remain the documented 0.25*beta default');
+  assert.equal(DEFAULT_WEIGHTS.mu / DEFAULT_WEIGHTS.beta, 0.25, 'in-code mu/beta ratio drifted');
 });
 
 // Same no-silent-drift invariant for the subconscious-loop knobs (L7). fsrs/recall are merged

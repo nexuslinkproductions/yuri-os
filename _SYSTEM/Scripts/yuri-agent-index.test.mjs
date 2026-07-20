@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { existsSync, lstatSync, readFileSync } from 'node:fs';
+import { existsSync, lstatSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 const REPO = process.cwd();
@@ -11,6 +11,9 @@ const agentIndex = readJson('.agents/agent-index.json');
 const skillIndex = readJson('skills/skill-index.json');
 const domainIndex = readJson('skills/domain-index.json');
 const projection = readJson('.agents/skills/.yuri-projection.json');
+const NATIVE_POLICY_MARKER = '# GENERATED:YURI-CODEX-SKILL-POLICY:v1';
+const NATIVE_POLICY_RELATIVE_PATH = 'agents/openai.yaml';
+const NATIVE_IMPLICIT_SKILL_ID = 'activate-yuri-skills';
 
 const skillIds = new Set(skillIndex.skills.map((skill) => skill.id));
 const projectionRoot = path.join(REPO, '.agents/skills');
@@ -32,6 +35,52 @@ assert.equal(projection.cyber.labgated.count, 39, 'lab-gated cybersecurity proje
 assert.equal(projection.skills.length, 464, 'governed Codex projection must be exact');
 assert.equal(new Set(projection.skills.map((skill) => skill.id)).size, projection.skills.length, 'projection IDs must be unique');
 assert.equal(projection.skills.every((skill) => skill.tracked === true && skill.durability === 'git-index'), true, 'all projected sources must be tracked');
+assert.deepEqual(projection.projection.nativeInvocation, {
+  sidecarRelativePath: NATIVE_POLICY_RELATIVE_PATH,
+  provenance: '_SYSTEM/Scripts/yuri-codex-skill-projector.mjs',
+  implicit: { count: 1, ids: [NATIVE_IMPLICIT_SKILL_ID] },
+  explicitOnly: { count: 463 },
+}, 'native invocation budget must keep exactly one eager YURI meta-router');
+
+for (const projected of projection.skills) {
+  const expectedImplicit = projected.id === NATIVE_IMPLICIT_SKILL_ID;
+  const expectedSidecarPath = `.agents/skills/${projected.id}/${NATIVE_POLICY_RELATIVE_PATH}`;
+  assert.equal(projected.nativeInvocation?.allowImplicitInvocation, expectedImplicit, `native invocation policy mismatch for ${projected.id}`);
+  assert.equal(projected.nativeInvocation?.sidecarPath, expectedSidecarPath, `native sidecar path mismatch for ${projected.id}`);
+  assert.equal(projected.nativeInvocation?.provenance?.generatedBy, '_SYSTEM/Scripts/yuri-codex-skill-projector.mjs');
+  assert.equal(projected.nativeInvocation?.provenance?.governedSkillId, projected.id);
+  assert.equal(projected.nativeInvocation?.provenance?.policyClass, expectedImplicit ? 'implicit-meta-router' : 'explicit-only');
+  if (projected.sourceClass === 'labgated') {
+    assert.equal(projected.nativeInvocation.allowImplicitInvocation, false, `lab-gated skill must remain explicit-only: ${projected.id}`);
+  }
+
+  const adapterDirectory = path.join(projectionRoot, projected.id);
+  const adapterPath = path.join(adapterDirectory, 'SKILL.md');
+  const sidecarDirectory = path.join(adapterDirectory, 'agents');
+  const sidecarPath = path.join(sidecarDirectory, 'openai.yaml');
+  for (const [label, target] of [['adapter', adapterPath], ['native policy', sidecarPath]]) {
+    assert.equal(existsSync(target), true, `${label} is missing for ${projected.id}`);
+    const stat = lstatSync(target);
+    assert.equal(stat.isFile(), true, `${label} must be a regular file: ${projected.id}`);
+    assert.equal(stat.isSymbolicLink(), false, `${label} must not be a symlink: ${projected.id}`);
+  }
+  const sidecarDirectoryStat = lstatSync(sidecarDirectory);
+  assert.equal(sidecarDirectoryStat.isDirectory(), true, `native policy parent must be a directory: ${projected.id}`);
+  assert.equal(sidecarDirectoryStat.isSymbolicLink(), false, `native policy parent must not be a symlink: ${projected.id}`);
+  assert.deepEqual(readdirSync(sidecarDirectory), ['openai.yaml'], `native policy directory must remain policy-only: ${projected.id}`);
+
+  const sidecar = readFileSync(sidecarPath, 'utf8');
+  assert.equal(
+    sidecar,
+    `${NATIVE_POLICY_MARKER}\npolicy:\n  allow_implicit_invocation: ${expectedImplicit ? 'true' : 'false'}\n`,
+    `native policy must remain minimal and deterministic: ${projected.id}`,
+  );
+  assert.equal(
+    createHash('sha256').update(sidecar).digest('hex'),
+    projected.nativeInvocation.sidecarSha256,
+    `native policy hash mismatch for ${projected.id}`,
+  );
+}
 
 for (const skill of skillIndex.skills) {
   assert.match(skill.id, /^(?!.*--)[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/, `bad skill id: ${skill.id}`);

@@ -285,6 +285,24 @@
       "loadRule": "Use for NEXUS CORE / math substrate, graph algorithms, deterministic matching, transfer-distance, logarithmic scoring, formula banks, visual proofs, and EML research. External math engines remain advisory unless verified and promoted."
     },
     {
+      "id": "energy-operations",
+      "label": "Energy Gate Operational Context",
+      "triggers": ["energy gate", "energy tick", "energy observability", "energy health", "energy weights", "posttooluse energy", "delta-u runtime", "yuri.energy.tick", "energy breaker", "energy activation", "energy rollback"],
+      "paths": [
+        "_SYSTEM/docs/energy-gate-runbook.md",
+        "_SYSTEM/config/yuri-hook-registry.json",
+        "_SYSTEM/SELF/energy-weights.json",
+        "_SYSTEM/Scripts/energy-tick-adapter.mjs",
+        "_SYSTEM/Scripts/energy-tick-core.mjs",
+        "_SYSTEM/Scripts/energy-breaker.mjs",
+        "_SYSTEM/Scripts/energy-observability-health.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy-config.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy-trace.mjs"
+      ],
+      "loadRule": "Use for operational energy-gate wiring, health, provider activation boundaries, weights, rollback, filesystem safety, and adjacent-organ acceptance. Historical paper/design packets are not runtime authority."
+    },
+    {
       "id": "energy-landscape-paper",
       "label": "Energy-Landscape Methodology Paper Sprint Context",
       "triggers": ["paper", "energy-landscape", "lyapunov", "conservative-vector-field", "icm", "mwp", "jake", "van-clief", "yuri-energy", "scalar-potential", "promotion-paper", "methodology-paper", "section-1", "section-2", "section-3", "section-4", "section-5", "section-6"],

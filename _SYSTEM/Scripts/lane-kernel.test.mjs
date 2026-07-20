@@ -7,10 +7,12 @@ import {
   LANE_KERNEL,
   NEMO_STYLE_RAILS,
   ROLE_TRUST_SURFACES,
+  SUPERAUDIT_WORKER_PREFLIGHT_BINDING,
   SHINTAI_MEMORY_RAG_MEMBER_IDS,
   SHINTAI_REQUIRED_MEMBER_IDS,
   buildSuperauditDeployment,
   isProtectedPath,
+  resolveAdmittedCheapWorkerBinding,
   selectMemoryRagMemberIds,
 } from './lane-kernel.mjs';
 
@@ -29,6 +31,9 @@ test('lane kernel exposes the consolidated Shintai deployment without Spark', ()
   assert.equal(deployment.authority.finalDecision, 'codex-main-after-independent-verification');
   assert.equal(deployment.authority.advisoryOnly.includes('claude-opus-audit'), false);
   assert.deepEqual(SHINTAI_REQUIRED_MEMBER_IDS, ['codex', 'deepseek']);
+  assert.deepEqual(deployment.preflightBindings, [SUPERAUDIT_WORKER_PREFLIGHT_BINDING]);
+  assert.ok(deployment.sequence.includes('registry-cheap-worker-evidence-preflight'));
+  assert.doesNotMatch(JSON.stringify(deployment), /haiku/i);
 });
 
 test('Claude Opus is a bounded co-main lane, not audit-only, and remains failsafe-gated', () => {
@@ -38,13 +43,75 @@ test('Claude Opus is a bounded co-main lane, not audit-only, and remains failsaf
   assert.equal(opus.role, 'co-main-coding-architect');
   assert.equal(opus.reasoning, 'max');
   assert.deepEqual(opus.dispatchArgs, ['@claude-opus-comain']);
+  assert.equal(Object.hasOwn(opus, 'wakeModel'), false);
+  assert.equal(opus.preflightBinding, SUPERAUDIT_WORKER_PREFLIGHT_BINDING);
+  assert.equal(opus.preflightBinding.role, 'worker');
+  assert.equal(opus.preflightBinding.tier, 'cheap');
+  assert.equal(opus.preflightBinding.status, 'canary-proven');
   assert.match(opus.assignment, /Codex must independently verify/i);
+  assert.match(opus.assignment, /registry-backed cheap Worker evidence preflight/i);
+  assert.doesNotMatch(opus.assignment, /haiku/i);
   assert.equal(opus.tools.edit, true);
   assert.equal(opus.tools.shell, true);
   assert.equal(opus.tools.commit, false);
   assert.equal(opus.tools.push, false);
   assert.equal(opus.tools.protectedReads, false);
   assert.equal(opus.tools.protectedWrites, false);
+});
+
+test('superaudit preflight resolves the current admitted cheap Worker from canonical registries', () => {
+  assert.deepEqual(SUPERAUDIT_WORKER_PREFLIGHT_BINDING, {
+    role: 'worker',
+    use: 'evidence-preflight',
+    tier: 'cheap',
+    model: 'opencode-go/mimo-v2.5',
+    routeId: 'mimo-v2.5.opencode',
+    agentId: 'mure-artificer-mimo25',
+    surface: 'omp-native',
+    status: 'canary-proven',
+    mayExecuteWorkerTasks: true,
+    maySpawn: false,
+    registryPath: '_SYSTEM/config/provider-route-registry.json',
+    policyPath: '_SYSTEM/config/sol-moe-routing-policy.json',
+  });
+  assert.ok(Object.isFrozen(SUPERAUDIT_WORKER_PREFLIGHT_BINDING));
+});
+
+test('cheap Worker resolution fails closed instead of reviving an excluded or unproven route', () => {
+  const registry = {
+    schemaVersion: 'yuri-provider-route-v1',
+    modelIdentities: {
+      'retired/example': {
+        routes: [{
+          id: 'retired.example',
+          model: 'retired/example',
+          agentId: 'retired-agent',
+          surface: 'omp-native',
+          status: 'owner-excluded',
+        }],
+      },
+    },
+    roleTopology: {
+      worker: {
+        preferredModels: ['retired/example'],
+        mayExecuteWorkerTasks: true,
+        maySpawn: false,
+      },
+    },
+    excludedModels: [{ model: 'retired/example' }],
+  };
+  const policy = {
+    providerRouteRegistry: {
+      path: '_SYSTEM/config/provider-route-registry.json',
+      unresolvedRoutesAreBlocked: true,
+    },
+    experts: [{ model: 'retired/example', tier: 'cheap' }],
+  };
+
+  assert.throws(
+    () => resolveAdmittedCheapWorkerBinding(registry, policy),
+    /no admitted canary-proven cheap Worker route/i,
+  );
 });
 
 test('DeepSeek Shintai lane routes through direct paid API with no NVIDIA fallback', () => {
@@ -142,6 +209,8 @@ test('ROLE_TRUST_SURFACES is a valid non-empty frozen trust surface', () => {
   assert.ok(Array.isArray(ROLE_TRUST_SURFACES.dirs) && ROLE_TRUST_SURFACES.dirs.length >= 1);
   assert.ok(ROLE_TRUST_SURFACES.files.includes('_SYSTEM/SELF/dev-credential.json'));
   assert.ok(ROLE_TRUST_SURFACES.files.includes('.claude/hooks/bash-security-guard.js'));
+  assert.ok(ROLE_TRUST_SURFACES.files.includes('_SYSTEM/Scripts/energy-tick-adapter.mjs'));
+  assert.ok(!ROLE_TRUST_SURFACES.files.includes('.claude/hooks/energy-tick.mjs'));
   assert.ok(ROLE_TRUST_SURFACES.dirs.includes('.claude/hooks/operator-guard'));
 });
 

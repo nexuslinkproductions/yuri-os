@@ -112,12 +112,32 @@ const allowedMatches = new Map([
     new Set(['root backend path without _SYSTEM']),
   ],
   [
-    '_SYSTEM/Scripts/backend-db-recovery.mjs',
+    '_SYSTEM/Scripts/backend-data-recovery.mjs',
     new Set(['root backend path without _SYSTEM']),
   ],
   [
     '_SYSTEM/Scripts/embed-backfill.mjs',
     new Set(['root backend path without _SYSTEM']),
+  ],
+  [
+    '_SYSTEM/Scripts/backend-data-recovery.test.mjs',
+    new Set(['hardcoded absolute repo root']),
+  ],
+  [
+    '_SYSTEM/Scripts/backend-storage-guard.test.mjs',
+    new Set(['hardcoded absolute repo root', 'root backend path without _SYSTEM']),
+  ],
+  [
+    '_SYSTEM/Scripts/backend-storage-guard-legacy-v1-fixture.test.mjs',
+    new Set(['hardcoded absolute repo root']),
+  ],
+  [
+    '_SYSTEM/Scripts/backend-volume-apfs.test.mjs',
+    new Set(['root backend path without _SYSTEM']),
+  ],
+  [
+    '_SYSTEM/Scripts/yuri-session-launchd.test.mjs',
+    new Set(['hardcoded absolute repo root']),
   ],
 ]);
 

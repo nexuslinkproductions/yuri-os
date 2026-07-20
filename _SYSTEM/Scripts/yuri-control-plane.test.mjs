@@ -19,6 +19,24 @@ test('Gate 0 loads required control-plane evidence before Shintai dispatch', () 
   for (const requiredId of ['yuri-memory-index', 'extraction-sprint-template']) {
     assert.ok(gate.loaded.some((entry) => entry.id === requiredId), `${requiredId} should load`);
   }
+  for (const registryId of ['provider-route-registry', 'sol-moe-routing-policy']) {
+    assert.ok(gate.loaded.some((entry) => entry.id === registryId), `${registryId} should load`);
+    assert.ok(gate.constraints.requiredCoreIds.includes(registryId), `${registryId} should be required`);
+  }
+  assert.deepEqual(gate.constraints.superauditPreflightBindings, [{
+    role: 'worker',
+    use: 'evidence-preflight',
+    tier: 'cheap',
+    model: 'opencode-go/mimo-v2.5',
+    routeId: 'mimo-v2.5.opencode',
+    agentId: 'mure-artificer-mimo25',
+    surface: 'omp-native',
+    status: 'canary-proven',
+    mayExecuteWorkerTasks: true,
+    maySpawn: false,
+    registryPath: '_SYSTEM/config/provider-route-registry.json',
+    policyPath: '_SYSTEM/config/sol-moe-routing-policy.json',
+  }]);
   assert.equal(gate.constraints.taskTierHint, 'critical');
   // NIM lanes were retired in the Mimo migration: ACTIVE_NIM_LANES is now empty and the dead set
   // carries the retired NVIDIA/Kimi reasoning lanes (nemotron-3-ultra-550b-a55b, kimi-k2.6).
@@ -113,6 +131,8 @@ test('control-plane constraint block carries current authority and lane policy',
   assert.match(block, /dead_nim=.*nemotron-3-ultra-550b-a55b/);
   assert.match(block, /dead_nim=.*kimi-k2\.6/);
   assert.match(block, /no DeepSeek CLI --tools forcing/);
+  assert.match(block, /worker_preflight=.*mimo-v2\.5\.opencode/);
+  assert.doesNotMatch(block, /haiku/i);
   assert.doesNotMatch(block, /codex-spark default/i);
 });
 

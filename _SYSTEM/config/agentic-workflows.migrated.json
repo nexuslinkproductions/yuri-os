@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "description": "Canonical registry of prepared, reusable MURE agentic production workflows. Each workflow is a named pipeline of MURE role-stages with deterministic gates. Registered + indexed so ceo.mjs/company.mjs can invoke a prepared pipeline by name. Grows as a compounding quality framework. Do not edit stage roles to ids absent from _SYSTEM/config/fleet-roles.json.",
+  "workflows": [
+    {
+      "id": "standard-production-pipeline",
+      "name": "Standard Agentic Production Pipeline",
+      "description": "Owner prompt -> recon -> plan/design -> production (code + deterministic test feedback) -> verification -> preview -> ship. TDD red-green-refactor with deterministic gates; owner-gated at preview and ship.",
+      "trigger": "owner-prompt",
+      "tags": [
+        "production",
+        "tdd",
+        "recon-plan-build-ship",
+        "default"
+      ],
+      "indexed": true,
+      "feedbackGate": {
+        "type": "deterministic",
+        "loop": "red-green-refactor",
+        "maxCycles": 4,
+        "passCondition": "all-tests-green"
+      },
+      "stages": [
+        {
+          "stage": "recon",
+          "role": "scout",
+          "produces": "recon-report",
+          "gate": "recon-complete",
+          "autonomy": "self-governable",
+          "id": "recon"
+        },
+        {
+          "stage": "plan",
+          "role": "architect",
+          "consumes": "recon-report",
+          "produces": "design-plan",
+          "gate": "plan-ready",
+          "autonomy": "self-governable",
+          "id": "plan",
+          "dependsOn": [
+            "recon"
+          ]
+        },
+        {
+          "stage": "production",
+          "role": "engineer",
+          "consumes": "design-plan",
+          "produces": "implementation",
+          "gate": "tests-green",
+          "feedback": "deterministic-test-loop",
+          "autonomy": "self-governable",
+          "id": "production",
+          "dependsOn": [
+            "plan"
+          ]
+        },
+        {
+          "stage": "verification",
+          "role": "oracle",
+          "consumes": "implementation",
+          "produces": "verdict",
+          "gate": "adversarial-pass",
+          "autonomy": "self-governable",
+          "id": "verification",
+          "dependsOn": [
+            "production"
+          ],
+          "independentOf": [
+            "production"
+          ]
+        },
+        {
+          "stage": "preview",
+          "role": "chronicler",
+          "consumes": "verdict",
+          "produces": "owner-preview",
+          "gate": "owner-review",
+          "autonomy": "owner-gated",
+          "id": "preview",
+          "dependsOn": [
+            "verification"
+          ]
+        },
+        {
+          "stage": "ship",
+          "role": "steward",
+          "consumes": "owner-preview",
+          "produces": "shipped",
+          "gate": "owner-finalize",
+          "autonomy": "owner-gated",
+          "id": "ship",
+          "dependsOn": [
+            "preview"
+          ],
+          "independentOf": [
+            "preview"
+          ]
+        }
+      ]
+    }
+  ]
+}

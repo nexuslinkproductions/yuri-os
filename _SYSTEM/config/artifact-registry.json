@@ -2536,6 +2536,30 @@
       "notes": "Everyday-workflow \u0394U core: salience tiers (SKIP/WORK/CRITICAL) + Layer C depth-gated |\u0394U| surprise. Backed by the energy-tick PostToolUse hook."
     },
     {
+      "path": "_SYSTEM/docs/energy-gate-runbook.md",
+      "type": "doc",
+      "class": "system_control_plane",
+      "owner": "YURI energy observability",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Operational energy-gate documentation lives under _SYSTEM/docs and is routed by the energy-operations context packet.",
+      "rebuildRule": "Validate the context and artifact registries, then run the focused energy adapter, registry, health, core, and weights suites listed in this runbook.",
+      "notes": "Canonical operator procedure separating registration, provider projection, environment enablement, trace accrual, rollback, and adjacent-organ acceptance."
+    },
+    {
+      "path": "_SYSTEM/SELF/energy-weights.json",
+      "type": "config",
+      "class": "system_control_plane",
+      "owner": "YURI mathematical operating substrate",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Owner-tunable canonical energy, salience, staleness, FSRS, and recall defaults live in _SYSTEM/SELF and must remain a no-op mirror of in-code defaults until explicitly calibrated.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/energy-weights-drift.test.mjs plus the energy core and calibration suites.",
+      "notes": "Externalizes the live gate defaults, including beta=2 and mu=0.5; absent or partial materialization falls back to safe in-code defaults."
+    },
+    {
       "path": "_SYSTEM/Scripts/math/yuri-energy-config.mjs",
       "type": "script",
       "class": "system_control_plane",
@@ -3104,12 +3128,38 @@
       "type": "script",
       "class": "system_control_plane",
       "owner": "YURI energy observability",
+      "status": "retired",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Historical provider-specific hook path retained as provenance only; active implementations belong in the YURI-owned _SYSTEM registry and script surfaces.",
+      "rebuildRule": "Do not materialize or activate this retired path; verify the canonical replacement through the energy adapter and hook-registry suites.",
+      "supersededBy": "_SYSTEM/Scripts/energy-tick-adapter.mjs",
+      "notes": "Retired provider-specific PostToolUse wrapper. It must not regain execution authority or be restored under .claude/hooks/."
+    },
+    {
+      "path": "_SYSTEM/Scripts/energy-tick-adapter.mjs",
+      "type": "provider_adapter",
+      "class": "system_control_plane",
+      "owner": "YURI energy observability",
       "status": "active",
       "readByDefault": false,
       "protected": false,
-      "storageRule": "Claude PreToolUse/PostToolUse hooks live in .claude/hooks/.",
-      "rebuildRule": "node --check .claude/hooks/energy-tick.mjs",
-      "notes": "PostToolUse hook: collects everyday-workflow \u0394U via energy-tick-core. Governed in settings.json (owner-directed)."
+      "storageRule": "Repository-owned, provider-projected hook adapters live in _SYSTEM/Scripts and are governed by _SYSTEM/config/yuri-hook-registry.json.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/energy-tick-adapter.test.mjs _SYSTEM/Scripts/energy-hook-registry.test.mjs and validate the hook registry.",
+      "supersedes": ".claude/hooks/energy-tick.mjs",
+      "notes": "Optional PostToolUse adapter: disabled mode has zero I/O; enabled mode writes privacy-gated traces and bounded atomic snapshots, rejects symlinked state/snapshot paths, and always exits 0 at the CLI boundary."
+    },
+    {
+      "path": "_SYSTEM/Scripts/energy-tick-adapter.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI energy observability",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Energy adapter integration fixtures live beside the adapter in _SYSTEM/Scripts and write only disposable test state.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/energy-tick-adapter.test.mjs.",
+      "notes": "Covers disabled zero-I/O, malformed input, sanitized snapshot identity, trace emission, atomic replacement, recentSigned persistence, fail-soft write faults, and symlink poison paths."
     },
     {
       "path": "_SYSTEM/SELF/CONSENT.md",
@@ -3144,8 +3194,20 @@
       "readByDefault": false,
       "protected": false,
       "storageRule": "User-identity + control-plane substrate scripts live in _SYSTEM/Scripts/.",
-      "rebuildRule": "node --check _SYSTEM/Scripts/energy-observability-health.mjs",
-      "notes": "yuri-health liveness probe: confirms energy-tick \u0394U telemetry is wired (hook + core) and reports record accrual."
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/energy-observability-health.test.mjs and node _SYSTEM/Scripts/energy-observability-health.mjs.",
+      "notes": "Registry-derived liveness probe: reports canonical registration, hash-verified dependency closure, live provider activation, probe-environment enablement, and trace accrual as separate observed truths."
+    },
+    {
+      "path": "_SYSTEM/Scripts/energy-observability-health.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI energy observability",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Energy liveness fixtures live beside the health probe in _SYSTEM/Scripts and use disposable roots.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/energy-observability-health.test.mjs.",
+      "notes": "Prevents retired .claude/hooks files, content-hash drift, or predicted activation booleans from producing false-green health."
     },
     {
       "type": "script",
@@ -3590,6 +3652,18 @@
       "storageRule": "Universal hook registry and adapter regression fixtures live beside their implementation in _SYSTEM/Scripts/.",
       "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-hook-registry.test.mjs.",
       "notes": "Covers hashes, dependency closure, provider rendering, harness normalization, structured deny semantics, exit codes, sparse materialization, and stalled October delegation."
+    },
+    {
+      "path": "_SYSTEM/Scripts/energy-hook-registry.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI energy observability",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Focused energy-hook registry and lifecycle fixtures live beside the universal registry implementation in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/energy-hook-registry.test.mjs.",
+      "notes": "Proves PostToolUse ownership, optional activation truth, provider rendering, fail-soft exits, complete dependency closure, and retirement of the historical .claude/hooks path."
     },
     {
       "path": "_SYSTEM/Scripts/policy/yuri-safety-core.test.mjs",

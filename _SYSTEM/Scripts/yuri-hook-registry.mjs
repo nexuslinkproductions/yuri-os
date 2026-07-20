@@ -141,7 +141,7 @@ export function validateRegistry(registry = loadRegistry(), { checkHashes = true
     assert(typeof hook.hookId === 'string' && hook.hookId, 'hookId required');
     assert(!ids.has(hook.hookId), `duplicate hookId: ${hook.hookId}`);
     ids.add(hook.hookId);
-    assert(['PreToolUse', 'UserPromptSubmit'].includes(hook.logicalEvent), `${hook.hookId}: unsupported logical event`);
+    assert(['PreToolUse', 'UserPromptSubmit', 'PostToolUse'].includes(hook.logicalEvent), `${hook.hookId}: unsupported logical event`);
     assert(typeof hook.owner === 'string' && hook.owner, `${hook.hookId}: owner required`);
     assert(Number.isInteger(hook.version) && hook.version > 0, `${hook.hookId}: positive version required`);
     assert(typeof hook.coreEntrypoint === 'string' && hook.coreEntrypoint, `${hook.hookId}: coreEntrypoint required`);
@@ -200,9 +200,19 @@ export function validateRegistry(registry = loadRegistry(), { checkHashes = true
       assert(/1800 ms/u.test(hook.failMode), `${hook.hookId}: bounded internal deadline missing`);
       assert(hook.exitContract?.timeout === 0 && hook.exitContract?.delegateError === 0, `${hook.hookId}: context bridge must fail soft`);
     }
+    if (hook.logicalEvent === 'PostToolUse') {
+      assert(hook.providerActivationRequired === false, `${hook.hookId}: optional PostToolUse provider activation must remain explicit`);
+      assert(
+        hook.exitContract?.normal === 0
+          && hook.exitContract?.disabled === 0
+          && hook.exitContract?.runtimeError === 0,
+        `${hook.hookId}: PostToolUse telemetry must fail soft`,
+      );
+    }
   }
   assert(ids.has('yuri.pre-tool.enforcement'), 'canonical PreToolUse enforcement hook missing');
   assert(ids.has('october.prompt-context.pull'), 'bounded October UserPromptSubmit bridge missing');
+  assert(ids.has('yuri.energy.tick'), 'canonical PostToolUse energy hook missing');
 
   const claudeMerge = registry.providerMergeContracts?.['claude-code'];
   assert(claudeMerge && typeof claudeMerge === 'object', 'Claude effective-settings merge contract missing');
@@ -238,6 +248,7 @@ export function validateRegistry(registry = loadRegistry(), { checkHashes = true
     JSON.stringify(lifecycle.canonicalEventContracts) === JSON.stringify({
       PreToolUse: { hookType: 'command', matcher: '', maxTimeoutSeconds: 10 },
       UserPromptSubmit: { hookType: 'command', matcher: '', maxTimeoutSeconds: 5 },
+      PostToolUse: { hookType: 'command', matcher: '', maxTimeoutSeconds: 10 },
     }),
     'Claude canonical event type/matcher/timeout contracts drifted',
   );
@@ -278,6 +289,7 @@ export function validateRegistry(registry = loadRegistry(), { checkHashes = true
     JSON.stringify(claudeMerge.eventOwners) === JSON.stringify({
       PreToolUse: 'yuri.pre-tool.enforcement',
       UserPromptSubmit: 'october.prompt-context.pull',
+      PostToolUse: 'yuri.energy.tick',
     }),
     'Claude effective hook event ownership must remain canonical',
   );
@@ -315,10 +327,12 @@ export function renderProvider(provider, registry = loadRegistry()) {
   if (provider === 'claude-code' || provider === 'claude') {
     const pre = adapterFor(registry, 'yuri.pre-tool.enforcement', 'claude-code');
     const prompt = adapterFor(registry, 'october.prompt-context.pull', 'claude-code');
+    const energy = adapterFor(registry, 'yuri.energy.tick', 'claude-code');
     return {
       hooks: {
         PreToolUse: [{ _yuri: true, matcher: '', hooks: [{ type: 'command', command: pre.command, timeout: 10 }] }],
         UserPromptSubmit: [{ _yuri: true, matcher: '', hooks: [{ type: 'command', command: prompt.command, timeout: 5 }] }],
+        PostToolUse: [{ _yuri: true, matcher: '', hooks: [{ type: 'command', command: energy.command, timeout: 10 }] }],
       },
     };
   }

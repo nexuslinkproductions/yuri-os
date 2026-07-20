@@ -16,6 +16,7 @@ import { test } from 'node:test';
 import {
   GENERATED_ADAPTER_MARKER,
   GENERATED_NATIVE_POLICY_MARKER,
+  LABGATED_BANNER,
   NATIVE_IMPLICIT_SKILL_ID,
   NATIVE_POLICY_RELATIVE_PATH,
   assertUniqueSourceIds,
@@ -420,4 +421,114 @@ test('path traversal and non-canonical cyber registry names fail closed', () => 
     () => buildProjectionPlan(root, SMALL_COUNTS),
     (error) => error?.code === 'INVALID_CYBER_MANIFEST',
   );
+});
+
+
+// ===== Phase-B lab-gate banner reachability + pointer-purity suite =====
+// Authoritative source for the canonical constant: projector.mjs:35 (exported).
+// Per the advisory, the test fixture must alter the canonical .claude/skills-labgated/ source
+// (NOT the .agents/ adapter) to exercise the real labgatedBannerDrift detector at projector.mjs:357.
+
+test('labgated adapter body includes the exact canonical LABGATED_BANNER and is pointer-only', () => {
+  const { root, bodies } = normalFixture();
+  const synced = syncProjection(root, SMALL_COUNTS);
+  assert.equal(synced.ok, true);
+  const adapterPath = path.join(root, '.agents/skills/cyber-dual-lab/SKILL.md');
+  const adapter = readFileSync(adapterPath, 'utf8');
+  // Positive: exact canonical constant present in the adapter body.
+  assert.ok(adapter.includes(LABGATED_BANNER), 'adapter body must include the exact canonical LABGATED_BANNER');
+  // Pointer-only: adapter must NOT contain the source body content.
+  const sourceBody = bodies['cyber-dual-lab'];
+  const sourceBodyStripped = sourceBody.replace(/^---\n[\s\S]*?\n---\n/, '');
+  assert.equal(adapter.includes(sourceBodyStripped), false, 'adapter must be pointer-only, not a source-body copy');
+  // Adapter still emits the lab metadata block (backward-compatible).
+  assert.ok(adapter.includes('Source class: `labgated`'));
+  assert.ok(adapter.includes('Runtime/action authorization: `false`'));
+  assert.ok(adapter.includes('Discovery does not authorize execution'));
+});
+
+test('non-labgated adapters do NOT include the canonical banner', () => {
+  const { root } = normalFixture();
+  syncProjection(root, SMALL_COUNTS);
+  // Canonical (alpha) and armed (cyber-network-audit) adapters must stay clean.
+  for (const id of ['alpha', 'cyber-network-audit']) {
+    const adapterPath = path.join(root, '.agents/skills', id, 'SKILL.md');
+    const adapter = readFileSync(adapterPath, 'utf8');
+    assert.equal(adapter.includes(LABGATED_BANNER), false, `${id} adapter must NOT include the canonical banner`);
+  }
+});
+
+test('source-layer banner drift is detected against canonical .claude/skills-labgated content, not against generated adapters', () => {
+  // Fixture: replace the labgated source body's safety line with an ALTERNATE wording
+  // (the historical partial banner observed in real labgated sources). The canonical
+  // constant must be ABSENT from the source for the drift detector to fire.
+  const { root } = normalFixture();
+  const sourcePath = path.join(root, '.claude/skills-labgated/cyber-dual-lab/SKILL.md');
+  const sourceBody = readFileSync(sourcePath, 'utf8');
+  const alteredSource = sourceBody.replace(
+    /AUTHORIZED-LAB ONLY[\s\S]*?authorized-engagement flag/,
+    'AUTHORIZED-LAB ONLY. Alternate partial wording that does not include the canonical additional metadata-discovery clause.',
+  );
+  assert.equal(alteredSource.includes(LABGATED_BANNER), false, 'fixture setup: altered source must NOT contain the canonical constant');
+  write(root, '.claude/skills-labgated/cyber-dual-lab/SKILL.md', alteredSource);
+  // Keep the integrity registry coherent with the altered source so only the
+  // bannerDrift detector (not TRACKED_SOURCE_DRIFT) is exercised.
+  const integrityPath = path.join(root, '_SYSTEM/skill-hash-registry.json');
+  const integrity = JSON.parse(readFileSync(integrityPath, 'utf8'));
+  integrity['cyber-dual-lab'].hash = stableHash(alteredSource);
+  integrity['cyber-dual-lab'].source_path = '.claude/skills-labgated/cyber-dual-lab/SKILL.md';
+  writeJson(root, '_SYSTEM/skill-hash-registry.json', integrity);
+  // Re-stage the altered source so the Git index sees the new content.
+  git(root, ['add', '--update', '.claude/skills-labgated/cyber-dual-lab/SKILL.md', '_SYSTEM/skill-hash-registry.json']);
+  // The drift detector must fire on the canonical-source layer.
+  const plan = buildProjectionPlan(root, SMALL_COUNTS);
+  assert.equal(plan.labgatedBannerDrift.length, 1, 'canonical-source banner drift must be detected');
+  assert.ok(plan.labgatedBannerDrift[0].endsWith('.claude/skills-labgated/cyber-dual-lab/SKILL.md'));
+  // The generated adapter still gets the canonical banner injected (the fix is generator-side).
+  syncProjection(root, SMALL_COUNTS);
+  const adapter = readFileSync(path.join(root, '.agents/skills/cyber-dual-lab/SKILL.md'), 'utf8');
+  assert.ok(adapter.includes(LABGATED_BANNER), 'adapter must carry the canonical banner even when the source drifts');
+});
+
+test('projector sync is idempotent across consecutive runs', () => {
+  const { root } = normalFixture();
+  const first = syncProjection(root, SMALL_COUNTS);
+  assert.equal(first.ok, true);
+  const firstManifest = readFileSync(path.join(root, '.agents/skills/.yuri-projection.json'), 'utf8');
+  const firstAdapter = readFileSync(path.join(root, '.agents/skills/cyber-dual-lab/SKILL.md'), 'utf8');
+  const second = syncProjection(root, SMALL_COUNTS);
+  assert.equal(second.ok, true);
+  const secondManifest = readFileSync(path.join(root, '.agents/skills/.yuri-projection.json'), 'utf8');
+  const secondAdapter = readFileSync(path.join(root, '.agents/skills/cyber-dual-lab/SKILL.md'), 'utf8');
+  assert.equal(firstManifest, secondManifest, 'manifest must be byte-identical across consecutive syncs');
+  assert.equal(firstAdapter, secondAdapter, 'adapter must be byte-identical across consecutive syncs');
+});
+
+test('skill-recall --show on a labgated source returns the canonical source projection, not execution authorization', () => {
+  const { root } = normalFixture();
+  syncProjection(root, SMALL_COUNTS);
+  const shown = showSkill('cyber-dual-lab', { root });
+  assert.ok(shown, 'showSkill must return a result for the labgated source');
+  // Return shape: { content: <source raw>, skill: <frontmatter-derived skill> }.
+  // Per skill-recall.mjs:307-324, showSkill returns the SOURCE body content + the bare
+  // frontmatter object — NOT the generated adapter body. This is the discoverability surface.
+  assert.ok(typeof shown.content === 'string' && shown.content.length > 0, 'showSkill must return source content');
+  assert.ok(shown.skill && typeof shown.skill.path === 'string', 'showSkill must return skill.path');
+  // The skill path must point at the CANONICAL labgated source (not the generated adapter).
+  assert.equal(
+    shown.skill.path,
+    '.claude/skills-labgated/cyber-dual-lab/SKILL.md',
+    'showSkill must point at the canonical source, not the generated .agents/skills/ adapter',
+  );
+  // The content must include the fixture's source body (SOURCE_LAB_ONLY marker is the
+  // fixture's body content; the discoverability surface IS the source — there is no
+  // pointer-only invariant on showSkill because the entire purpose is to expose the source).
+  assert.ok(shown.content.includes('SOURCE_LAB_ONLY'), 'showSkill must return the canonical source body');
+  // Non-authorization: the returned content is the source procedural text, NOT an authorization
+  // grant. The 'Discovery does not authorize execution' wording lives in the ADAPTER body
+  // (the model-visible implicit-discovery surface), not in the source. Asserting the
+  // adapter carries that wording keeps the discovery-not-authorization invariant grounded
+  // in the right layer.
+  const adapter = readFileSync(path.join(root, '.agents/skills/cyber-dual-lab/SKILL.md'), 'utf8');
+  assert.ok(adapter.includes('Discovery does not authorize execution'), 'adapter (model-visible surface) must carry the non-authorization wording');
 });

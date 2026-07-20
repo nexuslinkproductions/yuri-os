@@ -29,7 +29,8 @@
       "mergeRule": "Repository project and project-local hook groups are additive. Health validates their effective repository merge; user-level settings remain outside source validation.",
       "eventOwners": {
         "PreToolUse": "yuri.pre-tool.enforcement",
-        "UserPromptSubmit": "october.prompt-context.pull"
+        "UserPromptSubmit": "october.prompt-context.pull",
+        "PostToolUse": "yuri.energy.tick"
       },
       "exactCommandCount": 1,
       "lifecycleLiveness": {
@@ -64,6 +65,11 @@
             "hookType": "command",
             "matcher": "",
             "maxTimeoutSeconds": 5
+          },
+          "PostToolUse": {
+            "hookType": "command",
+            "matcher": "",
+            "maxTimeoutSeconds": 10
           }
         },
         "externalGeneratedCommands": [
@@ -228,13 +234,71 @@
           ]
         }
       ]
+    },
+    {
+      "hookId": "yuri.energy.tick",
+      "logicalEvent": "PostToolUse",
+      "owner": "YURI",
+      "version": 1,
+      "coreEntrypoint": "_SYSTEM/Scripts/energy-tick-adapter.mjs",
+      "enabled": true,
+      "required": false,
+      "optional": true,
+      "providerActivationRequired": false,
+      "matcher": "",
+      "inputContract": "One harness PostToolUse JSON object. The adapter consumes only structured transition fields and a bounded, sanitized session identifier.",
+      "outputContract": "Emits nothing. When explicitly enabled, appends a privacy-gated energy trace and atomically replaces the bounded session snapshot.",
+      "exitContract": {
+        "normal": 0,
+        "disabled": 0,
+        "runtimeError": 0
+      },
+      "cwdPolicy": "The adapter resolves imports and the default state root from its own module URL; the provider command is worktree-rooted.",
+      "dependencyClosure": [
+        "_SYSTEM/Scripts/energy-tick-adapter.mjs",
+        "_SYSTEM/Scripts/energy-tick-core.mjs",
+        "_SYSTEM/Scripts/energy-breaker.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy-trace.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy-config.mjs",
+        "_SYSTEM/Scripts/math/yuri-energy-gate-trace.mjs",
+        "_SYSTEM/Scripts/math/math-kernel.mjs",
+        "_SYSTEM/Scripts/yuri-user.mjs",
+        "_SYSTEM/Scripts/claim-ledger.mjs",
+        "_SYSTEM/Scripts/claim-cortex.mjs",
+        "_SYSTEM/Scripts/claim-integrity-gate.mjs",
+        "_SYSTEM/Scripts/artifact-registry.mjs",
+        "_SYSTEM/Scripts/_lib/repository-path-presence.mjs",
+        "_SYSTEM/Scripts/yuri-truth-promotion-enforcement.mjs",
+        "_SYSTEM/Scripts/lane-kernel.mjs",
+        "_SYSTEM/SELF/energy-weights.json"
+      ],
+      "failMode": "fail-soft telemetry; disabled unless YURI_ENERGY_OBSERVABILITY=1",
+      "protectedScope": "Classifies protected path names already present in hook input; never opens protected contents or secrets.",
+      "teardown": "Remove only the optional provider projection. Preserve the registered core and historical traces; never revive .claude/hooks.",
+      "sourceRefs": [
+        "_SYSTEM/Scripts/energy-tick-core.mjs",
+        "_SYSTEM/docs/energy-gate-runbook.md",
+        "_SYSTEM/config/yuri-hook-registry.json"
+      ],
+      "providerAdapters": [
+        {
+          "provider": "claude-code",
+          "projection": ".claude/settings.local.json",
+          "activation": "registered-projection-not-applied",
+          "command": "node \"$CLAUDE_PROJECT_DIR/_SYSTEM/Scripts/energy-tick-adapter.mjs\"",
+          "invokedPaths": [
+            "_SYSTEM/Scripts/energy-tick-adapter.mjs"
+          ]
+        }
+      ]
     }
   ],
   "legacyInventory": [
     {
       "surface": ".claude/settings.json project lifecycle and statusLine chain",
       "status": "mutating-lifecycle-chain-retired-during-recovery",
-      "rule": "Project settings contain zero lifecycle commands during recovery. PreToolUse and UserPromptSubmit are projected exactly once through .claude/settings.local.json; a future SessionStart doctor must be separately registered, read-only, bounded, and fail-soft."
+      "rule": "Project settings contain zero lifecycle commands during recovery. PreToolUse and UserPromptSubmit are projected exactly once through .claude/settings.local.json. The repository-owned PostToolUse energy adapter is registered there as an optional, not-yet-applied projection; a future SessionStart doctor must be separately registered, read-only, bounded, and fail-soft."
     },
     {
       "surface": ".claude/hooks/user-prompt-submit.js and historical PreToolUse implementations",
@@ -278,13 +342,30 @@
     }
   ],
   "contentHashes": {
-    ".codex/config.toml": "1b5c3e28f394e3dac2572f92aa146127a5c2b2f41e6e324b68f0df619b590bf8",
+    ".codex/config.toml": "14dbdbfb220d6d1aa8b8f70327a9fc8c755b4b83cece2716b77b8b98fd1d59db",
     ".codex/hooks/pre-tool-use.mjs": "5ef038dea0f2fcb62d5a1c95c9c581a42d5da4011c7542d17f2cadaf9c74c35e",
     ".omp/hooks/pre/url-safety-guard.js": "34a7f4c52c3b8d0f8cb521219e79b361793638a9c38be6544f547f8c0a84c628",
+    "_SYSTEM/SELF/energy-weights.json": "52df4e847be9c0ffc7b10f3a4a37ab9b79f6db6dadcac2db2a913e314d13db33",
     "_SYSTEM/Scripts/_lib/lane-command-gate.mjs": "4c8fb712b8ba70db6a71d9f8b70087cdf79f8815d6bb0fc4fc8a8e532917adce",
+    "_SYSTEM/Scripts/_lib/repository-path-presence.mjs": "000f843771fe3fd7ee358bb9266a03d928d9228d8577e20de5c4960634d1a45c",
+    "_SYSTEM/Scripts/artifact-registry.mjs": "61626ab84264f52034f6f00b4d64a7bb4d6d99794a71aa730a2fb927bdb23165",
+    "_SYSTEM/Scripts/claim-cortex.mjs": "fe6fd07d91861a228a68e08113901d5502c6126795f5378f272941a4ef08621e",
+    "_SYSTEM/Scripts/claim-integrity-gate.mjs": "8caccbc4e3124d2a8cba3cf79d82e2a287f6316f1c98ae0d72756282d2c6ad6b",
+    "_SYSTEM/Scripts/claim-ledger.mjs": "f8d90e682e3371b5907b91d17c9b7b1ae04553ae776c288bc74560a703831b87",
+    "_SYSTEM/Scripts/energy-breaker.mjs": "a4918f530451c5f9cb62bdbc3f198f2d1d42dad73a00c5bbb0113089085b0e04",
+    "_SYSTEM/Scripts/energy-tick-adapter.mjs": "73c7e420b2b83a6bca63460c63e9bab0fe1bcecb670aaacc8ced1328d572d8b5",
+    "_SYSTEM/Scripts/energy-tick-core.mjs": "d6315e2de4ed70cf73ae85934dddfbf4b7b3f9a3def04885df2aba571e628f4b",
+    "_SYSTEM/Scripts/lane-kernel.mjs": "58a10a1948e12e91e0316496777eff3e13b3e8273096083607f1616040896bd2",
+    "_SYSTEM/Scripts/math/math-kernel.mjs": "0126053f9b27297a1f276a732535602516ae99a8376dbd522969d49d832d5732",
+    "_SYSTEM/Scripts/math/yuri-energy-config.mjs": "a80de5e8d4e3b2766303fde9e848a0f54cbddc91a365421663cb00eaf4439332",
+    "_SYSTEM/Scripts/math/yuri-energy-gate-trace.mjs": "762b53bd0ab984aebc4042cf8a7cbe38f8cbf6539eb4892504329beab67c2049",
+    "_SYSTEM/Scripts/math/yuri-energy-trace.mjs": "c280e0458cc627212cb6fc89c219f611d8ac11b02296410f532961940a67ac82",
+    "_SYSTEM/Scripts/math/yuri-energy.mjs": "86941c158d311671ba0593ef8d485012933dca610653ddbba924372267bfc40e",
     "_SYSTEM/Scripts/policy/repo-integrity-guard.mjs": "80df75aeb66e6e7bfe4af002a9ef03d657a0b827b2a5f39efb58d1ca94f98e16",
     "_SYSTEM/Scripts/policy/yuri-safety-core.mjs": "e262ca50fb2d60064f527b605c5e626680394864c88ab2cc99a03da59e722aa7",
     "_SYSTEM/Scripts/url-policy.mjs": "1b03b1565f86d0ee4f64e98cf99c33aef8be58b699b56bab2ca3c4dec2f19bee",
-    "_SYSTEM/Scripts/yuri-hook-adapter.mjs": "a8db2340bba8374e583c3377902d8c0c6e31ba8d106486fa403ec76d8c8207d5"
+    "_SYSTEM/Scripts/yuri-hook-adapter.mjs": "a8db2340bba8374e583c3377902d8c0c6e31ba8d106486fa403ec76d8c8207d5",
+    "_SYSTEM/Scripts/yuri-truth-promotion-enforcement.mjs": "9f6782735bd349682c6d342dda7fb89156f3edfe50207b42c8ea906921a6d990",
+    "_SYSTEM/Scripts/yuri-user.mjs": "ead351dc8b46ed966526593df83ef2b2c7612b7b4502eae5093d58f39f82c6a6"
   }
 }
