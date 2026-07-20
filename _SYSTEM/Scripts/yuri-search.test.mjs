@@ -69,6 +69,14 @@ check('included: excludes protected + junk + binaries', () => {
   assert.ok(!included('.env'));
   assert.ok(!included('_SYSTEM/reports/diagram.png'));   // not an indexed extension
 });
+check('included: indexes Rust source + Cargo manifests', () => {
+  assert.ok(included('03_NEXUS-LINK/nexus-engine/crates/nexus-core/src/lib.rs'));
+  assert.ok(included('03_NEXUS-LINK/nexus-engine/Cargo.toml'));
+});
+check('included: excludes Rust build output under /target/', () => {
+  assert.ok(!included('03_NEXUS-LINK/nexus-engine/target/debug/build/x.json'));
+  assert.ok(!included('03_NEXUS-LINK/nexus-engine/target/debug/deps/foo.rs'));
+});
 
 // ── targeted refresh scope: sparse checkouts must not prune unseen corpus paths ───────────────
 check('pathInScope: exact --file scope never includes unrelated corpus paths', () => {

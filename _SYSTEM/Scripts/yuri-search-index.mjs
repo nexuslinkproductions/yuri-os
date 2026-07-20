@@ -48,9 +48,9 @@ const EXCLUDE_SUBSTR = [
   'node_modules/', '/.git/', 'backend/data/', '.claude/projects/', '/worktrees/',
   '.codex-worktrees/', '.smart-env/', '/archive/legacy-purge', '.claude/state/',
   '.claude/history', 'OS_KERNEL/memory.db', 'OS_KERNEL/semantic-memory.db', 'search-index.db',
-  '.claude/memory/MEMORY.md',
+  '.claude/memory/MEMORY.md', '/target/',
 ];
-const INDEX_EXT = new Set(['.md', '.mjs', '.js', '.ts', '.json', '.sh', '.py', '.txt', '.html']);
+const INDEX_EXT = new Set(['.md', '.mjs', '.js', '.ts', '.rs', '.toml', '.json', '.sh', '.py', '.txt', '.html']);
 const MAX_FILE_BYTES = 1_000_000;   // skip files larger than 1MB (logs, dumps)
 const MAX_BODY_CHARS = 40_000;      // cap stored body per file (plenty for FTS match + snippets)
 const BATCH = 400;                  // commit every N files — keeps the WAL small + shows progress
