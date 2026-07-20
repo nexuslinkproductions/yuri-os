@@ -84,6 +84,75 @@ def _robust_extent(t):
     """2/98-percentile span of a 1-D projection — outlier-robust extent in mm."""
     return float(np.percentile(t, 98) - np.percentile(t, 2)) if len(t) else 0.0
 
+def _bore_lattice_pitch(P, F, center, aL, aH, aW):
+    """GROSS pitch bootstrap (added 2026-07-20 after the GLOCK 19 GEN5 failure): snap (aL,aH) onto the
+    gun's MACHINED-FLAT LATTICE before any of the fine gun-anatomy tests run.
+
+    THE FAILURE this exists for: PCA's principal axis is NOT the bore. On a real Glock STL the surface
+    covariance is dragged toward the grip (a GEN5 grip's stipple texture alone contributes tens of
+    thousands of faces), so the "length" eigenvector comes out ~33deg off the slide on BOTH the G17 and
+    the G19. The G17 happened to recover (the flats leveler found the rail and converged); the G19 did
+    NOT (leveler moved only -1.41deg), and EVERY downstream test then keyed off a 31deg-rotated frame:
+    muzzle landed on the WRONG END, grip-down read false, and both datum refinements silently no-opped
+    because their guards cap at 8deg / 3deg -- far below a 31deg gross miss. Shipped a 31deg-pitched,
+    back-to-front gun that the built-in verifier called `aligned_ok: true`. (Owner caught it; the pose was
+    rebuilt by hand off his two annotation markers, 2026-07-20.)
+
+    THE MECHANISM: a gun is a machined object. Slide top, slide bottom / parting line, picatinny rail,
+    dust-cover underside, breech face, muzzle face, ejection-port walls -- these flats are all either
+    PARALLEL or PERPENDICULAR to the bore. So the face-normal directions, projected into the (length,
+    height) plane, form a 4-FOLD (90deg-periodic) lattice locked to the bore. Recover its phase with the
+    4th-harmonic circular mean
+
+        phase = (1/4) * atan2( SUM w*sin(4*phi), SUM w*cos(4*phi) )
+
+    over faces whose normal is not a sidewall (|n.aW| < 0.4), weighted by area * (in-plane magnitude)^2.
+    Curved and textured surfaces (grip stipple, backstrap, trigger guard, barrel hood) spread uniformly
+    in phi and CANCEL in the harmonic sum -- the very mass that corrupts PCA is what this ignores. On the
+    real STLs the lattice reads 0.545 (G19) / 0.582 (G17) coherence over ~66k / ~33k faces: unambiguous.
+
+    The phase is only known mod 90deg, which is exactly right: it fixes PITCH and leaves the length-vs-
+    height LABEL to the extent test (re-run after the rotation, swapping if height now out-spans length)
+    and the muzzle/grip SIGNS to the existing anatomy tests -- all of which are reliable ONCE the frame is
+    lattice-true. GUARDED (needs real faces + a coherent lattice) and SELF-ZEROING (a frame already on the
+    lattice -- the synthetic flat-top test gun, a re-aligned mesh -- reads ~0 and no-ops).
+
+    ⚠ WHEN THE GUARD TRIPS, THE POSE IS NOT TRUSTWORTHY. Falling back to raw PCA is falling back to exactly
+    the bug above -- so the coherence is REPORTED (`lattice_coherence`, `lattice_ok` in the diag) instead of
+    failing quietly. Measured adversarially: at >=0.4mm of per-vertex jitter on a ~0.5mm-triangle mesh the
+    face normals randomize, coherence collapses below the guard, and the gun comes out UPSIDE-DOWN (178deg).
+    A `lattice_ok: false` result must be eyeballed in all three ortho views before it is used, never shipped
+    on `aligned_ok` alone. (Robust everywhere else: idempotent, and stable down to 1% of the faces.)
+
+    Returns (aL, aH, applied_deg, coherence)."""
+    if F is None or len(F) == 0:
+        return aL, aH, 0.0, 0.0
+    a, b, c = P[F[:, 0]], P[F[:, 1]], P[F[:, 2]]
+    fn = np.cross(b - a, c - a); fa = np.linalg.norm(fn, axis=1); ok = fa > 1e-12
+    if int(ok.sum()) < 500:
+        return aL, aH, 0.0, 0.0                              # too few faces to trust a lattice
+    nn = fn[ok] / fa[ok][:, None]; area = 0.5 * fa[ok]
+    nl = nn @ aL; nh = nn @ aH; nw = nn @ aW
+    keep = np.abs(nw) < 0.40                                 # drop the sidewalls: they carry no pitch
+    if int(keep.sum()) < 300:
+        return aL, aH, 0.0, 0.0
+    nl = nl[keep]; nh = nh[keep]
+    w = area[keep] * (nl * nl + nh * nh)                     # weight by area AND in-plane strength
+    tot = float(w.sum())
+    if tot < 1e-9:
+        return aL, aH, 0.0, 0.0
+    phi = np.arctan2(nh, nl)
+    S = float(np.sum(w * np.sin(4.0 * phi))); C = float(np.sum(w * np.cos(4.0 * phi)))
+    coh = math.hypot(S, C) / tot                             # 4-fold coherence: how machined is this thing
+    if coh < 0.15:
+        return aL, aH, 0.0, coh                              # guard: no coherent lattice (organic / noisy)
+    ang = math.degrees(math.atan2(S, C)) / 4.0               # in (-45, 45]: the lattice phase off (aL,aH)
+    th = math.radians(ang)
+    aL2 = math.cos(th) * aL + math.sin(th) * aH
+    aH2 = -math.sin(th) * aL + math.cos(th) * aH
+    return aL2, aH2, ang, coh
+
+
 def _refine_pitch_to_slide(P, F, center, aL, aH, aW):
     """Owner PITCH datum (2026-07-10 GLOCK 43; RE-HARDENED 2026-07-10b): level to the SLIDE — the straight
     UPPER/LOWER parting line. The prior build levelled to a PCA of the slide-SIDEWALL face-area blob, whose
@@ -242,6 +311,25 @@ def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0, roll_offset_
     order = np.argsort(exts)[::-1]                           # by extent -> [length, height, width]
     aL, aH, aW = axes[order[0]], axes[order[1]], axes[order[2]]
     eL, eH, eW = exts[order[0]], exts[order[1]], exts[order[2]]
+
+    # BORE-LATTICE BOOTSTRAP (2026-07-20, GLOCK 19 GEN5). PCA's principal axis is NOT the bore: on a real
+    # Glock STL the surface covariance is pulled toward the grip (a GEN5 grip's stipple texture alone is
+    # tens of thousands of faces), so "length" comes out ~33deg off the slide on BOTH the G17 and the G19.
+    # Every test below -- muzzle-left, grip-down, flats-leveling -- assumes a roughly bore-true frame, and
+    # every DATUM REFINEMENT is guarded at 8deg/3deg, so a gross miss is out of their reach and propagates
+    # silently (the G19 shipped 31deg pitched AND back-to-front, self-verified "aligned_ok"). Snap the
+    # frame onto the machined-flat 4-fold lattice FIRST, then let the anatomy tests do what they're good
+    # at. Self-zeroing (a lattice-true frame reads ~0) and guarded (needs a coherent lattice).
+    lattice_pitch_deg = 0.0; lattice_coh = 0.0
+    if F is not None and len(F):
+        aL, aH, lattice_pitch_deg, lattice_coh = _bore_lattice_pitch(P, F, center, aL, aH, aW)
+        if lattice_pitch_deg:
+            # the lattice fixes PITCH but not the length-vs-height LABEL -- re-measure and swap if the
+            # rotation handed the longer span to 'height' (happens when the PCA miss approaches 45deg).
+            eL, eH = _robust_extent(D @ aL), _robust_extent(D @ aH)
+            if eH > eL:
+                aL, aH = aH, -aL                             # keep the pair right-handed against aW
+                eL, eH = eH, eL
     l = D @ aL; h = D @ aH                                   # length & height projections (sign TBD)
 
     # MUZZLE LEFT (-Y) first (sign-independent): the length third with the larger height extent is the
@@ -371,6 +459,12 @@ def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0, roll_offset_
         "extent_length": round(eL, 2), "extent_height": round(eH, 2), "extent_width": round(eW, 2),
         "sep_length_height": round(float(ratio_LH), 3), "sep_height_width": round(float(ratio_HW), 3),
         "ambiguous_axes": bool(ratio_LH < 1.08 or ratio_HW < 1.08),
+        "lattice_pitch_deg": round(float(lattice_pitch_deg), 2),  # gross PCA->bore snap (G19 needed ~33)
+        "lattice_coherence": round(float(lattice_coh), 3),        # 4-fold strength; real guns read 0.54-0.58
+        # FALSE => the bootstrap could not lock the bore and the pose fell back to RAW PCA, which is the
+        # 2026-07-20 bug (G19: 31deg pitched, back-to-front, 'aligned_ok' anyway). EYEBALL ALL THREE ORTHO
+        # VIEWS before using such a pose -- do not trust aligned_ok on its own.
+        "lattice_ok": bool(lattice_coh >= 0.15),
         "slide_leveled_deg": round(float(slide_tilt_deg), 2),   # pitch correction applied to reach level
         "parting_refine_deg": round(float(parting_refine_deg), 2),   # extra pitch to the slide/parting line
         "roll_refine_deg": round(float(roll_refine_deg), 2),         # roll applied to level the slide-top flat

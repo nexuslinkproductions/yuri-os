@@ -50,6 +50,20 @@ reversible, non-mutating to geometry.**
    vertex mean). Pure mass on all 3 axes.
 2. **Principal axes** from area-weighted surface covariance (density-robust directions); label
    length/height/width by robust 2/98-pct bbox extent → fixes **roll, yaw, width**.
+2b. **Bore-lattice bootstrap (gross pitch)** `_bore_lattice_pitch` — ⚠ **PCA's principal axis is NOT the
+   bore.** On a real Glock STL the surface covariance is dragged toward the grip (a GEN5 grip's stipple
+   texture alone is tens of thousands of faces), so "length" comes out **~33° off the slide on BOTH the
+   G17 and the G19**. Everything downstream assumes a roughly bore-true frame and every refinement is
+   guarded at 8°/3°, so a gross miss is *out of their reach* and propagates silently (the G19 shipped 31°
+   pitched AND back-to-front with `aligned_ok: true`). Fix: a gun is machined — slide top, parting line,
+   rail, dust-cover underside, breech and muzzle faces are all ∥ or ⟂ to the bore, so the face normals
+   projected into the length-height plane form a **4-fold lattice locked to the bore**. Recover its phase
+   with the 4th-harmonic circular mean `¼·atan2(Σw·sin4φ, Σw·cos4φ)` over non-sidewall faces
+   (`|n·aW| < 0.4`), weighted `area × |in-plane|²`. Curved/textured surfaces spread uniformly in φ and
+   **cancel** — the very mass that corrupts PCA is what this ignores. Real STLs read 0.545 (G19) / 0.582
+   (G17) lattice coherence over 66k/33k faces. The phase is known mod 90°, which is exactly right: it fixes
+   PITCH and leaves the length/height **label** to a re-run extent test and the muzzle/grip **signs** to
+   steps 3-4. Self-zeroing + guarded — A/B-verified byte-identical output on the synthetic suite.
 3. **Muzzle left (−Y)** — the length third with the larger height extent is the grip/rear (+Y); the thin
    end is the muzzle (−Y). Sign-independent, so done first.
 4. **Grip down (−Z)** — *"is the grip below the bore?"*: compare the **rear third's AREA-WEIGHTED mean
@@ -129,7 +143,8 @@ obj, s = align_object("PL2_VALKYRIE - Copy", mode="light")   # LIGHT: clamp up+l
 obj, s = import_and_align(r"C:\Users\rene\Desktop\CAD\...\scan.stl")
 
 print(s)   # aligned_ok, det_R (==1.0), center_residual_mm (~0), R_offdiag_max (~0), dims (Y>=Z>=X),
-           # front_y (muzzle, min), grip_is_down, slide_leveled_deg, parting_refine_deg, roll_refine_deg, sight_yaw_deg
+           # front_y (muzzle, min), grip_is_down, lattice_pitch_deg, slide_leveled_deg,
+           # parting_refine_deg, roll_refine_deg, sight_yaw_deg
 ```
 
 - `align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, pitch_offset_deg=0.0, roll_offset_deg=0.0, yaw_offset_deg=0.0, mode="gun", refine_parting=True, refine_sights=True, refine_roll=True)` — entry point. Gun mode auto-levels PITCH to the slide/parting line (`refine_parting`), ROLL to the slide-top flat / front view (`refine_roll`), and YAW to the sights (`refine_sights`); the three `*_offset_deg` knobs are the owner's eye-tweaks. `mode="light"` for weapon-lights.
@@ -143,6 +158,20 @@ Confirm the returned evidence (gun): `det_R == 1.0`, `center_residual_mm < 0.05`
 `pitch/roll/yaw_offset` is set — the built-in verifier re-checks against the no-offset auto-level, so a
 deliberate eye-tweak trips it; that's benign, same as the PDP at +3°. Trust the datum measurements below.)
 For a light: `det_R == 1.0`, `clamp_complexity` clearly the max, `bezel_score_front > bezel_score_rear`.
+
+**Run the REAL-GUN suite when you touch the aligner** (added 2026-07-20 — the synthetic suite was 100%
+green straight through the G19 failure; a box gun does not reproduce a real scan's failure mode):
+
+```bash
+"C:/Program Files/Blender Foundation/Blender 5.1/5.1/python/bin/python.exe" scripts/verify_real_guns.py --poses 40
+```
+
+It loads René's own production `*SOLID GUN.stl` files — which ship **already in his canonical pose**, so
+they *are* ground truth — applies random rotations, re-aligns, and scores the recovered pose by **Kabsch
+rotation back to the owner's pose**. One number that catches pitch, roll, yaw, end-flips and mirrors at
+once, and that structurally *cannot* share a blind spot with the aligner (it is the owner's pose, not a
+metric I derived). Current: **G19 40/40 @ 0.40°, G17 40/40 @ 0.33°.** The suite gates on the native STL
+actually being canonical and skips loudly if it isn't.
 
 **Verify the two owner datums against the real mesh, not the eye** (renders/perspective fool the eye — a
 recurring trap on this skill):
@@ -197,6 +226,12 @@ recurring trap on this skill):
   Live from the raw scan the hardened pipeline auto-fired parting +1.03° / **roll +0.58°** / yaw +0.33° and
   landed **pitch −0.05° / roll −0.09° / yaw ~0.16°** — all three ortho views level, reproducing the owner's
   hand pose with no manual input. Owner viewport re-confirm of this auto-output pending next load.
+- **OWNER-CONFIRMED "alignment is good" 2026-07-20** on the GLOCK 19 GEN5 SOLID GUN (99,271 verts) — and
+  the aligner hardened with the **bore-lattice bootstrap** (method step 2b) after it shipped this gun 31°
+  pitched and back-to-front. Root cause: PCA's principal axis sits ~33° off the bore on real Glock STLs
+  (grip texture dominates the surface covariance) — true for the G17 too, which had been silently getting
+  away with it. New **real-geometry suite** `verify_real_guns.py` scores the recovered pose by Kabsch
+  rotation back to René's own canonical STL: **G19 40/40 @ 0.40°, G17 40/40 @ 0.33°.**
 - **Offline: 300/300 random gun poses + 240 WML poses** still green after the refinement (det, axis order,
   centering, off-diagonal, grip-down, muzzle-left; WML slide-level reported-not-asserted, **unchanged** by
   the refinement — verified refine-on == refine-off = 13.95° synthetic artifact) + volume-centroid, light,
@@ -214,6 +249,55 @@ recurring trap on this skill):
 - Depends on **blender-mcp** live on :9876.
 
 ## Session Notes
+
+### 2026-07-20 (GLOCK 19 GEN5 — PCA is not the bore; bore-lattice bootstrap + a REAL-GUN suite)
+- **Failure:** `align_object` shipped the G19 GEN5 (99,271 verts) **~31° pitched with the muzzle on the
+  wrong end** — and self-reported `aligned_ok: true`. Diag showed the tell in plain sight and I nearly
+  missed it: `extent_length 197.89 / extent_height 107.58` against a real G19's 185.6 × 128.7 — the frame
+  was rotated ~31° in the length-height plane, inflating length and shrinking height. Both datum refines
+  read **0.00°**: their guards cap at 8° (parting) and 3° (sights), so a 31° gross miss is *below their
+  floor* and they silently no-op. `grip_is_down` read false. Every anatomy test had keyed off a garbage frame.
+- **Root cause:** **PCA's principal axis is not the bore.** The area-weighted surface covariance is dragged
+  toward the grip — a GEN5 grip's stipple texture alone contributes tens of thousands of faces. Measured:
+  the PCA length axis sits **32.9° off the slide on the G19 and 35.7° off on the G17**. The G17 only ever
+  *looked* fine because its flats leveler happened to find the rail and converge; the G19's didn't (it moved
+  −1.41°). The bug was always there in both — one gun just hid it.
+- **Fix:** `_bore_lattice_pitch` — snap the frame onto the gun's **machined-flat 4-fold lattice** before any
+  anatomy test runs (4th-harmonic circular mean of non-sidewall face normals in the length-height plane).
+  Textured/curved surfaces cancel in the harmonic sum, so the exact mass that poisons PCA is the mass this
+  ignores. Phase mod 90° = pitch only; label and signs stay with the existing (now-reliable) tests.
+- **Live recovery:** rebuilt René's pose by hand off his **two annotation markers** (read out of
+  `bpy.data.annotations` — a genuinely useful owner-supplied datum, worth checking for every time), then
+  refined to parting −0.28° / roll +0.05° / yaw −0.08° and confirmed in all three ortho views against
+  fiducial bars. Owner: "alignment is good."
+- **Verification — and the real lesson.** The synthetic suite was **100% green through the entire failure**,
+  before and after. So I built `verify_real_guns.py` on René's own STLs and found the ground truth I'd been
+  missing all along: **his production `*SOLID GUN.stl` files are already in his canonical pose.** Score by
+  Kabsch rotation back to that pose and you get one number that cannot share the aligner's blind spot.
+  Result: **G19 40/40 @ 0.40°, G17 40/40 @ 0.33°** from arbitrary random start poses, deterministic.
+  A/B: with the bootstrap neutered the synthetic suite output is **byte-identical** — the fix is a proven
+  no-op there (self-zeroing), which is also why that suite could never have caught this.
+- **Process lesson (new, and the sharpest one this skill has):** two of my own datums *disagreed* on the
+  G17 (parting-edge −2.18° vs slide-top normal +0.16°) and I could not adjudicate them — Blender's socket
+  had dropped, so no render, no owner eye. Guessing which metric to trust was the trap; going and *finding*
+  an external reference was the move. The owner's own shipped assets were sitting on disk the whole time.
+  When two derived metrics disagree, don't pick — go find something outside the system.
+- **Adversarial pass** (idempotence, vertex noise, non-uniform scale, decimation, the 45° label boundary):
+  robust everywhere except one real defect it exposed — **when the lattice guard trips, the fallback is raw
+  PCA, i.e. straight back into this bug, silently.** At ≥0.4mm per-vertex jitter on a ~0.5mm-triangle mesh
+  the normals randomize, coherence collapses, and the gun comes out **upside-down (178°)** while
+  `aligned_ok` still reads true. Fixed by *reporting*, not by pretending: `lattice_coherence` +
+  **`lattice_ok`** are now in the diag. **A `lattice_ok: false` pose must be eyeballed in all three ortho
+  views before use — never ship it on `aligned_ok` alone.** Otherwise: idempotent, stable down to **1% of
+  the faces** (2,001 tris → 0.51°), and unaffected by the start frame anywhere in 0–80° including the 45°
+  label-swap boundary.
+- **Residual risk:** the lattice bootstrap is validated on two Glocks. A gun whose slide/frame flats are not
+  a clean 90° family (heavy custom cuts, a ported comp, a scan too coarse to hold flats) trips the 0.15
+  guard → `lattice_ok: false` → the fallback above. Re-run the real-gun suite on the SIG / PDP / HK /
+  OLIGHT next time they're loaded; add each confirmed STL to `GUNS`.
+- Tools: blender-mcp (live G19 surgery, ortho renders vs fiducials, annotation readout), Read/Edit/Write,
+  Blender-5.1 python numpy (offline STL harness, Kabsch, A/B regression).
+  <!-- @anchor: v1 | failure: GLOCK 19 GEN5 shipped 31deg pitched + muzzle on the wrong end with aligned_ok=true — PCA's principal axis sits ~33deg off the bore on real Glock STLs (grip texture dominates the covariance) and both datum refines no-opped under their 8deg/3deg guards, 2026-07-20 | regression: scripts/verify_real_guns.py (Kabsch-vs-owner-canonical-STL, G19+G17 40/40) + cgs_align.py _bore_lattice_pitch + cgs-align SKILL.md method step 2b -->
 
 ### 2026-07-10b (GLOCK 43 — ROLL datum added + parting-refine rebuilt from sidewall-PCA to silhouette-edge)
 - **Failure #1 (pitch, same-day regression of the 2026-07-10 fix):** the `refine_parting` I shipped that
