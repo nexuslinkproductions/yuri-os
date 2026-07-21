@@ -102,23 +102,14 @@ const wrongRepoRootPatterns = [
   },
 ];
 
+// Intentional, narrowly-scoped exceptions — NOT unfixed violations. Each is a TEST fixture/guard
+// that deliberately pins the canonical production path (recovery target, APFS volume binding,
+// launchd cwd) to assert behavior against the real install; deriving it dynamically would make the
+// assertion tautological and weaken the test. Production-code path bugs are fixed at SOURCE, never
+// whitelisted here. Stale entries — root-architecture.test.mjs (its own literal is array-joined so
+// the scanner never matches it), backend-db-check.mjs, backend-data-recovery.mjs, embed-backfill.mjs
+// — were removed 2026-07-21 after confirming their patterns no longer match (source already clean).
 const allowedMatches = new Map([
-  [
-    '_SYSTEM/Scripts/root-architecture.test.mjs',
-    new Set(['hardcoded absolute repo root']),
-  ],
-  [
-    '_SYSTEM/Scripts/backend-db-check.mjs',
-    new Set(['root backend path without _SYSTEM']),
-  ],
-  [
-    '_SYSTEM/Scripts/backend-data-recovery.mjs',
-    new Set(['root backend path without _SYSTEM']),
-  ],
-  [
-    '_SYSTEM/Scripts/embed-backfill.mjs',
-    new Set(['root backend path without _SYSTEM']),
-  ],
   [
     '_SYSTEM/Scripts/backend-data-recovery.test.mjs',
     new Set(['hardcoded absolute repo root']),
