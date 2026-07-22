@@ -83,9 +83,15 @@ variant the README documents at length. Trust the memory file over the README he
 ## THE THREE DEPLOY RULES (each already cost a fix commit)
 
 1. **Bump `VERSION` in `public/sw.js` on every frontend-asset change.** It is the cache name
-   (`sw.js:2`, currently `cgs-books-v4`); `activate` deletes only non-matching caches. If `sw.js` bytes
-   don't change, no install/activate cycle runs and René's phone silently keeps yesterday's UI against
-   today's API. `public/.htaccess` no-cache/no-store headers help but do not replace the bump.
+   (`sw.js:2`, currently `cgs-books-v18`); `activate` deletes only non-matching caches. Still good practice
+   (clean cache rotation + it re-runs the install precache), but **as of v18 it is no longer load-bearing for
+   freshness**: the app shell (navigations + `.html`/`.js`/`.css`) is now **network-first**, so a deploy lands
+   on the FIRST online reload regardless of the VERSION bump. The old "silently keeps yesterday's UI / needs
+   TWO reloads" gotcha is FIXED (2026-07-22, round 8). Statics (logo/icons/manifest) + the Alpine CDN stay
+   cache-first (offline-critical); `api.php`/`?r=` stays network-only. Offline = cached shell fallback (incl.
+   cached `index.html` for query-string navigations). <!-- @anchor: v1 | failure: cgs-books-sw-2reload-cachelag-2026-07-22 | regression: network-first shell in sw.js; cache-poison live test -->
+   If a browser is still on a PRE-v18 SW and looks stale, it's the one-time transition (the old cache-first SW
+   served that load): unregister SW + clear CacheStorage + reload, or just wait for the v18 SW to claim.
 2. **Migrations do NOT auto-apply on deploy.** After adding `004_*.sql`, René must click
    `Einstellungen → Kontenplan → "Kontenplan einrichten"` (= `POST api.php?r=migrate`). `run_migrations()`
    skips any `001_*` file (installer-owned) and re-runs every other `*.sql` **on every call** — so a new
@@ -211,8 +217,37 @@ filed milchbüechli 2025 on every line (see round-7 Session Note). New editable 
 or type it under Einstellungen → Firma; until then the PDF just omits the owner line. **Open data question:**
 booking `E744077` (CHF 128.00, 2024-12-10) makes cgs 2024 income 53'130.09 vs milchbüechli's filed 53'002.09
 — his call which fiscal year it belongs to (do not silently re-date).
+**Round 8 (2026-07-22, commit `107c542`, live v18):** the recurring **"2 reloads / stale UI after deploy"
+gotcha is FIXED** — `sw.js` shell is now **network-first** (deploys land on the first online reload); verified
+live by cache-poisoning through the SW. The migrate button label is **„Datenbank aktualisieren"** (not
+„Kontenplan einrichten") once the Kontenplan exists. owner_name field confirmed rendering live; René still to
+set it (type „René Spatz" + Speichern, or click „Datenbank aktualisieren" to seed via migration 008).
 
 ## Session Notes
+
+### 2026-07-22 (round 8: sw.js network-first — killed the recurring "2 reloads" cache lag)
+- Commit `107c542` (cgs-books), **deployed + verified live (v18)**. Surfaced when René couldn't find the new
+  owner_name field / the migrate button: his browser was serving the **old cached UI**, the classic
+  cgs-books "needs 2 reloads" gotcha. Two things were going on: (a) the Kontenplan migrate button reads
+  **„Datenbank aktualisieren"** once accounts exist (the „Kontenplan einrichten" label only shows on a fresh
+  install — `x-show !accounts_ready`), so my earlier instruction named the wrong label; (b) stale assets.
+- **Root cause of the 2-reload lag:** `sw.js` had `skipWaiting()` + `clients.claim()` already, but the shell
+  fetch was **cache-first** (`return hit || net`) → a new deploy was served STALE on the first load and only
+  cached for the next. **Fix:** shell (navigations + `.html`/`.js`/`.css`) → **network-first** (`net`, cache
+  fallback); statics + Alpine-CDN stay cache-first; `api.php`/`?r=` stays network-only; offline falls back to
+  the cached shell (incl. cached `index.html` for query-string navs). VERSION→v18. Deploy Rule 1 updated.
+- **VERIFIED live by cache-poisoning** (no extra deploy needed): with the v18 SW active+controlling, put a
+  `POISON_SENTINEL` Response into the `cgs-books-v18` cache for `/js/app.js` (shell) and `/manifest.webmanifest`
+  (static), then fetched both through the SW → **shell ignored the poison and returned fresh network bytes**
+  (26 344 B, contains `owner_name`), **static served the poison** (proves the cache-first split), and the
+  network-first fetch **self-healed** the shell cache. Restored the poisoned manifest afterwards (valid JSON,
+  no residue). This cache-poison-through-the-SW test is the reusable proof for SW strategy.
+- **HOW to force a stale pre-v18 browser fresh** (one-time transition cost): in devtools/console
+  `navigator.serviceWorker.getRegistrations().then(r=>r.forEach(x=>x.unregister()))` + `caches.keys().then(k=>k.forEach(caches.delete.bind(caches)))` + reload with a `?cachebust` query. Post-v18 it's automatic.
+- Tools: claude-in-chrome (drove René's authenticated browser — DOM checks, SW unregister/cache purge,
+  cache-busted reload, the cache-poison live test, screenshot of the now-visible owner field), Read/Edit,
+  Bash (`node --check` sw.js, git). Residual: the v18 deploy itself was the last one to pay the 2-reload cost
+  (old SW served its triggering load); every deploy after v18 is first-reload-fresh.
 
 ### 2026-07-22 (round 7: Jahresabschluss rebuilt to the milchbüechli reference + owner_name)
 - René: „Der Jahresabschluss ist nicht ausreichend, nimm milchbueechli als Referenz, nicht raten." Commit
