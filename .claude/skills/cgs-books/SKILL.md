@@ -241,6 +241,20 @@ Rechnungsdatum (Umstellung auf Zahlungseingang = offener Owner-Entscheid, würde
 
 ## Session Notes
 
+### 2026-07-22 (round 13: Jahresabschluss-Vorschau für das offene Jahr)
+- Commit `50c0147` (cgs-books), **deployed + live-verified (v26)**. Reine additive Funktion.
+- `ctrl_year_export` nimmt jetzt neben `id` einen **`year`-Parameter**: existierendes Geschäftsjahr, sonst
+  eine **synthetische OFFENE Vorschau** (`status='open'`, Zeitraum YYYY-01-01…YYYY-12-31) — Zahlen + Journal
+  live aus den Buchungen, OHNE das Jahr zu schliessen. `pdf_year_statement` markiert es als „Vorschau (Jahr
+  noch nicht abgeschlossen)". Route: `?r=year-export&year=2026`. Neuer **„Vorschau PDF"-Button** auf der
+  Jahresabschluss-Seite (`previewYear()` → downloadUrl mit year-Param).
+- **VERIFIED live:** 2026-Vorschau erzeugt (12 Seiten: Erfolgsrechnung + Buchungsjournal), als Blob im Browser
+  gerendert + Screenshot. YTD-Zahlen 2026 (Stand Juli): Einnahmen 30'512.98 / Aufwand 29'276.74 / Gewinn
+  1'236.24, offene Einnahmen 542.13 (Cash-Prinzip, noch nicht enthalten). Vorjahresspalte 2025 = korrigierte
+  83'868.02 / 19'742.74. Neue Steuerzeile „Fahrzeug/Benzin" (1.00) rendert korrekt.
+- Zum Anzeigen eines PDFs im Browser (pdf_download = attachment): Bytes via `fetch().arrayBuffer()` → Blob →
+  `URL.createObjectURL` → `location.href` = Blob-URL (Chrome rendert inline). sw v26.
+
 ### 2026-07-22 (round 12: Zahlungseingang = Buchungsdatum + KEY-Fund zum Datumsmodell)
 - Commit `9012c27` (cgs-books), **deployed + live-verified (v25)**, Migration **011 von der Session
   angewendet**. René wollte den Zahlungseingang für alle bezahlten Einnahmen gesetzt haben.
