@@ -62,16 +62,23 @@ variant the README documents at length. Trust the memory file over the README he
 - **Host is PHP-only shared Plesk — zero Python, no Node, no Composer.** Do not propose a build step, a
   bundler, TypeScript, or a Node service. (Same infra fact as cgs-cockpit; do not re-litigate.)
 
-## LOCAL DEV VERDICT — this box is EDIT-ONLY
+## LOCAL DEV VERDICT — lint locally, run only in production
 
-`php -v` → **command not found**. `mysql --version` / `mariadb --version` → **command not found**
-(verified 2026-07-21). There is no PHP interpreter and no MariaDB client on this Windows box, so
-`php -S localhost:8000 -t public` from the README **cannot run today**. Consequences:
-
-- You cannot execute or smoke-test the backend locally. **Do not claim a change "works" — say it is
-  unverified-until-deployed**, or ask René to install PHP 8 + MariaDB if real local testing is wanted.
-- Verification available locally: read the code, reason about SQL, and eyeball the frontend. Nothing more.
-- Live verification path = push → webhook deploys → check `https://books.custom-gear.ch` in the browser.
+- **PHP CLI IS installed: `C:\php\php.exe` (8.3.32, NTS x64)** — matches the server's 8.3.31 line. Added
+  2026-07-22 after an outage (below). No MariaDB client, so you still cannot *run* the app locally, but you
+  **can and MUST lint it.**
+- **HARD RULE — `php -l` every changed PHP file before every push.** A push webhook-deploys straight to
+  production; a PHP parse error there returns a caught `ParseError` as a clean JSON 500 on **every route**
+  (not an obvious fatal), taking the whole app down. `node --check` only covers the JS — it will not save
+  you. <!-- @anchor: v1 | failure: cgs-books-parse-error-outage-2026-07-22 | regression: php -l gate in this skill -->
+  ```bash
+  for f in $(find src public bin -name '*.php'); do /c/Users/rene/php/php.exe -l "$f"; done
+  ```
+- Backend logic still cannot be executed locally (no DB) — for that, verify against the running app after
+  deploy (hit the real endpoints), and **state residual risk** rather than claiming "works".
+- Live verification path = `php -l` → push → webhook deploys → probe `https://books.custom-gear.ch` API +
+  read data back. The server error log is reachable in **Plesk → books.custom-gear.ch → Protokolle**
+  (filter to Apache-Fehler) — that one line names the failing file:line when a deploy breaks.
 
 ## THE THREE DEPLOY RULES (each already cost a fix commit)
 
@@ -143,15 +150,55 @@ UI tabs (German, as René sees them): **Buchungen · Wiederkehrend · Berichte �
 - Anything about VAT method choice, Saldosteuersatz rate, or the Treuhänder handoff format beyond the
   README's defaults is **unsettled → ask René**; no owner ruling exists in the record.
 
+## CSV import (milchbüechli migration) — built + used 2026-07-22
+
+- Route `?r=import` ([src/controllers/import_controller.php](../../../cgs-books/src/controllers/import_controller.php)) +
+  logic ([src/import.php](../../../cgs-books/src/import.php)). Multipart CSV upload → **Vorschau (dry-run,
+  writes nothing) is the default**; writes only with `commit=1` and only if **zero** rows error
+  (all-or-nothing). UI panel under Einstellungen.
+- Migration **004** added `entries.beleg_nr`, `paid` (0=offen/ausstehend, default 1), `import_key`
+  (UNIQUE — re-running the same CSV is a safe no-op), `import_src`, and Konto **6640** Reisespesen.
+- **Cash-basis (Milchbüechli) is now enforced**: unpaid invoices (`paid=0`) are excluded from realized
+  income in the Erfolgsrechnung, the ledger totals, and year-close, but stay visible in the ledger list;
+  `report-pl` returns `outstanding_income` for the "ausstehende Einnahmen" line. Guard: `entries_paid_ready()`
+  / `entries_paid_and()` in [src/accounts.php](../../../cgs-books/src/accounts.php).
+- Category→Konto map + the hosttech/LightBurn/Shapr3D/Claude→6570 IT-override live in `import.php`
+  (`import_category_map()` / `import_it_vendor_regex()`). iway/yallo stay on 6500 (telephony, not IT).
+- **Migration DONE**: 2019–2026 imported and reconciled to the Rappen against the filed Jahresabschlüsse
+  (2765 historical rows + 5 old-2025 open + 355 for 2026). Grand total 2019–2026 E 299'892.18 / A 204'713.48
+  / offen 1'042.48 — matches milchbüechli exactly. Extraction method: scrape milchbüechli's Auswertungen
+  (`?wpv-wpcf-datum_min=<unixts>…`) year by year in the logged-in browser → CSV; receipts are URL-addressable
+  by Beleg-Nr (`/belege/YYYY/MM/…`) for a later bulk receipt import (not yet done).
+
 ## Status
 
-LIVE with real bookkeeping data since 2026-07-17. v2 (Kontenrahmen KMU + dual VAT method) shipped and its
-migration already run on the live DB (22 accounts). Working tree clean, `main` in sync with origin, last
-commit `a7ab2fc` (2026-07-20). Open: VAT stays off until registration (~Jan 2027, configure the method +
-Saldosteuersatz with the Treuhänder then); René may delete `public/setup.php` + `public/version.txt`; the
-"cannot select anything" Alpine class recurred after its first fix — treat as not fully closed.
+LIVE with real bookkeeping data. Full milchbüechli history 2019→today imported + verified (2026-07-22).
+Last commit `3f0e2b6`. Open: **2026 keeps growing on milchbüechli** — re-pull on the actual cutover day
+before cancelling; **cancel milchbüechli** once that's across; **receipt (Belege) bulk import** still to do
+(ZIPs were generated on milchbüechli for all years). VAT stays off until registration (~Jan 2027 — configure
+method + Saldosteuersatz with the Treuhänder then; the 8.1% on the seeded accounts is only a template and
+does NOT touch historical rows). Treuhänder note: `AHV/IV/EO-Beiträge Inhaber (1. Säule)` was imported to
+5700 as filed, but for a sole proprietor it's often a Privatentnahme — flag for review. The "cannot select
+anything" Alpine `:disabled` class remains the recurring frontend gotcha.
 
 ## Session Notes
+
+### 2026-07-22 (milchbüechli migration + PHP-lint gate)
+- Built the CSV importer and migrated all of 2019→2026 off milchbüechli.ch into cgs-books, reconciled to
+  the Rappen against the filed Jahresabschlüsse. Extraction via logged-in-browser scrape of the Auswertungen
+  view; import via a new dry-run-first `?r=import` route + migration 004 (paid/beleg_nr/import_key + Konto
+  6640); cash-basis paid-flag correctness across report-pl / ledger totals / year-close.
+- **OUTAGE + lesson (the reason the php -l rule above exists):** commit `814adaa` shipped a PHP parse error
+  (a docblock left outside `/* */` in `import.php:162`, introduced by a later Edit). No PHP on the box meant
+  `node --check` never saw it; it deployed and returned a caught `ParseError` as a clean JSON 500 on EVERY
+  route → whole app down ~50 min. First diagnosis ("probably not my code", from a load-order argument) was
+  confidently WRONG — the Plesk Apache-Fehler log named the exact file:line in one glance. Installed
+  `C:\php\php.exe` (8.3.32) to lint; fix `2cf66f4` restored it. Never deploy PHP here again without `php -l`.
+- Also fixed live: unpaid invoices inflating the Erfolgsrechnung (cash-basis paid filter, commit `b9bd3e4`)
+  and the import banner showing red after a successful import (`3f0e2b6`). Both `php -l`'d before push.
+- Tools: Agent (Explore/general-purpose sonnet ×4 — backend/frontend recon, adversarial PHP review, Node
+  simulation of the importer against the real 2765-row CSV), claude-in-chrome (scrape milchbüechli, drive
+  the import UI, read Plesk logs), Bash (`php -l`, git), Read/Edit/Write.
 
 ### 2026-07-21 (created)
 - Built as a pure context/orientation skill, mirroring the `cgs-cockpit` pattern (no pipeline, no edits to
