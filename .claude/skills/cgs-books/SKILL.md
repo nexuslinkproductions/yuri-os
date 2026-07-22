@@ -241,6 +241,26 @@ Rechnungsdatum (Umstellung auf Zahlungseingang = offener Owner-Entscheid, würde
 
 ## Session Notes
 
+### 2026-07-22 (round 12: Zahlungseingang = Buchungsdatum + KEY-Fund zum Datumsmodell)
+- Commit `9012c27` (cgs-books), **deployed + live-verified (v25)**, Migration **011 von der Session
+  angewendet**. René wollte den Zahlungseingang für alle bezahlten Einnahmen gesetzt haben.
+- **KEY-FUND (Referenz, wichtig gegen Re-Verwirrung):** in milchbüechli hat jede Buchung ZWEI Daten —
+  **Rechnungsversand** (`wpcf-rechnungsversand`, Rechnungsdatum) und **Zahlungseingang** (Feld heißt intern
+  `wpcf-datum`!). Der Original-Import scrapte die Journal-„Datum"-Spalte = `wpcf-datum` = **Zahlungseingang**.
+  → **cgs `entry_date` IST bereits das Zahlungs-/Realisierungsdatum**, NICHT das Rechnungsdatum (live bewiesen:
+  E812229 milchbüechli Rechnungsversand 29.06.2026 vs Zahlungseingang 10.07.2026 → cgs entry_date = 10.07.2026).
+  Das echte Rechnungsdatum (Rechnungsversand) ist als einziges NICHT in cgs (für Milchbüechli-Cash-Prinzip
+  auch nicht nötig). Booking-Datum = Zahlungsdatum gilt für ALLE Zahlungsarten (bank/SEPA/TWINT), nicht nur TWINT.
+- **Umsetzung (Owner „Leave it"):** Migration 011 setzt `paid_date = entry_date` für importierte bezahlte
+  Einnahmen (`import_key IS NOT NULL AND paid_date IS NULL`). **1699 Zeilen gefüllt, Totale byte-identisch**
+  (2024 53'002.09 / 2025 83'868.02) — Realisierung nutzt `COALESCE(paid_date, entry_date)`, also 0 Effekt.
+  E744077 bleibt (paid_date≠entry_date). 1 manuelle (nicht-importierte) Einnahme bleibt ohne paid_date (egal,
+  realisiert per entry_date). Formular-Default: neue Einnahme bekommt `paid_date = Buchungsdatum`.
+- Anzeige unverändert (Liste zeigt „ZAHLUNGSEINGANG" nur wenn ≠ Buchungsdatum, sonst redundant) — der Wert
+  steht im Bearbeiten-Formular (live verifiziert: E812229 Zahlungseingang-Feld = 10.07.2026, war leer).
+- **Offen/optional (Owner sagte „leave it"):** echtes Rechnungsdatum (Rechnungsversand) als separates Feld
+  importieren — nur falls er die 3-Datum-Trennung (Rechnung/Zahlung/Fällig) wirklich getrennt will. sw v25.
+
 ### 2026-07-22 (round 11: sticky Aktionsleiste NEUE EINNAHME / NEUE AUSGABE)
 - Commit `49c7bb9` (cgs-books), **deployed + live-verified (v22)**. Reine Frontend-Runde.
 - Zwei getippte Buttons oben auf der Buchungen-Seite: **NEUE EINNAHME** (grün, `--income`) + **NEUE AUSGABE**
