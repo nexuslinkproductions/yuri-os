@@ -184,12 +184,13 @@ UI tabs (German, as René sees them): **Buchungen · Wiederkehrend · Berichte �
 ## Status
 
 LIVE with real bookkeeping data. Full milchbüechli history 2019→today imported + verified (2026-07-22).
-Last commit `43c7d8e` (round 2: Fälligkeit/Zahlungsart-Badge/Alle-Konten-Auszug/Migrate-Bestätigung/
-3000=Netto — deployed, health-probed live). **PENDING RENÉ: click Einstellungen → Kontenplan →
-„Datenbank aktualisieren"** — now applies migrations **005 (`payment_method`) + 006 (`due_date` +
-3000-Verkäufe BRUTTO→NETTO)** and shows a **persistent confirmation** (applied files + `beleg_nr/paid/
-payment_method/due_date` column check) in the Kontenplan card. All new columns are `*_ready()`-guarded
-so the app degrades (no 500) until the click. Open: **2026 keeps growing on milchbüechli** — re-pull on the actual cutover day
+Last commit `8a21089` (round 3+4: left-sidebar UI redesign, cost pie, historical-years seed, editable
+Firma, TWINT backfill — deployed, **visually verified logged-in via claude-in-chrome**). **TWO PENDING
+RENÉ CLICKS:** (1) Einstellungen → Kontenplan → „Datenbank aktualisieren" applies migrations **005–007**
+(`payment_method`, `due_date`, 3000→NETTO, old-TWINT→ECOM backfill, Firma seed) + shows a persistent
+confirmation; (2) Jahresabschluss → „2019–2025 übernehmen" seeds the closed historical years. All columns
+`*_ready()`-guarded (no 500 pre-migrate). SW is at **v14** — needs TWO reloads / PWA reopen to pick up
+(new SW serves fresh assets only on the 2nd load). Open: **2026 keeps growing on milchbüechli** — re-pull on the actual cutover day
 before cancelling; **cancel milchbüechli** once that's across; **receipt (Belege) bulk import** still to do
 (ZIPs were generated on milchbüechli for all years). VAT stays off until registration (~Jan 2027 — configure
 method + Saldosteuersatz with the Treuhänder then; the 8.1% on the seeded accounts is only a template and
@@ -198,6 +199,38 @@ does NOT touch historical rows). Treuhänder note: `AHV/IV/EO-Beiträge Inhaber 
 anything" Alpine `:disabled` class remains the recurring frontend gotcha.
 
 ## Session Notes
+
+### 2026-07-22 (round 3+4: left-sidebar UI redesign, cost pie, historical years, editable Firma, TWINT backfill)
+- Big owner batch, commits `8b7ca50` (features) → `092a99e` (layout gap + mobile table scroll) →
+  `8a21089` (pie fix). **Verified logged-in via claude-in-chrome** (René's Chrome) — every page screenshotted.
+- **Left sidebar** replaces the top tab bar (`.shell`/`.sidebar`/`.main`); mobile = drawer via
+  `sidebarOpen` + hamburger + backdrop. The Buchungen **filters live IN the sidebar** (owner ask) + a new
+  **Offen/Bezahlt** status filter (`entries_filter` `paid_status`). The Einnahmen/Ausgaben/Gewinn totals bar
+  was removed from the ledger. **GOTCHA fixed live:** `.app` has `margin:0 auto` → centered content left a
+  huge gap next to the sidebar; `.main .app{margin:0;max-width:1180px}` left-aligns it.
+- **Cost pie** (Berichte, „Kosten nach Konto", Aufwand by account). **LESSON:** Alpine `<template x-for>`
+  inside `<svg>` generates `<path>` in the HTML namespace → **arcs never render** (only static `<circle>`/
+  `<text>` do). Rebuilt as a CSS **`conic-gradient`** donut (`.pie` + `.pie-center` hole) — robust, no SVG.
+  <!-- @anchor: v1 | failure: cgs-books-alpine-svg-xfor-2026-07-22 | regression: never x-for SVG children under Alpine; use conic-gradient/x-html -->
+- **Historical years**: `?r=years-seed` (`ctrl_years_seed_historical`) closes+locks 2019–2025 as
+  Geschäftsjahre (they were closed in milchbüechli but absent here); idempotent (skips existing), reversible
+  via per-year „Öffnen". Button on the Jahresabschluss page. NOT a migration (a re-running migration would
+  re-lock after a reopen). Closing write-protects those years by date-range (`year_guard_writable`).
+- **Editable Firma**: `legal_name`/`business_name`/`address` moved from the untouchable server `config.php`
+  into the `settings` table (`firma()` helper = setting → cfg fallback), editable in Einstellungen, used in
+  app + PDF (`pdf_header`). Seeded „Spatz Custom Gear Solutions / Oberwilerweg 32 / 4852 Rothrist" via 007
+  `INSERT IGNORE` (later edits survive). His own business address in git is acceptable (own company, needed on PDFs).
+- **Old TWINT backfill** (migration 007): imported income with "TWINT" in the description → `twint_ecom`;
+  `amount_input` reconstructed to the invoice total (`amount_total/0.9865`) so edits don't double-apply the fee.
+  Idempotent via `payment_method IS NULL`. Overview badge is income-only BANKÜBERWEISUNG/TWINT (no ×-detail).
+- **PDF number format** (`chf_num` = `1'000.00`, Swiss apostrophe) — applied ONLY to PDF render lines
+  (`$p->`/`$line(`/`$amtStr`) via a scoped awk pass; JSON/CSV keep `money_str` ("1000.00") or parsing breaks.
+- **RESIDUAL RISK:** migrations 005–007 + years-seed NOT yet run by René (need his authenticated clicks) →
+  not verified end-to-end: the TWINT backfill row count, `due_date` round-trip, the 3000→NETTO relabel, the
+  year-seed profit snapshots, and PDF apostrophes (unrendered). Firma save round-trip not clicked. Multi-
+  statement `db()->exec()` for 006/007 relies on the mysqlnd behavior 004 proved.
+- Tools: Read/Edit/Write, Bash (`php -l`, `node --check`, awk scoped replace, git, python tag-balance),
+  claude-in-chrome (logged-in visual verification — screenshots of every page).
 
 ### 2026-07-22 (Buchungen UX batch — round 2: due date, Zahlungsart badge, Alle Konten, migrate confirm, 3000=net)
 - Owner-feedback follow-up to the batch below, commit `43c7d8e` (deployed + live health/asset-probed:
