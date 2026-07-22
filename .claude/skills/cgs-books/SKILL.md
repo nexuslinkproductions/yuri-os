@@ -222,8 +222,37 @@ gotcha is FIXED** — `sw.js` shell is now **network-first** (deploys land on th
 live by cache-poisoning through the SW. The migrate button label is **„Datenbank aktualisieren"** (not
 „Kontenplan einrichten") once the Kontenplan exists. owner_name field confirmed rendering live; René still to
 set it (type „René Spatz" + Speichern, or click „Datenbank aktualisieren" to seed via migration 008).
+**Round 9 (2026-07-22, commits `5f8ba57`→`146c368`, live v20):** neues Feld **Zahlungseingang** (`paid_date`,
+migration 009) beim Erfassen bezahlter Einnahmen — reine ERFASSUNG, Jahres-Realisierung folgt weiter dem
+Rechnungsdatum (Umstellung auf Zahlungseingang = offener Owner-Entscheid, würde E744077 lösen). **PENDING RENÉ:
+„Datenbank aktualisieren" klicken wendet 008 (owner_name) + 009 (paid_date) an** — bis dahin persistiert paid_date nicht.
 
 ## Session Notes
+
+### 2026-07-22 (round 9: Zahlungseingang / paid_date je Einnahme — erfassen + anzeigen)
+- René: beim Erfassen einer bezahlten Einnahme fehlt das Datum des Geldeingangs (nur Rechnungsdatum
+  vorhanden). Commits `5f8ba57` (Feld+Logik) → `146c368` (Layout: eigene Zeile). **Deployed + live-verified
+  (v20).** Migration **009** = `entries.paid_date DATE NULL` (idempotent, `AFTER due_date`).
+- **Wiring** (mirror von `due_date`): `entries_paid_date_ready()`-Sonde ([accounts.php]); `row_to_api` gibt
+  `paid_date` zurück; create/update speichern es NUR bei `paid=1` (unbezahlt → NULL); `report_account_data`
+  liefert es mit; migrate-Bestätigung meldet die neue Spalte. Form-Feld **nur bei `form.paid &&
+  booking_type==='income'`** (eigene `.row`, gegenüber „Fällig am" bei offenen). Anzeige „ZAHLUNGSEINGANG
+  <Datum>" in Buchungsliste + Kontoauszug **nur wenn gesetzt UND != Rechnungsdatum** (kein Rauschen bei
+  Barzahlung am selben Tag). Degradiert sauber ohne die Spalte (kein 500).
+- **SCOPE-Grenze bewusst gezogen:** dies ist REINE ERFASSUNG. Die Jahres-Realisierung (report-pl / year_totals
+  / year-close-Sperren) filtert weiterhin nach `entry_date`, NICHT nach `paid_date`. Ob die Realisierung dem
+  Zahlungseingang folgen soll (echtes Cash-Prinzip; würde das **E744077**-Cross-Year-Problem aus Runde 7 lösen)
+  ist ein SEPARATER Owner-Entscheid — betrifft Abschluss-Sperren + verschiebt Zahlen, und historische Zeilen
+  haben kein `paid_date` (Fallback `COALESCE(paid_date, entry_date)` hielte Altzahlen stabil). **Noch offen —
+  René fragen, bevor die Realisierungs-Basis umgestellt wird.**
+- **VERIFIED live** (claude-in-chrome, René eingeloggt): server v20, `location.reload()` (ein Reload, dank v18
+  network-first) lud das v20-Dokument, Modal Typ=Einnahme + bezahlt → Feld rendert sauber in eigener Zeile.
+  **GOTCHA bestätigt:** ein `navigate` auf nur eine **Hash-Änderung** (`#ledger`) lädt das Dokument NICHT neu →
+  wirkt „stale"; ein echter `location.reload()`/F5 zieht frisch (v18 network-first ok). Pre-migration bleibt
+  `paid_date` ungespeichert bis René **„Datenbank aktualisieren"** klickt (wendet 008 + 009 an).
+- Tools: Read/Edit/Write, Bash (`php -l` ×4, `node --check`, python div-balance, git), claude-in-chrome
+  (Modal öffnen, Typ setzen via form_input, Alpine-State prüfen, Screenshot). Residual: paid_date persistiert
+  erst nach dem Migrate-Klick; Realisierungs-Basis-Umstellung nicht gebaut (owner-gated).
 
 ### 2026-07-22 (round 8: sw.js network-first — killed the recurring "2 reloads" cache lag)
 - Commit `107c542` (cgs-books), **deployed + verified live (v18)**. Surfaced when René couldn't find the new
