@@ -32,14 +32,14 @@ assert.equal(projection.projection.count, projection.skills.length, 'projection 
 assert.equal(projection.canonical.count, skillIndex.count, 'projection canonical count must match skill-index');
 assert.equal(projection.cyber.armed.count, 300, 'armed cybersecurity projection count drifted');
 assert.equal(projection.cyber.labgated.count, 39, 'lab-gated cybersecurity projection count drifted');
-assert.equal(projection.skills.length, 464, 'governed Codex projection must be exact');
+assert.equal(projection.skills.length, 466, 'governed Codex projection must be exact');
 assert.equal(new Set(projection.skills.map((skill) => skill.id)).size, projection.skills.length, 'projection IDs must be unique');
 assert.equal(projection.skills.every((skill) => skill.tracked === true && skill.durability === 'git-index'), true, 'all projected sources must be tracked');
 assert.deepEqual(projection.projection.nativeInvocation, {
   sidecarRelativePath: NATIVE_POLICY_RELATIVE_PATH,
   provenance: '_SYSTEM/Scripts/yuri-codex-skill-projector.mjs',
   implicit: { count: 1, ids: [NATIVE_IMPLICIT_SKILL_ID] },
-  explicitOnly: { count: 463 },
+  explicitOnly: { count: 465 },
 }, 'native invocation budget must keep exactly one eager YURI meta-router');
 
 for (const projected of projection.skills) {

@@ -54,7 +54,8 @@
         "receipt-subscription-cleaner",
         "to-issues",
         "to-prd",
-        "triage"
+        "triage",
+        "agentic-engineering-fleet-discipline"
       ]
     },
     {
@@ -80,7 +81,8 @@
         "organ-filing-assessor",
         "plan-review",
         "setup-pre-commit",
-        "trade-edge-audit"
+        "trade-edge-audit",
+        "commit-scope-and-fix-verification"
       ]
     },
     {

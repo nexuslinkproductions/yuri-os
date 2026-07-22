@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-07-19",
+  "updated": "2026-07-22",
   "canonicalRoot": "skills",
   "sourceOfTruth": true,
-  "count": 125,
+  "count": 127,
   "rules": {
     "skillBodyPath": "skills/<skill-id>/SKILL.md",
     "providerCaches": "reference_only",
@@ -42,6 +42,11 @@
       "id": "agent-scout",
       "path": "skills/agent-scout/SKILL.md",
       "sourceFamily": "claude_import"
+    },
+    {
+      "id": "agentic-engineering-fleet-discipline",
+      "path": "skills/agentic-engineering-fleet-discipline/SKILL.md",
+      "sourceFamily": "yuri_native"
     },
     {
       "id": "anime-dna-extensions",
@@ -120,6 +125,11 @@
     {
       "id": "codex-plugin-control-plane",
       "path": "skills/codex-plugin-control-plane/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
+      "id": "commit-scope-and-fix-verification",
+      "path": "skills/commit-scope-and-fix-verification/SKILL.md",
       "sourceFamily": "yuri_native"
     },
     {

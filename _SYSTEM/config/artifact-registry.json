@@ -409,7 +409,7 @@
       "protected": false,
       "storageRule": "Codex-specific native collision-only policy lives in _SYSTEM/config; generated sidecars remain the sole authority for governed invocation and canonical bodies remain in governed skill roots.",
       "rebuildRule": "Run yuri-codex-skill-activation tests, --check, and a session-only --probe; after separately owner-gated supported API activation, require a fresh --probe-live receipt.",
-      "notes": "Pins exactly 14 duplicate native path states and zero governed adapter writes while retaining all 464 governed sources through sidecar discovery and skill-recall."
+      "notes": "Pins exactly 14 duplicate native path states and zero governed adapter writes while retaining all 466 governed sources through sidecar discovery and skill-recall."
     },
     {
       "path": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
@@ -457,7 +457,7 @@
       "protected": false,
       "storageRule": "Codex native activation regression tests live beside the implementation in _SYSTEM/Scripts.",
       "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-codex-skill-activation.test.mjs.",
-      "notes": "Proves 464 sidecar-authoritative adapters (1 implicit/463 explicit-only), 14 collision states, path and symlink rejection, owner gating, zero config reads, deterministic overrides, partial receipts, child cleanup, and prompt acceptance failure shapes."
+      "notes": "Proves 466 sidecar-authoritative adapters (1 implicit/465 explicit-only), 14 collision states, path and symlink rejection, owner gating, zero config reads, deterministic overrides, partial receipts, child cleanup, and prompt acceptance failure shapes."
     },
     {
       "path": "_SYSTEM/Scripts/yuri-skill-loader.mjs",

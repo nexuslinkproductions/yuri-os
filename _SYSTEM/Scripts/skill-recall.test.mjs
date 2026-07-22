@@ -255,11 +255,11 @@ test('equal-score recall ties are deterministic by governed id', () => {
   assert.deepEqual(hits.map((entry) => entry.name), ['alpha', 'zeta']);
 });
 
-test('workspace corpus is exactly the governed 125 + 300 + 39 set', () => {
+test('workspace corpus is exactly the governed 127 + 300 + 39 set', () => {
   const skills = scanLiveSkills(REPO_ROOT);
   const counts = Object.groupBy(skills, (entry) => entry.sourceClass);
-  assert.equal(skills.length, 464);
-  assert.equal(counts.canonical?.length, 125);
+  assert.equal(skills.length, 466);
+  assert.equal(counts.canonical?.length, 127);
   assert.equal(counts['cyber-armed']?.length, 300);
   assert.equal(counts.labgated?.length, 39);
   assert.ok(counts.labgated.every((entry) => entry.ownerAuthorizedDiscovery === true && entry.runtimeAuthorization === false && entry.riskReason));
@@ -273,7 +273,7 @@ test('workspace corpus is exactly the governed 125 + 300 + 39 set', () => {
     ['mure-advisor', 'opus-fleet'],
   );
   assert.equal(rankSkills('MURE role model variant matrix', { root: REPO_ROOT, top: 100 }).some((entry) => entry.name === 'mure-role-variant-matrix'), false);
-  assert.equal(new Set(skills.map((entry) => entry.name)).size, 464);
+  assert.equal(new Set(skills.map((entry) => entry.name)).size, 466);
 });
 
 test('full-body show matches governed hashes for canonical, armed, and lab-gated classes', () => {
