@@ -203,8 +203,62 @@ method + Saldosteuersatz with the Treuhänder then; the 8.1% on the seeded accou
 does NOT touch historical rows). Treuhänder note: `AHV/IV/EO-Beiträge Inhaber (1. Säule)` was imported to
 5700 as filed, but for a sole proprietor it's often a Privatentnahme — flag for review. The "cannot select
 anything" Alpine `:disabled` class remains the recurring frontend gotcha.
+**Round 7 (2026-07-22, commit `603d4b0`, live v17):** the **Jahresabschluss PDF was rebuilt to the
+milchbüechli reference** — steuerfertige Erfolgsrechnung (Vorjahresvergleich + Aufwand nach ~8 Steuerzeilen +
+Gewinn/Verlust + Unterschriftsblock) followed by the full Buchungsjournal; verified byte-identical to the
+filed milchbüechli 2025 on every line (see round-7 Session Note). New editable Firma field **owner_name**
+(migration **008**, seeds „René Spatz") — **STILL PENDING RENÉ: click „Kontenplan einrichten" (migrate 008)**
+or type it under Einstellungen → Firma; until then the PDF just omits the owner line. **Open data question:**
+booking `E744077` (CHF 128.00, 2024-12-10) makes cgs 2024 income 53'130.09 vs milchbüechli's filed 53'002.09
+— his call which fiscal year it belongs to (do not silently re-date).
 
 ## Session Notes
+
+### 2026-07-22 (round 7: Jahresabschluss rebuilt to the milchbüechli reference + owner_name)
+- René: „Der Jahresabschluss ist nicht ausreichend, nimm milchbueechli als Referenz, nicht raten." Commit
+  `603d4b0` (cgs-books), **deployed + verified live (v17)**. The old year PDF (`pdf_year_statement`) was a
+  5-line summary (Einnahmen/Ausgaben/Gewinn/MwSt/Anzahl) — **not tax-filing usable**.
+- **Looked at the real reference** (claude-in-chrome, René logged in): `…/app/jahresabschluss/` →
+  „Jahresabschluss herunterladen" = a **33-page** PDF. Page 1 = a proper Erfolgsrechnung nach Steuerschema
+  (**Vorjahresvergleich**, income as one „Total Einnahmen" line, **Aufwand in ~8 benannten Steuerzeilen**,
+  „Einkommen aus selbständiger Erwerbstätigkeit → Gewinn/**Verlust**", **Unterschriftsblock**, „generiert am
+  …"). Pages 2-33 = the full **Buchungsjournal** (Datum/Einnahme/Ausgabe/Beleg-Nr/Buchungstext, „Seite N von M").
+  2019 PDF confirmed the conditional rules: single column when no prior year, only non-zero groups printed,
+  Gewinn↔Verlust by sign, historical address is point-in-time (2019 = Menzingen, now Rothrist — cgs stores only current).
+- **Built** ([src/controllers/reports_controller.php](../../../cgs-books/src/controllers/reports_controller.php)):
+  `year_expense_taxlines()` (the **inverse of `import_category_map()`** — 6500+6570 merge to „Büromaterial,
+  EDV/IT…", catch-all „Alle übrigen Geschäftsaufwände" last), `year_taxline_for_number()`,
+  `year_statement_figures()` (paid/net, cash-basis), `year_journal_rows()`, and a full rewrite of
+  `pdf_year_statement($y)` (statement page + deterministic-pagination journal). **Always LIVE** from the
+  (locked-after-close) entries — the fiscal_years snapshot has only aggregates, no breakdown. `ctrl_year_export`
+  no longer passes `$t`.
+- **Pdf class** ([src/pdf.php](../../../cgs-books/src/pdf.php)): added `fit()` (truncate+ellipsis) and `wrap()`
+  (≤2-line word-wrap) — **mbstring-free (PCRE `/u`)**, same defensive reason as `cp1252()`; shared-hosting may
+  lack mbstring and the local CLI does. <!-- @anchor: v1 | failure: none (defensive, mirrors cp1252 fallback) | regression: _cgs_pdftest.php harness -->
+- **owner_name**: new editable Firma field (Einstellungen → Firma; [settings_controller.php] whitelists it,
+  [index.html]/[app.js] input+sform, PDF header + „Geschäftsinhaber/in: …" + signature). **Migration 008**
+  `INSERT IGNORE` seeds „René Spatz". Degrades cleanly to blank pre-migrate (PDF omits the owner lines, no 500).
+- **VERIFIED — this is the strong bit.** Local: 41/41 assertions (taxline map, prior-period, fit/wrap no-overflow,
+  and pagination consistency requested==/Count==endstream==footer-M across 0/1/30/200/400 rows) via a DB-free
+  harness against the real Pdf class. **Live end-to-end**: fetched the *production* year-export PDF bytes via
+  authenticated JS (`fetch('/api.php?r=year-export&id=…').arrayBuffer()`) and grepped the `(…)Tj` operators for
+  the known milchbüechli reference numbers → **2025 statement is byte-identical to the filed milchbüechli
+  Jahresabschluss on EVERY line** (income 83'740.02, expense 64'125.28, Gewinn 19'614.74, and all 8 taxlines:
+  Direkter 22'443.34 / AHV 1'499.80 / Miete 5'561.00 / Büro 17'480.51 / Reise 80.00 / Werbung 799.80 / übrige
+  16'260.83). Journal + „Seite N von M" present (25 pages — denser than milchbüechli's 33 because we truncate/
+  wrap tighter, content-complete). **This PDF-bytes-vs-known-numbers method is the reusable live-verify for cgs
+  PDFs** (no local DB needed).
+- **DATA FINDING (surfaced, not a bug — flag for René/Treuhänder):** the new **prior-year column** shows cgs
+  2024 income **53'130.09** vs milchbüechli's filed 2024 **53'002.09** → **exactly +128.00** (profit carries it;
+  expense identical). 2025 matches to the Rappen and the grand total reconciles, so it's a pre-existing
+  **cross-year attribution delta** the new column merely exposed. Pinpointed to **one booking: Beleg `E744077`,
+  CHF 128.00, dated 2024-12-10** — whose Beleg-Nr sits in the **2025** invoice series (milchbüechli's E7441xx
+  were Jan-2025) yet is dated Dec-2024 here. The PDF is correct (renders cgs's true 53'130.09); the question is
+  which fiscal year E744077 belongs to — **owner/Treuhänder call, do not silently re-date real financial data.**
+- Tools: claude-in-chrome (read the milchbüechli reference PDFs + authenticated live-verify against production),
+  Read/Edit/Write, Bash (`php -l` all 4 PHP files + a local `C:\Users\rene\_cgs_pdftest.php` harness on
+  `C:\Users\rene\php\php.exe`, `node --check`, git). Residual: owner_name blank until René clicks „Kontenplan
+  einrichten" (migrate 008) or types+saves it; the 128.00 attribution is his to decide.
 
 ### 2026-07-22 (round 5: dark theme, PDF date format, save-toast, F5-keeps-tab; TWINT-totals proof)
 - Commit `108539f`, deployed + visually verified logged-in (claude-in-chrome).
