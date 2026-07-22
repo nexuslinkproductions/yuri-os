@@ -194,6 +194,35 @@ anything" Alpine `:disabled` class remains the recurring frontend gotcha.
 
 ## Session Notes
 
+### 2026-07-22 (Belege migration + reports/PDF fixes — continuation)
+- **Belege (receipts) migration built.** milchbüechli's `/belege/...` are PUBLIC (200 even without a
+  cookie) BUT its WordPress WAF **403s the hosttech server IP** regardless of User-Agent/headers — so a
+  server-side pull is impossible. Pivot: upload milchbüechli's Beleg-ZIP → route `receipt-zip-import`
+  ([src/receipts_import.php](../../../cgs-books/src/receipts_import.php)) unzips + matches each file to a
+  booking by the **Beleg-Nr that leads the filename** (`E669054-…pdf` → `entries.beleg_nr`). Idempotent
+  (bookings with a receipt are skipped). Once attached, `ctrl_entry_get` returns them → clickable in the
+  Buchung modal (no extra UI needed). Also `receipt-zip` (GET) builds a Kontoauszug-style Beleg-ZIP for a
+  period/account — backend done, **not yet wired to a UI page** (the "auszug-einzelne-konten"-style
+  download page René asked for is still a TODO).
+- Collision rule: a Beleg-Nr shared across years (a naming reuse) routes to the **newest** booking
+  (`ORDER BY entry_date DESC`) — fixed after one 2026 beleg landed on its 2025 twin.
+- **STATE: 2026 belege DONE** — 354 fetched, 353/355 bookings clickable; one booking (PRIMEO, 30.04.2026,
+  CHF 155) genuinely has no milchbüechli beleg; the one collision (POST, 04.03.2026) René corrected
+  himself. Getting the 2026 ZIP: server can't fetch, and the shared browser (claude-in-chrome = René's
+  Chrome) gets navigated by René mid-run — so the fetch was built **client-side with IndexedDB caching**
+  (resumes across reloads), concurrency-2/3 + ~120ms throttle to dodge the WAF rate-limit, then a
+  hand-rolled STORE-ZIP (CRC32) downloaded + uploaded. Verified valid via `unzip -t`.
+- **OPEN for next session:** (1) **2019–2025 retention** — download milchbüechli's per-year Beleg-ZIPs
+  (Jahresabschluss → „Belege ZIP herunterladen", ~146 MB each) to disk + off-site backup, THEN cancel
+  milchbüechli (they die on cancel). These stay archive-only (not per-booking clickable) by René's choice.
+  (2) Optional: wire a Beleg-download page onto `receipt-zip`. (3) Optional: add a Beleg-Nr edit field to
+  the booking form (currently only import/display, not editable in UI).
+- Reports/PDF fixes shipped + verified this day: cash-basis (unpaid excluded from realized income), import
+  banner colour, **PDF export 500 (pdf.php never required → `Class "Pdf" not found`)**, Erfolgsrechnung HTML
+  expense rows (Alpine single-root x-for) + Kontenklassen sub-headers via a flat `plRows()` helper.
+- **René comms preference (honor it):** the Buchungen overview shows **NO booking numbers** — never
+  reference a booking by internal DB id. Identify bookings by **date + amount + Beleg-Nr + description**.
+
 ### 2026-07-22 (milchbüechli migration + PHP-lint gate)
 - Built the CSV importer and migrated all of 2019→2026 off milchbüechli.ch into cgs-books, reconciled to
   the Rappen against the filed Jahresabschlüsse. Extraction via logged-in-browser scrape of the Auswertungen
