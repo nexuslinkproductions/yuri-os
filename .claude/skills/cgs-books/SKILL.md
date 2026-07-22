@@ -184,8 +184,14 @@ UI tabs (German, as René sees them): **Buchungen · Wiederkehrend · Berichte �
 ## Status
 
 LIVE with real bookkeeping data. Full milchbüechli history 2019→today imported + verified (2026-07-22).
-Last commit `108539f` (round 5: **dark theme (CGS-Cockpit palette)**, PDF date dd/mm/yyyy, save-toast,
-F5-keeps-tab — deployed + visually verified logged-in). **Migrations 005–007 CONFIRMED APPLIED by René**
+Last commit `e07fec1` (round 6: **CGS logo** in the sidebar + top content spacing; `108539f` = dark theme,
+PDF date dd/mm/yyyy, save-toast, F5-keeps-tab — all deployed + visually verified logged-in). Logo =
+`public/cgs-logo.png` (copied from the cockpit's `frontend/public/cgs-logo.png`, white/transparent → shows
+on the dark sidebar), added to the `sw.js` SHELL precache. **DEPLOY GOTCHA (new):** the GitHub→Plesk webhook
+**silently missed** the `983302f` push (server stayed v15, `cgs-logo.png` 404'd for >90s while the commit was
+confirmed on origin/main) — a **fresh push** (marker-bump commit `e07fec1`) re-triggered it and deployed both.
+So a push is *usually* live in ~15s but can miss; verify the server (cache-busted fetch of `sw.js`/`version.txt`),
+and if stuck, re-push a trivial commit rather than assuming it deployed. **Migrations 005–007 CONFIRMED APPLIED by René**
 (306 TWINT sales tagged `twint_ecom`); **totals verified byte-identical before/after** (income 299'892.18 /
 expense 204'713.48 / profit 95'178.70) — the 007 `amount_input` reconstruction changed only the hidden
 Rechnungsbetrag, never `amount_total`. SW is at **v15** — needs TWO reloads / PWA reopen to pick up (new SW
