@@ -184,13 +184,13 @@ UI tabs (German, as René sees them): **Buchungen · Wiederkehrend · Berichte �
 ## Status
 
 LIVE with real bookkeeping data. Full milchbüechli history 2019→today imported + verified (2026-07-22).
-Last commit `8a21089` (round 3+4: left-sidebar UI redesign, cost pie, historical-years seed, editable
-Firma, TWINT backfill — deployed, **visually verified logged-in via claude-in-chrome**). **TWO PENDING
-RENÉ CLICKS:** (1) Einstellungen → Kontenplan → „Datenbank aktualisieren" applies migrations **005–007**
-(`payment_method`, `due_date`, 3000→NETTO, old-TWINT→ECOM backfill, Firma seed) + shows a persistent
-confirmation; (2) Jahresabschluss → „2019–2025 übernehmen" seeds the closed historical years. All columns
-`*_ready()`-guarded (no 500 pre-migrate). SW is at **v14** — needs TWO reloads / PWA reopen to pick up
-(new SW serves fresh assets only on the 2nd load). Open: **2026 keeps growing on milchbüechli** — re-pull on the actual cutover day
+Last commit `108539f` (round 5: **dark theme (CGS-Cockpit palette)**, PDF date dd/mm/yyyy, save-toast,
+F5-keeps-tab — deployed + visually verified logged-in). **Migrations 005–007 CONFIRMED APPLIED by René**
+(306 TWINT sales tagged `twint_ecom`); **totals verified byte-identical before/after** (income 299'892.18 /
+expense 204'713.48 / profit 95'178.70) — the 007 `amount_input` reconstruction changed only the hidden
+Rechnungsbetrag, never `amount_total`. SW is at **v15** — needs TWO reloads / PWA reopen to pick up (new SW
+serves fresh assets only on the 2nd load). STILL PENDING RENÉ: Jahresabschluss → „2019–2025 übernehmen"
+(historical-years seed — not yet clicked). Open: **2026 keeps growing on milchbüechli** — re-pull on the actual cutover day
 before cancelling; **cancel milchbüechli** once that's across; **receipt (Belege) bulk import** still to do
 (ZIPs were generated on milchbüechli for all years). VAT stays off until registration (~Jan 2027 — configure
 method + Saldosteuersatz with the Treuhänder then; the 8.1% on the seeded accounts is only a template and
@@ -199,6 +199,29 @@ does NOT touch historical rows). Treuhänder note: `AHV/IV/EO-Beiträge Inhaber 
 anything" Alpine `:disabled` class remains the recurring frontend gotcha.
 
 ## Session Notes
+
+### 2026-07-22 (round 5: dark theme, PDF date format, save-toast, F5-keeps-tab; TWINT-totals proof)
+- Commit `108539f`, deployed + visually verified logged-in (claude-in-chrome).
+- **Dark theme** — re-skinned to the **CGS-Cockpit** palette (its tokens live at
+  `…/landed-cost-cogs/cockpit/frontend/src/theme/tokens.css`, read-only ref): dark-first near-black layers
+  (`--bg #0a0b0d`, `--surface #15171c`, `--sidebar-bg #101217`), gunmetal-blue accent `#4c7eff`, muted
+  green/red `#34c77b`/`#e5484d`, Inter font. Removed the old `@media dark` override (dark is now base);
+  sidebar/mobilebar use `--sidebar-bg` (not the old green brand); pie palette swapped to dark-friendly hues.
+- **PDF dates dd/mm/yyyy** — `pdf_date()` applied to every period line + Kontoauszug row dates + footer
+  (were ISO `2026-01-01` / `d.m.Y`). JSON/on-screen already used de-CH via `fmtDate`/Intl.
+- **Save feedback** — René's "Speichern shows nothing": the global notice renders at the top of `.main`,
+  so saving from the Firma card (scrolled to the bottom) fired it off-screen. Fixed by making the app-level
+  notice a **fixed `.toast`** (bottom-centre, z-200) — visible at any scroll. All notify() feedback now floats.
+- **F5 keeps the tab** — `tab` reset to `ledger` every reload. Now `go()` writes `location.hash` (`#reports`
+  …) and `onAuthed` → `restoreTab()` reads it back. Ctrl-F5 stays on the current page instead of jumping to
+  Buchungen. (`onAuthed` now calls `loadAccounts`+`loadRecurring`+`restoreTab`, not `loadEntries` directly.)
+- **TWINT-totals proof (owner concern):** René warned the migrated BETRAG already has the fee deducted.
+  Proven safe two ways — (1) grep: `amount_input` is read only by the edit form + request body, NEVER by any
+  report/total/CSV; (2) live before/after: migrate ran, 306 rows → `twint_ecom`, and income/expense/profit
+  came back **byte-identical** (299'892.18 / 204'713.48 / 95'178.70). The `amount_input` reconstruction
+  (`amount_total/0.9865`) is self-inverse, so even editing a backfilled row re-books the exact same net.
+- Tools: Read/Edit, Bash (php -l/node --check/sed/git), claude-in-chrome (theme screenshots + authenticated
+  API reads for the totals proof).
 
 ### 2026-07-22 (round 3+4: left-sidebar UI redesign, cost pie, historical years, editable Firma, TWINT backfill)
 - Big owner batch, commits `8b7ca50` (features) → `092a99e` (layout gap + mobile table scroll) →
