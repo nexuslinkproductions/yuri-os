@@ -184,10 +184,12 @@ UI tabs (German, as René sees them): **Buchungen · Wiederkehrend · Berichte �
 ## Status
 
 LIVE with real bookkeeping data. Full milchbüechli history 2019→today imported + verified (2026-07-22).
-Last commit `c761911` (Beleg-Nr/AUSSTEHEND/TWINT/uniform-names/Kontoauszug — deployed, health-probed
-live). **PENDING RENÉ: click Einstellungen → Kontenplan → „Datenbank aktualisieren" to apply migration
-005 (`payment_method`)** — until then TWINT still books the correct net but stores no method (no badge,
-no lossless edit round-trip); column-guarded so NO 500 before the click. Open: **2026 keeps growing on milchbüechli** — re-pull on the actual cutover day
+Last commit `43c7d8e` (round 2: Fälligkeit/Zahlungsart-Badge/Alle-Konten-Auszug/Migrate-Bestätigung/
+3000=Netto — deployed, health-probed live). **PENDING RENÉ: click Einstellungen → Kontenplan →
+„Datenbank aktualisieren"** — now applies migrations **005 (`payment_method`) + 006 (`due_date` +
+3000-Verkäufe BRUTTO→NETTO)** and shows a **persistent confirmation** (applied files + `beleg_nr/paid/
+payment_method/due_date` column check) in the Kontenplan card. All new columns are `*_ready()`-guarded
+so the app degrades (no 500) until the click. Open: **2026 keeps growing on milchbüechli** — re-pull on the actual cutover day
 before cancelling; **cancel milchbüechli** once that's across; **receipt (Belege) bulk import** still to do
 (ZIPs were generated on milchbüechli for all years). VAT stays off until registration (~Jan 2027 — configure
 method + Saldosteuersatz with the Treuhänder then; the 8.1% on the seeded accounts is only a template and
@@ -196,6 +198,32 @@ does NOT touch historical rows). Treuhänder note: `AHV/IV/EO-Beiträge Inhaber 
 anything" Alpine `:disabled` class remains the recurring frontend gotcha.
 
 ## Session Notes
+
+### 2026-07-22 (Buchungen UX batch — round 2: due date, Zahlungsart badge, Alle Konten, migrate confirm, 3000=net)
+- Owner-feedback follow-up to the batch below, commit `43c7d8e` (deployed + live health/asset-probed:
+  `me`=ok, sw=v11, all markers present). Migration **006** (`due_date` + relabel).
+- **Due date** (`due_date`, migration 006): form field appears when a booking is marked offen; overview +
+  Kontoauszug show `· FÄLLIG dd/mm/yyyy` next to AUSSTEHEND SEIT. Guarded by `entries_due_ready()`.
+- **Zahlungsart in overview**: per-income badge **BANKÜBERWEISUNG / TWINT** (no ×-detail — details stay in
+  the form only, owner's call). Form option labels renamed to `BANKÜBERWEISUNG` · `TWINT ECOM (−1.35%)` ·
+  `TWINT DIREKT (−0.30 + 1.35%)`. Caveat logged: imported income has no stored method → all show
+  BANKÜBERWEISUNG (the import never captured TWINT-vs-bank); only going-forward bookings are accurate.
+- **Kontoauszug „Alle Konten"**: `report_account_data(?int)` — null = journal of ALL accounts with a Konto
+  column, signed Betrag (Ertrag +, Aufwand −) and a running **net cashflow** Saldo; single-account stays
+  positive cumulative (milchbüechli-style). `report-account`/`account-pdf` accept `account_id=all`; CSV
+  (`export-csv`, non-digit id ignored → all) and Belege-ZIP (`receipt-zip`, empty account → all) already
+  covered it. Table all-mode display keyed off `statement.all` (data), not the dropdown, to avoid a switch race.
+- **Migrate confirmation** (his „I see no confirmation"): `ctrl_migrate` now returns `{migrated:[files],
+  columns:{col:bool}}`; `runMigration()` shows a persistent notice in the Kontenplan card + a detailed toast.
+- **3000 sales = NETTO**: import mislabeled Konto 3000 (Warenertrag) as BRUTTO; migration 006 flips
+  **imported** 3000 income rows gross→net (`import_key IS NOT NULL`, never future manual). Zero € impact at
+  0 % VAT (net=total=input) — pure label correctness for 2027. New income bookings now default to NETTO via
+  the form's type-change handler. His invoices are net until MwSt registration (~Jan 2027).
+- **RESIDUAL RISK:** same as round 1 — `php -l`/`node --check`/anonymous live probe only; NOT authenticated-
+  tested. Specifically unverified live: the migrate confirmation actually rendering, the „Alle Konten" journal
+  + its PDF (6-col layout, hand-laid), the due-date round-trip, and that 006's 3000-relabel matched rows (needs
+  René to click migrate + eyeball 3000). Multi-statement `db()->exec()` for 006 (ALTER+UPDATE) relies on the
+  same mysqlnd behavior 004 proved.
 
 ### 2026-07-22 (Buchungen UX batch: Beleg-Nr, AUSSTEHEND, TWINT, uniform names, Kontoauszug)
 - Five owner-requested features shipped in commit `c761911` (cgs-books repo, deployed via webhook,
