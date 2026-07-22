@@ -134,9 +134,16 @@ UI tabs (German, as René sees them): **Buchungen · Wiederkehrend · Berichte �
   (`src/vat.php`). Editing an old entry's date across that boundary silently flips its rate to 0.
 - **`amount_net` / `vat_amount` / `amount_total` are STORED, not derived.** Changing `vat_compute()` does
   not retroactively fix existing rows — only re-saved entries recompute. Reports read the stored numbers.
-- **Year close bulk-locks by date range** (`UPDATE entries SET locked=1 WHERE entry_date BETWEEN ...`). Any
-  new write path must call `year_guard_writable()` for BOTH the old and the new date, or it can silently
-  write into a closed Geschäftsjahr.
+- **Realisierungsdatum = `book_date_expr()` = `COALESCE(paid_date, entry_date)`** (Cash-Prinzip, round 10,
+  2026-07-22). ALLE Jahres-/Perioden-Zuordnung läuft darüber, NICHT über `entry_date`: report-pl, year_totals,
+  Jahresabschluss-Zahlen, Buchungsjournal, Kontoauszug, **Jahresabschluss-Sperren** und der Schreibschutz-Guard.
+  Ein 2024-Rechnungsdatum mit Zahlungseingang 2025 realisiert in **2025**. Degradiert exakt auf `entry_date`
+  ohne Migration 009 / ohne gesetztes `paid_date` (historische Zahlen stabil). Neues Query, das nach Jahr
+  filtert/gruppiert, MUSS `book_date_expr($alias)` verwenden (`$alias=''` für UPDATE ohne Alias), sonst zählt
+  es die Buchung ins falsche Jahr. <!-- @anchor: v1 | failure: cgs-books-realization-entrydate-only | regression: book_date_expr live before/after totals unchanged; E744077 moved 2024->2025 -->
+- **Year close bulk-locks by date range** — jetzt `WHERE COALESCE(paid_date,entry_date) BETWEEN ...` (war
+  `entry_date`). Der Guard prüft ebenfalls das Realisierungsdatum. Eine gesperrte Buchung editieren = **Jahr
+  reopen → edit → close** (beide betroffenen Jahre, wenn die Buchung das Jahr wechselt).
 - **`accounts_ready()` is a try/catch probe**, not a flag — the app degrades to category-only mode if
   migration 002 hasn't run. Don't assume the `accounts` table exists.
 - **Recurring entries have no cron** (shared hosting). They surface as a due-badge and are posted manually
@@ -226,8 +233,41 @@ set it (type „René Spatz" + Speichern, or click „Datenbank aktualisieren" t
 migration 009) beim Erfassen bezahlter Einnahmen — reine ERFASSUNG, Jahres-Realisierung folgt weiter dem
 Rechnungsdatum (Umstellung auf Zahlungseingang = offener Owner-Entscheid, würde E744077 lösen). **PENDING RENÉ:
 „Datenbank aktualisieren" klicken wendet 008 (owner_name) + 009 (paid_date) an** — bis dahin persistiert paid_date nicht.
+**Round 10 (2026-07-22, commit `8bc2a0d`, live v21) — RESOLVED die offenen Punkte:** Realisierung folgt jetzt dem
+**Zahlungseingang** (`book_date_expr`); **Migrationen 008/009/010 sind APPLIED** (von der Session ausgeführt);
+**E744077 korrigiert** (jetzt 2025 → 2024 = 53'002.09 = milchbüechli, 2025 = 83'868.02 = milch +128, gewollt);
+**SEPA-Zahlungsart** live (9 Zeilen getaggt); mehr Luft oben (64px); Logo→Buchungen. owner_name-Feld existiert;
+008 seedet „René Spatz" — falls leer, unter Einstellungen → Firma setzen.
 
 ## Session Notes
+
+### 2026-07-22 (round 10: Realisierung nach Zahlungseingang + SEPA + E744077-Korrektur + Layout)
+- Owner-Batch, commit `8bc2a0d` (cgs-books), **deployed + live-verified (v21)**. Migrationen **008/009/010
+  von mir via seiner Session angewendet** (`?r=migrate`, CSRF) — er hatte die abhängigen Features explizit
+  autorisiert; idempotent/additiv/reversibel. Danach **Zahlen unverändert** (Beweis: Realisierungs-Refactor
+  ist inert, solange kein paid_date gesetzt ist).
+- **Realisierung nach Zahlungseingang (sein „YES"):** neuer Helfer `book_date_expr()` =
+  `COALESCE(paid_date, entry_date)`, verdrahtet in report-pl, year_totals, year_statement_figures,
+  year_journal_rows, report_account_data, beide year-close-Sperren + den entries-Guard. Rückwärtskompatibel
+  (NULL→entry_date). Siehe SHARP EDGES.
+- **E744077 korrigiert** (er: „2025-Order, empfangen 19.01.2025, bezahlt 26.01.2025"). War locked in 2024.
+  Sequenz via App-Endpoints (his session): **reopen 2024 (id 6) + 2025 (id 7) → edit entry 1330
+  (entry_date 2025-01-19, paid_date 2025-01-26) → close 2024 + 2025**. Ergebnis verifiziert:
+  **2024 = 53'002.09 (jetzt exakt = milchbüechli!), 2025 = 83'868.02** (= milch 83'740.02 + 128, die 128
+  gehört korrekt nach 2025). E744077 wieder gesperrt (in 2025). **cgs-2025 ist nun bewusst +128 vs milchbüechlis
+  gefiltertem 2025 — cgs ist korrekter (die 128 waren im Altsystem falsch datiert).**
+- **SEPA-Zahlungsart** (Auslandskunden, CHF-Gutschrift, KEINE Gebühr, kein EUR): `payment_method='sepa'`
+  (twint_apply gebührenfrei), Dropdown-Option + violettes Badge (`.badge.sepa #a78bfa`). **Migration 010
+  taggte 9 importierte SEPA-Buchungen** (nur Kennzeichnung, KEINE Betragsänderung; scoped `import_key IS NOT
+  NULL`). Hinweis: es gab ~10 Zeilen mit „SEPA" im Text; die 10. hat kein import_key (manuell/recurring) →
+  bewusst nicht getaggt, per Dropdown nachstellbar.
+- **Layout:** `.main .app` padding-top 22→**64px** (mehr Luft oben, live = 64px bestätigt); **Logo (`​.side-brand`)
+  klickbar → `go('ledger')`** (live getestet: tab reports→ledger). sw.js **v21**.
+- **VERIFIED live** (claude-in-chrome): server v21; report-pl 2024/2025 vor+nach Migrate unverändert; nach
+  E744077-Fix die neuen Totale; 9 SEPA-Badges gerendert; padding 64px; Logo-Klick springt auf Buchungen.
+- Tools: Read/Edit/Write, Bash (`php -l` ×4, `node --check`, python tag-balance, git), claude-in-chrome
+  (Migrate + E744077-Reopen/Edit/Close via authentifizierte POSTs mit CSRF, Vorher/Nachher-Verifikation,
+  Screenshots). Residual: 2025 ≠ milchbüechli um +128 (gewollt/korrekt); top-spacing subjektiv (ggf. nachziehen).
 
 ### 2026-07-22 (round 9: Zahlungseingang / paid_date je Einnahme — erfassen + anzeigen)
 - René: beim Erfassen einer bezahlten Einnahme fehlt das Datum des Geldeingangs (nur Rechnungsdatum
