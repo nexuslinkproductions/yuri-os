@@ -184,7 +184,10 @@ UI tabs (German, as René sees them): **Buchungen · Wiederkehrend · Berichte �
 ## Status
 
 LIVE with real bookkeeping data. Full milchbüechli history 2019→today imported + verified (2026-07-22).
-Last commit `3f0e2b6`. Open: **2026 keeps growing on milchbüechli** — re-pull on the actual cutover day
+Last commit `c761911` (Beleg-Nr/AUSSTEHEND/TWINT/uniform-names/Kontoauszug — deployed, health-probed
+live). **PENDING RENÉ: click Einstellungen → Kontenplan → „Datenbank aktualisieren" to apply migration
+005 (`payment_method`)** — until then TWINT still books the correct net but stores no method (no badge,
+no lossless edit round-trip); column-guarded so NO 500 before the click. Open: **2026 keeps growing on milchbüechli** — re-pull on the actual cutover day
 before cancelling; **cancel milchbüechli** once that's across; **receipt (Belege) bulk import** still to do
 (ZIPs were generated on milchbüechli for all years). VAT stays off until registration (~Jan 2027 — configure
 method + Saldosteuersatz with the Treuhänder then; the 8.1% on the seeded accounts is only a template and
@@ -193,6 +196,36 @@ does NOT touch historical rows). Treuhänder note: `AHV/IV/EO-Beiträge Inhaber 
 anything" Alpine `:disabled` class remains the recurring frontend gotcha.
 
 ## Session Notes
+
+### 2026-07-22 (Buchungen UX batch: Beleg-Nr, AUSSTEHEND, TWINT, uniform names, Kontoauszug)
+- Five owner-requested features shipped in commit `c761911` (cgs-books repo, deployed via webhook,
+  live health-probed anonymously — `api.php?r=me` = `{ok:true}`, sw.js=v10, assets carry the new code).
+  No new migration-click needed for 4 of 5 (beleg_nr/paid already in 004); only **migration 005
+  (`payment_method`) awaits René's „Datenbank aktualisieren" click** — guarded by `entries_payment_ready()`
+  so the pre-click app degrades (correct net still booked, just no TWINT badge / no lossless edit) with NO 500.
+- **Beleg-Nr visible** per booking (`beleg_nr` was returned but never rendered). New manual bookings
+  auto-generate `E-<year>-NNN` / `A-<year>-NNN` (`beleg_nr_generate()` — LIKE-scan max+1, deliberately
+  dashed so it never collides with the old pure-numeric E669054 imports), editable field in the form.
+- **AUSSTEHEND SEIT dd/mm/yyyy** red line + red amount for `paid=0`; added a Bezahlt/Offen checkbox to the
+  booking form (paid was previously only settable via import). Owner-chosen (AskUserQuestion) over blank/manual.
+- **TWINT fees** in +Buchung: Zahlungsart selector (income only) bank / twint_ecom (×0.9865) /
+  twint_direkt ((−0.30)×0.9865); server `twint_apply()` books the net, live preview mirrors it. Design call:
+  amount_input holds the **invoice total** (round-trips edit) ONLY when 005 is applied; else stores the net
+  (no reversal footgun). TWINT recorded as a stored method + ledger badge, NOT by mutating the description.
+- **Uniform display** `displayName()` — pure ANZEIGE transform (data untouched): fixed tokens stay ALLCAPS
+  (SEPA/TWINT/FAPA/ALIBABA/ALIEXPRESS/DHL/UPS/FEDEX/CKK/PRIMEO/SVA/CULTS/OBI), digit-tokens verbatim, rest
+  Title-Case. Applied in ledger + statement lists; the edit textarea still shows raw stored text.
+- **Kontoauszug tab** (Auszug einzelne Konten) over the imported data — NOT a milchbüechli pull (WAF blocks
+  the server). New `report-account` (JSON, running balance) + `account-pdf` (`pdf_account_statement`); CSV via
+  existing `export-csv` (already account+period filtered), Belege via existing `receipt-zip`. Owner picked the
+  full statement-view-with-running-balance option.
+- **RESIDUAL RISK (stated, not hidden):** no local runtime (no DB) → verified by `php -l` (all files) +
+  `node --check` + live anonymous health/asset probe only. NOT yet exercised authenticated: the rendered
+  badge/red/statement, `report-account`/`account-pdf` output, the Kontoauszug **PDF column spacing**
+  (hand-laid, unrendered), and that migration 005 applies cleanly. Next session or René: log in, click migrate,
+  smoke-test the +Buchung TWINT calc + a Kontoauszug PDF. TWINT×VAT interaction is a 2027 Treuhänder question
+  (VAT still off). Recurring-posted bookings still get no auto Beleg-Nr (out of scope, create-path only).
+- Tools: Read/Edit/Write, Bash (`php -l`, `node --check`, git), Claude_Browser (anonymous live health+asset probe).
 
 ### 2026-07-22 (Belege migration + reports/PDF fixes — continuation)
 - **Belege (receipts) migration built.** milchbüechli's `/belege/...` are PUBLIC (200 even without a
