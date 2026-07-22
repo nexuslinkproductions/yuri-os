@@ -241,6 +241,21 @@ Rechnungsdatum (Umstellung auf Zahlungseingang = offener Owner-Entscheid, würde
 
 ## Session Notes
 
+### 2026-07-22 (round 11: sticky Aktionsleiste NEUE EINNAHME / NEUE AUSGABE)
+- Commit `49c7bb9` (cgs-books), **deployed + live-verified (v22)**. Reine Frontend-Runde.
+- Zwei getippte Buttons oben auf der Buchungen-Seite: **NEUE EINNAHME** (grün, `--income`) + **NEUE AUSGABE**
+  (rot, `--expense`), öffnen das Formular direkt mit dem Typ — `newEntry(type='expense')` nimmt jetzt einen
+  Parameter (`booking_type = type==='income'?'income':'expense'`). Der einzelne Ledger-FAB `+ Buchung` ist
+  entfernt (ersetzt); `+ Wiederkehrend`-FAB bleibt.
+- **Sticky:** `.ledger-bar { position:sticky; top:0; z-index:15; background:var(--bg); border-bottom:1px solid
+  rgba(255,255,255,.14) }` — bleibt beim Scrollen oben, dünne helle Trennlinie darunter (sein „page break").
+  Buttons `flex:0 1 auto` (links, wie sein Mockup), auf ≤640px `flex:1 1 auto` (volle Breite). Funktioniert,
+  weil der Body scrollt (nicht `.main`) und die Sidebar selbst sticky ist.
+- **VERIFIED live** (claude-in-chrome): v22; nach Scroll bleibt die Leiste oben (position=sticky, top=0px);
+  NEUE EINNAHME öffnet Modal mit booking_type='income', NEUE AUSGABE mit 'expense'; Screenshot vor+nach Scroll.
+- Tools: Read/Edit, Bash (`node --check`, python tag-balance, git), claude-in-chrome (Screenshots + Alpine-
+  State-Check). Kein PHP berührt.
+
 ### 2026-07-22 (round 10: Realisierung nach Zahlungseingang + SEPA + E744077-Korrektur + Layout)
 - Owner-Batch, commit `8bc2a0d` (cgs-books), **deployed + live-verified (v21)**. Migrationen **008/009/010
   von mir via seiner Session angewendet** (`?r=migrate`, CSRF) — er hatte die abhängigen Features explizit
