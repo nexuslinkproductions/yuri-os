@@ -90,11 +90,22 @@ variant the README documents at length. Trust the memory file over the README he
    `Einstellungen → Kontenplan → "Kontenplan einrichten"` (= `POST api.php?r=migrate`). `run_migrations()`
    skips any `001_*` file (installer-owned) and re-runs every other `*.sql` **on every call** — so a new
    migration MUST be idempotent (`IF NOT EXISTS` / `ON DUPLICATE KEY`) and named `004_`+ to sort correctly.
-3. **Alpine.js binding bugs are THE recurring frontend failure class here.** `:disabled="undefined"`
-   renders as *disabled* in Alpine 3.14 — it produced René's literal complaint **"This does not work, I
-   cannot select anything"** repeatedly across 2026-07-17 and again 2026-07-20. Any new form object must
-   explicitly set its boolean fields. When René reports "can't select / can't click", check Alpine
-   reactive bindings FIRST.
+3. **Alpine.js binding bugs are THE recurring frontend failure class here.** Two confirmed forms:
+   (a) `:disabled="undefined"` renders as *disabled* in Alpine 3.14 — René's "This does not work, I cannot
+   select anything" (2026-07-17/20); every new form object must set its boolean fields explicitly.
+   (b) **A `<template x-for>` must have exactly ONE root element** — Alpine renders only the first root and
+   silently drops the rest. The Erfolgsrechnung expense loop had a class-header `<tr>` AND an inner
+   `<template x-for>` as siblings, so account rows never rendered (headers showed, amounts didn't). Fixed
+   2026-07-22 by flattening to a single-root nested loop. When rows/rendering go missing, check for a
+   multi-root x-for template FIRST. <!-- @anchor: v1 | failure: cgs-books-alpine-xfor-tworoot-2026-07-22 | regression: php -l can't catch this — verify rendered DOM live after any report/list template change -->
+
+4. **Every backend class/file must be explicitly `require`d — there is no autoloader.** `src/pdf.php`
+   (the `Pdf` class) was referenced by the PDF export functions but `require`d nowhere, so every PDF export
+   (Erfolgsrechnung / MwSt / Jahresabschluss) 500'd with `Class "Pdf" not found` from day one — only
+   surfaced 2026-07-22 once there was data to export. Fixed by `require_once ../pdf.php` at the top of
+   reports_controller.php. When adding a new class/helper file, wire its `require` into `api.php` or the
+   consuming controller, and `php -l` proves syntax but NOT that a class is reachable — verify the route
+   live.
 
 ## API + DATA MAP (verified against `public/api.php`)
 
