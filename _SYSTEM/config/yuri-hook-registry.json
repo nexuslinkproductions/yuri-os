@@ -364,7 +364,7 @@
     "_SYSTEM/Scripts/policy/repo-integrity-guard.mjs": "80df75aeb66e6e7bfe4af002a9ef03d657a0b827b2a5f39efb58d1ca94f98e16",
     "_SYSTEM/Scripts/policy/yuri-safety-core.mjs": "806d656da9b66f2f43064416333afdef277bbf9db6078a531fd1289169319ca6",
     "_SYSTEM/Scripts/url-policy.mjs": "1b03b1565f86d0ee4f64e98cf99c33aef8be58b699b56bab2ca3c4dec2f19bee",
-    "_SYSTEM/Scripts/yuri-hook-adapter.mjs": "a8db2340bba8374e583c3377902d8c0c6e31ba8d106486fa403ec76d8c8207d5",
+    "_SYSTEM/Scripts/yuri-hook-adapter.mjs": "ddd8dc83b05462c280ea5e1b0f9fcb4d3aa957217f5344b52da5239bc9c97d7e",
     "_SYSTEM/Scripts/yuri-truth-promotion-enforcement.mjs": "9f6782735bd349682c6d342dda7fb89156f3edfe50207b42c8ea906921a6d990",
     "_SYSTEM/Scripts/yuri-user.mjs": "ead351dc8b46ed966526593df83ef2b2c7612b7b4502eae5093d58f39f82c6a6"
   }

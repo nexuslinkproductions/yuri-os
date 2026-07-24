@@ -497,6 +497,16 @@ test('hook CLI never maps malformed JSON to exit 1', async () => {
   });
   assert.equal(code, 0);
   assert.equal(JSON.parse(out.read()).hookSpecificOutput.permissionDecision, 'deny');
+
+  const nullOut = capture();
+  const nullCode = await runCli(['--harness', 'codex'], {
+    stdin: Readable.from(['null']),
+    stdout: nullOut.stream,
+  });
+  assert.equal(nullCode, 0);
+  const nullDecision = JSON.parse(nullOut.read());
+  assert.equal(nullDecision.hookSpecificOutput.permissionDecision, 'deny');
+  assert.equal(nullDecision.hookSpecificOutput.permissionDecisionReason, 'invalid hook event: expected object');
 });
 
 test('check mode uses exit 0 for allow and exit 2 for deny', async () => {

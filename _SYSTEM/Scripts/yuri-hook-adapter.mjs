@@ -67,6 +67,9 @@ export function normalizePreToolEvent(event = {}, harness = 'codex') {
 }
 
 export function evaluateUniversalPreTool(event = {}, { harness = 'codex' } = {}) {
+  if (!event || typeof event !== 'object' || Array.isArray(event)) {
+    return { allowed: false, decision: 'deny', reason: 'invalid hook event: expected object' };
+  }
   let normalized;
   try {
     normalized = normalizePreToolEvent(event, harness);
