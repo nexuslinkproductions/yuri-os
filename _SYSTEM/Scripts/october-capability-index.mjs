@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @capability: october-external-capability-index
-// @serves: October | October MCP | October bus | Claude MCP server-name health | message_peer | claim_task | send_to_node | wait_for_nodes | UserPromptSubmit | Pi activation health | external tool registry | capability discovery
+// @serves: October | October MCP | October bus | Claude MCP server-name health | message_peer | claim_task | send_to_node | wait_for_nodes | UserPromptSubmit | native OMP activation health | external tool registry | capability discovery
 // @does: Projects October's authoritative live MCP tool schemas and harness-adapter contracts into a versioned YURI search/xref registry without copying transient canvas state or treating generated-path presence as runtime activation.
 // @use: Run --refresh with an attached October canvas plus an explicit app version and bundle SHA; run --sync-local-projections to reconcile YURI-owned harness metadata without refreshing October-owned tools; run --validate offline; run --check-live after an October upgrade; run --check-claude-mcp for the project server-name invariant; run --check-pi or --check-omp for fail-closed generated-source/runtime-evidence health reports.
 // @exports: buildRegistry, checkClaudeOctoberMcpConfigurationFromDisk, checkOmpActivationFromDisk, checkPiActivationFromDisk, classifyTool, evaluateOmpActivation, evaluatePiActivation, fetchOctoberTools, inspectOmpAdapterSource, inspectOmpLauncherSource, inspectPiGeneratedSource, parseMcpResponse, schemaDigest, syncLocalProjections, validateClaudeOctoberMcpConfiguration, validateRegistry
@@ -13,6 +13,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');
 export const REGISTRY_PATH = path.join(ROOT, '_SYSTEM/config/october-capability-registry.json');
+export const NATIVE_OMP_APP_PATH = '/Applications/October.app/Contents/Resources/app.asar';
 
 const REQUIRED_ENV = ['OCTOBER_BUS_PORT', 'OCTOBER_BUS_CANVAS', 'OCTOBER_BUS_NODE'];
 const REQUIRED_TOOLS = ['message_peer', 'claim_task', 'send_to_node', 'wait_for_nodes'];
@@ -149,49 +150,30 @@ export const PI_ACTIVATION_CONTRACT = Object.freeze({
 });
 
 export const OMP_ACTIVATION_CONTRACT = Object.freeze({
-  status: 'source-ready-session-reload-required',
-  liveRule: 'Launcher and project-adapter presence are not activation. Live requires a recognized persistent Pi-family foreground binding, observed OMP identity, and October-native idle/busy delivery canaries.',
+  status: 'native-host-runtime-evidence-required',
+  liveRule: 'Native OMP bundle presence is not activation. Live requires the October native host identity, attached startup environment, native tool registration, and October-native idle/busy delivery canaries.',
   requiredEnvironment: [...REQUIRED_ENV],
-  launcherBinding: {
-    path: '_SYSTEM/Scripts/october-omp/pi',
+  nativeHost: {
+    path: NATIVE_OMP_APP_PATH,
     mustExist: true,
-    mustRemainForegroundParent: true,
-    execReplacementForbidden: true,
-    recognizedHarnessFamily: 'pi',
-    resolvedRuntime: 'omp',
-    implementationAuthority: 'YURI',
-  },
-  projectAdapter: {
-    path: '.omp/extensions/october-bus-tools.mjs',
-    mustExist: true,
-    mustLoad: true,
-    implementationAuthority: 'YURI',
+    managedBy: 'October',
+    implementationAuthority: 'October',
     protocolAuthority: 'October',
-    schemaRuntime: 'pi.zod',
-    toolLoadMode: 'essential',
-    responsibility: 'Registers the five outbound peer/task tools only. It must not pull, consume, poll, acknowledge, or inject October inbound queue state.',
+    recognizedHarnessFamily: 'omp',
+    resolvedRuntime: 'omp',
   },
   nativeToolRegistration: {
     requiredTools: [...OMP_REQUIRED_NATIVE_TOOLS],
-    dependency: 'host-injected pi.zod',
+    dependency: 'native October OMP MCP host',
     completeSetRequired: true,
-  },
-  outboundBridge: {
-    outboundEndpoint: '/hook/message-peer',
-    taskEndpoint: '/hook/task',
-    requestTimeoutMs: 2500,
   },
   inboundDelivery: {
     authority: 'October',
     mode: 'native-terminal-delivery',
-    persistentPiFamilyForegroundBindingRequired: true,
-    pollingAllowed: false,
-    destructivePrePromptPullAllowed: false,
-    adapterInjectionAllowed: false,
     idleCanaryRequired: true,
     busyCanaryRequired: true,
   },
-  activationAction: 'Launch OMP through the persistent _SYSTEM/Scripts/october-omp/pi foreground binding with all attachment environment variables, load the outbound-only YURI project adapter, verify all five essential tools, and prove October-native idle and busy delivery plus outbound peer delivery without any adapter-side inbound consumer.',
+  activationAction: 'Launch the native October OMP host with all attachment environment variables, verify the native peer/task tools, and prove October-native idle and busy delivery plus outbound peer delivery. Do not substitute the deprecated Pi wrapper.',
 });
 
 function quotedCall(text, functionName, toolName) {
@@ -338,23 +320,16 @@ export function evaluatePiActivation({
 
 export function evaluateOmpActivation({
   env = {},
-  adapterPresent = false,
-  adapterSource = '',
-  launcherPresent = false,
-  launcherSource = '',
+  nativeHostPresent = false,
   runtime = {},
 } = {}) {
-  const source = inspectOmpAdapterSource(adapterSource);
-  const launcher = inspectOmpLauncherSource(launcherSource);
   const registeredTools = Array.isArray(runtime.registeredTools)
     ? [...new Set(runtime.registeredTools.map(String))]
     : [];
-  const runtimeEvidenceProvided = runtime.adapterLoaded !== undefined
-    || runtime.registeredTools !== undefined
+  const runtimeEvidenceProvided = runtime.registeredTools !== undefined
     || runtime.harnessIdentityObserved !== undefined
     || runtime.startupEnvironmentObserved !== undefined
-    || runtime.launcherBindingObserved !== undefined
-    || runtime.foregroundPersistenceVerified !== undefined
+    || runtime.nativeHostIdentityObserved !== undefined
     || runtime.nativeIdleDeliveryVerified !== undefined
     || runtime.nativeBusyDeliveryVerified !== undefined
     || runtime.outboundPeerDeliveryVerified !== undefined
@@ -365,13 +340,8 @@ export function evaluateOmpActivation({
     ompHarnessIdentityObserved: runtime.harnessIdentityObserved === 'omp',
     startupEnvironmentObserved: runtime.startupEnvironmentObserved === true,
     startupEnvironmentAttached: missingEnvironment.length === 0,
-    launcherPresent: launcherPresent === true,
-    launcherSourceContract: launcherPresent === true && launcher.ok,
-    launcherBindingObserved: runtime.launcherBindingObserved === OMP_ACTIVATION_CONTRACT.launcherBinding.path,
-    foregroundPersistenceVerified: runtime.foregroundPersistenceVerified === true,
-    projectAdapterPresent: adapterPresent === true,
-    projectAdapterSourceContract: adapterPresent === true && source.ok,
-    projectAdapterLoaded: runtime.adapterLoaded === true,
+    nativeHostPresent: nativeHostPresent === true,
+    nativeHostIdentityObserved: runtime.nativeHostIdentityObserved === true,
     intendedNativeToolsRegistered: missingNativeTools.length === 0,
     nativeDeliveryAuthorityObserved: runtime.nativeDeliveryAuthorityObserved === 'October',
     nativeIdleDeliveryVerified: runtime.nativeIdleDeliveryVerified === true,
@@ -389,8 +359,6 @@ export function evaluateOmpActivation({
     checks,
     missingEnvironment,
     missingNativeTools,
-    source,
-    launcher,
     failures,
     activationAction: OMP_ACTIVATION_CONTRACT.activationAction,
   };
@@ -432,40 +400,24 @@ export function checkPiActivationFromDisk({
 
 export function checkOmpActivationFromDisk({
   env = process.env,
-  rootDirectory = ROOT,
   runtime = {},
 } = {}) {
-  const adapterPath = path.join(rootDirectory, OMP_ACTIVATION_CONTRACT.projectAdapter.path);
-  const launcherPath = path.join(rootDirectory, OMP_ACTIVATION_CONTRACT.launcherBinding.path);
-  let adapterSource = '';
-  let adapterPresent = false;
-  let launcherSource = '';
-  let launcherPresent = false;
+  let nativeHostPresent = false;
   try {
-    adapterSource = fs.readFileSync(adapterPath, 'utf8');
-    adapterPresent = true;
+    nativeHostPresent = fs.statSync(OMP_ACTIVATION_CONTRACT.nativeHost.path).isFile();
   } catch {
-    adapterPresent = false;
-  }
-  try {
-    launcherSource = fs.readFileSync(launcherPath, 'utf8');
-    launcherPresent = true;
-  } catch {
-    launcherPresent = false;
+    nativeHostPresent = false;
   }
   const checkerMissingEnvironment = REQUIRED_ENV.filter((key) => !String(env?.[key] ?? '').trim());
   const startupEnvironmentObserved = runtime.startupEnvironmentObserved === true;
   return {
     ...evaluateOmpActivation({
       env: startupEnvironmentObserved ? env : {},
-      adapterPresent,
-      adapterSource,
-      launcherPresent,
-      launcherSource,
+      nativeHostPresent,
       runtime,
     }),
-    adapterPath: OMP_ACTIVATION_CONTRACT.projectAdapter.path,
-    launcherPath: OMP_ACTIVATION_CONTRACT.launcherBinding.path,
+    nativeHostPath: OMP_ACTIVATION_CONTRACT.nativeHost.path,
+    nativeHostPresent,
     startupEnvironmentObserved,
     checkerEnvironmentAttached: checkerMissingEnvironment.length === 0,
     checkerEnvironmentScope: 'checker-process-only; does not prove OMP startup environment',
@@ -591,23 +543,21 @@ export const HARNESS_ADAPTERS = [
   },
   {
     harness: 'omp',
-    transport: 'October-native terminal delivery through a persistent Pi-family foreground launcher plus a YURI outbound-only native tool adapter',
-    projection: '_SYSTEM/Scripts/october-omp/pi + .omp/extensions/october-bus-tools.mjs',
+    transport: 'October-native OMP host with native MCP peer/task tools and terminal delivery',
+    projection: '.omp/config.yml + .omp/mcp.json + native October app bundle',
     events: ['October-native idle delivery', 'October-native busy delivery'],
     activationSource: {
-      kind: 'persistent-pi-family-launcher',
-      path: '_SYSTEM/Scripts/october-omp/pi',
-      managedBy: 'YURI',
-      implementationAuthority: 'YURI',
+      kind: 'native-omp-host',
+      path: NATIVE_OMP_APP_PATH,
+      managedBy: 'October',
+      implementationAuthority: 'October',
       protocolAuthority: 'October',
-      recognizedHarnessFamily: 'pi',
+      recognizedHarnessFamily: 'omp',
       resolvedRuntime: 'omp',
-      execReplacementForbidden: true,
-      status: 'source-ready-session-reload-required',
+      status: 'native-host-runtime-evidence-required',
       liveInferredFromPath: false,
       requiredEnvironment: REQUIRED_ENV,
     },
-    outboundAdapter: OMP_ACTIVATION_CONTRACT.projectAdapter,
     activationHealth: OMP_ACTIVATION_CONTRACT,
   },
   {
@@ -835,62 +785,42 @@ export function validateRegistry(registry) {
   if (!Array.isArray(piHealth?.generatorDefects) || piHealth.generatorDefects.length < 3) errors.push('Pi generator defects are not recorded');
   if (JSON.stringify(pi ?? {}).includes('.omp/')) errors.push('Pi adapter metadata must not contain OMP projection paths');
 
-  if (omp?.activationSource?.kind !== 'persistent-pi-family-launcher'
-    || omp.activationSource.path !== '_SYSTEM/Scripts/october-omp/pi'
-    || omp.activationSource.implementationAuthority !== 'YURI'
+  if (omp?.activationSource?.kind !== 'native-omp-host'
+    || omp.activationSource.path !== NATIVE_OMP_APP_PATH
+    || omp.activationSource.implementationAuthority !== 'October'
     || omp.activationSource.protocolAuthority !== 'October'
-    || omp.activationSource.recognizedHarnessFamily !== 'pi'
+    || omp.activationSource.recognizedHarnessFamily !== 'omp'
     || omp.activationSource.resolvedRuntime !== 'omp'
-    || omp.activationSource.execReplacementForbidden !== true) {
-    errors.push('OMP persistent Pi-family launcher authority metadata is missing');
+  ) {
+    errors.push('native OMP host authority metadata is missing');
   }
-  if (omp?.activationSource?.status !== 'source-ready-session-reload-required'
+  if (omp?.activationSource?.status !== 'native-host-runtime-evidence-required'
     || omp.activationSource.liveInferredFromPath !== false) {
-    errors.push('OMP launcher path must not be treated as live activation');
+    errors.push('native OMP host path must not be treated as live activation');
   }
   const ompHealth = omp?.activationHealth;
   const ompTools = ompHealth?.nativeToolRegistration?.requiredTools ?? [];
   const ompInbound = ompHealth?.inboundDelivery;
-  const ompOutbound = ompHealth?.outboundBridge;
   if (REQUIRED_ENV.some((key) => !ompHealth?.requiredEnvironment?.includes(key))) errors.push('OMP activation health is missing required October startup environment');
   if (OMP_REQUIRED_NATIVE_TOOLS.some((name) => !ompTools.includes(name))) errors.push('OMP activation health is missing intended native tools');
-  if (ompHealth?.status !== 'source-ready-session-reload-required'
-    || ompHealth?.launcherBinding?.path !== '_SYSTEM/Scripts/october-omp/pi'
-    || ompHealth.launcherBinding.mustRemainForegroundParent !== true
-    || ompHealth.launcherBinding.execReplacementForbidden !== true
-    || ompHealth.launcherBinding.recognizedHarnessFamily !== 'pi'
-    || ompHealth.launcherBinding.resolvedRuntime !== 'omp'
-    || ompHealth?.projectAdapter?.path !== '.omp/extensions/october-bus-tools.mjs'
-    || ompHealth.projectAdapter.implementationAuthority !== 'YURI'
-    || ompHealth.projectAdapter.protocolAuthority !== 'October'
-    || ompHealth.nativeToolRegistration?.dependency !== 'host-injected pi.zod') {
-    errors.push('OMP source-ready launcher and outbound-adapter health contract is missing');
-  }
-  if (omp?.outboundAdapter?.path !== '.omp/extensions/october-bus-tools.mjs'
-    || omp.outboundAdapter.responsibility !== OMP_ACTIVATION_CONTRACT.projectAdapter.responsibility
-    || ompOutbound?.outboundEndpoint !== '/hook/message-peer'
-    || ompOutbound.taskEndpoint !== '/hook/task'
-    || ompOutbound.requestTimeoutMs !== 2500) {
-    errors.push('OMP outbound-only native tool bridge contract is missing');
+  if (ompHealth?.status !== 'native-host-runtime-evidence-required'
+    || ompHealth?.nativeHost?.path !== NATIVE_OMP_APP_PATH
+    || ompHealth.nativeHost.implementationAuthority !== 'October'
+    || ompHealth.nativeHost.protocolAuthority !== 'October'
+    || ompHealth.nativeHost.recognizedHarnessFamily !== 'omp'
+    || ompHealth.nativeHost.resolvedRuntime !== 'omp'
+    || ompHealth.nativeToolRegistration?.dependency !== 'native October OMP MCP host') {
+    errors.push('native OMP host health contract is missing');
   }
   if (ompInbound?.authority !== 'October'
     || ompInbound.mode !== 'native-terminal-delivery'
-    || ompInbound.persistentPiFamilyForegroundBindingRequired !== true
-    || ompInbound.pollingAllowed !== false
-    || ompInbound.destructivePrePromptPullAllowed !== false
-    || ompInbound.adapterInjectionAllowed !== false
     || ompInbound.idleCanaryRequired !== true
     || ompInbound.busyCanaryRequired !== true) {
-    errors.push('OMP October-native inbound delivery contract is missing or permits destructive polling');
+    errors.push('native OMP October delivery contract is missing');
   }
-  if (JSON.stringify(omp ?? {}).includes('~/.pi/')) errors.push('OMP adapter metadata must not contain Pi generated-extension paths');
+  if (JSON.stringify(omp ?? {}).includes('_SYSTEM/Scripts/october-omp/pi')) errors.push('native OMP metadata must not name the deprecated Pi wrapper');
   const ompText = JSON.stringify(omp ?? {});
-  if (ompText.includes('pollIntervalMs')
-    || ompText.includes('inboxEndpoint')
-    || ompText.includes('/hook/pre-prompt')
-    || ompText.includes('registerOctoberInboundBridge')) {
-    errors.push('OMP activation metadata must not bless adapter-side inbound polling');
-  }
+  if (ompText.includes('persistent-pi-family') || ompText.includes('pi.zod')) errors.push('native OMP metadata must not encode Pi-family host assumptions');
 
   if (stableJson(registry?.lifecycleEndpoints ?? []) !== stableJson(LIFECYCLE_ENDPOINTS)) {
     errors.push('stored lifecycle endpoint projection is stale');

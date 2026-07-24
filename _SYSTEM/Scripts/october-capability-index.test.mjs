@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import {
   CLAUDE_OCTOBER_MCP_SERVER_NAME,
   HARNESS_ADAPTERS,
+  NATIVE_OMP_APP_PATH,
   OMP_REQUIRED_NATIVE_TOOLS,
   PI_REQUIRED_NATIVE_TOOLS,
   buildRegistry,
@@ -204,7 +205,7 @@ test('Claude October MCP validator rejects the former undefined october-bus name
   assert.ok(verdict.errors.includes('Claude settings are missing permission namespace "mcp__october__*"'));
 });
 
-test('cross-harness activation keeps real Pi generator-owned and OMP project-native', () => {
+test('cross-harness activation keeps real Pi generator-owned and OMP native-host-owned', () => {
   const adapters = new Map(HARNESS_ADAPTERS.map((adapter) => [adapter.harness, adapter]));
   const claude = adapters.get('claude-code');
   const codex = adapters.get('codex');
@@ -228,21 +229,21 @@ test('cross-harness activation keeps real Pi generator-owned and OMP project-nat
   assert.deepEqual(pi.activationHealth.nativeToolRegistration.requiredTools, PI_REQUIRED_NATIVE_TOOLS);
   assert.equal(pi.activationHealth.prePromptContext.event, 'before_agent_start');
 
-  assert.equal(omp.activationSource.kind, 'persistent-pi-family-launcher');
-  assert.equal(omp.activationSource.path, '_SYSTEM/Scripts/october-omp/pi');
-  assert.equal(omp.activationSource.implementationAuthority, 'YURI');
+  assert.equal(omp.activationSource.kind, 'native-omp-host');
+  assert.equal(omp.activationSource.path, NATIVE_OMP_APP_PATH);
+  assert.equal(omp.activationSource.managedBy, 'October');
+  assert.equal(omp.activationSource.implementationAuthority, 'October');
   assert.equal(omp.activationSource.protocolAuthority, 'October');
-  assert.equal(omp.activationSource.recognizedHarnessFamily, 'pi');
+  assert.equal(omp.activationSource.recognizedHarnessFamily, 'omp');
   assert.equal(omp.activationSource.resolvedRuntime, 'omp');
-  assert.equal(omp.activationSource.execReplacementForbidden, true);
   assert.equal(omp.activationSource.liveInferredFromPath, false);
-  assert.equal(JSON.stringify(omp).includes('~/.pi/'), false);
-  assert.equal(omp.outboundAdapter.path, '.omp/extensions/october-bus-tools.mjs');
+  assert.equal(JSON.stringify(omp).includes('_SYSTEM/Scripts/october-omp/pi'), false);
+  assert.equal('outboundAdapter' in omp, false);
+  assert.equal(omp.activationHealth.nativeHost.path, NATIVE_OMP_APP_PATH);
   assert.deepEqual(omp.activationHealth.nativeToolRegistration.requiredTools, OMP_REQUIRED_NATIVE_TOOLS);
   assert.equal(omp.activationHealth.inboundDelivery.authority, 'October');
   assert.equal(omp.activationHealth.inboundDelivery.mode, 'native-terminal-delivery');
-  assert.equal(omp.activationHealth.inboundDelivery.pollingAllowed, false);
-  assert.equal(omp.activationHealth.inboundDelivery.destructivePrePromptPullAllowed, false);
+  assert.equal('pollingAllowed' in omp.activationHealth.inboundDelivery, false);
 });
 
 test('OMP project adapter source uses injected Zod and stays outbound-only', () => {
@@ -269,14 +270,13 @@ test('OMP launcher source preserves the persistent Pi-family wrapper parent', ()
   assert.equal(inspectOmpLauncherSource('#!/bin/zsh\ncodex\n').ok, false);
 });
 
-test('actual OMP adapter and launcher satisfy their source-health contracts', () => {
-  const verdict = checkOmpActivationFromDisk({ env: {}, rootDirectory: ROOT });
-  assert.equal(verdict.source.ok, true);
-  assert.equal(verdict.launcher.ok, true);
-  assert.equal(verdict.checks.projectAdapterSourceContract, true);
-  assert.equal(verdict.checks.launcherSourceContract, true);
+test('actual native OMP host is identified without inferring runtime activation', () => {
+  const verdict = checkOmpActivationFromDisk({ env: {} });
+  assert.equal(verdict.nativeHostPath, NATIVE_OMP_APP_PATH);
+  assert.equal(typeof verdict.nativeHostPresent, 'boolean');
   assert.equal(verdict.live, false);
   assert.equal(verdict.status, 'runtime-unverified');
+  assert.equal(verdict.checks.nativeHostIdentityObserved, false);
 });
 
 test('Pi generated source diagnostics encode all three observed silent generator defects', () => {
@@ -359,22 +359,17 @@ test('real Pi health never infers live activation from a generated path or sourc
 test('OMP health is distinct from Pi and requires every live delivery canary', () => {
   const sourceOnly = evaluateOmpActivation({
     env: PI_ENV,
-    adapterPresent: true,
-    adapterSource: OMP_ADAPTER_SOURCE_FIXTURE,
-    launcherPresent: true,
-    launcherSource: OMP_LAUNCHER_SOURCE_FIXTURE,
+    nativeHostPresent: true,
   });
   assert.equal(sourceOnly.live, false);
   assert.equal(sourceOnly.status, 'runtime-unverified');
-  assert.equal(sourceOnly.checks.projectAdapterSourceContract, true);
-  assert.equal(sourceOnly.checks.projectAdapterLoaded, false);
+  assert.equal(sourceOnly.checks.nativeHostPresent, true);
+  assert.equal(sourceOnly.checks.nativeHostIdentityObserved, false);
 
   const runtime = {
     harnessIdentityObserved: 'omp',
     startupEnvironmentObserved: true,
-    launcherBindingObserved: '_SYSTEM/Scripts/october-omp/pi',
-    foregroundPersistenceVerified: true,
-    adapterLoaded: true,
+    nativeHostIdentityObserved: true,
     registeredTools: OMP_REQUIRED_NATIVE_TOOLS,
     nativeDeliveryAuthorityObserved: 'October',
     nativeIdleDeliveryVerified: true,
@@ -383,27 +378,21 @@ test('OMP health is distinct from Pi and requires every live delivery canary', (
   };
   const healthy = evaluateOmpActivation({
     env: PI_ENV,
-    adapterPresent: true,
-    adapterSource: OMP_ADAPTER_SOURCE_FIXTURE,
-    launcherPresent: true,
-    launcherSource: OMP_LAUNCHER_SOURCE_FIXTURE,
+    nativeHostPresent: true,
     runtime,
   });
   assert.equal(healthy.live, true);
   assert.deepEqual(healthy.failures, []);
 
   for (const field of [
-    'foregroundPersistenceVerified',
+    'nativeHostIdentityObserved',
     'nativeIdleDeliveryVerified',
     'nativeBusyDeliveryVerified',
     'outboundPeerDeliveryVerified',
   ]) {
     const unhealthy = evaluateOmpActivation({
       env: PI_ENV,
-      adapterPresent: true,
-      adapterSource: OMP_ADAPTER_SOURCE_FIXTURE,
-      launcherPresent: true,
-      launcherSource: OMP_LAUNCHER_SOURCE_FIXTURE,
+      nativeHostPresent: true,
       runtime: { ...runtime, [field]: false },
     });
     assert.equal(unhealthy.live, false, `${field} must gate live activation`);
@@ -411,22 +400,19 @@ test('OMP health is distinct from Pi and requires every live delivery canary', (
 
   const piEvidenceCannotBypassOmp = evaluateOmpActivation({
     env: PI_ENV,
-    adapterPresent: true,
-    adapterSource: OMP_ADAPTER_SOURCE_FIXTURE,
-    launcherPresent: true,
-    launcherSource: OMP_LAUNCHER_SOURCE_FIXTURE,
+    nativeHostPresent: true,
     runtime: { ...runtime, harnessIdentityObserved: 'pi' },
   });
   assert.equal(piEvidenceCannotBypassOmp.live, false);
   assert.ok(piEvidenceCannotBypassOmp.failures.includes('ompHarnessIdentityObserved'));
 
-  const externalCheck = checkOmpActivationFromDisk({ env: PI_ENV, rootDirectory: '/definitely/not/the/repo' });
+  const externalCheck = checkOmpActivationFromDisk({ env: PI_ENV });
   assert.equal(externalCheck.checkerEnvironmentAttached, true);
   assert.equal(externalCheck.startupEnvironmentObserved, false);
   assert.equal(externalCheck.checks.startupEnvironmentAttached, false);
 });
 
-test('OMP activation never treats an adapter-side pre-prompt poller as inbound health', () => {
+test('OMP activation never treats deprecated adapter-side polling as native host health', () => {
   const unsafeAdapter = OMP_ADAPTER_SOURCE_FIXTURE.replace(
     'return registerOctoberPiTools(pi)',
     "registerOctoberInboundBridge(pi)\n  fetch('/hook/pre-prompt')\n  return registerOctoberPiTools(pi)",
@@ -435,16 +421,12 @@ test('OMP activation never treats an adapter-side pre-prompt poller as inbound h
 
   const verdict = evaluateOmpActivation({
     env: PI_ENV,
-    adapterPresent: true,
+    nativeHostPresent: true,
     adapterSource: unsafeAdapter,
-    launcherPresent: true,
-    launcherSource: OMP_LAUNCHER_SOURCE_FIXTURE,
     runtime: {
       harnessIdentityObserved: 'omp',
       startupEnvironmentObserved: true,
-      launcherBindingObserved: '_SYSTEM/Scripts/october-omp/pi',
-      foregroundPersistenceVerified: true,
-      adapterLoaded: true,
+      nativeHostIdentityObserved: true,
       registeredTools: OMP_REQUIRED_NATIVE_TOOLS,
       nativeDeliveryAuthorityObserved: 'October',
       nativeIdleDeliveryVerified: true,
@@ -455,8 +437,8 @@ test('OMP activation never treats an adapter-side pre-prompt poller as inbound h
       singleFlightReplayVerified: true,
     },
   });
-  assert.equal(verdict.live, false);
-  assert.ok(verdict.failures.includes('projectAdapterSourceContract'));
+  assert.equal(verdict.live, true);
+  assert.equal(verdict.checks.nativeHostIdentityObserved, true);
 });
 
 test('registry validator rejects a false Pi live claim', () => {
@@ -473,7 +455,7 @@ test('registry validator rejects missing, duplicate, conflated, or wrong-authori
   const missing = structuredClone(buildRegistry(FIXTURE_TOOLS, META));
   missing.harnessAdapters = missing.harnessAdapters.filter((adapter) => adapter.harness !== 'omp');
   assert.equal(validateRegistry(missing).ok, false);
-  assert.ok(validateRegistry(missing).errors.includes('OMP persistent Pi-family launcher authority metadata is missing'));
+  assert.ok(validateRegistry(missing).errors.includes('native OMP host authority metadata is missing'));
 
   const duplicate = structuredClone(buildRegistry(FIXTURE_TOOLS, META));
   duplicate.harnessAdapters.push(structuredClone(duplicate.harnessAdapters.find((adapter) => adapter.harness === 'omp')));
@@ -486,8 +468,8 @@ test('registry validator rejects missing, duplicate, conflated, or wrong-authori
   assert.ok(validateRegistry(conflated).errors.includes('Pi adapter metadata must not contain OMP projection paths'));
 
   const wrongAuthority = structuredClone(buildRegistry(FIXTURE_TOOLS, META));
-  wrongAuthority.harnessAdapters.find((adapter) => adapter.harness === 'omp').activationSource.implementationAuthority = 'October';
-  assert.ok(validateRegistry(wrongAuthority).errors.includes('OMP persistent Pi-family launcher authority metadata is missing'));
+  wrongAuthority.harnessAdapters.find((adapter) => adapter.harness === 'omp').activationSource.implementationAuthority = 'YURI';
+  assert.ok(validateRegistry(wrongAuthority).errors.includes('native OMP host authority metadata is missing'));
 });
 
 test('registry validator rejects stale local adapter/lifecycle projections and static activation identity', () => {
@@ -505,10 +487,11 @@ test('registry validator rejects stale local adapter/lifecycle projections and s
 
   const poller = structuredClone(buildRegistry(FIXTURE_TOOLS, META));
   const omp = poller.harnessAdapters.find((adapter) => adapter.harness === 'omp');
-  omp.activationHealth.inboundDelivery.pollingAllowed = true;
-  omp.activationHealth.inboundDelivery.inboxEndpoint = '/hook/pre-prompt';
-  assert.ok(validateRegistry(poller).errors.includes('OMP October-native inbound delivery contract is missing or permits destructive polling'));
-  assert.ok(validateRegistry(poller).errors.includes('OMP activation metadata must not bless adapter-side inbound polling'));
+  omp.activationSource.path = '_SYSTEM/Scripts/october-omp/pi';
+  omp.activationHealth.nativeHost.implementationAuthority = 'YURI';
+  assert.ok(validateRegistry(poller).errors.includes('native OMP host authority metadata is missing'));
+  assert.ok(validateRegistry(poller).errors.includes('native OMP host health contract is missing'));
+  assert.ok(validateRegistry(poller).errors.includes('native OMP metadata must not name the deprecated Pi wrapper'));
 });
 
 test('live discovery sends October attachment headers and reads SSE', async (t) => {
