@@ -65,6 +65,13 @@ test('protected reads are allowed while shell mutations remain denied', () => {
   }
 });
 
+test('quoted search expressions do not turn protected read audits into mutations', () => {
+  const decision = evaluateToolCall('Bash', {
+    command: "rg -n -S 't-e3c18c6f|LIVE_BIND|backend/data' _SYSTEM 02_RESOURCES .claude/projects",
+  }, { cwd: ROOT });
+  assert.equal(decision.allowed, true);
+});
+
 test('malformed hook events fail closed without crashing the Codex hook', () => {
   for (const event of [null, [], 'not-an-event']) {
     const decision = evaluateHookEvent(event);

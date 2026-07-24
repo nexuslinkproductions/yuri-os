@@ -113,10 +113,10 @@ const MUTATING_COMMAND_RE =
 // finding is verified against requires these reads to DENY. Narrow and additive: only read/inspect
 // commands, mirrors bash-security-guard.js's READ_CMDS set.
 const READ_COMMAND_RE =
-  /\b(cat|head|tail|less|more|bat|nl|view|strings|xxd|hexdump|od|grep|awk|sed|cut|sort|uniq|read|source|find|ls|stat|du|wc|file|readlink|realpath|shasum|sha256sum|md5|git|printf|echo|scp|rsync)\b/u;
+  /\b(cat|head|tail|less|more|bat|nl|view|strings|xxd|hexdump|od|grep|rg|awk|sed|cut|sort|uniq|read|source|find|ls|stat|du|wc|file|readlink|realpath|shasum|sha256sum|md5|git|printf|echo|scp|rsync)\b/u;
 
 const PROTECTED_READ_SEGMENT_RE =
-  /^\s*(?:(?:command|builtin)\s+)?(?:cat|head|tail|less|more|bat|nl|view|strings|xxd|hexdump|od|grep|awk|sed|cut|sort|uniq|read|source|find|ls|stat|du|wc|file|readlink|realpath|shasum|sha256sum|md5|printf|echo|git\s+(?:status|log|diff|show|ls-files|rev-parse|check-ignore|branch|remote|describe|cat-file))\b/u;
+  /^\s*(?:(?:command|builtin)\s+)?(?:cat|head|tail|less|more|bat|nl|view|strings|xxd|hexdump|od|grep|rg|awk|sed|cut|sort|uniq|read|source|find|ls|stat|du|wc|file|readlink|realpath|shasum|sha256sum|md5|printf|echo|git\s+(?:status|log|diff|show|ls-files|rev-parse|check-ignore|branch|remote|describe|cat-file))\b/u;
 
 const DESTRUCTIVE_PATTERNS = [
   { re: /\brm\s+-[^;&|]*[rR][^;&|]*[fF]?/u, reason: 'destructive recursive rm is blocked' },
@@ -259,10 +259,7 @@ function evaluateShellCommand(command, cwd) {
 }
 
 function isProtectedReadOnlyCommand(command) {
-  const segments = String(command)
-    .split(/&&|\|\||[;|]/u)
-    .map((segment) => segment.trim())
-    .filter(Boolean);
+  const segments = splitShellSegments(command);
   const protectedSegments = segments.filter((segment) => protectedLiteralHit(segment));
   if (!protectedSegments.length) return false;
   return protectedSegments.every((segment) => {
@@ -271,6 +268,44 @@ function isProtectedReadOnlyCommand(command) {
     }
     return PROTECTED_READ_SEGMENT_RE.test(segment);
   });
+}
+
+function splitShellSegments(command) {
+  const source = String(command);
+  const segments = [];
+  let start = 0;
+  let quote = '';
+  let escaped = false;
+
+  for (let index = 0; index < source.length; index += 1) {
+    const char = source[index];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === '\\' && quote !== "'") {
+      escaped = true;
+      continue;
+    }
+    if (quote) {
+      if (char === quote) quote = '';
+      continue;
+    }
+    if (char === "'" || char === '"') {
+      quote = char;
+      continue;
+    }
+    if (char === ';' || char === '|') {
+      const segment = source.slice(start, index).trim();
+      if (segment) segments.push(segment);
+      if (source[index + 1] === char) index += 1;
+      start = index + 1;
+    }
+  }
+
+  const tail = source.slice(start).trim();
+  if (tail) segments.push(tail);
+  return segments;
 }
 
 function isAllowedProtectedReadForOffload(command, protectedLabel) {
