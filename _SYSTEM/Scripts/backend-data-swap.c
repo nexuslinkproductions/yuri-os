@@ -531,8 +531,21 @@ struct pinned_file {
     unsigned char sha256[CC_SHA256_DIGEST_LENGTH];
 };
 
-/* Digest regular-file bytes through a held fd (descriptor-relative; no pathname). */
-static int hash_fd_sha256(int fd, unsigned char out[CC_SHA256_DIGEST_LENGTH]) {
+static void copy_tree_named_barrier_wait(const char *barrier_env, const char *ready_env);
+
+/* Digest regular-file bytes through a held fd (descriptor-relative; no pathname).
+ * Reads AT MOST expected_size bytes (the pinned baseline). If the inode yields more
+ * than expected_size (concurrent append/growth), fail closed as content mutation —
+ * this bounds the read loop (liveness) and refuses a silent prefix-hash (integrity).
+ * Truncation below expected_size also fails closed.
+ * arm_hash_barrier: test-only; when non-zero, optional HASH barrier runs after the
+ * bounded read and before the growth probe (EMIT re-hash only — never during PIN). */
+static int hash_fd_sha256(int fd, off_t expected_size, unsigned char out[CC_SHA256_DIGEST_LENGTH],
+                          int arm_hash_barrier) {
+    if (expected_size < 0) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree hash expected_size invalid\n");
+        return 1;
+    }
     if (lseek(fd, 0, SEEK_SET) < 0) {
         fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree lseek for hash: %s\n", strerror(errno));
         return 1;
@@ -540,15 +553,43 @@ static int hash_fd_sha256(int fd, unsigned char out[CC_SHA256_DIGEST_LENGTH]) {
     CC_SHA256_CTX ctx;
     CC_SHA256_Init(&ctx);
     unsigned char buf[65536];
-    for (;;) {
-        ssize_t n = read(fd, buf, sizeof(buf));
+    off_t remaining = expected_size;
+    while (remaining > 0) {
+        size_t chunk = sizeof(buf);
+        if ((off_t)chunk > remaining) chunk = (size_t)remaining;
+        ssize_t n = read(fd, buf, chunk);
         if (n < 0) {
             if (errno == EINTR) continue;
             fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree read for hash: %s\n", strerror(errno));
             return 1;
         }
-        if (n == 0) break;
+        if (n == 0) {
+            fprintf(stderr,
+                    "BACKEND_DATA_SWAP_FAILED copy-tree pinned file content mutated (truncated during hash)\n");
+            return 1;
+        }
         CC_SHA256_Update(&ctx, buf, (CC_LONG)n);
+        remaining -= (off_t)n;
+    }
+    if (arm_hash_barrier) {
+        copy_tree_named_barrier_wait("YURI_COPY_TREE_HASH_BARRIER", "YURI_COPY_TREE_HASH_READY");
+    }
+    /* Probe one more byte: growth beyond pinned baseline must not hang or silent-prefix. */
+    for (;;) {
+        unsigned char probe;
+        ssize_t extra = read(fd, &probe, 1);
+        if (extra < 0) {
+            if (errno == EINTR) continue;
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree read for hash probe: %s\n",
+                    strerror(errno));
+            return 1;
+        }
+        if (extra > 0) {
+            fprintf(stderr,
+                    "BACKEND_DATA_SWAP_FAILED copy-tree pinned file content mutated (grew during hash)\n");
+            return 1;
+        }
+        break; /* extra == 0: exact EOF at baseline */
     }
     CC_SHA256_Final(out, &ctx);
     if (lseek(fd, 0, SEEK_SET) < 0) {
@@ -680,7 +721,7 @@ static int pin_tree_fd(int src_fd, dev_t root_dev, struct pinned_dir *out) {
             }
             files[n_files].fd = src_file;
             files[n_files].st = opened;
-            if (hash_fd_sha256(src_file, files[n_files].sha256) != 0) {
+            if (hash_fd_sha256(src_file, opened.st_size, files[n_files].sha256, 0) != 0) {
                 close(src_file);
                 free(files[n_files].name);
                 files[n_files].name = NULL;
@@ -776,6 +817,24 @@ static int apply_dir_metadata(int src_dir_fd, int dst_dir_fd) {
     return 0;
 }
 
+/* Test-only barriers: create READY (if set), then spin while BARRIER path exists. */
+static void copy_tree_named_barrier_wait(const char *barrier_env, const char *ready_env) {
+    const char *ready = getenv(ready_env);
+    if (ready != NULL && ready[0] != '\0') {
+        int ready_fd = open(ready, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
+        if (ready_fd >= 0) close(ready_fd);
+    }
+    const char *barrier = getenv(barrier_env);
+    if (barrier == NULL || barrier[0] == '\0') return;
+    while (access(barrier, F_OK) == 0) {
+        usleep(1000);
+    }
+}
+
+static void copy_tree_pin_barrier_wait(void) {
+    copy_tree_named_barrier_wait("YURI_COPY_TREE_PIN_BARRIER", "YURI_COPY_TREE_PIN_READY");
+}
+
 static int emit_tree_fd(const struct pinned_dir *pin, int dst_fd, dev_t root_dev) {
     for (size_t i = 0; i < pin->n_files; i++) {
         const struct pinned_file *pf = &pin->files[i];
@@ -793,13 +852,16 @@ static int emit_tree_fd(const struct pinned_dir *pin, int dst_fd, dev_t root_dev
         }
         /* Content-mutation race on the pinned inode: fail closed if bytes changed. */
         unsigned char now_hash[CC_SHA256_DIGEST_LENGTH];
-        if (hash_fd_sha256(pf->fd, now_hash) != 0) return 1;
+        if (hash_fd_sha256(pf->fd, pf->st.st_size, now_hash, 1) != 0) return 1;
         if (memcmp(now_hash, pf->sha256, CC_SHA256_DIGEST_LENGTH) != 0
             || still.st_size != pf->st.st_size) {
             fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree pinned file content mutated (%s)\n",
                     pf->name);
             return 1;
         }
+        /* Test-only: hold between EMIT hash and fclonefileat so harness can mutate
+         * in the 796->803-class window (DETECT-AND-FAIL-CLOSED via dest digest). */
+        copy_tree_named_barrier_wait("YURI_COPY_TREE_PRE_CLONE_BARRIER", "YURI_COPY_TREE_PRE_CLONE_READY");
         if (fclonefileat(pf->fd, dst_fd, pf->name, 0) != 0) {
             fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree fclonefileat(%s): %s\n",
                     pf->name, strerror(errno));
@@ -827,21 +889,29 @@ static int emit_tree_fd(const struct pinned_dir *pin, int dst_fd, dev_t root_dev
             || dest_st.st_size != pf->st.st_size) {
             fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree destination identity mismatch (%s)\n",
                     pf->name);
+            (void)unlinkat(dst_fd, pf->name, 0);
             return 1;
         }
         int dest_file = openat(dst_fd, pf->name, O_RDONLY | O_NOFOLLOW | O_CLOEXEC);
         if (dest_file < 0) {
             fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree openat dest file(%s): %s\n",
                     pf->name, strerror(errno));
+            (void)unlinkat(dst_fd, pf->name, 0);
             return 1;
         }
         unsigned char dest_hash[CC_SHA256_DIGEST_LENGTH];
-        int hash_rc = hash_fd_sha256(dest_file, dest_hash);
+        int hash_rc = hash_fd_sha256(dest_file, pf->st.st_size, dest_hash, 0);
         close(dest_file);
-        if (hash_rc != 0) return 1;
+        if (hash_rc != 0) {
+            (void)unlinkat(dst_fd, pf->name, 0);
+            return 1;
+        }
         if (memcmp(dest_hash, pf->sha256, CC_SHA256_DIGEST_LENGTH) != 0) {
             fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree destination content mismatch (%s)\n",
                     pf->name);
+            /* Discard the bad clone entry before fail-closed return (caller also
+             * removes the staging destination tree — belt and suspenders). */
+            (void)unlinkat(dst_fd, pf->name, 0);
             return 1;
         }
     }
@@ -868,23 +938,6 @@ static int emit_tree_fd(const struct pinned_dir *pin, int dst_fd, dev_t root_dev
         if (child_rc != 0) return 1;
     }
     return 0;
-}
-
-static void copy_tree_pin_barrier_wait(void) {
-    const char *ready = getenv("YURI_COPY_TREE_PIN_READY");
-    if (ready != NULL && ready[0] != '\0') {
-        /* Test-only: signal that PIN completed before the barrier wait. */
-        int ready_fd = open(ready, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
-        if (ready_fd >= 0) {
-            close(ready_fd);
-        }
-    }
-    const char *barrier = getenv("YURI_COPY_TREE_PIN_BARRIER");
-    if (barrier == NULL || barrier[0] == '\0') return;
-    /* Test-only: hold between PIN and EMIT so the harness can same-class swap. */
-    while (access(barrier, F_OK) == 0) {
-        usleep(1000);
-    }
 }
 
 static int copy_tree_exact(const char *source_path, const char *destination_path,

@@ -38,7 +38,7 @@ export const CANONICAL_TARGET = path.join(REPO_ROOT, '_SYSTEM/backend/data');
 export const QUARANTINE_ROOT = path.join(REPO_ROOT, '_SYSTEM/recovery/backend-db');
 export const RECEIPT_ROOT = path.join(REPO_ROOT, '_SYSTEM/state/backend-volume');
 export const SWAP_HELPER_SOURCE_PATH = path.join(REPO_ROOT, '_SYSTEM/Scripts/backend-data-swap.c');
-export const SWAP_HELPER_SOURCE_SHA256 = 'dfdd2a0eceff3dadd309611037928784702a19cfbac0b9db69c36540466962c4';
+export const SWAP_HELPER_SOURCE_SHA256 = 'a8703932753c1c60b350320e93f23bd5f6c6a34e3d74e00e8f17a42ab5ca011e';
 export const RECOVERY_LOCK_PATH = path.join(RECEIPT_ROOT, 'backend-data-recovery.lock');
 export const BACKUP_IMAGE_PATH = '/Volumes/T7/YURI-OS-MUSUBI-Backup.sparsebundle';
 export const RUNTIME_IMAGE_PATH = '/Volumes/T7/YURI-Backend-Runtime-v1.sparsebundle';
@@ -58,6 +58,18 @@ export const RECOVERY_CHILD_ENVIRONMENT = Object.freeze({
   TMPDIR: '/private/tmp',
 });
 
+/** Build the sealed child env, optionally admitting YURI_COPY_TREE_* test harness
+ * barriers (PIN / PRE_CLONE). Production never sets these; when absent the env
+ * matches RECOVERY_CHILD_ENVIRONMENT exactly. */
+function recoveryChildEnvironment() {
+  const env = { ...RECOVERY_CHILD_ENVIRONMENT };
+  for (const [key, value] of Object.entries(process.env)) {
+    if (key.startsWith('YURI_COPY_TREE_') && typeof value === 'string' && value.length > 0) {
+      env[key] = value;
+    }
+  }
+  return env;
+}
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 const RECOVERY_TARGET_IDENTITY_KEYS = Object.freeze([
   'filesystem',
@@ -317,7 +329,8 @@ function spawnRecoveryProcess(commandPath, args, options = {}) {
     // Environment authority is closed at the only recovery spawn seam. Keep
     // this assignment last so no caller can reintroduce compiler, loader,
     // runtime, locale, or search-path variables from the parent process.
-    env: RECOVERY_CHILD_ENVIRONMENT,
+    // Exception: YURI_COPY_TREE_* test-harness barriers only, when already set.
+    env: recoveryChildEnvironment(),
   });
 }
 
@@ -594,6 +607,9 @@ function assertSourceTreeIsolation(rootPath, label = 'source tree') {
 }
 
 function removeCopyTreeDestinationBestEffort(destination) {
+  // Staging discard contract: on any copy-tree helper failure (including
+  // DETECT-AND-FAIL-CLOSED content-mutation / dest-digest mismatch), the partial
+  // destination tree MUST be removed so mutated bytes are never promoted.
   try {
     fs.rmSync(destination, { recursive: true, force: true });
   } catch {

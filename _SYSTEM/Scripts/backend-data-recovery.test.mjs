@@ -3559,10 +3559,85 @@ test('copy-tree content-mutation on pinned inode fails closed', {
   }
 });
 
+test('copy-tree append-growth during EMIT hash fails closed (bounded hash liveness)', {
+  skip: process.platform !== 'darwin',
+}, async () => {
+  // Apollo REQUIRE-FIX (Atlas continuous-append residual): unbounded EOF-read in
+  // hash_fd_sha256 could hang under concurrent append. Fix reads at most pinned
+  // st_size then probes one more byte — growth fail-closes; loop stays bounded.
+  const root = fs.realpathSync.native(fs.mkdtempSync(path.join('/private/tmp', 'yuri-copytree-hash-grow-')));
+  try {
+    const src = path.join(root, 'src');
+    const destParent = path.join(root, 'dest-parent');
+    fs.mkdirSync(src);
+    fs.mkdirSync(destParent);
+    const foo = path.join(src, 'foo.db');
+    const original = Buffer.from('HASH-GROW-BASELINE');
+    fs.writeFileSync(foo, original);
+    const i1 = fs.lstatSync(foo, { bigint: true });
+
+    const barrier = path.join(root, 'HASH_BARRIER');
+    const ready = path.join(root, 'HASH_READY');
+    fs.writeFileSync(barrier, 'hold');
+
+    const srcStat = fs.lstatSync(src, { bigint: true });
+    const parentStat = fs.lstatSync(destParent, { bigint: true });
+    const binary = path.join(root, 'backend-data-swap');
+    const compiled = spawnSync('/usr/bin/clang', [
+      '-std=c11', '-Os', '-Wall', '-Wextra', '-Werror', SWAP_HELPER_SOURCE_PATH, '-o', binary,
+    ], { encoding: 'utf8' });
+    assert.equal(compiled.status, 0, compiled.stderr || compiled.stdout);
+
+    const dest = path.join(destParent, 'out');
+    const child = spawn(binary, [
+      'copy-tree',
+      src,
+      dest,
+      srcStat.dev.toString(),
+      srcStat.ino.toString(),
+      parentStat.dev.toString(),
+      parentStat.ino.toString(),
+    ], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        YURI_COPY_TREE_HASH_BARRIER: barrier,
+        YURI_COPY_TREE_HASH_READY: ready,
+      },
+    });
+
+    const deadline = Date.now() + 15_000;
+    while (!fs.existsSync(ready) && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 10));
+    }
+    assert.ok(fs.existsSync(ready), 'HASH_READY must appear after bounded EMIT read, before growth probe');
+
+    // Append on same inode while helper holds the growth-probe window open.
+    fs.appendFileSync(foo, Buffer.from('+GROW'));
+    assert.equal(fs.lstatSync(foo, { bigint: true }).ino, i1.ino);
+    assert.ok(fs.lstatSync(foo).size > original.length);
+
+    fs.unlinkSync(barrier);
+    const [code, stdout, stderr] = await new Promise((resolve, reject) => {
+      let out = '';
+      let err = '';
+      child.stdout.on('data', (chunk) => { out += chunk; });
+      child.stderr.on('data', (chunk) => { err += chunk; });
+      child.on('error', reject);
+      child.on('close', (status) => resolve([status, out, err]));
+    });
+    assert.notEqual(code, 0, `must fail closed on append-growth; stdout=${stdout}`);
+    assert.match(stderr || '', /content mutated \(grew during hash\)|content mutated/iu);
+    assert.equal(fs.existsSync(path.join(dest, 'foo.db')), false, 'must not emit grown content');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('copy-tree preserves ACL on files and directories', {
   skip: process.platform !== 'darwin',
 }, () => {
-  // Apollo residual: dedicated ACL fixture (beyond COPYFILE_METADATA flag alone).
+  // Atlas residual: exact ACL parity (not presence-only /allow/).
   const root = fs.realpathSync.native(fs.mkdtempSync(path.join('/private/tmp', 'yuri-copytree-acl-')));
   try {
     const src = path.join(root, 'src');
@@ -3578,7 +3653,6 @@ test('copy-tree preserves ACL on files and directories', {
       const ran = spawnSync('/bin/chmod', ['+a', entry, target], { encoding: 'utf8' });
       assert.equal(ran.status, 0, `chmod +a ${target}: ${ran.stderr || ran.stdout}`);
     };
-    // User-scoped ACL entries (readable via ls -le / acl_get_file).
     const user = process.env.USER || 'marcelspatz';
     addAcl(src, `${user} allow read,write,execute`);
     addAcl(nested, `${user} allow read,execute`);
@@ -3590,12 +3664,21 @@ test('copy-tree preserves ACL on files and directories', {
       assert.equal(ran.status, 0, ran.stderr || ran.stdout);
       return ran.stdout || '';
     };
+    const aclEntries = (text) => text
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => /^\d+:/.test(line))
+      .sort();
+
     const srcAcl = readAcl(src, { dir: true });
     const nestedAcl = readAcl(nested, { dir: true });
     const leafAcl = readAcl(leaf);
-    assert.match(srcAcl, /allow/u);
-    assert.match(nestedAcl, /allow/u);
-    assert.match(leafAcl, /allow/u);
+    assert.ok(aclEntries(srcAcl).length > 0, 'source root must have ACL entries');
+    assert.ok(aclEntries(nestedAcl).length > 0, 'source nested must have ACL entries');
+    assert.ok(aclEntries(leafAcl).length > 0, 'source leaf must have ACL entries');
+    assert.notDeepEqual(aclEntries(srcAcl), aclEntries(nestedAcl));
+    assert.notDeepEqual(aclEntries(nestedAcl), aclEntries(leafAcl));
+    assert.notDeepEqual(aclEntries(srcAcl), aclEntries(leafAcl));
 
     const srcStat = fs.lstatSync(src, { bigint: true });
     const parentStat = fs.lstatSync(destParent, { bigint: true });
@@ -3620,11 +3703,276 @@ test('copy-tree preserves ACL on files and directories', {
     const destAcl = readAcl(dest, { dir: true });
     const destNestedAcl = readAcl(path.join(dest, 'nested'), { dir: true });
     const destLeafAcl = readAcl(path.join(dest, 'nested', 'leaf.db'));
-    assert.match(destAcl, /allow/u, 'root dir ACL must be preserved');
-    assert.match(destNestedAcl, /allow/u, 'nested dir ACL must be preserved');
-    assert.match(destLeafAcl, /allow/u, 'file ACL must be preserved');
+    assert.deepEqual(aclEntries(destAcl), aclEntries(srcAcl), 'root dir ACL exact parity');
+    assert.deepEqual(aclEntries(destNestedAcl), aclEntries(nestedAcl), 'nested dir ACL exact parity');
+    assert.deepEqual(aclEntries(destLeafAcl), aclEntries(leafAcl), 'file ACL exact parity');
     assert.equal(fs.readFileSync(path.join(dest, 'nested', 'leaf.db'), 'utf8'), 'acl-payload');
   } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('copy-tree in-window mutation (post-hash pre-clone) detect-and-fail-closed + staging discard', {
+  skip: process.platform !== 'darwin',
+}, async () => {
+  // Atlas residual: mutation between EMIT hash and fclonefileat is DETECT-AND-FAIL-CLOSED
+  // (dest digest/size mismatch), not prevented. Helper unlinkat discards the bad clone
+  // entry; copyTreeSystem removeCopyTreeDestinationBestEffort discards the staging tree.
+  const root = fs.realpathSync.native(fs.mkdtempSync(path.join('/private/tmp', 'yuri-copytree-inwindow-')));
+  try {
+    const src = path.join(root, 'src');
+    const destParent = path.join(root, 'dest-parent');
+    fs.mkdirSync(src);
+    fs.mkdirSync(destParent);
+    const foo = path.join(src, 'foo.db');
+    const original = Buffer.from('INWINDOW-ORIGINAL-BYTES');
+    const mutated = Buffer.from('INWINDOW-MUTATED-BYTES!');
+    fs.writeFileSync(foo, original);
+    const i1 = fs.lstatSync(foo, { bigint: true });
+
+    const barrier = path.join(root, 'PRE_CLONE_BARRIER');
+    const ready = path.join(root, 'PRE_CLONE_READY');
+    fs.writeFileSync(barrier, 'hold');
+
+    const srcStat = fs.lstatSync(src, { bigint: true });
+    const parentStat = fs.lstatSync(destParent, { bigint: true });
+    const binary = path.join(root, 'backend-data-swap');
+    const compiled = spawnSync('/usr/bin/clang', [
+      '-std=c11', '-Os', '-Wall', '-Wextra', '-Werror', SWAP_HELPER_SOURCE_PATH, '-o', binary,
+    ], { encoding: 'utf8' });
+    assert.equal(compiled.status, 0, compiled.stderr || compiled.stdout);
+
+    const dest = path.join(destParent, 'out');
+    const child = spawn(binary, [
+      'copy-tree',
+      src,
+      dest,
+      srcStat.dev.toString(),
+      srcStat.ino.toString(),
+      parentStat.dev.toString(),
+      parentStat.ino.toString(),
+    ], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        YURI_COPY_TREE_PRE_CLONE_BARRIER: barrier,
+        YURI_COPY_TREE_PRE_CLONE_READY: ready,
+      },
+    });
+
+    const deadline = Date.now() + 10_000;
+    while (!fs.existsSync(ready) && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 10));
+    }
+    assert.ok(fs.existsSync(ready), 'PRE_CLONE_READY must appear after emit hash');
+
+    fs.writeFileSync(foo, mutated);
+    assert.equal(fs.lstatSync(foo, { bigint: true }).ino, i1.ino);
+    fs.unlinkSync(barrier);
+
+    const [code, stdout, stderr] = await new Promise((resolve, reject) => {
+      let out = '';
+      let err = '';
+      child.stdout.on('data', (chunk) => { out += chunk; });
+      child.stderr.on('data', (chunk) => { err += chunk; });
+      child.on('error', reject);
+      child.on('close', (status) => resolve([status, out, err]));
+    });
+    assert.notEqual(code, 0, `helper must fail-closed; stdout=${stdout}`);
+    assert.match(
+      stderr || '',
+      /destination content mismatch|destination identity mismatch/iu,
+    );
+    assert.equal(fs.existsSync(path.join(dest, 'foo.db')), false, 'bad clone entry must be unlinkat-discarded');
+
+    // Production caller path: copyTreeSystem discards staging tree on helper failure.
+    // Prove via a second failing copyTree into a fresh dest (symlink reject) that dest is removed.
+    const badSrc = path.join(root, 'bad-src');
+    const badDest = path.join(destParent, 'bad-out');
+    fs.mkdirSync(badSrc);
+    fs.symlinkSync(foo, path.join(badSrc, 'link'));
+    const adapters = createSystemAdapters();
+    assert.throws(
+      () => adapters.copyTree(badSrc, badDest),
+      (error) => error.code === 'COPY_TREE_HELPER_FAILED',
+    );
+    assert.equal(fs.existsSync(badDest), false, 'copyTreeSystem must discard staging on helper failure');
+    assert.match(
+      fs.readFileSync(new URL('./backend-data-recovery.mjs', import.meta.url), 'utf8'),
+      /removeCopyTreeDestinationBestEffort/u,
+    );
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('copyTreeSystem production path: in-window PRE_CLONE mutation discards staging dest', {
+  skip: process.platform !== 'darwin',
+}, () => {
+  // Draco R3 HOLD gap: helper-level in-window + symlink-reject discard were proven
+  // separately; production adapters.copyTree + YURI_COPY_TREE_PRE_CLONE_* together
+  // (dest created, then discarded after in-window mutation) was untested.
+  //
+  // copyTreeSystem uses spawnSync, so the mutator MUST be a separate OS process —
+  // same-process async coordination deadlocks the event loop behind the barrier.
+  //
+  // Atlas V3c T3: mutated bytes MUST be same-length as original. Different length
+  // trips swap.c st_size check (stderr: destination identity mismatch) BEFORE the
+  // digest check (destination content mismatch) — proving only size-mismatch cleanup,
+  // not the harder same-length content-mutation path.
+  const root = fs.realpathSync.native(fs.mkdtempSync(path.join('/private/tmp', 'yuri-copytree-prod-inwindow-')));
+  const prevBarrier = process.env.YURI_COPY_TREE_PRE_CLONE_BARRIER;
+  const prevReady = process.env.YURI_COPY_TREE_PRE_CLONE_READY;
+  let mutator = null;
+  let watchdog = null;
+  try {
+    const src = path.join(root, 'src');
+    const destParent = path.join(root, 'dest-parent');
+    fs.mkdirSync(src);
+    fs.mkdirSync(destParent);
+    const foo = path.join(src, 'foo.db');
+    const original = Buffer.from('PROD-INWINDOW-ORIGINAL');
+    const mutated = Buffer.from('PROD-INWINDOW-MUTATED!'); // 22B == original.length
+    assert.equal(original.length, mutated.length, 'same-length mutation required to hit digest path');
+    assert.notEqual(original.equals(mutated), true);
+    fs.writeFileSync(foo, original);
+
+    const barrier = path.join(root, 'PRE_CLONE_BARRIER');
+    const ready = path.join(root, 'PRE_CLONE_READY');
+    const sawDest = path.join(root, 'SAW_DEST_AT_READY');
+    const mutatorDone = path.join(root, 'MUTATOR_DONE');
+    fs.writeFileSync(barrier, 'hold');
+    process.env.YURI_COPY_TREE_PRE_CLONE_BARRIER = barrier;
+    process.env.YURI_COPY_TREE_PRE_CLONE_READY = ready;
+
+    const dest = path.join(destParent, 'out');
+    // Atlas V3e liveness: NEVER process.exit() inside try — it skips finally.
+    // Pattern: IIFE + exitCode/return so finally ALWAYS releaseBarrier.
+    // Atlas (4): parent copy-deadline watchdog bounds spawnSync (else 12h on leak).
+    mutator = spawn(process.execPath, ['-e', `
+const fs = require('fs');
+const ready = ${JSON.stringify(ready)};
+const barrier = ${JSON.stringify(barrier)};
+const dest = ${JSON.stringify(dest)};
+const foo = ${JSON.stringify(foo)};
+const sawDest = ${JSON.stringify(sawDest)};
+const mutatorDone = ${JSON.stringify(mutatorDone)};
+const mutated = Buffer.from('PROD-INWINDOW-MUTATED!');
+function releaseBarrier() {
+  try { if (fs.existsSync(barrier)) fs.unlinkSync(barrier); } catch { /* ENOENT-tolerant */ }
+}
+(function main() {
+  let status = 'error';
+  try {
+    const deadline = Date.now() + 60_000;
+    while (!fs.existsSync(ready) && Date.now() < deadline) {
+      const end = Date.now() + 10;
+      while (Date.now() < end) { /* spin */ }
+    }
+    if (!fs.existsSync(ready)) {
+      status = 'ready-timeout';
+      process.exitCode = 2;
+      return; // exits THROUGH finally — never process.exit()
+    }
+    if (fs.existsSync(dest)) fs.writeFileSync(sawDest, 'yes');
+    fs.writeFileSync(foo, mutated);
+    status = 'ok';
+  } catch (err) {
+    status = 'error:' + (err && err.message ? err.message : String(err));
+    process.exitCode = 1;
+  } finally {
+    releaseBarrier();
+    try { fs.writeFileSync(mutatorDone, status); } catch { /* ignore */ }
+  }
+})();
+`], { stdio: 'ignore', detached: false });
+    mutator.unref();
+
+    // Deterministic no-hang (Atlas §4): if barrier leaks, fail in seconds not ~12h.
+    // 15s: unlink barrier (helper barrier-wait resumes). Helper-SIGKILL not required —
+    // Atlas/Athena: barrier-wait is the helper's only indefinite path closed by release;
+    // continuous-append hang is closed by bounded hash_fd_sha256 (V3g).
+    const copyDeadlineMs = 15_000;
+    watchdog = spawn(process.execPath, ['-e', `
+const fs = require('fs');
+const barrier = ${JSON.stringify(barrier)};
+const mutatorDone = ${JSON.stringify(mutatorDone)};
+const copyDeadlineMs = ${copyDeadlineMs};
+const start = Date.now();
+while (Date.now() - start < copyDeadlineMs) {
+  if (fs.existsSync(mutatorDone)) {
+    // Happy path: mutator finished; still ensure barrier is gone.
+    try { if (fs.existsSync(barrier)) fs.unlinkSync(barrier); } catch { /* ignore */ }
+    process.exit(0);
+  }
+  const end = Date.now() + 50;
+  while (Date.now() < end) { /* spin */ }
+}
+try { if (fs.existsSync(barrier)) fs.unlinkSync(barrier); } catch { /* ignore */ }
+try {
+  if (!fs.existsSync(mutatorDone)) fs.writeFileSync(mutatorDone, 'watchdog-barrier-release');
+} catch { /* ignore */ }
+`], { stdio: 'ignore', detached: false });
+    watchdog.unref();
+
+    const adapters = createSystemAdapters();
+    let copyError = null;
+    const copyStarted = Date.now();
+    try {
+      adapters.copyTree(src, dest);
+    } catch (error) {
+      copyError = error;
+    }
+    const copyElapsedMs = Date.now() - copyStarted;
+    assert.ok(
+      copyElapsedMs < 60_000,
+      `copyTree must fail-fast on barrier races (elapsed ${copyElapsedMs}ms; 12h hang is a defect)`,
+    );
+
+    // Event loop was blocked in spawnSync; poll filesystem for mutator completion.
+    const joinDeadline = Date.now() + 5_000;
+    while (!fs.existsSync(mutatorDone) && Date.now() < joinDeadline) {
+      spawnSync('/bin/sleep', ['0.05']);
+    }
+    assert.equal(
+      fs.existsSync(mutatorDone) ? fs.readFileSync(mutatorDone, 'utf8') : 'missing',
+      'ok',
+      'mutator must observe READY, mutate, and release barrier',
+    );
+
+    assert.ok(copyError, 'copyTreeSystem must fail closed on in-window mutation');
+    assert.equal(copyError.code, 'COPY_TREE_HELPER_FAILED');
+    // Must be the digest path (swap.c @ content mismatch), NOT size/identity @848.
+    assert.match(
+      copyError.details?.commandDetails?.stderr || copyError.message || '',
+      /destination content mismatch/iu,
+    );
+    assert.doesNotMatch(
+      copyError.details?.commandDetails?.stderr || copyError.message || '',
+      /destination identity mismatch/iu,
+    );
+    assert.equal(
+      fs.existsSync(sawDest),
+      true,
+      'staging dest must exist at PRE_CLONE_READY (created then discarded)',
+    );
+    assert.equal(
+      fs.existsSync(dest),
+      false,
+      'production removeCopyTreeDestinationBestEffort must discard staging after in-window fail',
+    );
+    assert.equal(fs.readFileSync(foo).equals(mutated), true);
+  } finally {
+    if (mutator && mutator.exitCode === null && mutator.signalCode === null) {
+      try { mutator.kill('SIGKILL'); } catch { /* ignore */ }
+    }
+    if (watchdog && watchdog.exitCode === null && watchdog.signalCode === null) {
+      try { watchdog.kill('SIGKILL'); } catch { /* ignore */ }
+    }
+    if (prevBarrier === undefined) delete process.env.YURI_COPY_TREE_PRE_CLONE_BARRIER;
+    else process.env.YURI_COPY_TREE_PRE_CLONE_BARRIER = prevBarrier;
+    if (prevReady === undefined) delete process.env.YURI_COPY_TREE_PRE_CLONE_READY;
+    else process.env.YURI_COPY_TREE_PRE_CLONE_READY = prevReady;
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
