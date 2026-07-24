@@ -1,4 +1,180 @@
 {
+  "cheap-tier-recon-dispatch": {
+    "source_path": "skills/cheap-tier-recon-dispatch/SKILL.md",
+    "hash": "83ae539ea521ef32"
+  },
+  "design-dna": {
+    "source_path": "skills/design-dna/SKILL.md",
+    "hash": "c04472d2cced644f"
+  },
+  "fleet-model-economy": {
+    "source_path": "skills/fleet-model-economy/SKILL.md",
+    "hash": "06c0c01959893ce7"
+  },
+  "genjutsu-canvas-generative": {
+    "source_path": "skills/genjutsu-canvas-generative/SKILL.md",
+    "hash": "f1e6ea381ac0b6ae"
+  },
+  "genjutsu-cast": {
+    "source_path": "skills/genjutsu-cast/SKILL.md",
+    "hash": "069f04584c268198"
+  },
+  "genjutsu-compose-graphics": {
+    "source_path": "skills/genjutsu-compose-graphics/SKILL.md",
+    "hash": "900d8bd660056e40"
+  },
+  "genjutsu-compose-motion": {
+    "source_path": "skills/genjutsu-compose-motion/SKILL.md",
+    "hash": "319e7a9ee08235ec"
+  },
+  "genjutsu-compose-multiplatform": {
+    "source_path": "skills/genjutsu-compose-multiplatform/SKILL.md",
+    "hash": "e97acdb2c96abf5a"
+  },
+  "genjutsu-css-native": {
+    "source_path": "skills/genjutsu-css-native/SKILL.md",
+    "hash": "7d1e67f3022789c6"
+  },
+  "genjutsu-design-audit": {
+    "source_path": "skills/genjutsu-design-audit/SKILL.md",
+    "hash": "aad1f1b3161dc2bd"
+  },
+  "genjutsu-desktop-principles": {
+    "source_path": "skills/genjutsu-desktop-principles/SKILL.md",
+    "hash": "af820131c15e6bb7"
+  },
+  "genjutsu-framer-motion": {
+    "source_path": "skills/genjutsu-framer-motion/SKILL.md",
+    "hash": "00ff51275676babe"
+  },
+  "genjutsu-gsap": {
+    "source_path": "skills/genjutsu-gsap/SKILL.md",
+    "hash": "23c1ba0e8f6e8b27"
+  },
+  "genjutsu-mobile-principles": {
+    "source_path": "skills/genjutsu-mobile-principles/SKILL.md",
+    "hash": "6a215dcbb2dcb6fd"
+  },
+  "genjutsu-motion-principles": {
+    "source_path": "skills/genjutsu-motion-principles/SKILL.md",
+    "hash": "5de6b9f29bdc143a"
+  },
+  "genjutsu-paint": {
+    "source_path": "skills/genjutsu-paint/SKILL.md",
+    "hash": "28510dc16634a87e"
+  },
+  "genjutsu-swiftui-graphics": {
+    "source_path": "skills/genjutsu-swiftui-graphics/SKILL.md",
+    "hash": "810860c3016fd1de"
+  },
+  "genjutsu-swiftui-motion": {
+    "source_path": "skills/genjutsu-swiftui-motion/SKILL.md",
+    "hash": "827afa8a3f90932b"
+  },
+  "genjutsu-threejs-r3f": {
+    "source_path": "skills/genjutsu-threejs-r3f/SKILL.md",
+    "hash": "5658acf105ddb69d"
+  },
+  "genjutsu-ui-ux-pro-max": {
+    "source_path": "skills/genjutsu-ui-ux-pro-max/SKILL.md",
+    "hash": "698a564904d30650"
+  },
+  "gsap-core": {
+    "source_path": "skills/gsap-core/SKILL.md",
+    "hash": "3887b47e050ab5af"
+  },
+  "gsap-frameworks": {
+    "source_path": "skills/gsap-frameworks/SKILL.md",
+    "hash": "842d9d3659ec3ddc"
+  },
+  "gsap-performance": {
+    "source_path": "skills/gsap-performance/SKILL.md",
+    "hash": "cb5408d6fba707aa"
+  },
+  "gsap-plugins": {
+    "source_path": "skills/gsap-plugins/SKILL.md",
+    "hash": "5838b856c74c07fb"
+  },
+  "gsap-react": {
+    "source_path": "skills/gsap-react/SKILL.md",
+    "hash": "88e2a5312b45e8cc"
+  },
+  "gsap-scrolltrigger": {
+    "source_path": "skills/gsap-scrolltrigger/SKILL.md",
+    "hash": "9351b6666a4749c0"
+  },
+  "gsap-timeline": {
+    "source_path": "skills/gsap-timeline/SKILL.md",
+    "hash": "1a8b0f39cc4be3ed"
+  },
+  "gsap-utils": {
+    "source_path": "skills/gsap-utils/SKILL.md",
+    "hash": "1927bcc4ea95b382"
+  },
+  "humanizer": {
+    "source_path": "skills/humanizer/SKILL.md",
+    "hash": "2aa6dd20f59747c3"
+  },
+  "mcp-stdio-liveness-audit-macos": {
+    "source_path": "skills/mcp-stdio-liveness-audit-macos/SKILL.md",
+    "hash": "0a3f2c2da9de1469"
+  },
+  "motion-design": {
+    "source_path": "skills/motion-design/SKILL.md",
+    "hash": "8729ecbc7e5736c1"
+  },
+  "omp-moe-dispatch": {
+    "source_path": "skills/omp-moe-dispatch/SKILL.md",
+    "hash": "259fbec0ce556fa2"
+  },
+  "security-verification-layer-discipline": {
+    "source_path": "skills/security-verification-layer-discipline/SKILL.md",
+    "hash": "43bcfebd5b99beab"
+  },
+  "test-result-evidence-linkage": {
+    "source_path": "skills/test-result-evidence-linkage/SKILL.md",
+    "hash": "ed9a6b6d8d02f348"
+  },
+  "threejs-animation": {
+    "source_path": "skills/threejs-animation/SKILL.md",
+    "hash": "b24dc96c7a854ab9"
+  },
+  "threejs-fundamentals": {
+    "source_path": "skills/threejs-fundamentals/SKILL.md",
+    "hash": "eb66d52f53f48906"
+  },
+  "threejs-geometry": {
+    "source_path": "skills/threejs-geometry/SKILL.md",
+    "hash": "8337bcf86621411f"
+  },
+  "threejs-interaction": {
+    "source_path": "skills/threejs-interaction/SKILL.md",
+    "hash": "1bb23f0388d39863"
+  },
+  "threejs-lighting": {
+    "source_path": "skills/threejs-lighting/SKILL.md",
+    "hash": "777875f7d6a75219"
+  },
+  "threejs-loaders": {
+    "source_path": "skills/threejs-loaders/SKILL.md",
+    "hash": "03e0d7319692bb7e"
+  },
+  "threejs-materials": {
+    "source_path": "skills/threejs-materials/SKILL.md",
+    "hash": "d5846d1b8254b903"
+  },
+  "threejs-postprocessing": {
+    "source_path": "skills/threejs-postprocessing/SKILL.md",
+    "hash": "570b86434c30ad9b"
+  },
+  "threejs-shaders": {
+    "source_path": "skills/threejs-shaders/SKILL.md",
+    "hash": "6702267bd3ee70d4"
+  },
+  "threejs-textures": {
+    "source_path": "skills/threejs-textures/SKILL.md",
+    "hash": "2a90ce70931e9b17"
+  },
   "activate-yuri-skills": {
     "source_path": "skills/activate-yuri-skills/SKILL.md",
     "hash": "438cb0823393f313"
@@ -143,10 +319,6 @@
     "source_path": "skills/git-guardrails-claude-code/SKILL.md",
     "hash": "8dcc22653a1ac7db"
   },
-  "gitnexus": {
-    "source_path": "skills/gitnexus/SKILL.md",
-    "hash": "68dc23bf9ed33100"
-  },
   "gitnexus-cli": {
     "source_path": "skills/gitnexus-cli/SKILL.md",
     "hash": "470e78e2512291d3"
@@ -175,6 +347,10 @@
     "source_path": "skills/gitnexus-refactoring/SKILL.md",
     "hash": "f66bc0f8113308ca"
   },
+  "gitnexus": {
+    "source_path": "skills/gitnexus/SKILL.md",
+    "hash": "68dc23bf9ed33100"
+  },
   "gpt-oss-local-runtime": {
     "source_path": "skills/gpt-oss-local-runtime/SKILL.md",
     "hash": "0b5caf8d63bcb89c"
@@ -194,10 +370,6 @@
   "hatch-pet": {
     "source_path": "skills/hatch-pet/SKILL.md",
     "hash": "bf9eaaadddab347f"
-  },
-  "humanizer": {
-    "source_path": "skills/humanizer/SKILL.md",
-    "hash": "2aa6dd20f59747c3"
   },
   "imagegen": {
     "source_path": "skills/imagegen/SKILL.md",
@@ -259,10 +431,6 @@
     "source_path": "skills/objection-source-diagnoser/SKILL.md",
     "hash": "d07460c278e7af67"
   },
-  "omp-moe-dispatch": {
-    "source_path": "skills/omp-moe-dispatch/SKILL.md",
-    "hash": "ed961c7648d63156"
-  },
   "openai-codex-workflow": {
     "source_path": "skills/openai-codex-workflow/SKILL.md",
     "hash": "26b4d0d290a3e780"
@@ -303,13 +471,13 @@
     "source_path": "skills/organ-filing-assessor/SKILL.md",
     "hash": "3ce3a1b66a37cc18"
   },
-  "organ-formula-foundry": {
-    "source_path": "skills/organ-formula-foundry/SKILL.md",
-    "hash": "81d0ead3c90c2ecc"
-  },
   "organ-formula-foundry-bakeoff": {
     "source_path": "skills/organ-formula-foundry-bakeoff/SKILL.md",
     "hash": "d24f324502887adb"
+  },
+  "organ-formula-foundry": {
+    "source_path": "skills/organ-formula-foundry/SKILL.md",
+    "hash": "81d0ead3c90c2ecc"
   },
   "organ-lane-telemetry-cockpit": {
     "source_path": "skills/organ-lane-telemetry-cockpit/SKILL.md",
@@ -1195,13 +1363,13 @@
     "source_path": ".claude/skills/cyber-detecting-broken-object-property-level-authorization/SKILL.md",
     "hash": "ae7732b51c55c64f"
   },
-  "cyber-detecting-business-email-compromise": {
-    "source_path": ".claude/skills/cyber-detecting-business-email-compromise/SKILL.md",
-    "hash": "78ef63168d1833b2"
-  },
   "cyber-detecting-business-email-compromise-with-ai": {
     "source_path": ".claude/skills/cyber-detecting-business-email-compromise-with-ai/SKILL.md",
     "hash": "fa1ab232b87773bc"
+  },
+  "cyber-detecting-business-email-compromise": {
+    "source_path": ".claude/skills/cyber-detecting-business-email-compromise/SKILL.md",
+    "hash": "78ef63168d1833b2"
   },
   "cyber-emulating-cloud-attacks-with-stratus-red-team": {
     "source_path": ".claude/skills/cyber-emulating-cloud-attacks-with-stratus-red-team/SKILL.md",
@@ -1811,13 +1979,13 @@
     "source_path": ".claude/skills/cyber-testing-for-xml-injection-vulnerabilities/SKILL.md",
     "hash": "6d480af9f0f397c2"
   },
-  "cyber-testing-for-xss-vulnerabilities": {
-    "source_path": ".claude/skills/cyber-testing-for-xss-vulnerabilities/SKILL.md",
-    "hash": "99d74491df0929d4"
-  },
   "cyber-testing-for-xss-vulnerabilities-with-burpsuite": {
     "source_path": ".claude/skills/cyber-testing-for-xss-vulnerabilities-with-burpsuite/SKILL.md",
     "hash": "19d9d1af46854037"
+  },
+  "cyber-testing-for-xss-vulnerabilities": {
+    "source_path": ".claude/skills/cyber-testing-for-xss-vulnerabilities/SKILL.md",
+    "hash": "99d74491df0929d4"
   },
   "cyber-testing-for-xxe-injection-vulnerabilities": {
     "source_path": ".claude/skills/cyber-testing-for-xxe-injection-vulnerabilities/SKILL.md",
@@ -1835,13 +2003,13 @@
     "source_path": ".claude/skills/cyber-triaging-security-alerts-in-splunk/SKILL.md",
     "hash": "4e2339cdb32951a2"
   },
-  "cyber-triaging-security-incident": {
-    "source_path": ".claude/skills/cyber-triaging-security-incident/SKILL.md",
-    "hash": "0cfaae919cdc40b9"
-  },
   "cyber-triaging-security-incident-with-ir-playbook": {
     "source_path": ".claude/skills/cyber-triaging-security-incident-with-ir-playbook/SKILL.md",
     "hash": "1810585f4e3e6428"
+  },
+  "cyber-triaging-security-incident": {
+    "source_path": ".claude/skills/cyber-triaging-security-incident/SKILL.md",
+    "hash": "0cfaae919cdc40b9"
   },
   "cyber-triaging-vulnerabilities-with-ssvc-framework": {
     "source_path": ".claude/skills/cyber-triaging-vulnerabilities-with-ssvc-framework/SKILL.md",

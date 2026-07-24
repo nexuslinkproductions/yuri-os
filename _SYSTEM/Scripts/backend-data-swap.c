@@ -805,6 +805,20 @@ static int emit_tree_fd(const struct pinned_dir *pin, int dst_fd, dev_t root_dev
                     pf->name, strerror(errno));
             return 1;
         }
+        /* fclonefileat does not copy ACLs; restore ACL/xattr/stat parity from the held fd. */
+        int dest_meta = openat(dst_fd, pf->name, O_RDWR | O_NOFOLLOW | O_CLOEXEC);
+        if (dest_meta < 0) {
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree openat dest meta(%s): %s\n",
+                    pf->name, strerror(errno));
+            return 1;
+        }
+        if (fcopyfile(pf->fd, dest_meta, NULL, COPYFILE_METADATA) != 0) {
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree file metadata fcopyfile(%s): %s\n",
+                    pf->name, strerror(errno));
+            close(dest_meta);
+            return 1;
+        }
+        close(dest_meta);
         struct stat dest_st;
         if (fstatat(dst_fd, pf->name, &dest_st, AT_SYMLINK_NOFOLLOW) != 0
             || !S_ISREG(dest_st.st_mode)

@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/marcelspatz/.october/bus-hook.mjs\" session-start",
+            "command": "node \"/Users/marcelspatz/.october/bus-hook.mjs\" session-start codex",
             "timeout": 10
           }
         ]
@@ -20,6 +20,15 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/marcelspatz/.october/bus-hook.mjs\" pre-prompt codex",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Stop": [
@@ -27,7 +36,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/marcelspatz/.october/bus-hook.mjs\" stop",
+            "command": "node \"/Users/marcelspatz/.october/bus-hook.mjs\" stop codex",
             "timeout": 10
           }
         ]
@@ -38,7 +47,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/marcelspatz/.october/bus-hook.mjs\" notify",
+            "command": "node \"/Users/marcelspatz/.october/bus-hook.mjs\" notify codex",
             "timeout": 10
           }
         ]

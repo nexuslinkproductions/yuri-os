@@ -89,10 +89,16 @@
       "Edit(.claude/state/scout-errors.log)",
       "Write(.claude/state/token-session.json)",
       "Edit(.claude/state/token-session.json)"
-    ]
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "model": "fable",
+  "worktree": {
+    "baseRef": "head"
   },
   "enabledPlugins": {
-    "glm-plan-usage@zai-coding-plugins": true
+    "glm-plan-usage@zai-coding-plugins": true,
+    "codex@openai-codex": true
   },
   "extraKnownMarketplaces": {
     "zai-coding-plugins": {
@@ -100,14 +106,22 @@
         "source": "directory",
         "path": "${HOME}/.npm/_npx/2f024689b4d0d3b0/node_modules/@z_ai/coding-helper/zai-coding-plugins"
       }
+    },
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
     }
   },
   "spinnerTipsEnabled": false,
+  "effortLevel": "high",
   "prefersReducedMotion": false,
   "skipWorkflowUsageWarning": true,
   "theme": "dark-ansi",
   "editorMode": "normal",
   "verbose": true,
+  "autoCompactEnabled": true,
   "switchModelsOnFlag": false,
   "autoScrollEnabled": true,
   "showTurnDuration": true,

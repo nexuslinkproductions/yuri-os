@@ -45,13 +45,23 @@ describe('F2',()=>{
 });
 
 describe('F3',()=>{
-  test('scored',()=>{
+  test('scored - strict calibration acceptance',()=>{
     const sh=path.join(os.tmpdir(),'fs-'+Date.now()+'.jsonl'),e={ADW_LEDGER_FILE:sh};
     const pf=wt(PASS_MANIFEST);let pl;try{pl=JSON.parse(cli('plan',pf,e).trim())}finally{try{fs.unlinkSync(pf)}catch(e2){}}
     assert.ok(pl.predictionId);
     const vf=wt(Object.assign({},PASS_STATE,{predictionId:pl.predictionId}));try{cli('validate',vf,e)}finally{try{fs.unlinkSync(vf)}catch(e2){}}
     const rows=readLedger({file:sh}),pred=rows.find(r=>r.type==='prediction'),out=rows.find(r=>r.type==='outcome');
-    const sc=scorePrediction(pred,out);assert.ok(sc.hits>=1,'hits'+sc.hits);assert.ok(sc.brier<=0.5,'brier'+sc.brier);
+    assert.ok(pred,'prediction exists');
+    assert.ok(out,'outcome exists');
+    // Verify winner confidence >= 0.6 (robustFloor-derived)
+    const winnerPE=pred.predictedEffects.find(e=>e.effect==='PASS');
+    assert.ok(winnerPE,'winner predicted effect exists');
+    assert.ok(winnerPE.confidence>=0.6,'winner confidence should be >=0.6, got '+winnerPE.confidence);
+    const sc=scorePrediction(pred,out);
+    assert.ok(sc.hits>=1,'hits: '+sc.hits);
+    assert.equal(sc.falseAlarms,0,'falseAlarms: '+sc.falseAlarms);
+    assert.equal(sc.misses,0,'misses: '+sc.misses);
+    assert.ok(sc.brier<=0.16,'brier: '+sc.brier+' (expected <=0.16)');
   });
 describe('F5',()=>{
   test('ledger dir -> null predictionId + reason',()=>{

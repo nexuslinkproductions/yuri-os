@@ -3482,3 +3482,149 @@ test('copy-tree preserves file and directory metadata (xattr/mode/mtime parity)'
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('copy-tree content-mutation on pinned inode fails closed', {
+  skip: process.platform !== 'darwin',
+}, async () => {
+  // Apollo/Draco gap: holding an fd pins the inode, not a byte snapshot unless we hash.
+  // Mutate foo's bytes via pathname AFTER PIN; EMIT must fail closed (not promote mutated bytes).
+  const root = fs.realpathSync.native(fs.mkdtempSync(path.join('/private/tmp', 'yuri-copytree-content-mut-')));
+  try {
+    const src = path.join(root, 'src');
+    const destParent = path.join(root, 'dest-parent');
+    fs.mkdirSync(src);
+    fs.mkdirSync(destParent);
+    const foo = path.join(src, 'foo.db');
+    const original = Buffer.from('PINNED-ORIGINAL-BYTES');
+    const mutated = Buffer.from('MUTATED-AFTER-PIN-XX');
+    fs.writeFileSync(foo, original);
+    const i1 = fs.lstatSync(foo, { bigint: true });
+
+    const barrier = path.join(root, 'PIN_BARRIER');
+    const ready = path.join(root, 'PIN_READY');
+    fs.writeFileSync(barrier, 'hold');
+
+    const srcStat = fs.lstatSync(src, { bigint: true });
+    const parentStat = fs.lstatSync(destParent, { bigint: true });
+    const binary = path.join(root, 'backend-data-swap');
+    const compiled = spawnSync('/usr/bin/clang', [
+      '-std=c11', '-Os', '-Wall', '-Wextra', '-Werror', SWAP_HELPER_SOURCE_PATH, '-o', binary,
+    ], { encoding: 'utf8' });
+    assert.equal(compiled.status, 0, compiled.stderr || compiled.stdout);
+
+    const dest = path.join(destParent, 'out');
+    const child = spawn(binary, [
+      'copy-tree',
+      src,
+      dest,
+      srcStat.dev.toString(),
+      srcStat.ino.toString(),
+      parentStat.dev.toString(),
+      parentStat.ino.toString(),
+    ], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        YURI_COPY_TREE_PIN_BARRIER: barrier,
+        YURI_COPY_TREE_PIN_READY: ready,
+      },
+    });
+
+    const deadline = Date.now() + 10_000;
+    while (!fs.existsSync(ready) && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 10));
+    }
+    assert.ok(fs.existsSync(ready), 'PIN_READY must appear after pin phase');
+
+    // Same inode, mutated bytes (pathname write through to pinned inode).
+    fs.writeFileSync(foo, mutated);
+    const after = fs.lstatSync(foo, { bigint: true });
+    assert.equal(after.ino, i1.ino, 'mutation must keep same inode');
+    assert.equal(fs.readFileSync(foo).equals(mutated), true);
+
+    fs.unlinkSync(barrier);
+    const [code, stdout, stderr] = await new Promise((resolve, reject) => {
+      let out = '';
+      let err = '';
+      child.stdout.on('data', (chunk) => { out += chunk; });
+      child.stderr.on('data', (chunk) => { err += chunk; });
+      child.on('error', reject);
+      child.on('close', (status) => resolve([status, out, err]));
+    });
+    assert.notEqual(code, 0, `must fail closed on content mutation; stdout=${stdout}`);
+    assert.match(stderr || '', /content mutated/iu);
+    assert.equal(fs.existsSync(path.join(dest, 'foo.db')), false, 'must not emit mutated bytes');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('copy-tree preserves ACL on files and directories', {
+  skip: process.platform !== 'darwin',
+}, () => {
+  // Apollo residual: dedicated ACL fixture (beyond COPYFILE_METADATA flag alone).
+  const root = fs.realpathSync.native(fs.mkdtempSync(path.join('/private/tmp', 'yuri-copytree-acl-')));
+  try {
+    const src = path.join(root, 'src');
+    const nested = path.join(src, 'nested');
+    const destParent = path.join(root, 'dest-parent');
+    fs.mkdirSync(src);
+    fs.mkdirSync(nested);
+    fs.mkdirSync(destParent);
+    const leaf = path.join(nested, 'leaf.db');
+    fs.writeFileSync(leaf, Buffer.from('acl-payload'));
+
+    const addAcl = (target, entry) => {
+      const ran = spawnSync('/bin/chmod', ['+a', entry, target], { encoding: 'utf8' });
+      assert.equal(ran.status, 0, `chmod +a ${target}: ${ran.stderr || ran.stdout}`);
+    };
+    // User-scoped ACL entries (readable via ls -le / acl_get_file).
+    const user = process.env.USER || 'marcelspatz';
+    addAcl(src, `${user} allow read,write,execute`);
+    addAcl(nested, `${user} allow read,execute`);
+    addAcl(leaf, `${user} allow read,write`);
+
+    const readAcl = (target, { dir = false } = {}) => {
+      const args = dir ? ['-l', '-e', '-d', target] : ['-l', '-e', target];
+      const ran = spawnSync('/bin/ls', args, { encoding: 'utf8' });
+      assert.equal(ran.status, 0, ran.stderr || ran.stdout);
+      return ran.stdout || '';
+    };
+    const srcAcl = readAcl(src, { dir: true });
+    const nestedAcl = readAcl(nested, { dir: true });
+    const leafAcl = readAcl(leaf);
+    assert.match(srcAcl, /allow/u);
+    assert.match(nestedAcl, /allow/u);
+    assert.match(leafAcl, /allow/u);
+
+    const srcStat = fs.lstatSync(src, { bigint: true });
+    const parentStat = fs.lstatSync(destParent, { bigint: true });
+    const binary = path.join(root, 'backend-data-swap');
+    const compiled = spawnSync('/usr/bin/clang', [
+      '-std=c11', '-Os', '-Wall', '-Wextra', '-Werror', SWAP_HELPER_SOURCE_PATH, '-o', binary,
+    ], { encoding: 'utf8' });
+    assert.equal(compiled.status, 0, compiled.stderr || compiled.stdout);
+
+    const dest = path.join(destParent, 'out');
+    const ran = spawnSync(binary, [
+      'copy-tree',
+      src,
+      dest,
+      srcStat.dev.toString(),
+      srcStat.ino.toString(),
+      parentStat.dev.toString(),
+      parentStat.ino.toString(),
+    ], { encoding: 'utf8' });
+    assert.equal(ran.status, 0, ran.stderr || ran.stdout);
+
+    const destAcl = readAcl(dest, { dir: true });
+    const destNestedAcl = readAcl(path.join(dest, 'nested'), { dir: true });
+    const destLeafAcl = readAcl(path.join(dest, 'nested', 'leaf.db'));
+    assert.match(destAcl, /allow/u, 'root dir ACL must be preserved');
+    assert.match(destNestedAcl, /allow/u, 'nested dir ACL must be preserved');
+    assert.match(destLeafAcl, /allow/u, 'file ACL must be preserved');
+    assert.equal(fs.readFileSync(path.join(dest, 'nested', 'leaf.db'), 'utf8'), 'acl-payload');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});

@@ -1,0 +1,227 @@
+{
+  "schemaVersion": "yuri.governance-manifest.v1",
+  "manifestId": "yuri.yuri-os-musubi.manifest.1.0.0",
+  "expectedUpstreamRef": "1a79c8df37b27a6d15ce4b28661cde0568f0b7c2",
+  "expectedUpstreamCommit": "1a79c8df37b27a6d15ce4b28661cde0568f0b7c2",
+  "expectedUpstreamTree": "fc0c5bd824ff63f6dcd6d8aae18c033de5915c6e",
+  "note": "Production binds OBSERVED worktree base at launch; expectedUpstream* is advisory TOCTOU reference. Do not hard-code stale SHAs as sole base.",
+  "worktreeRootTemplate": "$(git rev-parse --show-toplevel)",
+  "spineReadOrder": [
+    {
+      "step": 1,
+      "path": "_SYSTEM/yuri-origin.md",
+      "role": "authority-contract"
+    },
+    {
+      "step": 2,
+      "path": "SOUL.md",
+      "role": "persona-injection"
+    },
+    {
+      "step": 3,
+      "path": "AGENTS.md",
+      "role": "agent-routing"
+    },
+    {
+      "step": 4,
+      "path": "CLAUDE.md",
+      "role": "claude-adapter"
+    },
+    {
+      "step": 5,
+      "path": "_SYSTEM/INDEX.md",
+      "role": "navigation-index"
+    },
+    {
+      "step": 6,
+      "path": "_SYSTEM/context/context-registry.json",
+      "role": "context-packets"
+    }
+  ],
+  "spineFiles": [
+    {
+      "path": "_SYSTEM/yuri-origin.md",
+      "sha256": "0d257fc776528bbc0164272d865019c5f1f4d8896fa6d21522144537525a6571",
+      "sizeBytes": 17614,
+      "tracked": true,
+      "required": true
+    },
+    {
+      "path": "SOUL.md",
+      "sha256": "5c78c9ab1076af7d5ac6ef31b9667e035613ea9664e1e935bc2a98756fafb51d",
+      "sizeBytes": 3617,
+      "tracked": true,
+      "required": true
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "5834106bdf6b45a4fd37b68c8ce97ffd28b07681a537fa9238eb0851b4ac1ebe",
+      "sizeBytes": 5791,
+      "tracked": true,
+      "required": true
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha256": "eda4cf9e9c353579a199cda0a0b62caf7febe8b232ba3d8a1d58174f624d1eae",
+      "sizeBytes": 18503,
+      "tracked": true,
+      "required": true
+    },
+    {
+      "path": "_SYSTEM/INDEX.md",
+      "sha256": "7e7ac1bfe0ad59b099974ff09537edc1d8521c21fb1e0dde8691551baa51df0a",
+      "sizeBytes": 20655,
+      "tracked": true,
+      "required": true
+    },
+    {
+      "path": "_SYSTEM/context/context-registry.json",
+      "sha256": "ee3cbf15ea05474f22d8ebc13a1a4c56b791f9a3ac0085fa69191f2a2d917b56",
+      "sizeBytes": 24604,
+      "tracked": true,
+      "required": true
+    },
+    {
+      "path": "_SYSTEM/config/folder-registry.json",
+      "sha256": "117f1c8bc176bf459d813b25131f4dda4763780607d0ae95aa7da389e016b2ee",
+      "sizeBytes": 23606,
+      "tracked": true,
+      "required": true
+    },
+    {
+      "path": "_SYSTEM/config/artifact-registry.json",
+      "sha256": "1ff36b27b6917499738f8e3ab5b1d05060ec51bac6641fd7828fae703ca0fa75",
+      "sizeBytes": 178731,
+      "tracked": true,
+      "required": true
+    },
+    {
+      "path": "_SYSTEM/config/yuri-hook-registry.json",
+      "sha256": "b8cbf7d4ea3b33d21ef0055c4c048dcef34cca8d97aa9bf76a4f9efb23319a03",
+      "sizeBytes": 18605,
+      "tracked": true,
+      "required": true
+    },
+    {
+      "path": "_SYSTEM/config/provider-route-registry.json",
+      "sha256": "07a937c64c829bee5a0cbf287619dc6efca2c028e460f62393d3108d9c37668f",
+      "sizeBytes": 19589,
+      "tracked": true,
+      "required": true
+    },
+    {
+      "path": "_SYSTEM/config/codex-native-skill-activation.json",
+      "sha256": "9b26db7123b034e80116b6819836df0a956327c006f192161f5535bf5e74de38",
+      "sizeBytes": 2974,
+      "tracked": true,
+      "required": true
+    },
+    {
+      "path": "_SYSTEM/persona.md",
+      "sha256": "c61ffff6b2bcde9fa615f4a3aacf18c4bf83e1ebb14a95af6529b8fa4264bd51",
+      "sizeBytes": 19536,
+      "tracked": true,
+      "required": true
+    }
+  ],
+  "protectedSurfaces": [
+    {
+      "path": ".env",
+      "kind": "env",
+      "recursive": true
+    },
+    {
+      "path": ".claude/state/",
+      "kind": "claude-state",
+      "recursive": true
+    },
+    {
+      "path": ".claude/history/",
+      "kind": "claude-history",
+      "recursive": true
+    },
+    {
+      "path": ".claude/file-history/",
+      "kind": "claude-file-history",
+      "recursive": true
+    },
+    {
+      "path": ".claude/projects/",
+      "kind": "claude-projects-volatile",
+      "recursive": true
+    },
+    {
+      "path": "backend/data/",
+      "kind": "backend-data",
+      "recursive": true
+    },
+    {
+      "path": "node_modules/",
+      "kind": "node_modules",
+      "recursive": true
+    },
+    {
+      "path": ".amp/",
+      "kind": "amp",
+      "recursive": true
+    },
+    {
+      "path": "*.pem",
+      "kind": "credentials",
+      "recursive": true
+    },
+    {
+      "path": "*.key",
+      "kind": "credentials",
+      "recursive": true
+    },
+    {
+      "path": "*credentials*",
+      "kind": "credentials",
+      "recursive": true
+    },
+    {
+      "path": "*secret*",
+      "kind": "credentials",
+      "recursive": true
+    }
+  ],
+  "registries": [
+    {
+      "path": "_SYSTEM/config/artifact-registry.json",
+      "purpose": "durable artifacts",
+      "sha256": "1ff36b27b6917499738f8e3ab5b1d05060ec51bac6641fd7828fae703ca0fa75",
+      "registrationPolicy": "single-source-of-truth"
+    },
+    {
+      "path": "_SYSTEM/config/yuri-hook-registry.json",
+      "purpose": "hooks",
+      "sha256": "b8cbf7d4ea3b33d21ef0055c4c048dcef34cca8d97aa9bf76a4f9efb23319a03",
+      "registrationPolicy": "single-source-of-truth"
+    },
+    {
+      "path": "_SYSTEM/config/provider-route-registry.json",
+      "purpose": "routes",
+      "sha256": "07a937c64c829bee5a0cbf287619dc6efca2c028e460f62393d3108d9c37668f",
+      "registrationPolicy": "single-source-of-truth"
+    }
+  ],
+  "providerAdapterTemplates": {
+    "cursor": [
+      "_SYSTEM/config/provider-templates/cursor.cli.json.tmpl"
+    ],
+    "claude": [
+      "_SYSTEM/config/provider-templates/claude.project.tmpl"
+    ],
+    "codex": [
+      "_SYSTEM/config/provider-templates/codex.project.tmpl"
+    ],
+    "omp": [
+      "_SYSTEM/config/provider-templates/omp.tmpl"
+    ]
+  },
+  "denyPrecedence": "yuri-deny-beats-app-allow",
+  "versioning": {
+    "semver": "1.0.0"
+  }
+}

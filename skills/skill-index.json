@@ -3,7 +3,7 @@
   "updated": "2026-07-22",
   "canonicalRoot": "skills",
   "sourceOfTruth": true,
-  "count": 127,
+  "count": 169,
   "rules": {
     "skillBodyPath": "skills/<skill-id>/SKILL.md",
     "providerCaches": "reference_only",
@@ -683,6 +683,384 @@
       "id": "zoom-out",
       "path": "skills/zoom-out/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "cheap-tier-recon-dispatch",
+      "path": "skills/cheap-tier-recon-dispatch/SKILL.md",
+      "sourceSha256": "83ae539ea521ef32ab8f2639fff53056aa049452f9e247cb601c86b02de364ef",
+      "lineCount": 64,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "design-dna",
+      "path": "skills/design-dna/SKILL.md",
+      "sourceSha256": "c04472d2cced644f48485f630cb48e2f496624c65b9f0e5f28aec9af153c7fbf",
+      "lineCount": 105,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "fleet-model-economy",
+      "path": "skills/fleet-model-economy/SKILL.md",
+      "sourceSha256": "06c0c01959893ce7b12ed4e4e212a3cc3c5bb1c8369cf47a05c8b8e76e0d4541",
+      "lineCount": 11,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-canvas-generative",
+      "path": "skills/genjutsu-canvas-generative/SKILL.md",
+      "sourceSha256": "f1e6ea381ac0b6ae9f8dbffb5acb5a50d204aeebfc17e7962a84f52ce4778ac8",
+      "lineCount": 326,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-cast",
+      "path": "skills/genjutsu-cast/SKILL.md",
+      "sourceSha256": "069f04584c268198ce62139733b3b25c62f482c2f39752dcce1f4f999fde4652",
+      "lineCount": 303,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-compose-graphics",
+      "path": "skills/genjutsu-compose-graphics/SKILL.md",
+      "sourceSha256": "900d8bd660056e40851aab825a4c14b1798821dae7353b14849fa55c76456252",
+      "lineCount": 504,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-compose-motion",
+      "path": "skills/genjutsu-compose-motion/SKILL.md",
+      "sourceSha256": "319e7a9ee08235ec331a13eb2890a3dfa00168ea9df420ffd96d8b4daed31b2a",
+      "lineCount": 360,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-compose-multiplatform",
+      "path": "skills/genjutsu-compose-multiplatform/SKILL.md",
+      "sourceSha256": "e97acdb2c96abf5a2fdd887a73522875e38891f7874b646738492408ea2f79cb",
+      "lineCount": 312,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-css-native",
+      "path": "skills/genjutsu-css-native/SKILL.md",
+      "sourceSha256": "7d1e67f3022789c659d5a7c7b8b3f3fc9480d47fe18a1b73dd7f10608fca99c5",
+      "lineCount": 312,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-design-audit",
+      "path": "skills/genjutsu-design-audit/SKILL.md",
+      "sourceSha256": "aad1f1b3161dc2bd2a36321321c4de4abb889b2a476f0ae6f80a6846352fa7cc",
+      "lineCount": 249,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-desktop-principles",
+      "path": "skills/genjutsu-desktop-principles/SKILL.md",
+      "sourceSha256": "af820131c15e6bb751819d8983e9eb1efd1b18970b52335b777f78b99f1b6179",
+      "lineCount": 364,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-framer-motion",
+      "path": "skills/genjutsu-framer-motion/SKILL.md",
+      "sourceSha256": "00ff51275676babec1b9b9d3a7788e908ad312942ec2d36b1e0daf3ba64ddad8",
+      "lineCount": 188,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-gsap",
+      "path": "skills/genjutsu-gsap/SKILL.md",
+      "sourceSha256": "23c1ba0e8f6e8b27f35b4d385ca66b49e0d23bc4bde82088360fb7a57071edb4",
+      "lineCount": 189,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-mobile-principles",
+      "path": "skills/genjutsu-mobile-principles/SKILL.md",
+      "sourceSha256": "6a215dcbb2dcb6fdae2037e6a10d43a36e507f17adfb01ee0aa5fff5e6381314",
+      "lineCount": 290,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-motion-principles",
+      "path": "skills/genjutsu-motion-principles/SKILL.md",
+      "sourceSha256": "5de6b9f29bdc143ac36000f2ec1e21fc8a52d64fbae688b8a0f909ee239b98fc",
+      "lineCount": 285,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-paint",
+      "path": "skills/genjutsu-paint/SKILL.md",
+      "sourceSha256": "28510dc16634a87edafb17ebffefa16a579f49cd3a06487677cbc44a8cf034e8",
+      "lineCount": 389,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-swiftui-graphics",
+      "path": "skills/genjutsu-swiftui-graphics/SKILL.md",
+      "sourceSha256": "810860c3016fd1decc217f5654c21cfd0d80f4b5f390fdd583bf66ee9bc4fa9e",
+      "lineCount": 409,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-swiftui-motion",
+      "path": "skills/genjutsu-swiftui-motion/SKILL.md",
+      "sourceSha256": "827afa8a3f90932bc60eaaffe6f76a1e5dfd5ed6710311ea236cf1f38ac11d89",
+      "lineCount": 380,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-threejs-r3f",
+      "path": "skills/genjutsu-threejs-r3f/SKILL.md",
+      "sourceSha256": "5658acf105ddb69d9ebdbe40012673fe99db4b4eb294b5ca4dbe7e983d601afb",
+      "lineCount": 244,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "genjutsu-ui-ux-pro-max",
+      "path": "skills/genjutsu-ui-ux-pro-max/SKILL.md",
+      "sourceSha256": "698a564904d306507fb575b2b8b63306b944d0a15020d4698d47dcebac192e36",
+      "lineCount": 387,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "gsap-core",
+      "path": "skills/gsap-core/SKILL.md",
+      "sourceSha256": "3887b47e050ab5afbe2a9a820f23d39fa02ab785e06a343be44c6f91d84d12b3",
+      "lineCount": 255,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "gsap-frameworks",
+      "path": "skills/gsap-frameworks/SKILL.md",
+      "sourceSha256": "842d9d3659ec3ddc8abbdc524708f8facf81f468ac25d0577f48c759c4fa31e6",
+      "lineCount": 267,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "gsap-performance",
+      "path": "skills/gsap-performance/SKILL.md",
+      "sourceSha256": "cb5408d6fba707aabcbfe3320317a14c1f8fca6070074e5261047930f50d441e",
+      "lineCount": 80,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "gsap-plugins",
+      "path": "skills/gsap-plugins/SKILL.md",
+      "sourceSha256": "5838b856c74c07fbc9fa99b6dfd1eee34ea554c3e530c30e0d58014b707d70a4",
+      "lineCount": 434,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "gsap-react",
+      "path": "skills/gsap-react/SKILL.md",
+      "sourceSha256": "88e2a5312b45e8cc7b3c496637ff5bc9af2ae9c925b555c8b235b34cbc989d74",
+      "lineCount": 136,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "gsap-scrolltrigger",
+      "path": "skills/gsap-scrolltrigger/SKILL.md",
+      "sourceSha256": "9351b6666a4749c0740406ea363aaccb99a087ff45cc5e8b99a0f367facf3ef4",
+      "lineCount": 297,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "gsap-timeline",
+      "path": "skills/gsap-timeline/SKILL.md",
+      "sourceSha256": "1a8b0f39cc4be3ed3d834b89672e4ae2f151b901dc3450bebf10bbc45379fe02",
+      "lineCount": 108,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "gsap-utils",
+      "path": "skills/gsap-utils/SKILL.md",
+      "sourceSha256": "1927bcc4ea95b38203404ad5ea1d060b15c4a886c65ae53e885ff1793aabe0ba",
+      "lineCount": 285,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "mcp-stdio-liveness-audit-macos",
+      "path": "skills/mcp-stdio-liveness-audit-macos/SKILL.md",
+      "sourceSha256": "0a3f2c2da9de1469fd4166825bdbba267cc63178b9f502400dfbbdb36f2e34ee",
+      "lineCount": 62,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "motion-design",
+      "path": "skills/motion-design/SKILL.md",
+      "sourceSha256": "8729ecbc7e5736c1295baaa8ba0384bb4b1aac9cf91b83fcdc64d9548a57bb19",
+      "lineCount": 316,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "security-verification-layer-discipline",
+      "path": "skills/security-verification-layer-discipline/SKILL.md",
+      "sourceSha256": "43bcfebd5b99beabfe077d56482dfd4db87c70eb4e10648c4261c2084327b3de",
+      "lineCount": 38,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "test-result-evidence-linkage",
+      "path": "skills/test-result-evidence-linkage/SKILL.md",
+      "sourceSha256": "ed9a6b6d8d02f348aabe13298418bb1292f545c06779afe8cb81c2bcbbe76b71",
+      "lineCount": 38,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "threejs-animation",
+      "path": "skills/threejs-animation/SKILL.md",
+      "sourceSha256": "b24dc96c7a854ab97fa797a8e20d6bf981f155dfc625fd1ef347042395b7754c",
+      "lineCount": 553,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "threejs-fundamentals",
+      "path": "skills/threejs-fundamentals/SKILL.md",
+      "sourceSha256": "eb66d52f53f489067d602b9b62df507adb391d8220bdd1a8aae6b73e6cee578a",
+      "lineCount": 489,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "threejs-geometry",
+      "path": "skills/threejs-geometry/SKILL.md",
+      "sourceSha256": "8337bcf86621411f54ef39727b338c84890815e4b3612ce635d593dd9c321a3e",
+      "lineCount": 549,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "threejs-interaction",
+      "path": "skills/threejs-interaction/SKILL.md",
+      "sourceSha256": "1bb23f0388d39863432494ff00ea0a96ae7d093c0c6f3149fb223ba1e673fef6",
+      "lineCount": 661,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "threejs-lighting",
+      "path": "skills/threejs-lighting/SKILL.md",
+      "sourceSha256": "777875f7d6a75219d009ac69310772236231eec7cb57287c0509bb53e994af9d",
+      "lineCount": 482,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "threejs-loaders",
+      "path": "skills/threejs-loaders/SKILL.md",
+      "sourceSha256": "03e0d7319692bb7eaa13cfada5d27d39840c7520c5ddc3fc8cc07b645dcba2e9",
+      "lineCount": 624,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "threejs-materials",
+      "path": "skills/threejs-materials/SKILL.md",
+      "sourceSha256": "d5846d1b8254b903eacb3014486efbe331101518604b451098fd31989c3e7fe7",
+      "lineCount": 521,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "threejs-postprocessing",
+      "path": "skills/threejs-postprocessing/SKILL.md",
+      "sourceSha256": "570b86434c30ad9bdc30f4f6d4e8c04124a07dd4ccaa778d4717ecc211dc1d90",
+      "lineCount": 603,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "threejs-shaders",
+      "path": "skills/threejs-shaders/SKILL.md",
+      "sourceSha256": "6702267bd3ee70d458b54078211db36b1c3738c3faa0570e88e33dceaf478a4d",
+      "lineCount": 643,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
+    },
+    {
+      "id": "threejs-textures",
+      "path": "skills/threejs-textures/SKILL.md",
+      "sourceSha256": "2a90ce70931e9b172fa5b70c13fd12e7b6f1600482d3ba0c73d95570fe728b65",
+      "lineCount": 629,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "sourceFamily": "managed-promo"
     }
   ]
 }

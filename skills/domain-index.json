@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-07-19",
+  "updated": "2026-07-22T20:27:07Z",
   "canonicalRoot": "skills",
   "orderMatters": true,
   "domains": [
@@ -55,7 +55,9 @@
         "to-issues",
         "to-prd",
         "triage",
-        "agentic-engineering-fleet-discipline"
+        "agentic-engineering-fleet-discipline",
+        "cheap-tier-recon-dispatch",
+        "fleet-model-economy"
       ]
     },
     {
@@ -82,7 +84,10 @@
         "plan-review",
         "setup-pre-commit",
         "trade-edge-audit",
-        "commit-scope-and-fix-verification"
+        "commit-scope-and-fix-verification",
+        "mcp-stdio-liveness-audit-macos",
+        "security-verification-layer-discipline",
+        "test-result-evidence-linkage"
       ]
     },
     {
@@ -168,7 +173,44 @@
         "remotion-motion-design",
         "scaffold-exercises",
         "videodb",
-        "visual-plan"
+        "visual-plan",
+        "design-dna",
+        "genjutsu-canvas-generative",
+        "genjutsu-cast",
+        "genjutsu-compose-graphics",
+        "genjutsu-compose-motion",
+        "genjutsu-compose-multiplatform",
+        "genjutsu-css-native",
+        "genjutsu-design-audit",
+        "genjutsu-desktop-principles",
+        "genjutsu-framer-motion",
+        "genjutsu-gsap",
+        "genjutsu-mobile-principles",
+        "genjutsu-motion-principles",
+        "genjutsu-paint",
+        "genjutsu-swiftui-graphics",
+        "genjutsu-swiftui-motion",
+        "genjutsu-threejs-r3f",
+        "genjutsu-ui-ux-pro-max",
+        "gsap-core",
+        "gsap-frameworks",
+        "gsap-performance",
+        "gsap-plugins",
+        "gsap-react",
+        "gsap-scrolltrigger",
+        "gsap-timeline",
+        "gsap-utils",
+        "threejs-animation",
+        "threejs-fundamentals",
+        "threejs-geometry",
+        "threejs-interaction",
+        "threejs-lighting",
+        "threejs-loaders",
+        "threejs-materials",
+        "threejs-postprocessing",
+        "threejs-shaders",
+        "threejs-textures",
+        "motion-design"
       ]
     },
     {

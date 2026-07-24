@@ -1,0 +1,9 @@
+# YURI worktree-bootstrap v1 — October copyIncludedFiles allowlist override
+# (October defaults to copying .env* — that default is FORBIDDEN here.)
+# Only non-secret lockfiles may be copied into isolated worktrees.
+# Secrets, .claude/projects, and backend/data MUST remain absent.
+bun.lockb
+bun.lock
+pnpm-lock.yaml
+yarn.lock
+package-lock.json

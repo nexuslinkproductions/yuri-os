@@ -342,7 +342,7 @@
     }
   ],
   "contentHashes": {
-    ".codex/config.toml": "14dbdbfb220d6d1aa8b8f70327a9fc8c755b4b83cece2716b77b8b98fd1d59db",
+    ".codex/config.toml": "b76502638d25b597f5e72c43b4da16159e316140a5689db30e45c7ac0b96020e",
     ".codex/hooks/pre-tool-use.mjs": "5ef038dea0f2fcb62d5a1c95c9c581a42d5da4011c7542d17f2cadaf9c74c35e",
     ".omp/hooks/pre/url-safety-guard.js": "34a7f4c52c3b8d0f8cb521219e79b361793638a9c38be6544f547f8c0a84c628",
     "_SYSTEM/SELF/energy-weights.json": "52df4e847be9c0ffc7b10f3a4a37ab9b79f6db6dadcac2db2a913e314d13db33",
@@ -355,7 +355,7 @@
     "_SYSTEM/Scripts/energy-breaker.mjs": "a4918f530451c5f9cb62bdbc3f198f2d1d42dad73a00c5bbb0113089085b0e04",
     "_SYSTEM/Scripts/energy-tick-adapter.mjs": "73c7e420b2b83a6bca63460c63e9bab0fe1bcecb670aaacc8ced1328d572d8b5",
     "_SYSTEM/Scripts/energy-tick-core.mjs": "d6315e2de4ed70cf73ae85934dddfbf4b7b3f9a3def04885df2aba571e628f4b",
-    "_SYSTEM/Scripts/lane-kernel.mjs": "58a10a1948e12e91e0316496777eff3e13b3e8273096083607f1616040896bd2",
+    "_SYSTEM/Scripts/lane-kernel.mjs": "43e3a79475d8dcc0577d59b6acab00695974acee794010c6bdcbbb51f17f7fde",
     "_SYSTEM/Scripts/math/math-kernel.mjs": "0126053f9b27297a1f276a732535602516ae99a8376dbd522969d49d832d5732",
     "_SYSTEM/Scripts/math/yuri-energy-config.mjs": "a80de5e8d4e3b2766303fde9e848a0f54cbddc91a365421663cb00eaf4439332",
     "_SYSTEM/Scripts/math/yuri-energy-gate-trace.mjs": "762b53bd0ab984aebc4042cf8a7cbe38f8cbf6539eb4892504329beab67c2049",

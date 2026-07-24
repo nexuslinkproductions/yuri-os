@@ -226,6 +226,7 @@ test('launcher strips parent October identity and implicit approval for non-host
   assert.ok(lines.includes('port='));
   assert.ok(lines.includes('arg=--model=fixture'));
   assert.equal(lines.some((line) => line === 'arg=--auto-approve'), false);
+  assert.equal(lines.some((line) => line.startsWith('arg=--approval-mode')), false);
   assert.equal(lines.some((line) => line.startsWith('arg=--append-system-prompt=')), false);
 });
 
@@ -246,9 +247,18 @@ test('explicit approval mode wins over shortcuts and host implicit approval', (t
   assert.equal(lines.filter((line) => line.startsWith('arg=--append-system-prompt=')).length, 1);
 });
 
-test('attached host receives exactly one implicit auto-approval flag', (t) => {
+test('attached host receives safe write approval mode and never implicit YOLO', (t) => {
   const result = runLauncher(fakeOmpHome(t), ['--model=fixture'], ATTACHED);
   assert.equal(result.status, 0, result.stderr);
   const lines = result.stdout.trim().split('\n');
+  assert.equal(lines.filter((line) => line === 'arg=--approval-mode=write').length, 1);
+  assert.equal(lines.filter((line) => line === 'arg=--auto-approve').length, 0);
+});
+
+test('attached host preserves an explicit owner auto-approval shortcut', (t) => {
+  const result = runLauncher(fakeOmpHome(t), ['--auto-approve', '--model=fixture'], ATTACHED);
+  assert.equal(result.status, 0, result.stderr);
+  const lines = result.stdout.trim().split('\n');
   assert.equal(lines.filter((line) => line === 'arg=--auto-approve').length, 1);
+  assert.equal(lines.filter((line) => line.startsWith('arg=--approval-mode')).length, 0);
 });

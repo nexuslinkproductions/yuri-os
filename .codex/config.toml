@@ -1,15 +1,5 @@
-#:schema https://developers.openai.com/codex/config-schema.json
-
-approval_policy = "untrusted"
+approval_policy = "on-request"
 sandbox_mode = "workspace-write"
-
-# Codex discovers the generated repository projection at `.agents/skills/`.
-# Canonical bodies remain in governed roots and are never duplicated here.
-# Generated `agents/openai.yaml` sidecars are the sole invocation authority for
-# all 464 governed adapters (one implicit meta-router, 463 explicit-only).
-# Codex 0.144.5 ignores project-layer `skills.config` filters, so the separate
-# 14-path native-collision state can be reconciled through the official
-# `skills/config/write` API with zero config reads. It never targets `.agents`.
 
 [sandbox_workspace_write]
 network_access = true
@@ -27,14 +17,19 @@ command = "node"
 args = [".codex/adapters/yuri-offload-mcp.mjs"]
 enabled = false
 startup_timeout_sec = 5
-# Long offload jobs can legitimately spend minutes reasoning before returning text.
-# Keep this effectively out of the way so lane-level budgets own cancellation.
 tool_timeout_sec = 21600
 
 [mcp_servers.october]
 command = "sh"
-args = ["-c", 'exec node "$(git rev-parse --show-toplevel)/_SYSTEM/Scripts/october-mcp-stdio-bridge.mjs"']
-env_vars = ["OCTOBER_BUS_PORT", "OCTOBER_BUS_CANVAS", "OCTOBER_BUS_NODE"]
+args = [
+    "-c",
+    'exec node "$(git rev-parse --show-toplevel)/_SYSTEM/Scripts/october-mcp-stdio-bridge.mjs"',
+]
+env_vars = [
+    "OCTOBER_BUS_PORT",
+    "OCTOBER_BUS_CANVAS",
+    "OCTOBER_BUS_NODE",
+]
 enabled = true
 startup_timeout_sec = 10
 tool_timeout_sec = 130
@@ -48,16 +43,39 @@ tool_timeout_sec = 180
 
 [mcp_servers.github]
 command = "npx"
-args = ["-y", "@modelcontextprotocol/server-github"]
+args = [
+    "-y",
+    "@modelcontextprotocol/server-github",
+]
 enabled = true
 startup_timeout_sec = 15
 tool_timeout_sec = 60
+
+[mcp_servers.october-bus]
+url = "http://127.0.0.1:51713/mcp"
+
+[mcp_servers.october-bus.env_http_headers]
+X-October-Canvas = "OCTOBER_BUS_CANVAS"
+X-October-Node = "OCTOBER_BUS_NODE"
+
+[mcp_servers.october-bus.tools.message_peer]
+approval_mode = "approve"
 
 [[hooks.PreToolUse]]
 matcher = "*"
 
 [[hooks.PreToolUse.hooks]]
 type = "command"
-command = "node \"$(git rev-parse --show-toplevel)/_SYSTEM/Scripts/yuri-hook-adapter.mjs\" --harness codex"
+command = 'node "$(git rev-parse --show-toplevel)/_SYSTEM/Scripts/yuri-hook-adapter.mjs" --harness codex'
 timeout = 10
 statusMessage = "Applying YURI policy"
+
+[shell_environment_policy]
+inherit = "core"
+
+[shell_environment_policy.set]
+CLAUDE_CODE_BASH_NO_TIMEOUT = "1"
+YURI_WORKHORSE_TIMEOUT = "0"
+YURI_ENERGY_OBSERVABILITY = "1"
+API_TIMEOUT_MS = "3000000"
+CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1"
