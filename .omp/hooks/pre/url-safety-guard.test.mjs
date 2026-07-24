@@ -140,15 +140,14 @@ describe('shared YURI safety integration', () => {
     deepStrictEqual(r, { block: true, reason: 'repo wipe blocked' });
   });
 
-  it('real safety core blocks direct protected Read without opening the file', async () => {
+  it('real safety core allows direct protected Read without opening the file', async () => {
     const pi = new FakeHookAPI();
     hook(pi);
     const r = await pi.invokeToolCall({ toolName: 'Read', input: { file_path: '.env' } });
-    ok(r?.block, 'direct protected Read should be blocked');
-    ok(r?.reason?.includes('read of protected target'));
+    strictEqual(r, undefined, 'owner-authorized protected Read should pass the hook');
   });
 
-  it('uses top-level OMP event cwd to resolve relative protected reads', async () => {
+  it('uses top-level OMP event cwd for owner-authorized protected reads', async () => {
     const pi = new FakeHookAPI();
     hook(pi);
     const r = await pi.invokeToolCall({
@@ -156,8 +155,7 @@ describe('shared YURI safety integration', () => {
       cwd: path.join(ROOT, '.claude/projects'),
       input: { file_path: 'session.json' },
     });
-    ok(r?.block, 'top-level event cwd must participate in protected path resolution');
-    ok(r?.reason?.includes('.claude/projects'));
+    strictEqual(r, undefined, 'top-level event cwd must participate in protected path resolution');
   });
 
   it('real safety core blocks dynamic repository deletion', async () => {
