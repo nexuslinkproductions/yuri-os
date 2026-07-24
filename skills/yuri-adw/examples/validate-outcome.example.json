@@ -1,0 +1,27 @@
+{
+  "predictionId": "<prediction-id-placeholder>",
+  "stateBefore": {
+    "claimPromotionDistribution": {
+      "draft": 5,
+      "research": 8,
+      "fixture_ready": 3
+    },
+    "claimedDistribution": [0.5, 0.3, 0.2],
+    "verifiedDistribution": [0.3, 0.3, 0.4],
+    "verifiedEvidenceCount": 12,
+    "protectedPathViolations": 0,
+    "promotionLadderInversions": 0
+  },
+  "stateAfter": {
+    "claimPromotionDistribution": {
+      "draft": 4,
+      "research": 8,
+      "fixture_ready": 4
+    },
+    "claimedDistribution": [0.42, 0.32, 0.26],
+    "verifiedDistribution": [0.3, 0.3, 0.4],
+    "verifiedEvidenceCount": 13,
+    "protectedPathViolations": 0,
+    "promotionLadderInversions": 0
+  }
+}

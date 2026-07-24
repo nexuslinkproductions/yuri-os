@@ -1,0 +1,19 @@
+{
+  "name": "cache_strategy_decision_2026_07_24",
+  "discrete": {
+    "strategy": [
+      "write-through",
+      "write-behind",
+      "stale-while-revalidate"
+    ]
+  },
+  "continuous": {
+    "ttlFactor": [0.5, 1.8]
+  },
+  "paramSpace": {
+    "readWriteSkew": [0, 1],
+    "incidentCost": [0, 0.6]
+  },
+  "value": "(c,p)=> (c.strategy==='write-behind'?1.05:c.strategy==='write-through'?0.95:0.8) + 0.7*(1-p.readWriteSkew) + 0.4*(1-p.incidentCost) + 0.3*(1-Math.abs(c.ttlFactor-1)) - (c.strategy==='stale-while-revalidate'?0.12:0)",
+  "nullValue": "()=>0.25"
+}
