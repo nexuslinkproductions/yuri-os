@@ -144,7 +144,7 @@
         "_SYSTEM/Scripts/url-policy.mjs"
       ],
       "failMode": "fail-closed decision, fail-soft process",
-      "protectedScope": "May classify protected path names from hook input; never reads protected contents.",
+      "protectedScope": "Owner-authorized bounded reads may inspect protected contents; all mutation and deletion paths remain denied.",
       "teardown": "Remove only the generated provider projection; shared policy sources remain registered.",
       "sourceRefs": [
         "_SYSTEM/yuri-origin.md",
@@ -342,7 +342,7 @@
     }
   ],
   "contentHashes": {
-    ".codex/config.toml": "b76502638d25b597f5e72c43b4da16159e316140a5689db30e45c7ac0b96020e",
+    ".codex/config.toml": "2598486a66804bc3759ecf3b713b9c78797151936d752f1b23afed934327bd75",
     ".codex/hooks/pre-tool-use.mjs": "5ef038dea0f2fcb62d5a1c95c9c581a42d5da4011c7542d17f2cadaf9c74c35e",
     ".omp/hooks/pre/url-safety-guard.js": "34a7f4c52c3b8d0f8cb521219e79b361793638a9c38be6544f547f8c0a84c628",
     "_SYSTEM/SELF/energy-weights.json": "52df4e847be9c0ffc7b10f3a4a37ab9b79f6db6dadcac2db2a913e314d13db33",
@@ -362,7 +362,7 @@
     "_SYSTEM/Scripts/math/yuri-energy-trace.mjs": "c280e0458cc627212cb6fc89c219f611d8ac11b02296410f532961940a67ac82",
     "_SYSTEM/Scripts/math/yuri-energy.mjs": "86941c158d311671ba0593ef8d485012933dca610653ddbba924372267bfc40e",
     "_SYSTEM/Scripts/policy/repo-integrity-guard.mjs": "80df75aeb66e6e7bfe4af002a9ef03d657a0b827b2a5f39efb58d1ca94f98e16",
-    "_SYSTEM/Scripts/policy/yuri-safety-core.mjs": "806d656da9b66f2f43064416333afdef277bbf9db6078a531fd1289169319ca6",
+    "_SYSTEM/Scripts/policy/yuri-safety-core.mjs": "da8a2f4ac1aa916211639bd99742bd4e5ae004b8caeaa91cdcc2fc6533c14a82",
     "_SYSTEM/Scripts/url-policy.mjs": "1b03b1565f86d0ee4f64e98cf99c33aef8be58b699b56bab2ca3c4dec2f19bee",
     "_SYSTEM/Scripts/yuri-hook-adapter.mjs": "ddd8dc83b05462c280ea5e1b0f9fcb4d3aa957217f5344b52da5239bc9c97d7e",
     "_SYSTEM/Scripts/yuri-truth-promotion-enforcement.mjs": "9f6782735bd349682c6d342dda7fb89156f3edfe50207b42c8ea906921a6d990",

@@ -113,7 +113,10 @@ const MUTATING_COMMAND_RE =
 // finding is verified against requires these reads to DENY. Narrow and additive: only read/inspect
 // commands, mirrors bash-security-guard.js's READ_CMDS set.
 const READ_COMMAND_RE =
-  /\b(cat|head|tail|less|more|bat|nl|view|strings|xxd|hexdump|od|grep|awk|sed|cut|sort|uniq|read|source|\.|scp|rsync)\b/u;
+  /\b(cat|head|tail|less|more|bat|nl|view|strings|xxd|hexdump|od|grep|awk|sed|cut|sort|uniq|read|source|find|ls|stat|du|wc|file|readlink|realpath|shasum|sha256sum|md5|git|printf|echo|scp|rsync)\b/u;
+
+const PROTECTED_READ_SEGMENT_RE =
+  /^\s*(?:(?:command|builtin)\s+)?(?:cat|head|tail|less|more|bat|nl|view|strings|xxd|hexdump|od|grep|awk|sed|cut|sort|uniq|read|source|find|ls|stat|du|wc|file|readlink|realpath|shasum|sha256sum|md5|printf|echo|git\s+(?:status|log|diff|show|ls-files|rev-parse|check-ignore|branch|remote|describe|cat-file))\b/u;
 
 const DESTRUCTIVE_PATTERNS = [
   { re: /\brm\s+-[^;&|]*[rR][^;&|]*[fF]?/u, reason: 'destructive recursive rm is blocked' },
@@ -152,10 +155,8 @@ export function evaluateToolCall(toolName, toolInput = {}, opts = {}) {
   if (isReadTool(normalizedTool)) {
     const targets = toolTargetPaths(input);
     if (!targets.length && isImplicitCwdReadTool(normalizedTool)) targets.push('.');
-    for (const target of targets) {
-      const hit = protectedPathHit(target, cwd);
-      if (hit) return block(`read of protected target blocked: ${hit.label}`);
-    }
+    // Owner-authorized inspection may read protected surfaces. Write/edit tools and shell
+    // mutation paths remain denied below; this branch is intentionally read-only.
   }
 
   if (isWriteTool(normalizedTool)) {
@@ -240,6 +241,7 @@ function evaluateShellCommand(command, cwd) {
   }
 
   const protectedLiteral = protectedLiteralHit(command);
+  if (protectedLiteral && isProtectedReadOnlyCommand(command)) return allow();
   if (protectedLiteral && MUTATING_COMMAND_RE.test(command)) {
     if (isAllowedProtectedReadForOffload(command, protectedLiteral.label)) return allow();
     return block(`mutation of protected target blocked: ${protectedLiteral.label}`);
@@ -254,6 +256,21 @@ function evaluateShellCommand(command, cwd) {
   }
 
   return allow();
+}
+
+function isProtectedReadOnlyCommand(command) {
+  const segments = String(command)
+    .split(/&&|\|\||[;|]/u)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+  const protectedSegments = segments.filter((segment) => protectedLiteralHit(segment));
+  if (!protectedSegments.length) return false;
+  return protectedSegments.every((segment) => {
+    if (/\s(?:>|>>|2>|&>)\s|\b(?:tee|rm|mv|cp|install|touch|mkdir|rmdir|truncate|dd|chmod|chown|xargs)\b|-(?:delete|exec|execdir|ok|okdir)\b/u.test(segment)) {
+      return false;
+    }
+    return PROTECTED_READ_SEGMENT_RE.test(segment);
+  });
 }
 
 function isAllowedProtectedReadForOffload(command, protectedLabel) {

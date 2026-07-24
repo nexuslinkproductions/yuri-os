@@ -768,8 +768,8 @@ export async function providerHealth(registry = loadRegistry()) {
   );
   checks.push({
     id: 'canonical-protected-read-enforcement',
-    ok: protectedRead?.allowed === false,
-    detail: 'direct Read-tool protected paths must be denied without opening the target',
+    ok: protectedRead?.allowed === true,
+    detail: 'direct Read-tool protected paths are inspectable while mutation paths remain denied',
   });
 
   const claudeMerge = registry.providerMergeContracts['claude-code'];

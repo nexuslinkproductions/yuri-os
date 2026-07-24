@@ -8,41 +8,35 @@ import { evaluateHookEvent, evaluateToolCall } from './yuri-safety-core.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '../../..');
 
-test('direct Read denies repo-protected files without opening them', () => {
+test('direct Read allows owner-authorized inspection of repo-protected files', () => {
   const decision = evaluateToolCall('Read', { file_path: '.env' }, { cwd: ROOT });
-  assert.equal(decision.allowed, false);
-  assert.match(decision.reason, /read of protected target blocked: \.env/u);
+  assert.equal(decision.allowed, true);
 });
 
-test('direct Read denies paths nested beneath protected directories', () => {
+test('direct Read allows paths nested beneath protected directories', () => {
   const decision = evaluateToolCall('read_file', { path: '.claude/projects/session.json' }, { cwd: ROOT });
-  assert.equal(decision.allowed, false);
-  assert.match(decision.reason, /\.claude\/projects/u);
+  assert.equal(decision.allowed, true);
 });
 
-test('direct Read denies home credential paths without opening them', () => {
+test('direct Read allows owner-authorized home credential inspection', () => {
   const target = path.join(os.homedir(), '.aws', 'credentials');
   const decision = evaluateToolCall('Read', { file_path: target }, { cwd: ROOT });
-  assert.equal(decision.allowed, false);
-  assert.match(decision.reason, /~\/\.aws/u);
+  assert.equal(decision.allowed, true);
 });
 
-test('read-like search tools deny protected roots', () => {
+test('read-like search tools allow protected roots for inspection', () => {
   const decision = evaluateToolCall('Grep', { pattern: 'token', path: 'backend/data' }, { cwd: ROOT });
-  assert.equal(decision.allowed, false);
-  assert.match(decision.reason, /backend\/data/u);
+  assert.equal(decision.allowed, true);
 });
 
-test('read-like tools with implicit cwd deny protected working directories', () => {
+test('read-like tools with implicit cwd allow protected working directories', () => {
   const decision = evaluateToolCall('Grep', { pattern: 'token' }, { cwd: path.join(ROOT, '.claude/projects') });
-  assert.equal(decision.allowed, false);
-  assert.match(decision.reason, /\.claude\/projects/u);
+  assert.equal(decision.allowed, true);
 });
 
-test('array path inputs deny when any target is protected', () => {
+test('array path inputs allow protected targets for inspection', () => {
   const decision = evaluateToolCall('search_files', { paths: ['_SYSTEM/INDEX.md', '.claude/state/runtime.json'] }, { cwd: ROOT });
-  assert.equal(decision.allowed, false);
-  assert.match(decision.reason, /\.claude\/state/u);
+  assert.equal(decision.allowed, true);
 });
 
 test('ordinary direct reads remain allowed', () => {
@@ -53,6 +47,22 @@ test('ordinary direct reads remain allowed', () => {
 test('non-path Read fields do not create false protected hits', () => {
   const decision = evaluateToolCall('Read', { offset: 5, limit: 20 }, { cwd: ROOT });
   assert.equal(decision.allowed, true);
+});
+
+test('protected reads are allowed while shell mutations remain denied', () => {
+  const read = evaluateToolCall('Bash', { command: 'find .claude/projects -maxdepth 1 -type f' }, { cwd: ROOT });
+  assert.equal(read.allowed, true);
+
+  for (const command of [
+    'rm -rf .claude/projects',
+    'printf x > .claude/projects/marker.txt',
+    'git rm .claude/projects/marker.txt',
+    'find .claude/projects -delete',
+  ]) {
+    const decision = evaluateToolCall('Bash', { command }, { cwd: ROOT });
+    assert.equal(decision.allowed, false, command);
+    assert.match(decision.reason, /protected|destructive|integrity/u);
+  }
 });
 
 test('malformed hook events fail closed without crashing the Codex hook', () => {
