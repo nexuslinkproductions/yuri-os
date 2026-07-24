@@ -45,7 +45,13 @@ Canonical operating contract for all Yuri OS / YURI CLI and agent surfaces. This
 
 ## Protected Surfaces
 
-Never read or write these paths unless the owner explicitly authorizes a specific operation:
+These surfaces are mutation-locked by default, not invisible. Marcel may authorize a
+bounded local read-only audit when YURI operation or recovery requires it. Such an
+audit may inspect metadata, hashes, and the minimum necessary content, but must not
+delete, rewrite, truncate, or otherwise mutate anything. Receipts must redact secrets,
+credentials, tokens, and private transcript contents. Sending protected content or
+hashes to an external model/tool is a separate destination-level authorization and is
+never implied by local read authorization.
 
 - `backend/data/`
 - `.claude/state/`

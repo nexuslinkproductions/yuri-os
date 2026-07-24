@@ -21,7 +21,7 @@ All authority, mutation, evidence, protected-surface, self-governance, and lane-
 
 Key contracts (see origin for full text):
 - **Mutation Contract** — scoped-pathspec commit/push, no `git add .`, no force push
-- **Protected Surfaces** — `.env`, `.claude/state/`, `.claude/history/`, `.claude/file-history/`, `backend/data/`, `node_modules/`, `.amp/`, secrets
+- **Protected Surfaces** — `.env`, `.claude/state/`, `.claude/history/`, `.claude/file-history/`, `backend/data/`, `node_modules/`, `.amp/`, secrets. They are mutation-locked; a Marcel-authorized bounded local read audit is allowed, while deletion, mutation, secret disclosure, and external-model egress remain separately gated.
 - **Evidence Contract** — TERM_COUNT / FILE_COUNT / MATCH grammar, deterministic local evidence required
 - **Self-Governance Charter** — decide+execute safe defaults; hold for owner confirm on gated actions
 - **RESULT_LABEL grammar** — every lane result emits `NNXX_DESCRIPTION_(X|P|F)_PASS_COMMITTED`
