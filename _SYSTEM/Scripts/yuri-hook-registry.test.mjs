@@ -192,6 +192,7 @@ test('provider projections are worktree-rooted and contain no canonical clone pa
   const omp = renderProvider('omp');
   assert.match(claude, /CLAUDE_PROJECT_DIR/u);
   assert.match(codex, /git rev-parse --show-toplevel/u);
+  assert.match(codex, /--path-format=absolute --git-common-dir/u);
   assert.match(codex, /\[\[hooks\.PreToolUse\.hooks\]\]/u);
   assert.doesNotMatch(codex, /hooks\s*=\s*\[/u);
   assert.ok(
@@ -217,6 +218,15 @@ test('rendered Codex projection works from a nested worktree cwd and never exits
   });
   assert.equal(result.status, 0, result.stderr);
   assert.equal(JSON.parse(result.stdout).hookSpecificOutput.permissionDecision, 'deny');
+});
+
+test('Codex projection anchors to the common Git root instead of a sparse worktree root', () => {
+  const registry = loadRegistry();
+  const command = registry.hooks
+    .find((hook) => hook.hookId === 'yuri.pre-tool.enforcement')
+    .providerAdapters.find((adapter) => adapter.provider === 'codex').command;
+  assert.match(command, /git rev-parse --path-format=absolute --git-common-dir/u);
+  assert.match(command, /YURI_HOOK_ROOT/u);
 });
 
 test('projection parsers require exactly one canonical command and expose duplicates', () => {

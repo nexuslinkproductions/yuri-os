@@ -164,7 +164,7 @@
           "provider": "codex",
           "projection": ".codex/config.toml",
           "activation": "active-config-verified-session-reload-required",
-          "command": "root=\"$(git rev-parse --show-toplevel 2>/dev/null || git -C \"${YURI_WORKTREE_ROOT:-$HOME/YURI-OS-MUSUBI}\" rev-parse --show-toplevel 2>/dev/null || printf \"%s\" \"${YURI_WORKTREE_ROOT:-$HOME/YURI-OS-MUSUBI}\")\"; exec node \"$root/_SYSTEM/Scripts/yuri-hook-adapter.mjs\" --harness codex",
+          "command": "common=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null); root=${common%/.git}; if [ -z \"$common\" ] || [ \"$root\" = \"$common\" ]; then root=$(git rev-parse --show-toplevel 2>/dev/null || printf \"%s\" \"${YURI_HOOK_ROOT:-${YURI_WORKTREE_ROOT:-$HOME/YURI-OS-MUSUBI}}\"); fi; exec node \"$root/_SYSTEM/Scripts/yuri-hook-adapter.mjs\" --harness codex",
           "invokedPaths": [
             "_SYSTEM/Scripts/yuri-hook-adapter.mjs"
           ]
@@ -342,7 +342,7 @@
     }
   ],
   "contentHashes": {
-    ".codex/config.toml": "32c3b972bd876382e183f4be4b0d369882b708f3d323481b0c3a296fa1052017",
+    ".codex/config.toml": "69d78f7a0b3119ca1014a040943a304ceed71c7c6968fe34edc878f60718f3cd",
     ".codex/hooks/pre-tool-use.mjs": "5ef038dea0f2fcb62d5a1c95c9c581a42d5da4011c7542d17f2cadaf9c74c35e",
     ".omp/hooks/pre/url-safety-guard.js": "34a7f4c52c3b8d0f8cb521219e79b361793638a9c38be6544f547f8c0a84c628",
     "_SYSTEM/SELF/energy-weights.json": "52df4e847be9c0ffc7b10f3a4a37ab9b79f6db6dadcac2db2a913e314d13db33",
