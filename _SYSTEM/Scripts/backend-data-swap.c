@@ -8,6 +8,11 @@
 #include <sys/clonefile.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <copyfile.h>
+#include <CommonCrypto/CommonDigest.h>
+#ifdef __APPLE__
+#include <sys/time.h>
+#endif
 
 static int fail(const char *message) {
     fprintf(stderr, "BACKEND_DATA_SWAP_FAILED %s\n", message);
@@ -266,6 +271,7 @@ static int same_file_state(const struct stat *left, const struct stat *right) {
     return left->st_dev == right->st_dev
         && left->st_ino == right->st_ino
         && left->st_mode == right->st_mode
+        && left->st_nlink == right->st_nlink
         && left->st_size == right->st_size
         && left->st_mtimespec.tv_sec == right->st_mtimespec.tv_sec
         && left->st_mtimespec.tv_nsec == right->st_mtimespec.tv_nsec
@@ -367,6 +373,14 @@ static int clone_file_exact(const char *source_path, const char *destination_pat
         || (unsigned long long)source_path_before.st_ino != expected_source_ino
         || (unsigned long long)source_path_before.st_size != expected_source_size) {
         fprintf(stderr, "BACKEND_DATA_SWAP_FAILED clone source identity mismatch\n");
+        close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+    /* Hard-link escape: an inode reachable outside the intended tree shares
+     * st_dev/st_ino with every link name. Identity pins alone cannot distinguish
+     * that alias; require a single directory entry (nlink==1) before cloning. */
+    if (source_path_before.st_nlink != 1) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED clone source must be a single-link regular file\n");
         close(source_parent_fd); close(destination_parent_fd);
         return 1;
     }
@@ -498,6 +512,481 @@ clone_failed:
         destination_base, primary_errno);
 }
 
+/* ---- copy-tree: two-phase descriptor-relative mirror ----
+ * Phase 1 (PIN): openat every regular file / directory under held parent fds;
+ *                retain those fds (inode pins) AND sha256 of file bytes via the
+ *                held fd (content pin). Pathname swaps after pin cannot change
+ *                which inode a held fd refers to; content mutation of that inode
+ *                is detected at EMIT and fails closed.
+ * Phase 2 (EMIT): re-hash held fds (must match PIN digest), then mkdirat +
+ *                fclonefileat FROM HELD FDS + fcopyfile(METADATA) for directories.
+ *                Never /usr/bin/ditto. Symlinks/specials/hardlinks/cross-device
+ *                fail closed during PIN.
+ * Optional test barrier: if YURI_COPY_TREE_PIN_BARRIER is set to an existing path,
+ * spin until that path is unlinked between PIN and EMIT (swap / content-mutation window). */
+struct pinned_file {
+    char *name;
+    int fd;
+    struct stat st;
+    unsigned char sha256[CC_SHA256_DIGEST_LENGTH];
+};
+
+/* Digest regular-file bytes through a held fd (descriptor-relative; no pathname). */
+static int hash_fd_sha256(int fd, unsigned char out[CC_SHA256_DIGEST_LENGTH]) {
+    if (lseek(fd, 0, SEEK_SET) < 0) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree lseek for hash: %s\n", strerror(errno));
+        return 1;
+    }
+    CC_SHA256_CTX ctx;
+    CC_SHA256_Init(&ctx);
+    unsigned char buf[65536];
+    for (;;) {
+        ssize_t n = read(fd, buf, sizeof(buf));
+        if (n < 0) {
+            if (errno == EINTR) continue;
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree read for hash: %s\n", strerror(errno));
+            return 1;
+        }
+        if (n == 0) break;
+        CC_SHA256_Update(&ctx, buf, (CC_LONG)n);
+    }
+    CC_SHA256_Final(out, &ctx);
+    if (lseek(fd, 0, SEEK_SET) < 0) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree lseek reset after hash: %s\n",
+                strerror(errno));
+        return 1;
+    }
+    return 0;
+}
+struct pinned_dir {
+    char *name;
+    int fd;
+    struct stat st;
+    struct pinned_file *files;
+    size_t n_files;
+    struct pinned_dir *dirs;
+    size_t n_dirs;
+};
+
+static void free_pinned_dir(struct pinned_dir *node) {
+    if (!node) return;
+    for (size_t i = 0; i < node->n_files; i++) {
+        if (node->files[i].fd >= 0) close(node->files[i].fd);
+        free(node->files[i].name);
+    }
+    free(node->files);
+    node->files = NULL;
+    node->n_files = 0;
+    for (size_t i = 0; i < node->n_dirs; i++) {
+        free_pinned_dir(&node->dirs[i]);
+        free(node->dirs[i].name);
+        node->dirs[i].name = NULL;
+    }
+    free(node->dirs);
+    node->dirs = NULL;
+    node->n_dirs = 0;
+    if (node->fd >= 0 && node->name != NULL) {
+        /* root node's fd is owned by caller (name==NULL); child dir fds closed here */
+        close(node->fd);
+        node->fd = -1;
+    }
+}
+
+static int pin_tree_fd(int src_fd, dev_t root_dev, struct pinned_dir *out) {
+    /* Caller owns out->name / out->fd / out->st. Only fill children arrays here. */
+    out->files = NULL;
+    out->n_files = 0;
+    out->dirs = NULL;
+    out->n_dirs = 0;
+    DIR *dir = fdopendir(dup(src_fd));
+    if (dir == NULL) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree fdopendir: %s\n", strerror(errno));
+        return 1;
+    }
+    int current_fd = dirfd(dir);
+    int rc = 0;
+    struct pinned_file *files = NULL;
+    size_t n_files = 0, cap_files = 0;
+    struct pinned_dir *dirs = NULL;
+    size_t n_dirs = 0, cap_dirs = 0;
+    struct dirent *entry;
+    rewinddir(dir);
+    while (1) {
+        errno = 0;
+        entry = readdir(dir);
+        if (entry == NULL) {
+            if (errno != 0) {
+                fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree readdir: %s\n", strerror(errno));
+                rc = 1;
+            }
+            break;
+        }
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
+        struct stat pre;
+        if (fstatat(current_fd, entry->d_name, &pre, AT_SYMLINK_NOFOLLOW) != 0) {
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree fstatat(%s): %s\n",
+                    entry->d_name, strerror(errno));
+            rc = 1; goto done;
+        }
+        if (S_ISLNK(pre.st_mode)) {
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree symlink rejected (%s)\n", entry->d_name);
+            rc = 1; goto done;
+        }
+        if (pre.st_dev != root_dev) {
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree cross-device entry rejected (%s)\n",
+                    entry->d_name);
+            rc = 1; goto done;
+        }
+        if (S_ISREG(pre.st_mode)) {
+            if (pre.st_nlink != 1) {
+                fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree hardlink rejected (%s)\n",
+                        entry->d_name);
+                rc = 1; goto done;
+            }
+            int src_file = openat(current_fd, entry->d_name, O_RDONLY | O_NOFOLLOW | O_CLOEXEC);
+            if (src_file < 0) {
+                fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree openat file(%s): %s\n",
+                        entry->d_name, strerror(errno));
+                rc = 1; goto done;
+            }
+            struct stat opened;
+            if (fstat(src_file, &opened) != 0
+                || !S_ISREG(opened.st_mode)
+                || opened.st_dev != pre.st_dev
+                || opened.st_ino != pre.st_ino
+                || opened.st_size != pre.st_size
+                || opened.st_nlink != 1
+                || opened.st_dev != root_dev) {
+                fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree file replacement detected (%s)\n",
+                        entry->d_name);
+                close(src_file);
+                rc = 1; goto done;
+            }
+            if (n_files == cap_files) {
+                size_t newcap = cap_files ? cap_files * 2 : 8;
+                struct pinned_file *tmp = realloc(files, newcap * sizeof(*files));
+                if (!tmp) {
+                    fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree oom\n");
+                    close(src_file);
+                    rc = 1; goto done;
+                }
+                files = tmp; cap_files = newcap;
+            }
+            files[n_files].name = strdup(entry->d_name);
+            if (!files[n_files].name) {
+                fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree oom\n");
+                close(src_file);
+                rc = 1; goto done;
+            }
+            files[n_files].fd = src_file;
+            files[n_files].st = opened;
+            if (hash_fd_sha256(src_file, files[n_files].sha256) != 0) {
+                close(src_file);
+                free(files[n_files].name);
+                files[n_files].name = NULL;
+                rc = 1; goto done;
+            }
+            n_files++;
+        } else if (S_ISDIR(pre.st_mode)) {
+            int child_src = openat(current_fd, entry->d_name, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+            if (child_src < 0) {
+                fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree openat dir(%s): %s\n",
+                        entry->d_name, strerror(errno));
+                rc = 1; goto done;
+            }
+            struct stat opened_dir;
+            if (fstat(child_src, &opened_dir) != 0
+                || !S_ISDIR(opened_dir.st_mode)
+                || opened_dir.st_dev != pre.st_dev
+                || opened_dir.st_ino != pre.st_ino
+                || opened_dir.st_dev != root_dev) {
+                fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree dir replacement detected (%s)\n",
+                        entry->d_name);
+                close(child_src);
+                rc = 1; goto done;
+            }
+            if (n_dirs == cap_dirs) {
+                size_t newcap = cap_dirs ? cap_dirs * 2 : 4;
+                struct pinned_dir *tmp = realloc(dirs, newcap * sizeof(*dirs));
+                if (!tmp) {
+                    fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree oom\n");
+                    close(child_src);
+                    rc = 1; goto done;
+                }
+                dirs = tmp; cap_dirs = newcap;
+            }
+            memset(&dirs[n_dirs], 0, sizeof(dirs[n_dirs]));
+            dirs[n_dirs].name = strdup(entry->d_name);
+            if (!dirs[n_dirs].name) {
+                fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree oom\n");
+                close(child_src);
+                rc = 1; goto done;
+            }
+            dirs[n_dirs].fd = child_src;
+            dirs[n_dirs].st = opened_dir;
+            dirs[n_dirs].files = NULL;
+            dirs[n_dirs].n_files = 0;
+            dirs[n_dirs].dirs = NULL;
+            dirs[n_dirs].n_dirs = 0;
+            if (pin_tree_fd(child_src, root_dev, &dirs[n_dirs]) != 0) {
+                free_pinned_dir(&dirs[n_dirs]);
+                free(dirs[n_dirs].name);
+                dirs[n_dirs].name = NULL;
+                dirs[n_dirs].fd = -1;
+                rc = 1; goto done;
+            }
+            n_dirs++;
+        } else {
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree special file rejected (%s)\n",
+                    entry->d_name);
+            rc = 1; goto done;
+        }
+    }
+
+done:
+    closedir(dir);
+    if (rc != 0) {
+        for (size_t i = 0; i < n_files; i++) {
+            if (files[i].fd >= 0) close(files[i].fd);
+            free(files[i].name);
+        }
+        free(files);
+        for (size_t i = 0; i < n_dirs; i++) {
+            free_pinned_dir(&dirs[i]);
+            free(dirs[i].name);
+        }
+        free(dirs);
+        return 1;
+    }
+    out->files = files;
+    out->n_files = n_files;
+    out->dirs = dirs;
+    out->n_dirs = n_dirs;
+    return 0;
+}
+
+static int apply_dir_metadata(int src_dir_fd, int dst_dir_fd) {
+    /* Preserve ACL/xattr/stat (owner/mode/times) that ditto --acl/--extattr carried for dirs.
+     * fclonefileat covers files; mkdirat alone would regress directory metadata. */
+    if (fcopyfile(src_dir_fd, dst_dir_fd, NULL, COPYFILE_METADATA) != 0) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree dir metadata fcopyfile: %s\n",
+                strerror(errno));
+        return 1;
+    }
+    return 0;
+}
+
+static int emit_tree_fd(const struct pinned_dir *pin, int dst_fd, dev_t root_dev) {
+    for (size_t i = 0; i < pin->n_files; i++) {
+        const struct pinned_file *pf = &pin->files[i];
+        struct stat still;
+        /* After PIN, a same-class pathname swap may unlink the original; the held fd
+         * still refers to I1 with nlink==0. That is the TOCTOU win — copy I1, not I2. */
+        if (fstat(pf->fd, &still) != 0
+            || still.st_dev != pf->st.st_dev
+            || still.st_ino != pf->st.st_ino
+            || !S_ISREG(still.st_mode)
+            || (still.st_nlink != 0 && still.st_nlink != 1)) {
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree pinned file identity changed (%s)\n",
+                    pf->name);
+            return 1;
+        }
+        /* Content-mutation race on the pinned inode: fail closed if bytes changed. */
+        unsigned char now_hash[CC_SHA256_DIGEST_LENGTH];
+        if (hash_fd_sha256(pf->fd, now_hash) != 0) return 1;
+        if (memcmp(now_hash, pf->sha256, CC_SHA256_DIGEST_LENGTH) != 0
+            || still.st_size != pf->st.st_size) {
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree pinned file content mutated (%s)\n",
+                    pf->name);
+            return 1;
+        }
+        if (fclonefileat(pf->fd, dst_fd, pf->name, 0) != 0) {
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree fclonefileat(%s): %s\n",
+                    pf->name, strerror(errno));
+            return 1;
+        }
+        struct stat dest_st;
+        if (fstatat(dst_fd, pf->name, &dest_st, AT_SYMLINK_NOFOLLOW) != 0
+            || !S_ISREG(dest_st.st_mode)
+            || dest_st.st_dev != root_dev
+            || dest_st.st_ino == pf->st.st_ino
+            || dest_st.st_size != pf->st.st_size) {
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree destination identity mismatch (%s)\n",
+                    pf->name);
+            return 1;
+        }
+        int dest_file = openat(dst_fd, pf->name, O_RDONLY | O_NOFOLLOW | O_CLOEXEC);
+        if (dest_file < 0) {
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree openat dest file(%s): %s\n",
+                    pf->name, strerror(errno));
+            return 1;
+        }
+        unsigned char dest_hash[CC_SHA256_DIGEST_LENGTH];
+        int hash_rc = hash_fd_sha256(dest_file, dest_hash);
+        close(dest_file);
+        if (hash_rc != 0) return 1;
+        if (memcmp(dest_hash, pf->sha256, CC_SHA256_DIGEST_LENGTH) != 0) {
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree destination content mismatch (%s)\n",
+                    pf->name);
+            return 1;
+        }
+    }
+    for (size_t i = 0; i < pin->n_dirs; i++) {
+        const struct pinned_dir *pd = &pin->dirs[i];
+        mode_t mode = pd->st.st_mode & 0777;
+        if (mkdirat(dst_fd, pd->name, mode) != 0) {
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree mkdirat(%s): %s\n",
+                    pd->name, strerror(errno));
+            return 1;
+        }
+        int child_dst = openat(dst_fd, pd->name, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+        if (child_dst < 0) {
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree openat dest dir(%s): %s\n",
+                    pd->name, strerror(errno));
+            return 1;
+        }
+        /* Emit children BEFORE dir metadata — creating entries bumps parent mtime. */
+        int child_rc = emit_tree_fd(pd, child_dst, root_dev);
+        if (child_rc == 0) {
+            child_rc = apply_dir_metadata(pd->fd, child_dst);
+        }
+        close(child_dst);
+        if (child_rc != 0) return 1;
+    }
+    return 0;
+}
+
+static void copy_tree_pin_barrier_wait(void) {
+    const char *ready = getenv("YURI_COPY_TREE_PIN_READY");
+    if (ready != NULL && ready[0] != '\0') {
+        /* Test-only: signal that PIN completed before the barrier wait. */
+        int ready_fd = open(ready, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
+        if (ready_fd >= 0) {
+            close(ready_fd);
+        }
+    }
+    const char *barrier = getenv("YURI_COPY_TREE_PIN_BARRIER");
+    if (barrier == NULL || barrier[0] == '\0') return;
+    /* Test-only: hold between PIN and EMIT so the harness can same-class swap. */
+    while (access(barrier, F_OK) == 0) {
+        usleep(1000);
+    }
+}
+
+static int copy_tree_exact(const char *source_path, const char *destination_path,
+                           unsigned long long expected_source_dev,
+                           unsigned long long expected_source_ino,
+                           unsigned long long expected_parent_dev,
+                           unsigned long long expected_parent_ino) {
+    char source_base[NAME_MAX + 1], destination_base[NAME_MAX + 1];
+    int source_parent_fd = walk_to_parent(source_path, source_base, sizeof(source_base));
+    if (source_parent_fd < 0) return 1;
+    int destination_parent_fd = walk_to_parent(
+        destination_path, destination_base, sizeof(destination_base));
+    if (destination_parent_fd < 0) {
+        close(source_parent_fd);
+        return 1;
+    }
+
+    struct stat destination_parent;
+    if (fstat(destination_parent_fd, &destination_parent) != 0
+        || !S_ISDIR(destination_parent.st_mode)
+        || (unsigned long long)destination_parent.st_dev != expected_parent_dev
+        || (unsigned long long)destination_parent.st_ino != expected_parent_ino) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree destination parent identity mismatch\n");
+        close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+
+    int source_fd = openat(source_parent_fd, source_base, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+    if (source_fd < 0) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree openat source(%s): %s\n",
+                source_base, strerror(errno));
+        close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+    struct stat source_st;
+    if (fstat(source_fd, &source_st) != 0
+        || !S_ISDIR(source_st.st_mode)
+        || (unsigned long long)source_st.st_dev != expected_source_dev
+        || (unsigned long long)source_st.st_ino != expected_source_ino) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree source identity mismatch\n");
+        close(source_fd); close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+    if (source_st.st_dev != destination_parent.st_dev) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree source and destination are not on the same filesystem\n");
+        close(source_fd); close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+
+    struct pinned_dir pinned;
+    memset(&pinned, 0, sizeof(pinned));
+    pinned.fd = source_fd;
+    pinned.st = source_st;
+    pinned.name = NULL; /* root: do not close source_fd in free_pinned_dir */
+    if (pin_tree_fd(source_fd, source_st.st_dev, &pinned) != 0) {
+        free_pinned_dir(&pinned);
+        close(source_fd); close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+
+    copy_tree_pin_barrier_wait();
+
+    struct stat unexpected;
+    errno = 0;
+    if (fstatat(destination_parent_fd, destination_base, &unexpected, AT_SYMLINK_NOFOLLOW) == 0
+        || errno != ENOENT) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree destination must be absent\n");
+        free_pinned_dir(&pinned);
+        close(source_fd); close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+    if (mkdirat(destination_parent_fd, destination_base, 0700) != 0) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree mkdirat(%s): %s\n",
+                destination_base, strerror(errno));
+        free_pinned_dir(&pinned);
+        close(source_fd); close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+    int destination_fd = openat(
+        destination_parent_fd, destination_base, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+    if (destination_fd < 0) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree openat destination(%s): %s\n",
+                destination_base, strerror(errno));
+        free_pinned_dir(&pinned);
+        close(source_fd); close(source_parent_fd); close(destination_parent_fd);
+        return 1;
+    }
+
+    int rc = emit_tree_fd(&pinned, destination_fd, source_st.st_dev);
+    if (rc == 0) {
+        /* Root metadata last — emit bumps destination root mtime. */
+        rc = apply_dir_metadata(source_fd, destination_fd);
+    }
+    if (rc == 0) {
+        if (fsync(destination_fd) != 0 || fsync(destination_parent_fd) != 0) {
+            fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree destination fsync: %s\n", strerror(errno));
+            rc = 1;
+        }
+    }
+    struct stat source_after;
+    if (rc == 0
+        && (fstat(source_fd, &source_after) != 0
+            || source_after.st_dev != source_st.st_dev
+            || source_after.st_ino != source_st.st_ino)) {
+        fprintf(stderr, "BACKEND_DATA_SWAP_FAILED copy-tree source root changed during copy\n");
+        rc = 1;
+    }
+
+    close(destination_fd);
+    free_pinned_dir(&pinned);
+    close(source_fd);
+    close(source_parent_fd);
+    close(destination_parent_fd);
+    return rc;
+}
+
 int main(int argc, char **argv) {
     if (argc == 9 && strcmp(argv[1], "clone-file") == 0) {
         unsigned long long source_dev, source_ino, parent_dev, parent_ino, source_size;
@@ -509,6 +998,20 @@ int main(int argc, char **argv) {
         if (clone_file_exact(argv[2], argv[3], source_dev, source_ino,
                              parent_dev, parent_ino, source_size) != 0) return 1;
         puts("BACKEND_DATA_CLONE_PASS");
+        return 0;
+    }
+
+    /* copy-tree <source> <destination> <source-dev> <source-ino> <dest-parent-dev> <dest-parent-ino>
+     *   Descriptor-relative tree mirror. Destination must be absent. Entries copied via
+     *   openat/fstatat/fclonefileat under held directory fds — never ditto-by-pathname. */
+    if (argc == 8 && strcmp(argv[1], "copy-tree") == 0) {
+        unsigned long long source_dev, source_ino, parent_dev, parent_ino;
+        if (parse_uint64(argv[4], &source_dev, "source-dev") != 0) return 1;
+        if (parse_uint64(argv[5], &source_ino, "source-ino") != 0) return 1;
+        if (parse_uint64(argv[6], &parent_dev, "destination-parent-dev") != 0) return 1;
+        if (parse_uint64(argv[7], &parent_ino, "destination-parent-ino") != 0) return 1;
+        if (copy_tree_exact(argv[2], argv[3], source_dev, source_ino, parent_dev, parent_ino) != 0) return 1;
+        puts("BACKEND_DATA_COPY_TREE_PASS");
         return 0;
     }
 
@@ -619,5 +1122,5 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    return fail("usage: backend-data-swap clone-file <source> <destination> <source-dev> <source-ino> <destination-parent-dev> <destination-parent-ino> <source-size> | full-sync <root> <expected-dev> <expected-ino> | swap <left> <right> <left-dev> <left-ino> <right-dev> <right-ino>");
+    return fail("usage: backend-data-swap clone-file <source> <destination> <source-dev> <source-ino> <destination-parent-dev> <destination-parent-ino> <source-size> | copy-tree <source> <destination> <source-dev> <source-ino> <destination-parent-dev> <destination-parent-ino> | full-sync <root> <expected-dev> <expected-ino> | swap <left> <right> <left-dev> <left-ino> <right-dev> <right-ino>");
 }

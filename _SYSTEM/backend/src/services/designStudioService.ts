@@ -207,7 +207,8 @@ type RunRow = {
 };
 
 const DEFAULT_DB_PATH = '_SYSTEM/OS_KERNEL/memory.db';
-const DEFAULT_ARTIFACT_ROOT = 'backend/data/design-studio';
+/** Canonical via SystemConfig.SYSTEM.DATA (ephemeral under YURI_TEST_MODE). */
+const DEFAULT_ARTIFACT_ROOT = `${SystemConfig.SYSTEM.DATA}/design-studio`;
 const VALID_ARTIFACT_TYPES = new Set(['website', 'image', 'document', 'deck']);
 const VALID_SELECTION_KINDS = new Set(['region', 'element', 'page', 'frame']);
 const VALID_MODES = new Set(['structure', 'organize', 'design', 'edit', 'research']);

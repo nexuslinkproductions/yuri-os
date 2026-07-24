@@ -35,7 +35,15 @@ import { SessionRuntimeService } from './services/sessionRuntimeService';
 import { DesignAssistantBridgeService } from './services/designAssistantBridgeService';
 import { initColdAcquisitionCrmRoutes } from './routes/coldAcquisitionCrmRoutes';
 
-dotenv.config();
+function isTruthy(v: string | undefined): boolean {
+    return v === '1' || v === 'true';
+}
+
+const isTestModeEarly = isTruthy(process.env.YURI_TEST_MODE);
+// Test mode must not load dotenv files (no persistent .env / secrets surface).
+if (!isTestModeEarly) {
+    dotenv.config();
+}
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
 // ║  LEGACY / PARALLEL-SURFACE BACKEND                                      ║
@@ -48,11 +56,7 @@ dotenv.config();
 // ║  bridge, and experimental routes. Treat it as auxiliary, not primary.   ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
-function isTruthy(v: string | undefined): boolean {
-    return v === '1' || v === 'true';
-}
-
-const isTestMode = isTruthy(process.env.YURI_TEST_MODE);
+const isTestMode = isTestModeEarly;
 const suppressWatchers = isTestMode || isTruthy(process.env.YURI_DISABLE_WATCHERS);
 const suppressIntervals = isTestMode || isTruthy(process.env.YURI_DISABLE_INTERVALS);
 const suppressSwarm = isTestMode || isTruthy(process.env.YURI_DISABLE_SWARM_ORCHESTRATOR);
@@ -76,6 +80,8 @@ const PORT_CANDIDATES = [
     DEFAULT_PORT - 1,
     ...Array.from({ length: Math.max(0, MAX_PORT - DEFAULT_PORT - 1) }, (_, index) => DEFAULT_PORT + index + 2)
 ].filter((port, index, ports) => port > 0 && ports.indexOf(port) === index);
+
+// Test mode: logs only under YURI_BACKEND_EPHEMERAL_ROOT (never persistent backend data tree).
 const LOG_DIR = SystemConfig.resolve(SystemConfig.SYSTEM.LOGS);
 
 if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });

@@ -38,7 +38,7 @@ export const CANONICAL_TARGET = path.join(REPO_ROOT, '_SYSTEM/backend/data');
 export const QUARANTINE_ROOT = path.join(REPO_ROOT, '_SYSTEM/recovery/backend-db');
 export const RECEIPT_ROOT = path.join(REPO_ROOT, '_SYSTEM/state/backend-volume');
 export const SWAP_HELPER_SOURCE_PATH = path.join(REPO_ROOT, '_SYSTEM/Scripts/backend-data-swap.c');
-export const SWAP_HELPER_SOURCE_SHA256 = '473e47306297662deed1aec8f50cfd92ebea03ec544901bc758abc12f30e8f0d';
+export const SWAP_HELPER_SOURCE_SHA256 = 'b63f8e7078458a8d323e11687db653bfeba64955a33fcd9785ca543515b8511a';
 export const RECOVERY_LOCK_PATH = path.join(RECEIPT_ROOT, 'backend-data-recovery.lock');
 export const BACKUP_IMAGE_PATH = '/Volumes/T7/YURI-OS-MUSUBI-Backup.sparsebundle';
 export const RUNTIME_IMAGE_PATH = '/Volumes/T7/YURI-Backend-Runtime-v1.sparsebundle';
@@ -544,16 +544,129 @@ function inspectTargetIdentitySystem(target) {
   return normalizeRecoveryTargetIdentity(exact.path, exact.stat.dev, mounted);
 }
 
-function copyTreeSystem(source, destination) {
-  command('/usr/bin/ditto', [
-    '--rsrc',
-    '--extattr',
-    '--acl',
-    '--noqtn',
-    '--nocache',
-    source,
-    destination,
-  ], { timeout: 12 * 60 * 60 * 1000 });
+/**
+ * Production source-tree isolation for enumerateTree / advisory preflight.
+ * Regular files must be single-link (nlink===1) and every entry must share the
+ * tree-root st_dev. Symlinks and specials refused. The authoritative COPY path is
+ * swap.c `copy-tree` (openat/fstatat/fclonefileat) — this walk must NOT be paired
+ * with pathname ditto (Atlas TOCTOU reject).
+ */
+function assertSourceTreeIsolation(rootPath, label = 'source tree') {
+  const exact = exactDirectory(rootPath, label);
+  const rootDev = exact.stat.dev;
+
+  function walk(directory) {
+    const names = fs.readdirSync(directory).sort((left, right) => left.localeCompare(right, 'en'));
+    for (const name of names) {
+      const absolute = path.join(directory, name);
+      const stat = fs.lstatSync(absolute);
+      const relative = relativeUnix(exact.path, absolute);
+      if (stat.isSymbolicLink()) {
+        fail('SOURCE_SYMLINK_REFUSED', 'recovery trees must not contain symlinks', { relative });
+      }
+      if (stat.dev !== rootDev) {
+        fail('SOURCE_DEVICE_MISMATCH', 'recovery trees must not span devices or bind mounts', {
+          relative,
+          rootDev,
+          entryDev: stat.dev,
+        });
+      }
+      if (stat.isDirectory()) {
+        walk(absolute);
+        continue;
+      }
+      if (!stat.isFile()) {
+        fail('SOURCE_SPECIAL_FILE_REFUSED', 'recovery trees must contain only directories and regular files', {
+          relative,
+        });
+      }
+      if (stat.nlink !== 1) {
+        fail('SOURCE_HARDLINK_REFUSED', 'recovery trees must not contain hard-linked regular files', {
+          relative,
+          nlink: stat.nlink,
+        });
+      }
+    }
+  }
+
+  walk(exact.path);
+  return exact;
+}
+
+function removeCopyTreeDestinationBestEffort(destination) {
+  try {
+    fs.rmSync(destination, { recursive: true, force: true });
+  } catch {
+    /* best-effort rollback only */
+  }
+}
+
+function copyTreeSystem(source, destination, helper = null, trace = null) {
+  // Recovery-grade: COPY consumes descriptor-relative swap.c `copy-tree` (openat /
+  // fstatat / fclonefileat). Pathname /usr/bin/ditto is forbidden — a retained fd
+  // that ditto never uses does NOT close the TOCTOU window (Atlas tightening).
+  const sourceExact = exactDirectory(source, 'copyTree source');
+  const sourceId = exactDirectoryIdentity64(sourceExact.path, 'copyTree source');
+  const destinationAbsolute = normalizeAbsolute(destination, 'copyTree destination');
+  const destinationParent = exactDirectoryIdentity64(
+    path.dirname(destinationAbsolute),
+    'copyTree destination parent',
+  );
+  try {
+    fs.lstatSync(destinationAbsolute);
+    fail('COPY_TREE_DESTINATION_EXISTS', 'copyTree destination must not exist', {
+      destination: destinationAbsolute,
+    });
+  } catch (error) {
+    if (error instanceof BackendDataRecoveryError) throw error;
+    if (error?.code !== 'ENOENT') throw error;
+  }
+
+  const resolvedHelper = helper && helper.path ? helper : swapHelperBinarySystem();
+  reattestSwapHelper(resolvedHelper, trace, 'copy-tree', 'pre');
+  const helperArgs = [
+    'copy-tree',
+    sourceExact.path,
+    destinationAbsolute,
+    sourceId.dev,
+    sourceId.ino,
+    destinationParent.dev,
+    destinationParent.ino,
+  ];
+  trace?.(Object.freeze({
+    event: 'helper-invoke',
+    action: 'copy-tree',
+    args: Object.freeze([...helperArgs]),
+  }));
+  let spawnError = null;
+  try {
+    command(resolvedHelper.path, helperArgs, { timeout: 12 * 60 * 60 * 1000 });
+  } catch (error) {
+    spawnError = error;
+    removeCopyTreeDestinationBestEffort(destinationAbsolute);
+  } finally {
+    try {
+      reattestSwapHelper(resolvedHelper, trace, 'copy-tree', 'post');
+    } catch (attestError) {
+      removeCopyTreeDestinationBestEffort(destinationAbsolute);
+      fail(attestError.code || 'SWAP_HELPER_POST_ATTEST_FAILED', attestError.message, {
+        ...attestError.details,
+        spawnError: spawnError ? spawnError.message : null,
+      });
+    }
+  }
+  if (spawnError) {
+    fail(
+      'COPY_TREE_HELPER_FAILED',
+      'descriptor-relative copy-tree helper refused or failed; pathname ditto fallback is forbidden',
+      {
+        source: sourceExact.path,
+        destination: destinationAbsolute,
+        cause: spawnError.code || spawnError.message || String(spawnError),
+        commandDetails: spawnError.details || null,
+      },
+    );
+  }
 }
 
 function copyDatabaseVerificationFileSystem(source, destination, helper, trace = null) {
@@ -770,6 +883,12 @@ function exactRegularFileIdentity64(target, label) {
       path: absolute,
     });
   }
+  if (stat.nlink !== 1n) {
+    fail('PATH_IDENTITY_MISMATCH', `${label} must be a single-link regular file (hard links refused) for descriptor-relative cloning`, {
+      path: absolute,
+      nlink: stat.nlink.toString(),
+    });
+  }
   if (stat.size < 0n) {
     fail('PATH_IDENTITY_MISMATCH', `${label} has an invalid negative size`, { path: absolute });
   }
@@ -778,6 +897,7 @@ function exactRegularFileIdentity64(target, label) {
     dev: stat.dev.toString(),
     ino: stat.ino.toString(),
     size: stat.size.toString(),
+    nlink: stat.nlink.toString(),
   });
 }
 
@@ -926,6 +1046,7 @@ function extendedMetadata(absolute) {
 
 export async function enumerateTree(root, options = {}) {
   const exact = exactDirectory(root, 'tree root');
+  const rootDev = exact.stat.dev;
   const entries = [{
     path: '.',
     type: 'directory',
@@ -944,6 +1065,13 @@ export async function enumerateTree(root, options = {}) {
       const stat = fs.lstatSync(absolute);
       const relative = relativeUnix(exact.path, absolute);
       if (stat.isSymbolicLink()) fail('SOURCE_SYMLINK_REFUSED', 'recovery trees must not contain symlinks', { relative });
+      if (stat.dev !== rootDev) {
+        fail('SOURCE_DEVICE_MISMATCH', 'recovery trees must not span devices or bind mounts', {
+          relative,
+          rootDev,
+          entryDev: stat.dev,
+        });
+      }
       if (stat.isDirectory()) {
         entries.push({
           path: relative,
@@ -957,6 +1085,12 @@ export async function enumerateTree(root, options = {}) {
         continue;
       }
       if (!stat.isFile()) fail('SOURCE_SPECIAL_FILE_REFUSED', 'recovery trees must contain only directories and regular files', { relative });
+      if (stat.nlink !== 1) {
+        fail('SOURCE_HARDLINK_REFUSED', 'recovery trees must not contain hard-linked regular files', {
+          relative,
+          nlink: stat.nlink,
+        });
+      }
       options.progress?.({ event: 'hash-start', path: relative, bytes: stat.size });
       const sha256 = await hashFile(absolute);
       options.progress?.({ event: 'hash-done', path: relative, bytes: stat.size, sha256 });

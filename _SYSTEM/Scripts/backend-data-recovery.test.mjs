@@ -390,15 +390,18 @@ test('backup source identity resolves diskutil at the df mountpoint, not the nes
   );
 });
 
-test('Darwin swap helper boundary: full-sync positive + dev/ino/path/argc/symlink negatives (hermetic)', {
+test('Darwin swap helper boundary: full-sync positive + dev/ino/path/argc/symlink/hardlink/cross-device negatives (hermetic)', {
   skip: process.platform !== 'darwin',
 }, () => {
   // Hermetic boundary coverage for backend-data-swap.c. Compile once, exercise the CLI
-  // surface: positive full-sync, then identity/path/argc/symlink rejections. readdir I/O
-  // errors and parent-fsync faults are NOT covered here (no hermetic injection seam
-  // exists without kernel fault injection); the descriptor-relative walk's per-component
-  // O_NOFOLLOW rejection IS covered deterministically via an in-test symlink.
+  // surface: positive full-sync, then identity/path/argc/symlink/hardlink/cross-device
+  // rejections. readdir I/O errors and parent-fsync faults are NOT covered here (no
+  // hermetic injection seam exists without kernel fault injection); the
+  // descriptor-relative walk's per-component O_NOFOLLOW rejection IS covered
+  // deterministically via an in-test symlink. Cross-device prefers mount_tmpfs under
+  // /private/tmp; never probes /Volumes/T7 or hdiutil.
   const root = fs.realpathSync.native(fs.mkdtempSync(path.join('/private/tmp', 'yuri-backend-data-swap-boundary-')));
+  const mountedTmpfs = [];
   try {
     const binary = path.join(root, 'backend-data-swap');
     const compiled = spawnSync('/usr/bin/clang', [
@@ -449,8 +452,10 @@ test('Darwin swap helper boundary: full-sync positive + dev/ino/path/argc/symlin
 
     const rejectClone = (description, leaf, overrides = {}) => {
       const destination = path.join(cloneParent, leaf);
-      expectReject(description, run(...cloneArgs(destination, overrides)));
+      const result = run(...cloneArgs(destination, overrides));
+      expectReject(description, result);
       assert.equal(fs.existsSync(destination), false, `${description}: failed clone cannot create destination`);
+      return result;
     };
     rejectClone('clone stale source dev', 'stale-source-dev.db', {
       sourceDev: (cloneSourceStat.dev + 1n).toString(),
@@ -469,9 +474,115 @@ test('Darwin swap helper boundary: full-sync positive + dev/ino/path/argc/symlin
     });
     expectReject('clone destination exists', run(...cloneArgs(cloneDestination)));
 
+    // --- SYMLINK negative (swap.c S_ISLNK / identity mismatch) ---
     const cloneSourceLink = path.join(root, 'clone-source-link.db');
     fs.symlinkSync(cloneSource, cloneSourceLink);
-    rejectClone('clone source symlink', 'source-symlink.db', { source: cloneSourceLink });
+    const symlinkReject = rejectClone('clone source symlink', 'source-symlink.db', { source: cloneSourceLink });
+    assert.match(symlinkReject.stderr, /clone source identity mismatch|BACKEND_DATA_SWAP_FAILED/u);
+
+    // --- HARD-LINK negative: outside-EPH twin shares inode; nlink>1 must reject ---
+    const outsideEph = path.join(root, 'outside-eph');
+    const insideEph = path.join(root, 'inside-eph');
+    fs.mkdirSync(outsideEph);
+    fs.mkdirSync(insideEph);
+    const outsideTarget = path.join(outsideEph, 'shared-target.db');
+    const hardlinkSource = path.join(insideEph, 'hardlink-source.db');
+    fs.writeFileSync(outsideTarget, Buffer.from('hardlink-escape-payload'));
+    fs.linkSync(outsideTarget, hardlinkSource);
+    const hardlinkStat = fs.lstatSync(hardlinkSource, { bigint: true });
+    assert.equal(hardlinkStat.nlink, 2n, 'fixture must present a multi-link inode');
+    assert.equal(hardlinkStat.ino, fs.lstatSync(outsideTarget, { bigint: true }).ino);
+    const hardlinkParent = path.join(insideEph, 'clone-parent');
+    fs.mkdirSync(hardlinkParent);
+    const hardlinkParentStat = fs.lstatSync(hardlinkParent, { bigint: true });
+    const hardlinkDest = path.join(hardlinkParent, 'must-not-exist.db');
+    const hardlinkReject = run(
+      'clone-file',
+      hardlinkSource,
+      hardlinkDest,
+      hardlinkStat.dev.toString(),
+      hardlinkStat.ino.toString(),
+      hardlinkParentStat.dev.toString(),
+      hardlinkParentStat.ino.toString(),
+      hardlinkStat.size.toString(),
+    );
+    expectReject('clone source hardlink outside-EPH twin', hardlinkReject);
+    assert.match(
+      hardlinkReject.stderr,
+      /clone source must be a single-link regular file/u,
+      'hardlink reject must hit native nlink guard',
+    );
+    assert.equal(fs.existsSync(hardlinkDest), false);
+
+    // --- CROSS-DEVICE negative: real distinct st_dev (tmpfs preferred; never T7/hdiutil) ---
+    const tmpfsDir = path.join(root, 'tmpfs-cross-dev');
+    fs.mkdirSync(tmpfsDir);
+    const tmpfsMount = spawnSync('/sbin/mount_tmpfs', ['-s', '8m', tmpfsDir], { encoding: 'utf8' });
+    let crossSource;
+    let crossCleanup = null;
+    if (tmpfsMount.status === 0) {
+      mountedTmpfs.push(tmpfsDir);
+      crossSource = path.join(tmpfsDir, 'cross-source.db');
+      fs.writeFileSync(crossSource, Buffer.from('cross-device-source'));
+      crossCleanup = 'tmpfs';
+    } else {
+      // Opportunistic synthetic: locate a readable regular file already on a different
+      // st_dev (e.g. AppTranslocation nullfs). Never /Volumes/T7, never hdiutil.
+      // Note: Node readdir on some AppTranslocation roots returns ERANGE; use find(1).
+      const destDev = cloneParentStat.dev;
+      const isForbidden = (p) => /\/Volumes\/T7(?:\/|$)/u.test(p);
+      const candidates = [];
+      const mountText = spawnSync('/sbin/mount', [], { encoding: 'utf8' }).stdout || '';
+      for (const line of mountText.split('\n')) {
+        const m = line.match(/\son\s+(\/private\/var\/folders\/[^\s]+)\s+\(/u);
+        if (m && !isForbidden(m[1])) candidates.push(m[1]);
+      }
+      for (const candidate of candidates.slice(0, 8)) {
+        if (crossSource) break;
+        const found = spawnSync('/usr/bin/find', [candidate, '-type', 'f', '-maxdepth', '10'], {
+          encoding: 'utf8',
+          timeout: 8000,
+        });
+        if (found.status !== 0) continue;
+        for (const full of (found.stdout || '').split('\n')) {
+          if (!full || isForbidden(full)) continue;
+          let st;
+          try { st = fs.lstatSync(full, { bigint: true }); } catch { continue; }
+          if (!st.isFile() || st.isSymbolicLink() || st.nlink !== 1n || st.size <= 0n) continue;
+          if (st.dev === destDev) continue;
+          crossSource = full;
+          crossCleanup = 'opportunistic';
+          break;
+        }
+      }
+      assert.ok(
+        crossSource,
+        `cross-device fixture unavailable (mount_tmpfs rc=${tmpfsMount.status}: ${(tmpfsMount.stderr || '').trim()}); no alternate non-T7 different-st_dev regular file found`,
+      );
+    }
+    const crossSourceStat = fs.lstatSync(crossSource, { bigint: true });
+    assert.notEqual(crossSourceStat.dev, cloneParentStat.dev, 'cross-device fixture must differ in st_dev');
+    const crossDest = path.join(cloneParent, 'cross-device.db');
+    const crossReject = run(
+      'clone-file',
+      crossSource,
+      crossDest,
+      crossSourceStat.dev.toString(),
+      crossSourceStat.ino.toString(),
+      cloneParentStat.dev.toString(),
+      cloneParentStat.ino.toString(),
+      crossSourceStat.size.toString(),
+    );
+    expectReject('clone cross-device source vs destination parent', crossReject);
+    assert.match(
+      crossReject.stderr,
+      /clone source and destination are not on the same filesystem/u,
+      'cross-device must hit swap.c same-filesystem FAIL',
+    );
+    assert.equal(fs.existsSync(crossDest), false);
+    assert.ok(!String(crossSource).includes('/Volumes/T7'), 'cross-device source must be T7-free');
+    assert.ok(crossCleanup === 'tmpfs' || crossCleanup === 'opportunistic');
+
     const realCloneParent = path.join(root, 'real-clone-parent');
     const linkCloneParent = path.join(root, 'link-clone-parent');
     fs.mkdirSync(realCloneParent);
@@ -523,6 +634,9 @@ test('Darwin swap helper boundary: full-sync positive + dev/ino/path/argc/symlin
     const staleLeftIno = leftStat.ino === 0n ? 1n : leftStat.ino - 1n;
     expectReject('swap stale left ino', run('swap', left, right, leftStat.dev.toString(), staleLeftIno.toString(), rightStat.dev.toString(), rightStat.ino.toString()));
   } finally {
+    for (const mnt of mountedTmpfs) {
+      spawnSync('/sbin/umount', [mnt], { encoding: 'utf8' });
+    }
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
@@ -3015,6 +3129,355 @@ test('tree enumeration rejects symlinks and special files', async () => {
     const made = spawnSync('/usr/bin/mkfifo', [fifo], { encoding: 'utf8' });
     assert.equal(made.status, 0, made.stderr || made.stdout);
     await assert.rejects(enumerateTree(specialRoot), (error) => error.code === 'SOURCE_SPECIAL_FILE_REFUSED');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('production source path rejects hardlinks in enumerateTree and copyTree (recovery-grade)', async () => {
+  // PRODUCTION-path negatives. Cross-device real mount remains environment-HOLD.
+  // copyTree now consumes swap.c copy-tree (descriptor-relative) — not pathname ditto.
+  const root = fs.realpathSync.native(fs.mkdtempSync(path.join('/private/tmp', 'yuri-backend-prod-isolation-')));
+  try {
+    const outside = path.join(root, 'outside-eph');
+    const tree = path.join(root, 'source-tree');
+    fs.mkdirSync(outside);
+    fs.mkdirSync(tree);
+    const outsideFile = path.join(outside, 'shared.db');
+    const insideLink = path.join(tree, 'alias.db');
+    fs.writeFileSync(outsideFile, Buffer.from('prod-hardlink-escape'));
+    fs.linkSync(outsideFile, insideLink);
+    assert.equal(fs.lstatSync(insideLink).nlink, 2);
+
+    await assert.rejects(
+      enumerateTree(tree),
+      (error) => error.code === 'SOURCE_HARDLINK_REFUSED' && error.details?.relative === 'alias.db',
+      'enumerateTree must refuse outside-reachable hardlink',
+    );
+
+    const dest = path.join(root, 'copy-dest');
+    const adapters = createSystemAdapters();
+    assert.throws(
+      () => adapters.copyTree(tree, dest),
+      (error) => error.code === 'COPY_TREE_HELPER_FAILED'
+        && /hardlink rejected/iu.test(error.details?.commandDetails?.stderr || ''),
+      'copyTree must refuse hardlink via descriptor-relative copy-tree',
+    );
+    assert.equal(fs.existsSync(dest), false, 'failed copyTree must not create destination');
+
+    const twinTree = path.join(root, 'twin-tree');
+    fs.mkdirSync(twinTree);
+    const a = path.join(twinTree, 'a.db');
+    const b = path.join(twinTree, 'b.db');
+    fs.writeFileSync(a, Buffer.from('twins'));
+    fs.linkSync(a, b);
+    await assert.rejects(enumerateTree(twinTree), (error) => error.code === 'SOURCE_HARDLINK_REFUSED');
+    assert.throws(
+      () => adapters.copyTree(twinTree, path.join(root, 'twin-dest')),
+      (error) => error.code === 'COPY_TREE_HELPER_FAILED'
+        && /hardlink rejected/iu.test(error.details?.commandDetails?.stderr || ''),
+    );
+
+    const deviceTree = path.join(root, 'device-tree');
+    fs.mkdirSync(deviceTree);
+    const foreign = path.join(deviceTree, 'foreign.db');
+    fs.writeFileSync(foreign, Buffer.from('same-fs-bytes'));
+    const realLstat = fs.lstatSync;
+    const rootDev = realLstat(deviceTree).dev;
+    fs.lstatSync = (target, options) => {
+      const stat = realLstat(target, options);
+      if (path.resolve(String(target)) === path.resolve(foreign)) {
+        return Object.assign(Object.create(Object.getPrototypeOf(stat)), stat, {
+          dev: rootDev + 1,
+        });
+      }
+      return stat;
+    };
+    try {
+      await assert.rejects(
+        enumerateTree(deviceTree),
+        (error) => error.code === 'SOURCE_DEVICE_MISMATCH' && error.details?.relative === 'foreign.db',
+      );
+    } finally {
+      fs.lstatSync = realLstat;
+    }
+
+    const tmpfsProbe = path.join(root, 'tmpfs-probe');
+    fs.mkdirSync(tmpfsProbe);
+    const tmpfsMount = spawnSync('/sbin/mount_tmpfs', ['-s', '8m', tmpfsProbe], { encoding: 'utf8' });
+    assert.notEqual(tmpfsMount.status, 0);
+    assert.match(tmpfsMount.stderr || '', /Operation not permitted|not permitted/iu);
+
+    const moduleSource = fs.readFileSync(new URL('./backend-data-recovery.mjs', import.meta.url), 'utf8');
+    assert.match(moduleSource, /stat\.nlink !== 1n/u);
+    assert.match(moduleSource, /SOURCE_HARDLINK_REFUSED/u);
+    assert.match(moduleSource, /'copy-tree'/u);
+    assert.match(moduleSource, /pathname ditto fallback is forbidden/u);
+    assert.doesNotMatch(moduleSource, /command\(\s*'\/usr\/bin\/ditto'/u, 'copyTree must not invoke pathname ditto');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('copyTree rejects symlink and special-file sources via descriptor-relative helper', {
+  skip: process.platform !== 'darwin',
+}, () => {
+  const root = fs.realpathSync.native(fs.mkdtempSync(path.join('/private/tmp', 'yuri-backend-copytree-reject-')));
+  try {
+    const adapters = createSystemAdapters();
+
+    const symlinkTree = path.join(root, 'symlink-tree');
+    fs.mkdirSync(symlinkTree);
+    fs.writeFileSync(path.join(root, 'outside.txt'), 'outside');
+    fs.symlinkSync(path.join(root, 'outside.txt'), path.join(symlinkTree, 'link'));
+    const symlinkDest = path.join(root, 'symlink-dest');
+    assert.throws(
+      () => adapters.copyTree(symlinkTree, symlinkDest),
+      (error) => error.code === 'COPY_TREE_HELPER_FAILED'
+        && /symlink rejected/iu.test(error.details?.commandDetails?.stderr || ''),
+    );
+    assert.equal(fs.existsSync(symlinkDest), false);
+
+    const specialTree = path.join(root, 'special-tree');
+    fs.mkdirSync(specialTree);
+    const fifo = path.join(specialTree, 'pipe');
+    const made = spawnSync('/usr/bin/mkfifo', [fifo], { encoding: 'utf8' });
+    assert.equal(made.status, 0, made.stderr || made.stdout);
+    const specialDest = path.join(root, 'special-dest');
+    assert.throws(
+      () => adapters.copyTree(specialTree, specialDest),
+      (error) => error.code === 'COPY_TREE_HELPER_FAILED'
+        && /special file rejected/iu.test(error.details?.commandDetails?.stderr || ''),
+    );
+    assert.equal(fs.existsSync(specialDest), false);
+
+    const cleanTree = path.join(root, 'clean-tree');
+    const cleanDest = path.join(root, 'clean-dest');
+    fs.mkdirSync(cleanTree);
+    fs.writeFileSync(path.join(cleanTree, 'ok.db'), Buffer.from('ok'));
+    adapters.copyTree(cleanTree, cleanDest);
+    assert.equal(fs.readFileSync(path.join(cleanDest, 'ok.db'), 'utf8'), 'ok');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('copy-tree swap-at-boundary: post-pin symlink swap fails closed (descriptor-relative)', {
+  skip: process.platform !== 'darwin',
+}, () => {
+  // Atlas acceptance: after identity pins are observed, swap a validated file to a
+  // symlink BEFORE the copy runs; fd-based copy-tree must fail closed (not follow swap).
+  const root = fs.realpathSync.native(fs.mkdtempSync(path.join('/private/tmp', 'yuri-copytree-swap-boundary-')));
+  try {
+    const src = path.join(root, 'src');
+    const destParent = path.join(root, 'dest-parent');
+    fs.mkdirSync(src);
+    fs.mkdirSync(destParent);
+    const leaf = path.join(src, 'leaf.db');
+    fs.writeFileSync(leaf, Buffer.from('original-pinned-bytes'));
+    const outside = path.join(root, 'outside.db');
+    fs.writeFileSync(outside, Buffer.from('swapped-target-bytes'));
+
+    const srcStat = fs.lstatSync(src, { bigint: true });
+    const parentStat = fs.lstatSync(destParent, { bigint: true });
+    const binary = path.join(root, 'backend-data-swap');
+    const compiled = spawnSync('/usr/bin/clang', [
+      '-std=c11', '-Os', '-Wall', '-Wextra', '-Werror', SWAP_HELPER_SOURCE_PATH, '-o', binary,
+    ], { encoding: 'utf8' });
+    assert.equal(compiled.status, 0, compiled.stderr || compiled.stdout);
+
+    // Boundary swap AFTER pin observation, BEFORE copy-tree invoke.
+    fs.unlinkSync(leaf);
+    fs.symlinkSync(outside, leaf);
+
+    const dest = path.join(destParent, 'out');
+    const ran = spawnSync(binary, [
+      'copy-tree',
+      src,
+      dest,
+      srcStat.dev.toString(),
+      srcStat.ino.toString(),
+      parentStat.dev.toString(),
+      parentStat.ino.toString(),
+    ], { encoding: 'utf8' });
+    assert.notEqual(ran.status, 0, 'copy-tree must fail closed after symlink swap');
+    assert.match(ran.stderr || '', /symlink rejected/iu);
+    // Helper may leave an empty mkdirat root for forensics; must NOT contain swapped content.
+    assert.equal(fs.existsSync(path.join(dest, 'leaf.db')), false, 'must not copy through swapped symlink');
+    if (fs.existsSync(dest)) {
+      const names = fs.readdirSync(dest);
+      assert.deepEqual(names, [], 'partial destination must not contain copied entries');
+    }
+    assert.equal(fs.lstatSync(leaf).isSymbolicLink(), true);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('copy-tree same-class regular-file swap after PIN copies original inode bytes', {
+  skip: process.platform !== 'darwin',
+}, async () => {
+  // Atlas SHARPER GAP: pre/post walks without per-entry baseline miss I1->I2 same-class swap.
+  // Two-phase pin+emit: swap foo (I1) -> different same-device single-link regular (I2) BETWEEN
+  // PIN and EMIT. Held fd must emit I1 bytes (or fail-closed) — never promote I2.
+  const root = fs.realpathSync.native(fs.mkdtempSync(path.join('/private/tmp', 'yuri-copytree-same-class-')));
+  try {
+    const src = path.join(root, 'src');
+    const destParent = path.join(root, 'dest-parent');
+    fs.mkdirSync(src);
+    fs.mkdirSync(destParent);
+    const foo = path.join(src, 'foo.db');
+    const i1Bytes = Buffer.from('I1-ORIGINAL-PINNED-BYTES');
+    const i2Bytes = Buffer.from('I2-SWAPPED-BYTES-DIFFERENT');
+    fs.writeFileSync(foo, i1Bytes);
+    const i1 = fs.lstatSync(foo, { bigint: true });
+    assert.equal(i1.nlink, 1n);
+    const i2Path = path.join(root, 'i2-donor.db');
+    fs.writeFileSync(i2Path, i2Bytes);
+    const i2 = fs.lstatSync(i2Path, { bigint: true });
+    assert.equal(i2.nlink, 1n);
+    assert.equal(i1.dev, i2.dev, 'same-device required');
+    assert.notEqual(i1.ino, i2.ino, 'distinct inodes required');
+
+    const barrier = path.join(root, 'PIN_BARRIER');
+    const ready = path.join(root, 'PIN_READY');
+    fs.writeFileSync(barrier, 'hold');
+
+    const srcStat = fs.lstatSync(src, { bigint: true });
+    const parentStat = fs.lstatSync(destParent, { bigint: true });
+    const binary = path.join(root, 'backend-data-swap');
+    const compiled = spawnSync('/usr/bin/clang', [
+      '-std=c11', '-Os', '-Wall', '-Wextra', '-Werror', SWAP_HELPER_SOURCE_PATH, '-o', binary,
+    ], { encoding: 'utf8' });
+    assert.equal(compiled.status, 0, compiled.stderr || compiled.stdout);
+
+    const dest = path.join(destParent, 'out');
+    const child = spawn(binary, [
+      'copy-tree',
+      src,
+      dest,
+      srcStat.dev.toString(),
+      srcStat.ino.toString(),
+      parentStat.dev.toString(),
+      parentStat.ino.toString(),
+    ], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        YURI_COPY_TREE_PIN_BARRIER: barrier,
+        YURI_COPY_TREE_PIN_READY: ready,
+      },
+    });
+
+    const deadline = Date.now() + 10_000;
+    while (!fs.existsSync(ready) && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 10));
+    }
+    assert.ok(fs.existsSync(ready), 'PIN_READY must appear after pin phase');
+
+    // Same-class swap at PIN/EMIT boundary: pathname foo now names I2.
+    fs.unlinkSync(foo);
+    fs.renameSync(i2Path, foo);
+    const swapped = fs.lstatSync(foo, { bigint: true });
+    assert.equal(swapped.ino, i2.ino);
+    assert.equal(fs.readFileSync(foo).equals(i2Bytes), true);
+
+    fs.unlinkSync(barrier);
+    const [code, stdout, stderr] = await new Promise((resolve, reject) => {
+      let out = '';
+      let err = '';
+      child.stdout.on('data', (chunk) => { out += chunk; });
+      child.stderr.on('data', (chunk) => { err += chunk; });
+      child.on('error', reject);
+      child.on('close', (status) => resolve([status, out, err]));
+    });
+    assert.equal(code, 0, `copy-tree must succeed via held I1 fd; stderr=${stderr} stdout=${stdout}`);
+    const copied = fs.readFileSync(path.join(dest, 'foo.db'));
+    assert.equal(copied.equals(i1Bytes), true, 'must copy pinned I1 bytes, not swapped I2');
+    assert.equal(copied.equals(i2Bytes), false);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('copy-tree preserves file and directory metadata (xattr/mode/mtime parity)', {
+  skip: process.platform !== 'darwin',
+}, () => {
+  // Atlas metadata contract: mkdirat alone would regress dir xattrs/ACLs vs ditto.
+  // fcopyfile(COPYFILE_METADATA) on dir fds + fclonefileat for files must preserve parity.
+  const root = fs.realpathSync.native(fs.mkdtempSync(path.join('/private/tmp', 'yuri-copytree-meta-')));
+  try {
+    const src = path.join(root, 'src');
+    const destParent = path.join(root, 'dest-parent');
+    const nested = path.join(src, 'nested');
+    fs.mkdirSync(src);
+    fs.mkdirSync(nested);
+    fs.mkdirSync(destParent);
+    const leaf = path.join(nested, 'leaf.db');
+    fs.writeFileSync(leaf, Buffer.from('meta-payload'));
+    fs.chmodSync(src, 0o750);
+    fs.chmodSync(nested, 0o700);
+    fs.chmodSync(leaf, 0o640);
+
+    const xattrSet = spawnSync('/usr/bin/xattr', ['-w', 'com.yuri.copytree.test', 'dir-root-xattr', src], {
+      encoding: 'utf8',
+    });
+    assert.equal(xattrSet.status, 0, xattrSet.stderr || xattrSet.stdout);
+    const xattrNested = spawnSync('/usr/bin/xattr', ['-w', 'com.yuri.copytree.test', 'dir-nested-xattr', nested], {
+      encoding: 'utf8',
+    });
+    assert.equal(xattrNested.status, 0, xattrNested.stderr || xattrNested.stdout);
+    const xattrFile = spawnSync('/usr/bin/xattr', ['-w', 'com.yuri.copytree.test', 'file-xattr', leaf], {
+      encoding: 'utf8',
+    });
+    assert.equal(xattrFile.status, 0, xattrFile.stderr || xattrFile.stdout);
+
+    const past = new Date('2020-01-15T12:00:00Z');
+    fs.utimesSync(src, past, past);
+    fs.utimesSync(nested, past, past);
+    fs.utimesSync(leaf, past, past);
+
+    const srcStat = fs.lstatSync(src, { bigint: true });
+    const parentStat = fs.lstatSync(destParent, { bigint: true });
+    const binary = path.join(root, 'backend-data-swap');
+    const compiled = spawnSync('/usr/bin/clang', [
+      '-std=c11', '-Os', '-Wall', '-Wextra', '-Werror', SWAP_HELPER_SOURCE_PATH, '-o', binary,
+    ], { encoding: 'utf8' });
+    assert.equal(compiled.status, 0, compiled.stderr || compiled.stdout);
+
+    const dest = path.join(destParent, 'out');
+    const ran = spawnSync(binary, [
+      'copy-tree',
+      src,
+      dest,
+      srcStat.dev.toString(),
+      srcStat.ino.toString(),
+      parentStat.dev.toString(),
+      parentStat.ino.toString(),
+    ], { encoding: 'utf8' });
+    assert.equal(ran.status, 0, ran.stderr || ran.stdout);
+
+    const readXattr = (target) => {
+      const got = spawnSync('/usr/bin/xattr', ['-p', 'com.yuri.copytree.test', target], { encoding: 'utf8' });
+      assert.equal(got.status, 0, got.stderr || got.stdout);
+      return (got.stdout || '').trim();
+    };
+
+    assert.equal(readXattr(dest), 'dir-root-xattr');
+    assert.equal(readXattr(path.join(dest, 'nested')), 'dir-nested-xattr');
+    assert.equal(readXattr(path.join(dest, 'nested', 'leaf.db')), 'file-xattr');
+
+    assert.equal(fs.lstatSync(dest).mode & 0o777, 0o750);
+    assert.equal(fs.lstatSync(path.join(dest, 'nested')).mode & 0o777, 0o700);
+    assert.equal(fs.lstatSync(path.join(dest, 'nested', 'leaf.db')).mode & 0o777, 0o640);
+
+    const destMtime = fs.lstatSync(dest).mtimeMs;
+    const nestedMtime = fs.lstatSync(path.join(dest, 'nested')).mtimeMs;
+    const leafMtime = fs.lstatSync(path.join(dest, 'nested', 'leaf.db')).mtimeMs;
+    assert.ok(Math.abs(destMtime - past.getTime()) < 2000, `root mtime parity got=${destMtime}`);
+    assert.ok(Math.abs(nestedMtime - past.getTime()) < 2000, `nested mtime parity got=${nestedMtime}`);
+    assert.ok(Math.abs(leafMtime - past.getTime()) < 2000, `file mtime parity got=${leafMtime}`);
+    assert.equal(fs.readFileSync(path.join(dest, 'nested', 'leaf.db'), 'utf8'), 'meta-payload');
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

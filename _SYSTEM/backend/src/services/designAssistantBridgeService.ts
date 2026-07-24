@@ -128,7 +128,8 @@ type ResponseRow = {
     created_at: string;
 };
 
-const DEFAULT_ARTIFACT_ROOT = 'backend/data/design-assistant';
+/** Canonical via SystemConfig.SYSTEM.DATA (ephemeral under YURI_TEST_MODE). */
+const DEFAULT_ARTIFACT_ROOT = `${SystemConfig.SYSTEM.DATA}/design-assistant`;
 const VALID_SELECTION_KINDS = new Set(['element', 'region']);
 const DATA_URL_PATTERN = /^data:([^;,]+);base64,(.+)$/;
 
