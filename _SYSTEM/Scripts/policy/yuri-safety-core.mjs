@@ -181,6 +181,9 @@ export function evaluateToolCall(toolName, toolInput = {}, opts = {}) {
 }
 
 export function evaluateHookEvent(event = {}) {
+  if (!event || typeof event !== 'object' || Array.isArray(event)) {
+    return block('invalid hook event: expected object');
+  }
   const toolName = event.tool_name || event.toolName || event.name || event.tool || '';
   const toolInput = event.tool_input || event.toolInput || event.input || event.arguments || {};
   return evaluateToolCall(toolName, toolInput);

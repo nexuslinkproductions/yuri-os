@@ -362,7 +362,7 @@
     "_SYSTEM/Scripts/math/yuri-energy-trace.mjs": "c280e0458cc627212cb6fc89c219f611d8ac11b02296410f532961940a67ac82",
     "_SYSTEM/Scripts/math/yuri-energy.mjs": "86941c158d311671ba0593ef8d485012933dca610653ddbba924372267bfc40e",
     "_SYSTEM/Scripts/policy/repo-integrity-guard.mjs": "80df75aeb66e6e7bfe4af002a9ef03d657a0b827b2a5f39efb58d1ca94f98e16",
-    "_SYSTEM/Scripts/policy/yuri-safety-core.mjs": "e262ca50fb2d60064f527b605c5e626680394864c88ab2cc99a03da59e722aa7",
+    "_SYSTEM/Scripts/policy/yuri-safety-core.mjs": "806d656da9b66f2f43064416333afdef277bbf9db6078a531fd1289169319ca6",
     "_SYSTEM/Scripts/url-policy.mjs": "1b03b1565f86d0ee4f64e98cf99c33aef8be58b699b56bab2ca3c4dec2f19bee",
     "_SYSTEM/Scripts/yuri-hook-adapter.mjs": "a8db2340bba8374e583c3377902d8c0c6e31ba8d106486fa403ec76d8c8207d5",
     "_SYSTEM/Scripts/yuri-truth-promotion-enforcement.mjs": "9f6782735bd349682c6d342dda7fb89156f3edfe50207b42c8ea906921a6d990",
