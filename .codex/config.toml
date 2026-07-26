@@ -52,9 +52,8 @@ startup_timeout_sec = 15
 tool_timeout_sec = 60
 
 [mcp_servers.october-bus]
-url = "http://127.0.0.1:49791/mcp"
+url = "http://127.0.0.1:52381/mcp"
 env_http_headers = { "X-October-Canvas" = "OCTOBER_BUS_CANVAS", "X-October-Node" = "OCTOBER_BUS_NODE" }
-
 [mcp_servers.october-bus.tools.message_peer]
 approval_mode = "approve"
 

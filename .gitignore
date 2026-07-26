@@ -474,3 +474,8 @@ _SYSTEM/Scripts/alpha-factor-library/data/databento/
 # to history per experiment. Rebuild with:
 #   node _SYSTEM/Scripts/atlas/atlas-identity.mjs && atlas-edges.mjs && atlas-build.mjs
 _SYSTEM/state/atlas/
+
+# October (generated — context bus / browser MCP)
+.cursor/mcp.json
+.cursor/cli.json
+.gemini/settings.json
