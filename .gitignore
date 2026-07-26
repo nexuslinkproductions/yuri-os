@@ -467,3 +467,10 @@ _SYSTEM/Scripts/alpha-factor-library/data/databento/
 .codex/config.toml
 .codex/hooks.json
 .opencode/plugins/october-bus.js
+
+# Atlas — generated navigation artifacts (~2.4 MB, regenerated every loop iteration)
+# Deliberately NOT tracked, unlike _SYSTEM/state/arch-graph-metrics.json: the atlas
+# improvement loop commits once per iteration, so tracking these would add ~2.4 MB
+# to history per experiment. Rebuild with:
+#   node _SYSTEM/Scripts/atlas/atlas-identity.mjs && atlas-edges.mjs && atlas-build.mjs
+_SYSTEM/state/atlas/

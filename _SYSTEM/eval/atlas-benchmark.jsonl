@@ -1,0 +1,12 @@
+{"id":"q001","q":"where is model routing decided?","expect":["_SYSTEM/Scripts/llm-compat-contract.mjs"],"expect_checkpoint":null,"note":"dispatch"}
+{"id":"q002","q":"before building a new scorer or matcher, what do I check first so I don't rebuild a mechanism YURI already has?","expect":["_SYSTEM/Scripts/capability-recall.mjs",".claude/rules/capability_first.md"],"expect_checkpoint":null,"note":"capability-first"}
+{"id":"q003","q":"what do I run before broad exploration to navigate an unfamiliar task in this repo?","expect":["_SYSTEM/Scripts/xref-query.mjs"],"expect_checkpoint":null,"note":"xref"}
+{"id":"q004","q":"how do I see what a change to a known circuitry node will propagate to downstream?","expect":["_SYSTEM/Scripts/propagation-scan.mjs"],"expect_checkpoint":null,"note":"propagation"}
+{"id":"q005","q":"what mediates Track A canonical YURI memory (propose/decide/ledger)?","expect":["_SYSTEM/Scripts/memory-kernel.mjs"],"expect_checkpoint":null,"note":"memory"}
+{"id":"q006","q":"what guards against sparse-checkout regressions silently deleting tracked files?","expect":["_SYSTEM/Scripts/repo-integrity-tripwire.mjs"],"expect_checkpoint":null,"note":"git-integrity"}
+{"id":"q007","q":"what is the canonical prelaunch gate for October isolated worktrees?","expect":["_SYSTEM/Scripts/yuri-worktree-bootstrap.mjs"],"expect_checkpoint":null,"note":"guard"}
+{"id":"q008","q":"what enforces the persona-contract headings so a doc rename doesn't silently break persona injection?","expect":["_SYSTEM/Scripts/yuri-persona-check.mjs"],"expect_checkpoint":null,"note":"persona-guard"}
+{"id":"q009","q":"where does persona actually get injected into a live session at runtime?","expect":[".claude/hooks/soul-persona-inject.js"],"expect_checkpoint":null,"note":"persona-inject"}
+{"id":"q010","q":"what runs the deterministic session closeout for /eot?","expect":["_SYSTEM/Scripts/yuri-closeout.mjs"],"expect_checkpoint":null,"note":"eot-skill"}
+{"id":"q011","q":"where is the generated capability registry that capability-recall reads from?","expect":["_SYSTEM/capabilities.json"],"expect_checkpoint":null,"note":"capability-registry"}
+{"id":"q012","q":"what file is the canonical operating contract / authority hierarchy for all Yuri OS lanes?","expect":["_SYSTEM/yuri-origin.md"],"expect_checkpoint":null,"note":"policy"}
