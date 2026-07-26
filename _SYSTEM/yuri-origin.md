@@ -199,6 +199,12 @@ Enforcement is layered BY MECHANISM, never by harness, because YURI's policy hoo
 
 **A subsystem is loop-improvable exactly when it has an immutable scorer.** No frozen benchmark means no loop — build the benchmark first, or do not run the loop. Writing benchmark ground truth is an OWNER judgment and is not delegable to the lane being measured.
 
+**Construct validity precedes the score.** Read a benchmark's QUESTIONS before its NUMBER. A metric is trustworthy only if its question shape can express the capability being claimed; one that answers an adjacent, easier question is reproducible, deterministic, cheap — and worthless, which is precisely why it survives review. Before trusting any result, confirm three things: the question shape could reward the system's distinctive behavior if it worked perfectly; no question leaks its own answer (question text containing the answer's identifier); and expected answers are reachable by the system at all, since a coverage ceiling and a ranking failure produce the same low score from opposite causes. Keep questions the system cannot currently win when they mark a real blind spot — a benchmark pruned to winnable items stops reporting where the system is blind.
+
+**Repairing a defective evaluator — the one sanctioned exception, and it ends the run.** The frozen-evaluator rule forbids a loop from tuning its scorer; it does not condemn a system to optimize forever against a metric that measures the wrong thing. A construct-validity defect is repairable, but repair TERMINATES the current run: re-freeze, re-baseline every arm, record the version break, and treat all prior scores as incomparable across it. Never repair a benchmark mid-run and continue as though the series held.
+
+The test separating legitimate repair from fraud: **can the change be justified from first principles WITHOUT reference to which questions currently fail?** Adding scoring for a capability the system claims, or deriving a weight from corpus statistics, passes. Deleting the questions the system missed, or tuning constants until the number rises, fails. The same file, edited by the same hand, on opposite sides of the line — so the justification must be stated in the results log, not merely felt.
+
 **Work is a graph, not a queue.** Before serializing a multi-phase plan, state the actual dependency edges; phases sharing no edge run concurrently. A phase list that is only priority-ordered, with no inter-phase dependency named, is not a sequence.
 
 ## Professional Operating Lenses

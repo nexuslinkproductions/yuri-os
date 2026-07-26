@@ -25,6 +25,22 @@
 // fallback to the old internal builder — a silent fallback is exactly what
 // hid this bug for as long as it went unnoticed).
 //
+// GRANULARITY EXPERIMENT (2026-07-26): file-level clustering is degenerate (884
+// regions, median 1, 863/884 with <=2 members, 39% of nodes isolated). The
+// hypothesis under test is that FILE is the wrong clustering GRANULARITY, not
+// that the edges are wrong — so `--granularity=dir1|dir2|dir3|dirleaf` clusters
+// DIRECTORY nodes instead, with directory-pair edges AGGREGATED FROM THE SAME
+// real dependency edges in edges.json (summed kindWeight*weight over every file
+// edge crossing the directory pair). File-level stays the DEFAULT control.
+//
+// DO NOT CONFUSE THIS WITH THE DELETED FALLBACK. The deleted mechanism used
+// directory co-location as an EDGE SOURCE — it INVENTED edges between files that
+// merely sat in the same folder, fabricating a 436-member blob of 281 test files.
+// This mechanism invents NO edges: every directory-pair edge traces to >=1 real
+// dependency edge in edges.json. What it DOES do, honestly stated, is make
+// same-directory files share a region by construction (they are one node), which
+// is a granularity consequence, not an edge claim.
+//
 // @capability: atlas-regions
 // @serves: cluster the whole repo into human-navigable regions | atlas town map | region hub selection
 // @does: loads the canonical-ID edge graph from atlas-edges.mjs's edges.json,
@@ -151,6 +167,107 @@ export function buildEdgeGraph(idMap = readJson(ID_MAP_PATH), opts = {}) {
   };
 }
 
+// ---- DIRECTORY GRANULARITY ---------------------------------------------------
+// Map a repo-relative file path to its directory key at the requested depth.
+//   dir1     -> "_SYSTEM"                       (9 distinct)
+//   dir2     -> "_SYSTEM/Scripts"               (79 distinct)
+//   dir3     -> "_SYSTEM/Scripts/atlas"         (119 distinct)
+//   dirleaf  -> the file's full parent directory (376 distinct)
+// A file sitting at the repo root has no directory; it gets the explicit
+// "<root>" key rather than being silently dropped or folded into a neighbour.
+export const GRANULARITIES = ["file", "dir1", "dir2", "dir3", "dirleaf"];
+
+export function dirKeyForPath(p, granularity) {
+  const dir = path.posix.dirname(String(p));
+  if (dir === "." || dir === "" || dir === "/") return "<root>";
+  if (granularity === "dirleaf") return dir;
+  const depth = Number(granularity.slice(3));
+  if (!Number.isFinite(depth) || depth < 1) throw new Error(`bad granularity "${granularity}"`);
+  return dir.split("/").slice(0, depth).join("/");
+}
+
+// Aggregate the file-level edge list up to directory pairs.
+// EVERY directory edge traces to >=1 real edges.json edge — nothing is invented.
+// Weight = SUM over crossing file edges of kindWeight(kind) * weight, so a
+// directory pair wired by 40 imports outranks one wired by a single doc mention.
+// (loadArchGraph collapses multi-edges with max-wins, so each dir pair is emitted
+// ONCE with its already-summed weight carried through a unique synthetic `type`
+// key — the same typeWeight mechanism the file-level path uses.)
+export function buildDirGraph(idMap, granularity, opts = {}) {
+  const edgesDoc = loadEdgesJson(opts.edgesPath ?? EDGES_PATH);
+  const nodeKeys = new Set(Object.keys(idMap.nodes));
+
+  const dirOfNode = new Map();   // canonical file id -> dir key
+  const filesInDir = new Map();  // dir key -> [canonical file ids]
+  for (const [canon, node] of Object.entries(idMap.nodes)) {
+    const key = dirKeyForPath(node.path, granularity);
+    dirOfNode.set(canon, key);
+    if (!filesInDir.has(key)) filesInDir.set(key, []);
+    filesInDir.get(key).push(canon);
+  }
+
+  const pairSum = new Map(); // "a b" (a<b) -> summed weight
+  const pairEvidence = new Map(); // same key -> count of underlying file edges
+  let intraDirEdges = 0, danglingEndpoints = 0, selfLoops = 0;
+  for (const e of edgesDoc.edges || []) {
+    if (!nodeKeys.has(e.from) || !nodeKeys.has(e.to)) { danglingEndpoints++; continue; }
+    if (e.from === e.to) { selfLoops++; continue; }
+    const da = dirOfNode.get(e.from), db = dirOfNode.get(e.to);
+    if (da === db) { intraDirEdges++; continue; } // collapses into the node itself
+    const kindW = EDGE_KIND_WEIGHT[e.kind] ?? DEFAULT_KIND_WEIGHT;
+    const w = Number.isFinite(e.weight) && e.weight > 0 ? e.weight : 1;
+    const key = da < db ? `${da} ${db}` : `${db} ${da}`;
+    pairSum.set(key, (pairSum.get(key) || 0) + kindW * w);
+    pairEvidence.set(key, (pairEvidence.get(key) || 0) + 1);
+  }
+
+  const edges = [];
+  const typeWeight = {};
+  let ti = 0;
+  for (const [key, w] of pairSum) {
+    const [a, b] = key.split(" ");
+    const type = `diragg:${ti++}`;
+    typeWeight[type] = w;
+    edges.push({ source: a, target: b, type });
+  }
+
+  const nodes = [...filesInDir.keys()].sort().map((key) => ({
+    id: key,
+    label: key,
+    sector: key.split("/").slice(0, 2).join("/") || "root",
+  }));
+
+  const degree = new Map();
+  for (const e of edges) {
+    degree.set(e.source, (degree.get(e.source) || 0) + 1);
+    degree.set(e.target, (degree.get(e.target) || 0) + 1);
+  }
+  const dirsWithEdges = [...degree.values()].filter((d) => d > 0).length;
+
+  return {
+    graphJson: { nodes, edges },
+    typeWeight,
+    dirOfNode,
+    filesInDir,
+    pairEvidence,
+    stats: {
+      granularity,
+      edgesFilePath: opts.edgesPath ?? EDGES_PATH,
+      edgesFileTotal: (edgesDoc.edges || []).length,
+      edgesUsed: edges.length,                 // distinct DIRECTORY pairs
+      edgesIntraDirCollapsed: intraDirEdges,   // real edges absorbed inside a dir node
+      edgesSelfLoopsDropped: selfLoops,
+      edgesDanglingDropped: danglingEndpoints,
+      dirNodesTotal: nodes.length,
+      dirNodesWithEdges: dirsWithEdges,
+      dirNodesIsolated: nodes.length - dirsWithEdges,
+      nodesTotal: Object.keys(idMap.nodes).length,
+      directoryFallbackUsed: false, // still false: NO edge is invented from co-location
+      directoryEdgeSourceUsed: false, // explicit: co-location is not an edge source here
+    },
+  };
+}
+
 // ---- GitNexus community cross-check (best-effort, honest about availability) --
 // GitNexus's 1068 communities live inside its binary ladybugdb store (.gitnexus/lbug),
 // queryable only through the gitnexus_* MCP tools available to an interactive Claude
@@ -197,6 +314,12 @@ function pickHub(memberIds, g, artSet) {
 
 // ---- top-level region computation -------------------------------------------
 export function computeRegions(opts = {}) {
+  const granularity = opts.granularity ?? "file";
+  if (!GRANULARITIES.includes(granularity)) {
+    throw new Error(`atlas-regions: unknown granularity "${granularity}" (known: ${GRANULARITIES.join(", ")})`);
+  }
+  if (granularity !== "file") return computeRegionsByDirectory(opts, granularity);
+
   const idMap = readJson(ID_MAP_PATH);
   const { graphJson, stats, typeWeight } = buildEdgeGraph(idMap, { edgesPath: opts.edgesPath });
   const g = loadArchGraph(graphJson, typeWeight);
@@ -290,15 +413,115 @@ export function computeRegions(opts = {}) {
   };
 }
 
+// ---- directory-granularity region computation ---------------------------------
+// Same pipeline shape as the file-level path, one substitution: the graph handed
+// to arch-graph-engine has DIRECTORIES as nodes. Regions are then expanded back
+// into file members so every downstream consumer (atlas-build, atlas-resolve,
+// the evaluator) keeps seeing file-level members and needs no reinterpretation.
+function computeRegionsByDirectory(opts, granularity) {
+  const idMap = readJson(ID_MAP_PATH);
+  const dirG = buildDirGraph(idMap, granularity, { edgesPath: opts.edgesPath });
+  const g = loadArchGraph(dirG.graphJson, dirG.typeWeight);
+  const cc = connectedComponents(g);
+  const tarjan = tarjanArticulationAndBridges(g);
+
+  const k = opts.k ?? 14;
+  const spectral = spectralCluster(g, cc.giant.map((i) => g.ids[i]), { k, seed: opts.seed ?? 1 });
+
+  // group DIRECTORY ids into clusters, exactly as the file path groups file ids
+  const byCluster = new Map();
+  for (const dirId of Object.keys(spectral.clusters)) {
+    const cl = spectral.clusters[dirId];
+    const key = `giant-${cl === null ? "degenerate" : cl}`;
+    if (!byCluster.has(key)) byCluster.set(key, []);
+    byCluster.get(key).push(dirId);
+  }
+  let islandIdx = 0;
+  for (const comp of cc.componentsAsIds.slice(1)) byCluster.set(`island-${islandIdx++}`, comp);
+
+  // FILE-level graph, used ONLY for hub selection + inter-region neighbour weight,
+  // so hubs stay real files ranked by real file-level degree (a directory has no
+  // meaningful "hub file" otherwise).
+  const fileGraph = buildEdgeGraph(idMap, { edgesPath: opts.edgesPath });
+  const fg = loadArchGraph(fileGraph.graphJson, fileGraph.typeWeight);
+  const fileArt = new Set(tarjanArticulationAndBridges(fg).articulationPoints);
+
+  const regions = [];
+  for (const [clusterKey, dirMembers] of byCluster) {
+    const members = [];
+    for (const d of dirMembers) members.push(...(dirG.filesInDir.get(d) || []));
+    if (members.length === 0) continue;
+    members.sort();
+    regions.push({
+      clusterKey,
+      members,
+      dirMembers: dirMembers.slice().sort(),
+      hub: pickHub(members, fg, fileArt),
+      size: members.length,
+    });
+  }
+  regions.sort((a, b) => b.size - a.size);
+
+  const regionOf = new Map();
+  regions.forEach((r, ri) => r.members.forEach((m) => regionOf.set(m, ri)));
+  const neighborWeight = new Map();
+  for (const e of fg.edges) {
+    const ra = regionOf.get(fg.ids[e.a]), rb = regionOf.get(fg.ids[e.b]);
+    if (ra === undefined || rb === undefined || ra === rb) continue;
+    const key = Math.min(ra, rb) + "|" + Math.max(ra, rb);
+    neighborWeight.set(key, (neighborWeight.get(key) || 0) + e.w);
+  }
+  regions.forEach((r, ri) => {
+    const neighbors = [];
+    for (const [key, w] of neighborWeight) {
+      const [a, b] = key.split("|").map(Number);
+      if (a === ri) neighbors.push({ region: b, weight: Math.round(w * 1e3) / 1e3 });
+      else if (b === ri) neighbors.push({ region: a, weight: Math.round(w * 1e3) / 1e3 });
+    }
+    neighbors.sort((x, y) => y.weight - x.weight);
+    r.neighbors = neighbors;
+  });
+
+  const gitnexus = loadGitNexusCommunities();
+  return {
+    granularity,
+    idMapCounts: idMap.counts,
+    edgeStats: dirG.stats,
+    graphSummary: {
+      granularity,
+      nodes: fg.n,                 // FILE nodes covered (regions partition these)
+      dirNodes: g.n,               // clustered directory nodes
+      simpleEdges: g.simpleEdgeCount,
+      components: cc.count,
+      giantSize: cc.giant.length,
+      isolatedInGraph: cc.isolated.length, // isolated DIRECTORIES, not files
+      articulationPoints: tarjan.articulationPoints.length,
+      bridges: tarjan.bridges.length,
+      k,
+      lambda2_fiedler: spectral.fiedler,
+    },
+    gitnexus: gitnexus.available
+      ? { available: true, agreement: null }
+      : { available: false, reason: gitnexus.reason, agreement: null },
+    regions,
+    g: fg,
+    spectral,
+  };
+}
+
 // ---- CLI ---------------------------------------------------------------------
 function printHelp() {
   console.log(`atlas-regions.mjs — cluster canonical IDs into regions (spectral clustering via arch-graph-engine)
 
 Usage:
-  node _SYSTEM/Scripts/atlas/atlas-regions.mjs [--k=N] [--edges=PATH] [--json] [--verbose] [--test] [--help]
+  node _SYSTEM/Scripts/atlas/atlas-regions.mjs [--k=N] [--granularity=G] [--edges=PATH] [--json] [--verbose] [--test] [--help]
 
 Options:
   --k=N        number of clusters (default 14, matches arch-graph-metrics.json k_clusters)
+  --granularity=G  what gets clustered: file (default, control) | dir1 | dir2 | dir3 | dirleaf.
+               dir* clusters DIRECTORY nodes whose edges are aggregated from the SAME real
+               edges.json dependency edges (no co-location edge is ever invented); regions are
+               expanded back to file members before output.
   --edges=PATH edges.json path (default _SYSTEM/state/atlas/edges.json, built by atlas-edges.mjs)
   --json       print the full region result as JSON
   --verbose    print per-region size + hub summary
@@ -350,6 +573,46 @@ function selfTest() {
   const sizesK8 = resultK8.regions.map((r) => r.size).sort((a, b) => a - b).join(",");
   check("k=8 and k=14 produce different region-size distributions (k has an effect)", sizesK14 !== sizesK8);
 
+  // ---- directory granularity (the 2026-07-26 experiment) ----------------------
+  check("dirKeyForPath depth-1", dirKeyForPath("_SYSTEM/Scripts/atlas/x.mjs", "dir1") === "_SYSTEM");
+  check("dirKeyForPath depth-2", dirKeyForPath("_SYSTEM/Scripts/atlas/x.mjs", "dir2") === "_SYSTEM/Scripts");
+  check("dirKeyForPath depth-3", dirKeyForPath("_SYSTEM/Scripts/atlas/x.mjs", "dir3") === "_SYSTEM/Scripts/atlas");
+  check("dirKeyForPath leaf", dirKeyForPath("_SYSTEM/Scripts/atlas/x.mjs", "dirleaf") === "_SYSTEM/Scripts/atlas");
+  check("dirKeyForPath root file gets explicit <root> key", dirKeyForPath("CLAUDE.md", "dir2") === "<root>");
+  check("depth deeper than the path does not fabricate segments", dirKeyForPath("_SYSTEM/x.mjs", "dir3") === "_SYSTEM");
+
+  check("unknown granularity is rejected loudly", (() => {
+    try { computeRegions({ granularity: "dir9000" }); return false; } catch { return true; }
+  })());
+
+  const dirGraph = buildDirGraph(idMap, "dir2");
+  // THE ANTI-REGRESSION THAT MATTERS: no directory edge may exist without a real
+  // edges.json edge behind it. If co-location ever leaks back in as an edge
+  // source, some dir pair will have zero underlying file edges.
+  check("every directory edge is backed by >=1 real edges.json edge (no fabricated co-location edge)",
+    [...dirGraph.pairEvidence.values()].every((c) => c >= 1) &&
+    dirGraph.pairEvidence.size === dirGraph.graphJson.edges.length);
+  check("directory edge count never exceeds the real file edge count",
+    dirGraph.stats.edgesUsed <= dirGraph.stats.edgesFileTotal);
+  check("no co-location edge source is used at directory granularity",
+    dirGraph.stats.directoryEdgeSourceUsed === false && dirGraph.stats.directoryFallbackUsed === false);
+  check("every file lands in exactly one directory node",
+    [...dirGraph.filesInDir.values()].reduce((a, l) => a + l.length, 0) === Object.keys(idMap.nodes).length);
+
+  for (const gran of ["dir1", "dir2", "dir3", "dirleaf"]) {
+    const r = computeRegions({ k: 14, granularity: gran });
+    const total = r.regions.reduce((a, x) => a + x.size, 0);
+    check(`${gran}: regions still partition ALL ${Object.keys(idMap.nodes).length} file nodes exactly once`,
+      total === Object.keys(idMap.nodes).length &&
+      new Set(r.regions.flatMap((x) => x.members)).size === total);
+    check(`${gran}: every region has a real file hub`, r.regions.every((x) => typeof x.hub === "string"));
+  }
+
+  // file-level must remain the untouched CONTROL
+  const controlSizes = computeRegions({ k: 14 }).regions.map((r) => r.size).join(",");
+  check("default granularity is still file-level (control condition preserved)",
+    controlSizes === result.regions.map((r) => r.size).join(","));
+
   const gitnexus = loadGitNexusCommunities();
   check("gitnexus check returns a definite available:boolean (never silently guesses)", typeof gitnexus.available === "boolean");
 
@@ -367,12 +630,14 @@ if (isMain) {
   const k = kArg ? Number(kArg.slice(4)) : 14;
   const edgesArg = args.find((a) => a.startsWith("--edges="));
   const edgesPath = edgesArg ? edgesArg.slice(8) : undefined;
+  const granArg = args.find((a) => a.startsWith("--granularity="));
+  const granularity = granArg ? granArg.slice(14) : "file";
   const verbose = args.includes("--verbose");
   const asJson = args.includes("--json");
 
   let result;
   try {
-    result = computeRegions({ k, edgesPath });
+    result = computeRegions({ k, edgesPath, granularity });
   } catch (err) {
     if (err instanceof MissingEdgesError) {
       console.error(err.message);

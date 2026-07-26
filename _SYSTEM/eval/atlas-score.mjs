@@ -150,17 +150,30 @@ function resolveXref(question, top) {
   return { paths, hops: 1 };
 }
 
-function resolveAtlas(_question, _top) {
+let _atlasResolveModule = null;
+
+function resolveAtlas(question, top) {
   if (!existsSync(ATLAS_CHECKPOINTS)) {
     const err = new Error('atlas artifacts not built yet');
     err.exitCode = 2;
     throw err;
   }
-  // Not implemented: Atlas checkpoints exist but the resolver logic that turns a question into
-  // ranked paths using them has not been built. Do not fake a score here.
-  const err = new Error('atlas artifacts not built yet');
-  err.exitCode = 2;
-  throw err;
+  if (!_atlasResolveModule) {
+    // Loaded lazily via dynamic import kept synchronous-looking through a cached promise result;
+    // resolver functions in this file are called synchronously, so we resolve the module once
+    // up front in main() before scoring starts (see main()).
+    throw new Error('atlas resolver module not preloaded — call preloadAtlasResolver() first');
+  }
+  const { paths } = _atlasResolveModule.resolve(question, { top });
+  return { paths, hops: 1 };
+}
+
+async function preloadAtlasResolver() {
+  if (_atlasResolveModule) return;
+  const mod = await import(path.join(REPO_ROOT, '_SYSTEM/Scripts/atlas/atlas-resolve.mjs'));
+  _atlasResolveModule = {
+    resolve: (question, opts) => ({ paths: mod.resolve(question, opts) }),
+  };
 }
 
 const RESOLVERS = {
@@ -240,7 +253,7 @@ function runSelfCheck(benchmark) {
 // MAIN
 // ---------------------------------------------------------------------------------------------
 
-function main() {
+async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     printHelp();
@@ -264,6 +277,15 @@ function main() {
   if (!resolverFn) {
     console.error(`atlas-score: unknown resolver "${args.resolver}" (known: ${Object.keys(RESOLVERS).join(', ')})`);
     process.exit(1);
+  }
+
+  if (args.resolver === 'atlas' && existsSync(ATLAS_CHECKPOINTS)) {
+    try {
+      await preloadAtlasResolver();
+    } catch (e) {
+      console.error(`atlas-score: failed to load atlas resolver: ${e.message}`);
+      process.exit(1);
+    }
   }
 
   let result;
@@ -302,4 +324,7 @@ function main() {
   }
 }
 
-main();
+main().catch((e) => {
+  console.error(`atlas-score: unhandled error: ${e && e.message ? e.message : e}`);
+  process.exit(1);
+});

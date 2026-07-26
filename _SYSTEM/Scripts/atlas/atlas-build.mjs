@@ -118,15 +118,16 @@ function memberHash(members) {
 // sub-cluster of the giant component has no single circuitry-node query that
 // recovers it, so the honest reproduce line is the CANONICAL region command
 // (regenerates ALL regions deterministically) plus the clusterKey to pick this one.
-function reproduceCommand(region, k) {
-  return `node _SYSTEM/Scripts/atlas/atlas-regions.mjs --k=${k} --json   # then select clusterKey="${region.clusterKey}"`;
+function reproduceCommand(region, k, granularity = "file") {
+  return `node _SYSTEM/Scripts/atlas/atlas-regions.mjs --k=${k} --granularity=${granularity} --json   # then select clusterKey="${region.clusterKey}"`;
 }
 
 export function buildCheckpoints(opts = {}) {
   const k = opts.k ?? 14;
+  const granularity = opts.granularity ?? "file";
   const idMap = readJson(ID_MAP_PATH);
   const protectedPrefixes = loadProtectedPrefixes();
-  const result = computeRegions({ k, seed: opts.seed ?? 1 });
+  const result = computeRegions({ k, granularity, seed: opts.seed ?? 1 });
 
   const checkpoints = [];
   const usedSlugs = new Set();
@@ -154,7 +155,9 @@ export function buildCheckpoints(opts = {}) {
         id: checkpoints[n.region]?.id ?? `pending-${n.region}`,
         weight: n.weight,
       })),
-      reproduce: reproduceCommand(region, k),
+      reproduce: reproduceCommand(region, k, granularity),
+      granularity,
+      dir_members: region.dirMembers ?? null, // non-null only at directory granularity
       member_hash: memberHash(region.members),
       described_at_hash: null,
     });
@@ -174,6 +177,7 @@ export function buildCheckpoints(opts = {}) {
     checkpoints,
     meta: {
       k,
+      granularity,
       idMapCounts: idMap.counts,
       edgeStats: result.edgeStats,
       graphSummary: result.graphSummary,
@@ -204,7 +208,9 @@ function printHelp() {
   console.log(`atlas-build.mjs — build _SYSTEM/state/atlas/checkpoints.json from region clustering
 
 Usage:
-  node _SYSTEM/Scripts/atlas/atlas-build.mjs [--k=N] [--json] [--verbose] [--out=PATH] [--test] [--help]
+  node _SYSTEM/Scripts/atlas/atlas-build.mjs [--k=N] [--granularity=G] [--json] [--verbose] [--out=PATH] [--test] [--help]
+
+  --granularity=G  file (default) | dir1 | dir2 | dir3 | dirleaf — see atlas-regions.mjs --help.
 `);
 }
 
@@ -240,10 +246,12 @@ if (isMain) {
   const k = kArg ? Number(kArg.slice(4)) : 14;
   const outArg = args.find((a) => a.startsWith("--out="));
   const outPath = outArg ? outArg.slice(6) : OUT_PATH;
+  const granArg = args.find((a) => a.startsWith("--granularity="));
+  const granularity = granArg ? granArg.slice(14) : "file";
   const verbose = args.includes("--verbose");
   const asJson = args.includes("--json");
 
-  const { checkpoints, meta } = buildCheckpoints({ k });
+  const { checkpoints, meta } = buildCheckpoints({ k, granularity });
   const summary = summarize(checkpoints);
 
   mkdirSync(path.dirname(path.join(REPO_ROOT, outPath)), { recursive: true });
