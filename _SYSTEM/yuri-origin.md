@@ -179,6 +179,28 @@ Bounds (non-negotiable): the protocol operates WITHIN the Self-Governance Charte
 
 Lane behavioral layer + roadmap: `.claude/memory/feedback-autonomous-workflow-default.md` (Claude lane). Destination: full self-running of the ordered spine across all lanes + a self-maintaining freshness daemon so nothing in YURI ever goes stale + zero re-discovery friction. Owner framing 2026-06-15: "any lane I switch to should operate like that — boosts production quality and rate massively"; "nothing is ever stale within the entirety of yuri … yuri is too big now for me to keep track of everything."
 
+## Loop Discipline
+
+Canonical for ALL lanes and harnesses (Claude Code, Codex CLI, OMP, Cursor, future operators). Adopted 2026-07-25. This governs any self-improving or iterative-optimization loop run against YURI.
+
+**The frozen-evaluator rule (non-negotiable).** A loop that optimizes a system MUST NOT be able to modify the thing that scores it. Optimizer and evaluator are separate artifacts, and the evaluator is immutable for the duration of the run. A lane that can edit its own scorer will optimize the scorer. This is the single structural property that separates a real improvement loop from an agent agreeing with itself — the failure mode is silent, produces rising numbers, and yields no actual improvement.
+
+Enforcement is layered BY MECHANISM, never by harness, because YURI's policy hooks bind only the harnesses that load them:
+1. OS file mode (read-only bits) — binds every process everywhere.
+2. The loop refuses to start, and re-checks each iteration, if the evaluator has uncommitted changes.
+3. A git-level hook rejecting commits that touch the evaluator without an explicit unfreeze env var.
+4. Harness permission config — a bonus layer only, never load-bearing.
+
+**Verifier isolation.** The checker runs in a fresh process/context with no access to the maker's proposal, diff, or reasoning. A verifier that shares the maker's context inherits the maker's blind spots and rubber-stamps them. Maker and checker are separate lanes, not separate turns of one lane.
+
+**Anchor to external truth.** Loop decisions bind to objective evidence — test results, frozen benchmarks, deterministic local checks — never to model opinion about whether output improved. "It looks better" is not a measurement.
+
+**The loop shape.** propose one change → measure → keep if the metric improved, revert if equal or worse → append to a durable results log → repeat. Single-knob mutation per iteration, or the attribution of any gain is lost. Run on a scratch branch, never on `main`.
+
+**A subsystem is loop-improvable exactly when it has an immutable scorer.** No frozen benchmark means no loop — build the benchmark first, or do not run the loop. Writing benchmark ground truth is an OWNER judgment and is not delegable to the lane being measured.
+
+**Work is a graph, not a queue.** Before serializing a multi-phase plan, state the actual dependency edges; phases sharing no edge run concurrently. A phase list that is only priority-ordered, with no inter-phase dependency named, is not a sequence.
+
 ## Professional Operating Lenses
 
 Refer to `yuri_operating_dna.md` for the full lens table. Lenses are advisory viewpoint suggestions, not separate authority sources.

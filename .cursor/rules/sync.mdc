@@ -1,0 +1,63 @@
+---
+description: YURI-OS-MUSUBI spine adapter for Cursor — routes cursor-agent to the canonical operating contract. Always applied.
+globs:
+alwaysApply: true
+---
+
+# Cursor adapter — YURI-OS-MUSUBI
+
+Thin adapter. This file **routes** to authority; it does not restate policy. Where a rule appears here and in `_SYSTEM/yuri-origin.md`, the origin wins.
+
+Sibling adapters: `CLAUDE.md` (Claude Code), `AGENTS.md` (OMP / root agent), `GEMINI.md`, `.codex/*` (Codex CLI). All four inherit the same spine. This one exists because `cursor-agent` previously inherited nothing.
+
+## Read order (every session, natively)
+
+1. `_SYSTEM/yuri-origin.md` — canonical operating contract (authority layer)
+2. `_SYSTEM/persona.md` — identity, cognition, operator model
+3. `SOUL.md` — core truths, adversarial-ally contract
+4. This file — Cursor-specific routing
+5. xref-selected context evidence (on task)
+6. task-local files
+
+## Workspace
+
+`/Users/marcelspatz/YURI-OS-MUSUBI`, branch `main`. Operator: **Marcel** — address him by name, never "Rick" (Rick is the assistant persona, not the operator).
+
+Before any mutation work: confirm `pwd` is the repo root and `git branch --show-current` is `main`. On mismatch, stop and report — do not auto-`cd`, do not switch branches.
+
+## Spine (inherited, never restated here)
+
+Authority, mutation, evidence, protected-surface, self-governance, and lane-routing rules all flow from `_SYSTEM/yuri-origin.md`. Pointers only:
+
+- **Mutation Contract** — explicit pathspec on every commit (`git add <paths>` + `git commit -- <paths>`). Never `git add .`, never a bare `git commit`, never force-push. Checks green + `git show --stat HEAD` before push.
+- **Protected Surfaces** — `.env`, `.claude/state/`, `.claude/history/`, `.claude/file-history/`, `.claude/projects/*/{history,state,file-history,worktrees,transcripts}`, `backend/data/`, `node_modules/`, `.amp/`, secrets. Mutation-locked.
+- **Evidence Contract** — deterministic local evidence before any PASS claim. Model output is advisory until locally verified.
+- **Self-Governance Charter** — decide and execute when reversible, evidence-decidable, in-doctrine, blast-radius ≤ MEDIUM, not outward-facing, not contended. Otherwise produce the finished ruling and hold for a one-token owner confirm.
+
+## Destructive-command floor (read this one twice)
+
+YURI's policy hooks do **not** load in Cursor. Nothing here will stop you at the tool layer — the guard that blocks these in other lanes is invisible to `cursor-agent`. That makes the floor a matter of discipline, not enforcement:
+
+- **Never run `git sparse-checkout` in any form.** On 2026-07-17 an agent used it to "protect" paths; sparse patterns are INCLUDES, not excludes, so it evicted 4,138 tracked files and `git status` reported clean for eight days.
+- Never `git update-index --skip-worktree` / `--assume-unchanged`. Both make git lie about the working tree.
+- Never `git reset --hard` onto a fetched ref without first confirming the current HEAD is reachable from another ref. A reset on 2026-07-19 severed 1,425 commits of history.
+- Never `git checkout --` / `git restore` across a broad pathspec. To recover deleted files, write only paths that are currently absent and never overwrite an existing file.
+- No dependency installs without explicit owner approval.
+
+## Wayfinding (before broad exploration)
+
+```bash
+node _SYSTEM/Scripts/xref-query.mjs "<task>"          # fused front-door: FTS5 + graph + GitNexus + capabilities
+node _SYSTEM/Scripts/capability-recall.mjs "<need>"   # BEFORE building any new mechanism — 277 registered
+node _SYSTEM/Scripts/propagation-scan.mjs <node-id> --dry-run
+```
+
+Capability-first is a hard rule: check what exists before writing a new primitive. Register new reusable mechanisms with a `// @capability:` tag, then `capability-scan.mjs`.
+
+## Skills
+
+Canonical skills live in root `skills/`. Provider folders (`.claude/skills/`, `.agents/skills/`, `.codex/skills/`) are compatibility projections, not sources. Edit the canonical copy.
+
+## Verification
+
+Attack your own result before calling it done. Run the smallest meaningful checks including negative ones. End substantive work with: what changed, what was checked, residual risk stated as the specific condition that would flip the ruling, and what is deliberately deferred to the owner.
