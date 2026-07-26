@@ -59,16 +59,23 @@ function escapeRegExp(s) {
 // shell expands `~`/`$HOME` before the string ever reaches this evaluator in most real invocations —
 // e.g. `cat /Users/marcelspatz/.aws/credentials`). Matching only the unexpanded token forms silently
 // misses every real shell invocation, which is the exact bypass a naive fix would leave open.
-function homeRelativePattern(suffixRe, label) {
+// Owner directive 2026-07-26: protected surfaces are MUTATION-locked, not universally unreadable —
+// this mirrors the wording already in `_SYSTEM/yuri-origin.md` → Protected Surfaces, which the shell
+// gate was previously stricter than. `secret: true` marks the SUBSET that stays read-blocked because
+// it carries live credential material; everything else is readable and mutation-blocked. Track B
+// memory (`.claude/projects/**/memory/`) is deliberately in the readable tier — it is behavioural
+// state, holds no secrets, and must be globally readable across harnesses.
+function homeRelativePattern(suffixRe, label, opts = {}) {
   const literalHome = escapeRegExp(HOME_DIR);
   return {
     re: new RegExp(`(^|[\\s"'=;:])(?:~|\\$HOME|${literalHome})\\/${suffixRe}`, 'u'),
     label,
+    secret: opts.secret === true,
   };
 }
 
 const PROTECTED_LITERAL_PATTERNS = [
-  { re: /(^|[\s"'=;:])\.env($|[\s"';|&])/u, label: '.env' },
+  { re: /(^|[\s"'=;:])\.env($|[\s"';|&])/u, label: '.env', secret: true },
   { re: /(^|[\s"'=;:])\.claude\/state(\/|$|[\s"';|&])/u, label: '.claude/state' },
   { re: /(^|[\s"'=;:])\.claude\/history(\/|$|[\s"';|&])/u, label: '.claude/history' },
   { re: /(^|[\s"'=;:])\.claude\/file-history(\/|$|[\s"';|&])/u, label: '.claude/file-history' },
@@ -78,29 +85,29 @@ const PROTECTED_LITERAL_PATTERNS = [
   { re: /(^|[\s"'=;:])_SYSTEM\/backend\/data(\/|$|[\s"';|&])/u, label: '_SYSTEM/backend/data' },
   { re: /(^|[\s"'=;:])node_modules(\/|$|[\s"';|&])/u, label: 'node_modules' },
   { re: /(^|[\s"'=;:])\.git\/hooks(\/|$|[\s"';|&])/u, label: '.git/hooks' },
-  { re: /(^|[\s"'=;:])\.git\/config($|[\s"';|&])/u, label: '.git/config' },
+  { re: /(^|[\s"'=;:])\.git\/config($|[\s"';|&])/u, label: '.git/config', secret: true },
   // SEC-4: literal-pattern mirrors for the HOME-relative denylist so string-match paths (e.g.
   // `cat ~/.aws/credentials`, `cat $HOME/.ssh/id_rsa`, or the shell-expanded absolute form) are
   // caught even when extractLikelyWriteTargets doesn't fire (reads, not redirects/tee/output-flags).
-  homeRelativePattern('\\.aws(\\/|$|[\\s"\';|&])', '~/.aws'),
-  homeRelativePattern('\\.npmrc($|[\\s"\';|&])', '~/.npmrc'),
-  homeRelativePattern('\\.docker(\\/|$|[\\s"\';|&])', '~/.docker'),
-  homeRelativePattern('\\.gitconfig($|[\\s"\';|&])', '~/.gitconfig'),
-  homeRelativePattern('\\.ssh(\\/|$|[\\s"\';|&])', '~/.ssh'),
-  homeRelativePattern('\\.zsh_history($|[\\s"\';|&])', '~/.zsh_history'),
-  homeRelativePattern('Library\\/Keychains(\\/|$|[\\s"\';|&])', '~/Library/Keychains'),
+  homeRelativePattern('\\.aws(\\/|$|[\\s"\';|&])', '~/.aws', { secret: true }),
+  homeRelativePattern('\\.npmrc($|[\\s"\';|&])', '~/.npmrc', { secret: true }),
+  homeRelativePattern('\\.docker(\\/|$|[\\s"\';|&])', '~/.docker', { secret: true }),
+  homeRelativePattern('\\.gitconfig($|[\\s"\';|&])', '~/.gitconfig', { secret: true }),
+  homeRelativePattern('\\.ssh(\\/|$|[\\s"\';|&])', '~/.ssh', { secret: true }),
+  homeRelativePattern('\\.zsh_history($|[\\s"\';|&])', '~/.zsh_history', { secret: true }),
+  homeRelativePattern('Library\\/Keychains(\\/|$|[\\s"\';|&])', '~/Library/Keychains', { secret: true }),
   homeRelativePattern('\\.claude\\/settings(?:\\.local)?\\.json($|[\\s"\';|&])', '~/.claude/settings.json'),
   // Phase 6 (SEC-4 residual): literal mirrors for the new HOME-relative stores above.
-  homeRelativePattern('\\.config\\/gcloud(\\/|$|[\\s"\';|&])', '~/.config/gcloud'),
-  homeRelativePattern('\\.kube(\\/|$|[\\s"\';|&])', '~/.kube'),
-  homeRelativePattern('\\.gnupg(\\/|$|[\\s"\';|&])', '~/.gnupg'),
-  homeRelativePattern('\\.config\\/op(\\/|$|[\\s"\';|&])', '~/.config/op'),
-  homeRelativePattern('\\.config\\/1Password(\\/|$|[\\s"\';|&])', '~/.config/1Password'),
-  homeRelativePattern('\\.config\\/gh\\/hosts\\.yml($|[\\s"\';|&])', '~/.config/gh/hosts.yml'),
+  homeRelativePattern('\\.config\\/gcloud(\\/|$|[\\s"\';|&])', '~/.config/gcloud', { secret: true }),
+  homeRelativePattern('\\.kube(\\/|$|[\\s"\';|&])', '~/.kube', { secret: true }),
+  homeRelativePattern('\\.gnupg(\\/|$|[\\s"\';|&])', '~/.gnupg', { secret: true }),
+  homeRelativePattern('\\.config\\/op(\\/|$|[\\s"\';|&])', '~/.config/op', { secret: true }),
+  homeRelativePattern('\\.config\\/1Password(\\/|$|[\\s"\';|&])', '~/.config/1Password', { secret: true }),
+  homeRelativePattern('\\.config\\/gh\\/hosts\\.yml($|[\\s"\';|&])', '~/.config/gh/hosts.yml', { secret: true }),
   // Phase 6: private-key material ANYWHERE by name — not scoped to ~/.ssh, since a key can live in a
   // backup/download/repo-adjacent copy outside that directory. Matches the filename token itself.
-  { re: /(^|[\s"'/=;:])id_(?:rsa|ed25519|ecdsa|dsa)(?:\.pub)?($|[\s"';|&])/u, label: 'private-key file (id_rsa/ed25519/ecdsa/dsa)' },
-  { re: /(^|[\s"'/=;:])[\w.-]+\.(?:pem|p12)($|[\s"';|&])/u, label: 'private-key material (*.pem/*.p12)' },
+  { re: /(^|[\s"'/=;:])id_(?:rsa|ed25519|ecdsa|dsa)(?:\.pub)?($|[\s"';|&])/u, label: 'private-key file (id_rsa/ed25519/ecdsa/dsa)', secret: true },
+  { re: /(^|[\s"'/=;:])[\w.-]+\.(?:pem|p12)($|[\s"';|&])/u, label: 'private-key material (*.pem/*.p12)', secret: true },
 ];
 
 const MUTATING_COMMAND_RE =
@@ -119,7 +126,15 @@ const PROTECTED_READ_SEGMENT_RE =
   /^\s*(?:(?:command|builtin)\s+)?(?:cat|head|tail|less|more|bat|nl|view|strings|xxd|hexdump|od|grep|rg|awk|sed|cut|sort|uniq|read|source|find|ls|stat|du|wc|file|readlink|realpath|shasum|sha256sum|md5|printf|echo|git\s+(?:status|log|diff|show|ls-files|rev-parse|check-ignore|branch|remote|describe|cat-file))\b/u;
 
 const DESTRUCTIVE_PATTERNS = [
-  { re: /\brm\s+-[^;&|]*[rR][^;&|]*[fF]?/u, reason: 'destructive recursive rm is blocked' },
+  // Owner directive 2026-07-26: the previous pattern was /\brm\s+-[^;&|]*[rR][^;&|]*[fF]?/ — the
+  // `[^;&|]*` ran greedily PAST the flag cluster into the pathname, so ANY `rm -f <path containing
+  // an r>` matched and was reported as "recursive". `rm -f _guard-head-tmp.mjs` blocked on the `r`
+  // in "guard". That fired constantly on ordinary single-file deletes and trained everyone to work
+  // around the guard, which is worse than the guard not existing.
+  // Now: `r`/`R`/`--recursive` must appear INSIDE a flag token (leading `-`, letters only), so
+  // `rm -rf x`, `rm -fr x`, `rm -r x`, `rm -i -R x`, `rm --recursive x` all still block, while
+  // `rm -f file.mjs` and `rm file.txt` (non-recursive, single target) pass.
+  { re: /\brm\s+(?:-[a-zA-Z]+\s+)*(?:-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)\b/u, reason: 'destructive recursive rm is blocked' },
   { re: /\bgit\s+reset\s+--hard\b/u, reason: 'git reset --hard is blocked' },
   { re: /\bgit\s+clean\s+-[^;&|]*[dDxXfF]/u, reason: 'git clean destructive mode is blocked' },
   { re: /\bgit\s+checkout\s+--\s+/u, reason: 'git checkout -- path restore is blocked' },
@@ -241,18 +256,32 @@ function evaluateShellCommand(command, cwd) {
   }
 
   const protectedLiteral = protectedLiteralHit(command);
-  if (protectedLiteral && isProtectedReadOnlyCommand(command)) return allow();
+  // SECURITY FIX 2026-07-26: this early-allow previously fired for ALL protected literals, including
+  // credential stores — so `cat .env`, `cat ~/.aws/credentials` and `cat ~/.ssh/id_rsa` returned
+  // allow() here and NEVER reached the SEC-4 read-block below that was written specifically to stop
+  // them. The block was unreachable for its own stated cases; the protection has never fired.
+  // Verified against the committed version before this edit: all five credential reads were ALLOW.
+  // Secret-tier literals now skip the early-allow and fall through to the read-block.
+  if (protectedLiteral && !protectedLiteral.secret && isProtectedReadOnlyCommand(command)) return allow();
   if (protectedLiteral && MUTATING_COMMAND_RE.test(command)) {
     if (isAllowedProtectedReadForOffload(command, protectedLiteral.label)) return allow();
     return block(`mutation of protected target blocked: ${protectedLiteral.label}`);
   }
-  // SEC-4: a protected literal under a plain READ command (cat/head/grep/etc, no mutating verb) must
-  // ALSO deny — closes the read-only bypass (e.g. `cat ~/.aws/credentials`, `cat .env`) the original
-  // gate left open by only checking MUTATING_COMMAND_RE. Same offload carve-out applies so the
-  // existing `.env` DEEPSEEK_API_KEY hydration path (source/grep, no redirect) still degrades to allow.
-  if (protectedLiteral && READ_COMMAND_RE.test(command)) {
+  // SEC-4 + owner directive 2026-07-26 (READ-ONLY, NOT INACCESSIBLE):
+  // A plain READ over a protected literal denies ONLY when that literal is credential-bearing
+  // (`secret: true`). That keeps the original SEC-4 bypass closed for `cat ~/.aws/credentials`,
+  // `cat .env`, `cat id_rsa` — the cases the block was actually written for.
+  //
+  // Non-secret protected surfaces (`.claude/state`, `.claude/history`, `.claude/file-history`,
+  // `.claude/projects` incl. Track-B memory, `.amp`, `backend/data`, `node_modules`, `.git/hooks`)
+  // are now READABLE. They are mutation-locked state, not credential material, and blocking reads
+  // made the gate stricter than `_SYSTEM/yuri-origin.md` → Protected Surfaces actually says
+  // ("mutation-locked by default, not invisible"). It also blocked ordinary read-only inspection
+  // (`git ls-files`, `ls`, `stat`) of Track-B memory, which must be globally readable across
+  // harnesses. Mutation of ALL protected targets stays blocked above — unchanged.
+  if (protectedLiteral && protectedLiteral.secret && READ_COMMAND_RE.test(command)) {
     if (isAllowedProtectedReadForOffload(command, protectedLiteral.label)) return allow();
-    return block(`read of protected target blocked: ${protectedLiteral.label}`);
+    return block(`read of protected secret blocked: ${protectedLiteral.label}`);
   }
 
   return allow();
