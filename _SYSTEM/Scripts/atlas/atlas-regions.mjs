@@ -4,19 +4,35 @@
 // articulation/bridges, or curvature math. All of that lives in
 // `arch-graph-engine.mjs` (loadArchGraph / connectedComponents / spectralCluster /
 // tarjanArticulationAndBridges) and is imported + reused here verbatim. This file's
-// only job is: (1) build an edge list over Phase-1 canonical IDs
-// (`_SYSTEM/state/atlas/id-map.json`), (2) hand that graph to arch-graph-engine's
-// existing analyzers, (3) pick a hub per resulting cluster, (4) cross-check against
-// GitNexus communities where that data is actually reachable.
+// only job is: (1) load the Phase-1b real edge list
+// (`_SYSTEM/state/atlas/edges.json`, produced by `atlas-edges.mjs` over the
+// Phase-1 canonical IDs in `id-map.json`), (2) hand that graph to
+// arch-graph-engine's existing analyzers, (3) pick a hub per resulting cluster,
+// (4) cross-check against GitNexus communities where that data is actually
+// reachable.
+//
+// WIRING FIX (2026-07-26): this module used to rebuild its OWN edge list from
+// CIRCUITRY_PATH + KNOWLEDGE_GRAPH_PATH + a directory-co-location fallback,
+// entirely independent of `atlas-edges.mjs`'s deduped, 4-source, weighted
+// edges.json (2,813 edges vs. this module's ~1,557; edges_per_node 1.3).
+// Growing edges.json 1,557 -> 2,813 edges produced a BYTE-IDENTICAL region
+// distribution (373 regions, 1/1/436) because this file never read it. The
+// directory-colocation fallback fabricated the dominant 436-member blob (281
+// `.test.mjs` files transitively chained through the flat `_SYSTEM/Scripts/`
+// directory) — an honestly isolated node beats a fabricated edge, so that
+// fallback is DELETED, not merely deprioritized. edges.json is now the sole
+// edge source; a missing edges.json is a hard, loud failure (no silent
+// fallback to the old internal builder — a silent fallback is exactly what
+// hid this bug for as long as it went unnoticed).
 //
 // @capability: atlas-regions
 // @serves: cluster the whole repo into human-navigable regions | atlas town map | region hub selection
-// @does: builds a canonical-ID edge graph (circuitry + knowledge-graph + directory-colocation fallback),
+// @does: loads the canonical-ID edge graph from atlas-edges.mjs's edges.json,
 //   spectral-clusters it via arch-graph-engine, and picks a hub per cluster.
 // @use: reach for this instead of hand-rolling a new graph-clustering pass over YURI's mechanisms.
 // @exports: buildEdgeGraph, computeRegions, loadGitNexusCommunities, main
 
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import {
@@ -29,113 +45,84 @@ import {
 const REPO_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 
 export const ID_MAP_PATH = "_SYSTEM/state/atlas/id-map.json";
-export const CIRCUITRY_PATH = "02_RESOURCES/RESEARCH/yuri-circuitry-graph.json";
-export const KNOWLEDGE_GRAPH_PATH = "_SYSTEM/state/yuri-knowledge-graph.json";
+export const EDGES_PATH = "_SYSTEM/state/atlas/edges.json";
 export const GITNEXUS_META_PATH = ".gitnexus/meta.json";
 
-// Custom edge-type weight ladder (priority order per the task spec):
-//   1) circuitry calls/reads (mechanism-sharing, strongest signal)
-//   2) knowledge-graph edges (imports strongest, then capability/state/doc edges)
-//   3) directory co-location — weak fallback, orphan-only
-export const REGION_TYPE_WEIGHT = {
-  "circuitry-calls": 1.0,
-  "circuitry-reads": 0.9,
-  "kg-imports": 0.7,
-  "kg-registers-capability": 0.6,
-  "kg-reads-state": 0.55,
-  "kg-writes-state": 0.5,
-  "kg-role-uses": 0.45,
-  "kg-documents": 0.4,
-  "dir-colocation": 0.05,
+// Base semantic weight per edges.json `kind` (the same priority spirit as the
+// old REGION_TYPE_WEIGHT ladder: mechanism-level calls/reads outrank plain
+// imports, which outrank a doc merely naming a path).
+export const EDGE_KIND_WEIGHT = {
+  calls: 1.0,
+  reads: 0.85,
+  imports: 0.7,
+  references: 0.3,
 };
+const DEFAULT_KIND_WEIGHT = 0.5;
 
 function readJson(relPath) {
   return JSON.parse(readFileSync(path.join(REPO_ROOT, relPath), "utf8"));
 }
 
-// ---- alias index: source -> (alias-id -> canonical-id) ---------------------
-function buildAliasIndex(idMap) {
-  const bySource = new Map(); // source -> Map(aliasId -> canonicalId)
-  for (const [canon, node] of Object.entries(idMap.nodes)) {
-    for (const al of node.aliases) {
-      if (!bySource.has(al.source)) bySource.set(al.source, new Map());
-      // first-writer-wins (id-map itself guarantees exact/unique aliases per source
-      // for the mapped set; a rare duplicate keeps the first canonical owner).
-      const m = bySource.get(al.source);
-      if (!m.has(al.id)) m.set(al.id, canon);
-    }
+export class MissingEdgesError extends Error {
+  constructor(edgesPath) {
+    super(
+      `atlas-regions: cannot find edges file at "${edgesPath}".\n` +
+      `Region clustering requires the deduped multi-source edge list built by atlas-edges.mjs.\n` +
+      `Run: node _SYSTEM/Scripts/atlas/atlas-edges.mjs   (then re-run atlas-regions.mjs).\n` +
+      `This is a hard failure by design — silently falling back to an internal edge builder ` +
+      `is exactly the bug this file was fixed for (see the WIRING FIX header comment).`
+    );
+    this.name = "MissingEdgesError";
   }
-  return bySource;
 }
 
-// ---- edge source 1: circuitry graph (calls/reads only, writes excluded) ----
-function circuitryEdges(aliasIndex) {
-  const circIdx = aliasIndex.get("circuitry") || new Map();
-  const cg = readJson(CIRCUITRY_PATH);
-  const out = [];
-  let dropped = 0;
-  for (const e of cg.edges || []) {
-    if (e.kind !== "calls" && e.kind !== "reads") continue; // per-repo convention: only mechanism-sharing kinds count
-    const from = circIdx.get(e.from);
-    const to = circIdx.get(e.to);
-    if (!from || !to || from === to) { dropped++; continue; }
-    out.push({ source: from, target: to, type: `circuitry-${e.kind}` });
-  }
-  return { edges: out, dropped, total: (cg.edges || []).length };
+// ---- load the Phase-1b edge list and translate it into arch-graph-engine's
+// {source, target, type} shape. edges.json's `from`/`to` are ALREADY the same
+// canonical IDs used as id-map.json's node keys (verified 1:1, no alias
+// translation needed) — this loader's only real jobs are: (1) fail loudly if
+// the file is absent, (2) fold each edge's `weight` (independent-source
+// agreement count, 1-4 in practice) into the graph weight rather than
+// discarding it, by encoding a composite `type` key of `${kind}:${weight}`
+// and building the typeWeight lookup arch-graph-engine's loadArchGraph()
+// already supports (its 2nd param) so every distinct (kind, weight) pair maps
+// to an exact numeric edge weight = kindWeight(kind) * weight. This keeps
+// weight respected exactly, through the existing type-weight mechanism,
+// instead of silently dropping it on the floor.
+export function loadEdgesJson(edgesRelPath = EDGES_PATH) {
+  const abs = path.join(REPO_ROOT, edgesRelPath);
+  if (!existsSync(abs)) throw new MissingEdgesError(edgesRelPath);
+  return readJson(edgesRelPath);
 }
 
-// ---- edge source 2: knowledge-graph edges (all types, KG's own convention) --
-function knowledgeGraphEdges(aliasIndex) {
-  const kgIdx = aliasIndex.get("knowledge-graph") || new Map();
-  const kg = readJson(KNOWLEDGE_GRAPH_PATH);
+function edgesJsonToGraphEdges(edgesDoc, nodeKeys) {
   const out = [];
-  let dropped = 0;
-  for (const e of kg.edges || []) {
-    const from = kgIdx.get(e.from);
-    const to = kgIdx.get(e.to);
-    if (!from || !to || from === to) { dropped++; continue; }
-    const type = `kg-${e.type}`;
-    out.push({ source: from, target: to, type });
+  const typeWeight = {};
+  let selfLoops = 0;
+  let danglingEndpoints = 0;
+  for (const e of edgesDoc.edges || []) {
+    if (!nodeKeys.has(e.from) || !nodeKeys.has(e.to)) { danglingEndpoints++; continue; }
+    if (e.from === e.to) { selfLoops++; continue; }
+    const kindW = EDGE_KIND_WEIGHT[e.kind] ?? DEFAULT_KIND_WEIGHT;
+    const weight = Number.isFinite(e.weight) && e.weight > 0 ? e.weight : 1;
+    const type = `${e.kind}:${weight}`;
+    if (!(type in typeWeight)) typeWeight[type] = kindW * weight;
+    out.push({ source: e.from, target: e.to, type });
   }
-  return { edges: out, dropped, total: (kg.edges || []).length };
-}
-
-// ---- edge source 3: directory co-location, weak fallback, orphans only -----
-// Only wires nodes that have ZERO edges from sources 1+2 — a real mechanism edge
-// always outranks a same-directory guess. Caps fan-out per orphan (5 nearest
-// same-dir siblings by path) so a flat 688-file directory doesn't become a clique.
-function directoryFallbackEdges(idMap, existingDegree) {
-  const byDir = new Map();
-  for (const [canon, node] of Object.entries(idMap.nodes)) {
-    const dir = path.posix.dirname(node.path);
-    if (!byDir.has(dir)) byDir.set(dir, []);
-    byDir.get(dir).push(canon);
-  }
-  for (const list of byDir.values()) list.sort();
-
-  const out = [];
-  for (const [canon, node] of Object.entries(idMap.nodes)) {
-    if ((existingDegree.get(canon) || 0) > 0) continue; // only true orphans
-    const dir = path.posix.dirname(node.path);
-    const siblings = (byDir.get(dir) || []).filter((s) => s !== canon);
-    const nearest = siblings.slice(0, 5);
-    for (const s of nearest) out.push({ source: canon, target: s, type: "dir-colocation" });
-  }
-  return out;
+  return { edges: out, typeWeight, selfLoops, danglingEndpoints };
 }
 
 // ---- assemble the arch-graph-engine-compatible graphJson --------------------
-export function buildEdgeGraph(idMap = readJson(ID_MAP_PATH)) {
-  const aliasIndex = buildAliasIndex(idMap);
-  const circ = circuitryEdges(aliasIndex);
-  const kg = knowledgeGraphEdges(aliasIndex);
+export function buildEdgeGraph(idMap = readJson(ID_MAP_PATH), opts = {}) {
+  const edgesRelPath = opts.edgesPath ?? EDGES_PATH;
+  const edgesDoc = loadEdgesJson(edgesRelPath);
+  const nodeKeys = new Set(Object.keys(idMap.nodes));
+  const { edges, typeWeight, selfLoops, danglingEndpoints } = edgesJsonToGraphEdges(edgesDoc, nodeKeys);
 
   const degree = new Map();
-  for (const e of [...circ.edges, ...kg.edges]) {
+  for (const e of edges) {
     degree.set(e.source, (degree.get(e.source) || 0) + 1);
     degree.set(e.target, (degree.get(e.target) || 0) + 1);
   }
-  const dirFallback = directoryFallbackEdges(idMap, degree);
 
   const nodes = Object.entries(idMap.nodes).map(([canon, node]) => ({
     id: canon,
@@ -143,22 +130,23 @@ export function buildEdgeGraph(idMap = readJson(ID_MAP_PATH)) {
     sector: path.posix.dirname(node.path).split("/").slice(0, 2).join("/") || "root",
   }));
 
-  const edges = [...circ.edges, ...kg.edges, ...dirFallback];
+  const nodesWithEdges = [...degree.entries()].filter(([, d]) => d > 0).length;
 
   return {
     graphJson: { nodes, edges },
+    typeWeight,
     stats: {
-      circuitryTotal: circ.total,
-      circuitryUsed: circ.edges.length,
-      circuitryDropped: circ.dropped,
-      kgTotal: kg.total,
-      kgUsed: kg.edges.length,
-      kgDropped: kg.dropped,
-      dirFallbackEdges: dirFallback.length,
-      orphansBeforeFallback: [...degree.keys()].length === 0
-        ? nodes.length
-        : nodes.length - [...degree.entries()].filter(([, d]) => d > 0).length,
-      totalDroppedEdges: circ.dropped + kg.dropped,
+      edgesFilePath: edgesRelPath,
+      edgesFileGenerated: edgesDoc.generated ?? null,
+      edgesFileTotal: (edgesDoc.edges || []).length,
+      edgesFileBySource: edgesDoc.counts?.by_source ?? null,
+      edgesUsed: edges.length,
+      edgesSelfLoopsDropped: selfLoops,
+      edgesDanglingDropped: danglingEndpoints,
+      nodesTotal: nodes.length,
+      nodesWithEdges,
+      nodesIsolated: nodes.length - nodesWithEdges,
+      directoryFallbackUsed: false, // deleted by design — see WIRING FIX header
     },
   };
 }
@@ -210,8 +198,8 @@ function pickHub(memberIds, g, artSet) {
 // ---- top-level region computation -------------------------------------------
 export function computeRegions(opts = {}) {
   const idMap = readJson(ID_MAP_PATH);
-  const { graphJson, stats } = buildEdgeGraph(idMap);
-  const g = loadArchGraph(graphJson);
+  const { graphJson, stats, typeWeight } = buildEdgeGraph(idMap, { edgesPath: opts.edgesPath });
+  const g = loadArchGraph(graphJson, typeWeight);
   const cc = connectedComponents(g);
   const tarjan = tarjanArticulationAndBridges(g);
   const artSet = new Set(tarjan.articulationPoints);
@@ -307,14 +295,15 @@ function printHelp() {
   console.log(`atlas-regions.mjs — cluster canonical IDs into regions (spectral clustering via arch-graph-engine)
 
 Usage:
-  node _SYSTEM/Scripts/atlas/atlas-regions.mjs [--k=N] [--json] [--verbose] [--test] [--help]
+  node _SYSTEM/Scripts/atlas/atlas-regions.mjs [--k=N] [--edges=PATH] [--json] [--verbose] [--test] [--help]
 
 Options:
-  --k=N       number of clusters (default 14, matches arch-graph-metrics.json k_clusters)
-  --json      print the full region result as JSON
-  --verbose   print per-region size + hub summary
-  --test      run the built-in self-test and exit 0/1
-  --help      this message
+  --k=N        number of clusters (default 14, matches arch-graph-metrics.json k_clusters)
+  --edges=PATH edges.json path (default _SYSTEM/state/atlas/edges.json, built by atlas-edges.mjs)
+  --json       print the full region result as JSON
+  --verbose    print per-region size + hub summary
+  --test       run the built-in self-test and exit 0/1
+  --help       this message
 `);
 }
 
@@ -330,15 +319,36 @@ function selfTest() {
 
   const { graphJson, stats } = buildEdgeGraph(idMap);
   check("graph has same node count as id-map", graphJson.nodes.length === Object.keys(idMap.nodes).length);
-  check("some circuitry edges survived translation", stats.circuitryUsed > 0);
-  check("some kg edges survived translation", stats.kgUsed > 0);
-  check("dropped-edge counts are non-negative", stats.circuitryDropped >= 0 && stats.kgDropped >= 0);
+  check("edges.json is the sole edge source (edgesUsed > 0)", stats.edgesUsed > 0);
+  check("edgesUsed matches edges.json total minus self-loops/dangling", stats.edgesUsed === stats.edgesFileTotal - stats.edgesSelfLoopsDropped - stats.edgesDanglingDropped);
+  check("no directory-colocation fallback is used (deleted by design)", stats.directoryFallbackUsed === false);
+  check("dropped-edge counts are non-negative", stats.edgesSelfLoopsDropped >= 0 && stats.edgesDanglingDropped >= 0);
+  check("isolated-node count is honest (nodesIsolated = nodesTotal - nodesWithEdges)", stats.nodesIsolated === stats.nodesTotal - stats.nodesWithEdges);
+
+  // missing-edges-file must fail LOUDLY, never silently fall back to an internal builder.
+  let threwOnMissingEdges = false;
+  let messageNamesAtlasEdges = false;
+  try {
+    buildEdgeGraph(idMap, { edgesPath: "_SYSTEM/state/atlas/__does-not-exist__.json" });
+  } catch (err) {
+    threwOnMissingEdges = err instanceof MissingEdgesError;
+    messageNamesAtlasEdges = /atlas-edges\.mjs/.test(err.message);
+  }
+  check("missing edges.json throws MissingEdgesError (fails loudly, no silent fallback)", threwOnMissingEdges);
+  check("missing-edges error tells the user to run atlas-edges.mjs", messageNamesAtlasEdges);
 
   const result = computeRegions({ k: 14 });
   check("k=14 produces regions", result.regions.length > 0);
   check("every region has a hub or is empty", result.regions.every((r) => r.members.length === 0 || typeof r.hub === "string"));
   const totalMembers = result.regions.reduce((a, r) => a + r.size, 0);
   check("region membership partitions all graph nodes exactly once", totalMembers === result.graphSummary.nodes);
+
+  // k must actually change the clustering now that real edges drive it (the
+  // broken-wiring signature was: identical output at every k).
+  const resultK8 = computeRegions({ k: 8 });
+  const sizesK14 = result.regions.map((r) => r.size).sort((a, b) => a - b).join(",");
+  const sizesK8 = resultK8.regions.map((r) => r.size).sort((a, b) => a - b).join(",");
+  check("k=8 and k=14 produce different region-size distributions (k has an effect)", sizesK14 !== sizesK8);
 
   const gitnexus = loadGitNexusCommunities();
   check("gitnexus check returns a definite available:boolean (never silently guesses)", typeof gitnexus.available === "boolean");
@@ -355,10 +365,21 @@ if (isMain) {
 
   const kArg = args.find((a) => a.startsWith("--k="));
   const k = kArg ? Number(kArg.slice(4)) : 14;
+  const edgesArg = args.find((a) => a.startsWith("--edges="));
+  const edgesPath = edgesArg ? edgesArg.slice(8) : undefined;
   const verbose = args.includes("--verbose");
   const asJson = args.includes("--json");
 
-  const result = computeRegions({ k });
+  let result;
+  try {
+    result = computeRegions({ k, edgesPath });
+  } catch (err) {
+    if (err instanceof MissingEdgesError) {
+      console.error(err.message);
+      process.exit(1);
+    }
+    throw err;
+  }
   if (asJson) {
     const { g, ...serializable } = result;
     console.log(JSON.stringify(serializable, null, 2));

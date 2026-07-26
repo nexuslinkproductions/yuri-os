@@ -3,19 +3,25 @@
 //
 // @capability: atlas-edges
 // @serves: dependency edges between YURI atlas nodes | import graph | call graph | fix edge sparsity
-//   for atlas-regions clustering | dense real edge list
+//   for atlas-regions clustering | dense real edge list | doc-to-code references | capability membership
 // @does: builds _SYSTEM/state/atlas/edges.json by combining (priority order) GitNexus
 //   File-level IMPORTS edges (via `gitnexus cypher`; File->Function CALLS was evaluated
 //   and rejected as a source — see extractGitNexusEdges doc comment for the 3 verified
 //   false-positive modes), a static import/require scanner over tracked .mjs/.js/.ts/.tsx
-//   files, and the existing circuitry (calls/reads only, never writes) + knowledge-graph
-//   edge sources — every endpoint mapped through the canonical id-map.json, deduped,
-//   weighted by source count.
+//   files, the existing circuitry (calls/reads only, never writes) + knowledge-graph
+//   edge sources, a doc-references scanner (non-code files -> the code/paths they name,
+//   fenced-code-block-excluded, unique-basename-only, per-doc capped), and a
+//   capability-membership scanner (files that share an `@capability:` id in
+//   capabilities.json) — every endpoint mapped through the canonical id-map.json,
+//   deduped, weighted by source count.
 // @use: run after atlas-identity.mjs (id-map.json must exist); do not hand-roll a second
 //       import scanner or a parallel gitnexus probe — this is the one edge-density pass.
 //       Feeds atlas-regions.mjs, which currently clusters on ~0.55 edges/node.
 // @exports: normalizeRelPath, resolveImportSpecifier, scanImports, extractGitNexusEdges,
-//   extractCircuitryEdges, extractKnowledgeGraphEdges, buildEdges, main
+//   extractCircuitryEdges, extractKnowledgeGraphEdges, extractDocRefsEdges,
+//   extractCapabilityEdges, findFencedRanges, isInsideRanges, extractPathTokens,
+//   resolveDocToken, buildBasenameIndex, groupCapabilitiesById, pairwiseCapabilityEdges,
+//   buildEdges, main
 //
 // Zero external npm dependencies: node:fs, node:path, node:crypto, node:os,
 // node:url only, EXCEPT node:child_process for the gitnexus CLI probe below —
@@ -39,9 +45,14 @@ const REPO_ROOT_LABEL = path.basename(ROOT);
 const ID_MAP_PATH = path.join(ROOT, '_SYSTEM/state/atlas/id-map.json');
 const CIRCUITRY_PATH = path.join(ROOT, '02_RESOURCES/RESEARCH/yuri-circuitry-graph.json');
 const KNOWLEDGE_GRAPH_PATH = path.join(ROOT, '_SYSTEM/state/yuri-knowledge-graph.json');
+const CAPABILITIES_PATH = path.join(ROOT, '_SYSTEM/capabilities.json');
 const DEFAULT_OUT = path.join(ROOT, '_SYSTEM/state/atlas/edges.json');
 
-const SOURCE_PRIORITY = ['gitnexus', 'imports', 'circuitry', 'knowledge-graph'];
+const SOURCE_PRIORITY = ['gitnexus', 'imports', 'circuitry', 'knowledge-graph', 'doc-refs', 'capability'];
+
+const DOC_REF_EXTENSIONS = new Set(['.md', '.mdc', '.json', '.yaml', '.jsonl']);
+const DEFAULT_MAX_DOC_REFS = 40;
+const CAPABILITY_MEMBERSHIP_CAP = 20;
 
 // ---------------------------------------------------------------------------
 // Path normalization (mirrors atlas-identity.mjs exactly — same join key)
@@ -360,6 +371,226 @@ function extractKnowledgeGraphEdges(idMap) {
 }
 
 // ---------------------------------------------------------------------------
+// Source 5: doc-references — non-code files (.md/.mdc/.json/.yaml/.jsonl) that
+// name a path or bare filename resolving to a canonical node.
+// ---------------------------------------------------------------------------
+//
+// Precision-first, by design: a wrong edge here silently corrupts every region
+// downstream (same lesson the directory-co-location fallback taught). Three
+// deliberate refusals, not oversights:
+//   1. Fenced code blocks (``` ... ```) are excluded — an example command's
+//      path is illustrative, not a real doc->code dependency.
+//   2. A bare filename (no slash, e.g. `xref-query.mjs`) only resolves when
+//      its basename is UNIQUE across the id-map. Ambiguous basenames
+//      (README.md, CLAUDE.md, orchestrator.mjs, ...) are skipped, never
+//      guessed at.
+//   3. Per-document edges are capped (default 40) so one path-dense file
+//      (CLAUDE.md, a plan, an index) cannot become a hub that fuses unrelated
+//      regions together — the same failure mode the old fallback produced.
+
+// Matches either a multi-segment repo-relative path ("_SYSTEM/Scripts/foo.mjs")
+// or a bare "name.ext" token. The negative lookaround on word/dot/slash/dash
+// means a match can never start or end mid-path — in particular it cannot
+// start immediately after the "//" of a "https://" URL (the preceding "/"
+// fails the lookbehind), so protocol-qualified URLs are structurally excluded
+// without a separate heuristic. A bare "domain.com/a/b.mjs"-shaped mention
+// (no protocol) CAN match, but it then simply fails id-map resolution like any
+// other unresolvable token — it is never silently accepted.
+// Lookbehind forbids word/dot/slash/dash (blocks starting mid-path or right
+// after a URL's "//"). Lookahead deliberately does NOT forbid ".": a
+// sentence-ending period after a bare filename ("see xref-query.mjs.") must
+// not swallow the match. This does mean a versioned name like "file.v2.mjs"
+// under-matches to "file.v2" — that token then simply fails id-map
+// resolution like any other miss (dropped, never a false positive). The
+// extension group requires a LEADING LETTER ([A-Za-z][A-Za-z0-9]{0,9}, not
+// a bare [A-Za-z0-9]{1,10}) — without this, decimals and timestamps inside
+// .jsonl/.json ledgers ("0.5", "199.820824053", "00.000Z") match the
+// bare-filename alternative as fake "extensions" (digits are alnum too) and
+// flood the raw/dropped counts with noise. Every real extension in this repo
+// (mjs, ts, js, cjs, tsx, md, mdc, json, jsonl, yaml, py, sh, ...) starts
+// with a letter, so this costs nothing and kills the noise at the source.
+const PATH_TOKEN_RE = /(?<![\w./-])((?:[A-Za-z0-9_.-]+\/)+[A-Za-z0-9_.-]+\.[A-Za-z][A-Za-z0-9]{0,9}|[A-Za-z0-9_-]+\.[A-Za-z][A-Za-z0-9]{0,9})(?![\w/-])/g;
+const FENCE_RE = /```[\s\S]*?```/g;
+
+export function findFencedRanges(content) {
+  const ranges = [];
+  if (typeof content !== 'string') return ranges;
+  const re = new RegExp(FENCE_RE.source, 'g');
+  let m;
+  while ((m = re.exec(content)) !== null) {
+    ranges.push([m.index, m.index + m[0].length]);
+    if (m[0].length === 0) re.lastIndex++; // guard against zero-width infinite loop
+  }
+  return ranges;
+}
+
+export function isInsideRanges(idx, ranges) {
+  for (const [start, end] of ranges) {
+    if (idx >= start && idx < end) return true;
+  }
+  return false;
+}
+
+// Pure extraction: returns every raw candidate token + its offset, no
+// filtering, no resolution. Fence-exclusion and id-map resolution are
+// separate steps so each is independently testable.
+export function extractPathTokens(content) {
+  const out = [];
+  if (typeof content !== 'string') return out;
+  const re = new RegExp(PATH_TOKEN_RE.source, 'g');
+  let m;
+  while ((m = re.exec(content)) !== null) {
+    out.push({ token: m[1], index: m.index });
+  }
+  return out;
+}
+
+export function buildBasenameIndex(idMap) {
+  const full = new Map(); // basename -> [canonicalKey, ...]
+  for (const [key, node] of Object.entries(idMap.data.nodes)) {
+    if (!node.path) continue;
+    const bn = path.posix.basename(node.path);
+    if (!full.has(bn)) full.set(bn, []);
+    full.get(bn).push(key);
+  }
+  return full;
+}
+
+// Pure resolver: a path-shaped token resolves via the id-map's normalized
+// path index; a bare filename resolves ONLY when its basename is unique
+// (basenameIndex.get(token).length === 1) — never guessed when ambiguous.
+// Returns { key: string|null, ambiguous: boolean } so callers can tell
+// "doesn't exist" (key=null, ambiguous=false) apart from "exists but is
+// ambiguous, correctly refused" (key=null, ambiguous=true).
+export function resolveDocToken(token, idMap, basenameIndex) {
+  if (token.includes('/')) {
+    const key = resolveByPath(idMap, token);
+    return { key: key || null, ambiguous: false };
+  }
+  const candidates = basenameIndex.get(token);
+  if (!candidates || candidates.length === 0) return { key: null, ambiguous: false };
+  if (candidates.length > 1) return { key: null, ambiguous: true };
+  return { key: candidates[0], ambiguous: false };
+}
+
+function scanDocForRefs(docKey, docPath, content, idMap, basenameIndex, maxDocRefs) {
+  const fencedRanges = findFencedRanges(content);
+  const tokens = extractPathTokens(content);
+  const out = { targetsInOrder: [], excludedByFence: 0, dropped: 0, ambiguous: 0, raw: tokens.length };
+  const seen = new Set();
+  for (const { token, index } of tokens) {
+    if (isInsideRanges(index, fencedRanges)) { out.excludedByFence++; continue; }
+    const { key, ambiguous } = resolveDocToken(token, idMap, basenameIndex);
+    if (ambiguous) { out.ambiguous++; continue; }
+    if (!key) { out.dropped++; continue; }
+    if (key === docKey) continue; // self-reference
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.targetsInOrder.push(key);
+  }
+  let cappedExcess = 0;
+  let targets = out.targetsInOrder;
+  if (targets.length > maxDocRefs) {
+    cappedExcess = targets.length - maxDocRefs;
+    targets = targets.slice(0, maxDocRefs);
+  }
+  return { targets, excludedByFence: out.excludedByFence, dropped: out.dropped, ambiguous: out.ambiguous, raw: out.raw, cappedExcess, docPath };
+}
+
+function extractDocRefsEdges(idMap, opts = {}) {
+  const result = {
+    edges: [], dropped: 0, raw: 0, excludedByFence: 0, ambiguousBasenameSkipped: 0,
+    docsAtCap: [], docsScanned: 0, note: null,
+  };
+  if (opts.noDocRefs) {
+    result.note = 'skipped via --no-doc-refs';
+    return result;
+  }
+  const maxDocRefs = opts.maxDocRefs || DEFAULT_MAX_DOC_REFS;
+  const basenameIndex = buildBasenameIndex(idMap);
+
+  for (const [key, node] of Object.entries(idMap.data.nodes)) {
+    if (!node.path) continue;
+    const ext = path.extname(node.path);
+    if (!DOC_REF_EXTENSIONS.has(ext)) continue;
+    const abs = path.join(ROOT, node.path);
+    let content;
+    try {
+      content = readFileSync(abs, 'utf8');
+    } catch {
+      continue;
+    }
+    result.docsScanned++;
+    const scan = scanDocForRefs(key, node.path, content, idMap, basenameIndex, maxDocRefs);
+    result.raw += scan.raw;
+    result.excludedByFence += scan.excludedByFence;
+    result.dropped += scan.dropped;
+    result.ambiguousBasenameSkipped += scan.ambiguous;
+    if (scan.cappedExcess > 0) {
+      result.docsAtCap.push({ doc: node.path, kept: maxDocRefs, excess: scan.cappedExcess });
+    }
+    for (const target of scan.targets) {
+      result.edges.push({ from: key, to: target, kind: 'references', source: 'doc-refs', weight: 1 });
+    }
+  }
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Source 6: capability-membership — files that share an `@capability:` id in
+// _SYSTEM/capabilities.json (only IDs with >=2 distinct resolvable mechanism
+// files produce an edge; most capability ids have exactly one mechanism and
+// contribute nothing here — that is the honest, expected yield).
+// ---------------------------------------------------------------------------
+
+export function groupCapabilitiesById(caps) {
+  const byId = new Map(); // id -> Set(mechanism path)
+  for (const c of caps) {
+    if (!c || !c.id || !c.mechanism) continue;
+    if (!byId.has(c.id)) byId.set(c.id, new Set());
+    byId.get(c.id).add(c.mechanism);
+  }
+  return byId;
+}
+
+// Pure: emits the (i<j) pairwise clique over already-resolved canonical keys,
+// capped so one large capability group cannot fan out into a hub.
+export function pairwiseCapabilityEdges(keys, cap = CAPABILITY_MEMBERSHIP_CAP) {
+  const edges = [];
+  outer:
+  for (let i = 0; i < keys.length; i++) {
+    for (let j = i + 1; j < keys.length; j++) {
+      if (edges.length >= cap) break outer;
+      edges.push({ from: keys[i], to: keys[j], kind: 'references', source: 'capability', weight: 1 });
+    }
+  }
+  return edges;
+}
+
+function extractCapabilityEdges(idMap) {
+  const result = { edges: [], dropped: 0, raw: 0, groupsWithMultipleMembers: 0, note: null };
+  if (!existsSync(CAPABILITIES_PATH)) { result.note = 'capabilities.json not found'; return result; }
+  const data = JSON.parse(readFileSync(CAPABILITIES_PATH, 'utf8'));
+  const caps = Array.isArray(data.capabilities) ? data.capabilities : [];
+  result.raw = caps.length;
+  const byId = groupCapabilitiesById(caps);
+  for (const mechanismSet of byId.values()) {
+    const mechanisms = [...mechanismSet];
+    const resolvedKeys = [];
+    for (const m of mechanisms) {
+      const key = resolveByPath(idMap, m);
+      if (!key) { result.dropped++; continue; }
+      resolvedKeys.push(key);
+    }
+    const uniqueKeys = [...new Set(resolvedKeys)];
+    if (uniqueKeys.length < 2) continue;
+    result.groupsWithMultipleMembers++;
+    result.edges.push(...pairwiseCapabilityEdges(uniqueKeys, CAPABILITY_MEMBERSHIP_CAP));
+  }
+  return result;
+}
+
+// ---------------------------------------------------------------------------
 // Assembly: dedupe {from,to} across sources, priority-ranked, weight = #sources
 // ---------------------------------------------------------------------------
 
@@ -374,6 +605,11 @@ export function buildEdges(opts = {}) {
     imports: extractImportEdges(idMap),
     circuitry: extractCircuitryEdges(idMap),
     'knowledge-graph': extractKnowledgeGraphEdges(idMap),
+    'doc-refs': extractDocRefsEdges(idMap, {
+      noDocRefs: !!opts.noDocRefs,
+      maxDocRefs: opts.maxDocRefs || DEFAULT_MAX_DOC_REFS,
+    }),
+    capability: extractCapabilityEdges(idMap),
   };
 
   // Dedupe by {from,to}. First-seen-in-priority-order source wins as the
@@ -434,6 +670,15 @@ export function buildEdges(opts = {}) {
       imports_unresolved: perSource.imports.unresolved,
       circuitry_excluded_writes: perSource.circuitry.excludedWrites,
       knowledge_graph_skipped_types: perSource['knowledge-graph'].skippedType,
+      doc_refs_docs_scanned: perSource['doc-refs'].docsScanned || 0,
+      doc_refs_excluded_by_fence: perSource['doc-refs'].excludedByFence || 0,
+      doc_refs_ambiguous_basename_skipped: perSource['doc-refs'].ambiguousBasenameSkipped || 0,
+      doc_refs_dropped_unresolved: perSource['doc-refs'].dropped || 0,
+      doc_refs_docs_at_cap: perSource['doc-refs'].docsAtCap || [],
+      doc_refs_note: perSource['doc-refs'].note || null,
+      capability_membership_groups_multi_member: perSource.capability.groupsWithMultipleMembers || 0,
+      capability_membership_dropped: perSource.capability.dropped || 0,
+      capability_membership_note: perSource.capability.note || null,
     },
   };
   return atlas;
@@ -480,6 +725,78 @@ export function runSelfTest() {
   const rows = parseMarkdownTable(md);
   assert(rows.length === 2 && rows[0].from === 'a.ts' && rows[0].to === 'b.ts', 'markdown table parses gitnexus cypher rows');
 
+  // --- doc-refs: path-token extraction ---
+  const docText = 'See `_SYSTEM/Scripts/foo.mjs` and [bar](path/to/bar.mjs) also xref-query.mjs.';
+  const tokens = extractPathTokens(docText);
+  const tokenStrs = tokens.map((t) => t.token);
+  assert(tokenStrs.includes('_SYSTEM/Scripts/foo.mjs'), 'backticked repo-relative path extracted');
+  assert(tokenStrs.includes('path/to/bar.mjs'), 'markdown-link path extracted');
+  assert(tokenStrs.includes('xref-query.mjs'), 'bare filename with extension extracted');
+
+  // --- doc-refs: fenced code blocks are excluded ---
+  const fencedText = 'Real ref: _SYSTEM/Scripts/real.mjs\n```\nExample: _SYSTEM/Scripts/example.mjs\n```\nAfter: _SYSTEM/Scripts/after.mjs';
+  const ranges = findFencedRanges(fencedText);
+  assert(ranges.length === 1, 'one fenced block detected');
+  const fencedTokens = extractPathTokens(fencedText);
+  const realTok = fencedTokens.find((t) => t.token === '_SYSTEM/Scripts/real.mjs');
+  const exampleTok = fencedTokens.find((t) => t.token === '_SYSTEM/Scripts/example.mjs');
+  const afterTok = fencedTokens.find((t) => t.token === '_SYSTEM/Scripts/after.mjs');
+  assert(realTok && !isInsideRanges(realTok.index, ranges), 'mention before fence is NOT excluded');
+  assert(exampleTok && isInsideRanges(exampleTok.index, ranges), 'mention INSIDE fence IS excluded');
+  assert(afterTok && !isInsideRanges(afterTok.index, ranges), 'mention after fence is NOT excluded');
+
+  // --- doc-refs: resolution — path resolves, non-unique basename is refused not guessed ---
+  const fakeIdMap = {
+    data: { nodes: {
+      docKey: { path: 'docs/readme.md' },
+      keyA: { path: '_SYSTEM/Scripts/foo.mjs' },
+      dupOne: { path: 'a/dup.mjs' },
+      dupTwo: { path: 'b/dup.mjs' },
+      uniqOne: { path: 'c/uniq.mjs' },
+    } },
+    pathToCanonical: new Map([
+      ['docs/readme.md', 'docKey'],
+      ['_SYSTEM/Scripts/foo.mjs', 'keyA'],
+      ['a/dup.mjs', 'dupOne'],
+      ['b/dup.mjs', 'dupTwo'],
+      ['c/uniq.mjs', 'uniqOne'],
+    ]),
+    aliasToCanonical: new Map(),
+  };
+  const basenameIndex = buildBasenameIndex(fakeIdMap);
+  assert(basenameIndex.get('dup.mjs').length === 2, 'basename index groups both dup.mjs candidates');
+  assert(basenameIndex.get('uniq.mjs').length === 1, 'basename index has single uniq.mjs candidate');
+
+  const pathResolved = resolveDocToken('_SYSTEM/Scripts/foo.mjs', fakeIdMap, basenameIndex);
+  assert(pathResolved.key === 'keyA' && !pathResolved.ambiguous, 'repo-relative path token resolves to canonical key');
+
+  const ambiguousResolved = resolveDocToken('dup.mjs', fakeIdMap, basenameIndex);
+  assert(ambiguousResolved.key === null && ambiguousResolved.ambiguous === true, 'non-unique basename is SKIPPED, not guessed');
+
+  const uniqueResolved = resolveDocToken('uniq.mjs', fakeIdMap, basenameIndex);
+  assert(uniqueResolved.key === 'uniqOne' && !uniqueResolved.ambiguous, 'unique basename resolves');
+
+  const missingResolved = resolveDocToken('nope.mjs', fakeIdMap, basenameIndex);
+  assert(missingResolved.key === null && missingResolved.ambiguous === false, 'unknown basename is unresolved, not ambiguous');
+
+  // --- capability-membership: grouping + pairwise cap ---
+  const caps = [
+    { id: 'shared-cap', mechanism: 'a/one.mjs' },
+    { id: 'shared-cap', mechanism: 'b/two.mjs' },
+    { id: 'shared-cap', mechanism: 'a/one.mjs' }, // duplicate mechanism, must not double-count
+    { id: 'solo-cap', mechanism: 'c/solo.mjs' },
+    { id: 'no-mechanism-cap' },
+  ];
+  const grouped = groupCapabilitiesById(caps);
+  assert(grouped.get('shared-cap').size === 2, 'duplicate mechanism entries for same id collapse to a set');
+  assert(grouped.get('solo-cap').size === 1, 'single-mechanism capability keeps one member');
+  assert(!grouped.has('no-mechanism-cap'), 'capability entries without a mechanism are skipped');
+
+  const pairEdges = pairwiseCapabilityEdges(['k1', 'k2', 'k3'], 20);
+  assert(pairEdges.length === 3, 'pairwise clique over 3 keys yields 3 edges (n*(n-1)/2)');
+  const cappedPairEdges = pairwiseCapabilityEdges(['k1', 'k2', 'k3', 'k4'], 2);
+  assert(cappedPairEdges.length === 2, 'pairwise clique respects the per-capability cap');
+
   return true;
 }
 
@@ -498,6 +815,8 @@ Options:
   --out=<path>         Write to a custom path (default: _SYSTEM/state/atlas/edges.json)
   --verbose            Print per-source yield stats to stderr
   --no-gitnexus        Skip the GitNexus probe entirely (imports scan + circuitry + KG only)
+  --no-doc-refs        Skip the doc-references scanner (non-code files -> code they name)
+  --max-doc-refs=N     Cap doc-references edges emitted per document (default 40)
   --test               Run the self-test suite and exit (0 pass / 1 fail)
   -h, --help           Show this help
 `);
@@ -512,7 +831,7 @@ async function main() {
   if (args.includes('--test')) {
     try {
       runSelfTest();
-      console.log('SELF-TEST: PASS (16 checks)');
+      console.log('SELF-TEST: PASS (33 checks)');
       return 0;
     } catch (err) {
       console.error(String(err.message || err));
@@ -521,12 +840,15 @@ async function main() {
   }
 
   const noGitnexus = args.includes('--no-gitnexus');
+  const noDocRefs = args.includes('--no-doc-refs');
   const verbose = args.includes('--verbose');
   const jsonOut = args.includes('--json');
   const outArg = args.find((a) => a.startsWith('--out='));
   const outPath = outArg ? path.resolve(ROOT, outArg.slice('--out='.length)) : DEFAULT_OUT;
+  const maxDocRefsArg = args.find((a) => a.startsWith('--max-doc-refs='));
+  const maxDocRefs = maxDocRefsArg ? parseInt(maxDocRefsArg.slice('--max-doc-refs='.length), 10) : DEFAULT_MAX_DOC_REFS;
 
-  const atlas = buildEdges({ noGitnexus });
+  const atlas = buildEdges({ noGitnexus, noDocRefs, maxDocRefs });
 
   if (verbose) {
     console.error('--- atlas-edges: per-source yield ---');
@@ -543,6 +865,20 @@ async function main() {
     console.error(`  imports_unresolved: ${atlas.diagnostics.imports_unresolved}`);
     console.error(`  circuitry_excluded_writes: ${atlas.diagnostics.circuitry_excluded_writes}`);
     console.error(`  knowledge_graph_skipped_types: ${atlas.diagnostics.knowledge_graph_skipped_types}`);
+    console.error(`  doc_refs_docs_scanned: ${atlas.diagnostics.doc_refs_docs_scanned}`);
+    console.error(`  doc_refs_excluded_by_fence: ${atlas.diagnostics.doc_refs_excluded_by_fence}`);
+    console.error(`  doc_refs_ambiguous_basename_skipped: ${atlas.diagnostics.doc_refs_ambiguous_basename_skipped}`);
+    console.error(`  doc_refs_dropped_unresolved: ${atlas.diagnostics.doc_refs_dropped_unresolved}`);
+    if (atlas.diagnostics.doc_refs_docs_at_cap.length) {
+      console.error(`  doc_refs_docs_at_cap (${atlas.diagnostics.doc_refs_docs_at_cap.length}):`);
+      for (const d of atlas.diagnostics.doc_refs_docs_at_cap) {
+        console.error(`    ${d.doc}  kept=${d.kept} excess=${d.excess}`);
+      }
+    }
+    if (atlas.diagnostics.doc_refs_note) console.error(`  doc_refs note: ${atlas.diagnostics.doc_refs_note}`);
+    console.error(`  capability_membership_groups_multi_member: ${atlas.diagnostics.capability_membership_groups_multi_member}`);
+    console.error(`  capability_membership_dropped: ${atlas.diagnostics.capability_membership_dropped}`);
+    if (atlas.diagnostics.capability_membership_note) console.error(`  capability_membership note: ${atlas.diagnostics.capability_membership_note}`);
     console.error('--------------------------------------');
   }
 
