@@ -31,7 +31,8 @@
 // @use: node bench-pool.mjs [--json] [--per-area=2]   -> writes _SYSTEM/state/atlas/bench-pool.json
 // @exports: buildPool, main
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, realpathSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -40,8 +41,31 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 const BENCHMARK = path.join(REPO_ROOT, '_SYSTEM/eval/atlas-benchmark.jsonl');
 const INDEX_DB = path.join(REPO_ROOT, '_SYSTEM/OS_KERNEL/search-index.db');
 const OUT_PATH = path.join(REPO_ROOT, '_SYSTEM/state/atlas/bench-pool.json');
+const REJECTED_PATH = path.join(REPO_ROOT, '_SYSTEM/state/atlas/bench-pool-rejected.json');
 
-const PROTECTED_PREFIXES = ['.env', 'node_modules/', 'backend/data/', '.amp/', '.git/'];
+// PROTECTED SET (canonical floor + repo extras, Hermes 2026-07-28 rebuild order). DOCTRINE
+// BOUNDARY, stated so nobody "fixes" this by loosening it: protected paths are MUTATION-locked,
+// not unreadable — everything inside yuri is readable (Marcel's standing ruling). They are
+// excluded from the benchmark pool because a navigation question whose ANSWER is a volatile
+// state file, a credential-shaped path, or generated bulk data is a bad question, not because
+// reading them is forbidden.
+const PROTECTED_PREFIXES = [
+  '.env',
+  'node_modules/',
+  'backend/data/',
+  '_SYSTEM/backend/data/', // repo extra: the catalog actually lives under _SYSTEM (lane-kernel's root-only list missed it)
+  '_SYSTEM/state/', // loop bulk: whatsapp-cache, mcs-test shards, generated atlas artifacts — volatile runtime state is a bad ANSWER (matches the extractor's standing exclusion)
+  '.amp/',
+  '.git/',
+  '.claude/state/',
+  '.claude/history/',
+  '.claude/file-history/',
+  '.claude/projects/', // covers */{history,state,file-history,worktrees,transcripts}
+];
+// Secret-shaped FILE patterns (never a valid answer). Matches credential material by shape —
+// extensions, well-known key names, secrets stores — NOT the topic word 'secret' alone (a
+// secret-leak SCANNER is a defensive tool and a legitimate navigation answer).
+const SECRET_NAME_RE = /(^|\/)(id_rsa|id_dsa|id_ecdsa|id_ed25519|credentials?|secrets?)(\.|$)|\.(pem|key|p12|pfx|keystore|jks)$/i;
 
 export async function buildPool({ perArea = 2 } = {}) {
   const menuMod = await import('./atlas-menu.mjs');
@@ -70,11 +94,18 @@ export async function buildPool({ perArea = 2 } = {}) {
   db.close();
 
   const pool = [];
+  const rejected = []; // REJECTION MANIFEST — per-path reason, or a filter with no log did nothing
   const perAreaStats = [];
   let excludedExisting = 0;
-  let excludedProtected = 0;
   let labeledUnreachable = 0;
   let labeledNonUnique = 0;
+  const reject = (p, reason) => rejected.push({ path: p, reason });
+  // REALPATH-BEFORE-MATCH, fail-closed: resolve the root ONCE (abort the build if it cannot
+  // resolve — never fall back to a lexical root), resolve each candidate FIRST, require
+  // containment, and ONLY THEN classify the RESOLVED repo-relative path. A symlink cannot walk
+  // a candidate past the filter because the filter never sees the lexical path.
+  const isProtectedRel = (rel) => PROTECTED_PREFIXES.some((pre) => rel === pre.replace(/\/$/, '') || rel.startsWith(pre));
+  const realRoot = realpathSync(REPO_ROOT); // throws -> buildPool rejects, fail closed
   for (const area of [...menu.areas].sort((a, b) => b.members - a.members || a.id.localeCompare(b.id))) {
     const candidates = [];
     for (const memberId of area.memberIds) {
@@ -82,8 +113,13 @@ export async function buildPool({ perArea = 2 } = {}) {
       if (!node || typeof node.path !== 'string') continue;
       const p = node.path;
       const norm = p.replace(/^\.\//, '').replace(/\/+$/, '');
-      if (existingAnswers.has(norm)) { excludedExisting++; continue; }
-      if (PROTECTED_PREFIXES.some((pre) => norm.startsWith(pre))) { excludedProtected++; continue; }
+      if (existingAnswers.has(norm)) { excludedExisting++; reject(norm, 'existing-answer: duplicates find-40'); continue; }
+      let realAbs;
+      try { realAbs = realpathSync(path.join(REPO_ROOT, norm)); } catch { reject(norm, 'unresolvable: realpath failed (dangling symlink or missing file)'); continue; }
+      if (realAbs !== realRoot && !realAbs.startsWith(realRoot + path.sep)) { reject(norm, `symlink-escape: resolves outside repo to ${realAbs}`); continue; }
+      const resolvedRel = path.relative(realRoot, realAbs).replace(/\\/g, '/');
+      if (isProtectedRel(resolvedRel)) { reject(norm, `protected-prefix: resolves to ${resolvedRel} — volatile state / generated bulk / internal surface is a bad ANSWER (mutation-lock is not a read ban; excluded as benchmark material)`); continue; }
+      if (SECRET_NAME_RE.test(resolvedRel)) { reject(norm, `secret-shaped: resolves to ${resolvedRel} — credential-pattern paths are never valid answers`); continue; }
       const base = path.basename(norm);
       const ftsReachable = ftsPaths.has(norm);
       const basenameUnique = basenameCount.get(base) === 1;
@@ -106,14 +142,23 @@ export async function buildPool({ perArea = 2 } = {}) {
     for (const c of picked) pool.push({ ...c, area: area.id });
   }
 
+  // Deterministic pool hash for Atlas's composition lock: over the deterministic payload ONLY
+  // (pool + sorted rejection manifest + exclusion counts), never the generated timestamp — an
+  // identical corpus rebuild must produce an identical hash.
+  const rejectedSorted = [...rejected].sort((a, b) => a.path.localeCompare(b.path));
+  const hashPayload = JSON.stringify({ pool, rejected: rejectedSorted, excludedExisting });
+  const poolHash = createHash('sha256').update(hashPayload).digest('hex');
+
   return {
     generated: new Date().toISOString(),
+    poolHash,
     provenance_guard: 'paths + areas + kinds + labels only; no serves/does text, no tag content, no descriptions',
     perArea,
     totalCandidates: pool.length,
     areasWithCandidates: perAreaStats.filter((s) => s.picked > 0).length,
-    exclusions: { existingAnswer: excludedExisting, protectedPrefix: excludedProtected },
+    exclusions: { existingAnswer: excludedExisting, protectedTotal: rejected.length - excludedExisting },
     labels: { fts_unreachable: labeledUnreachable, basename_non_unique: labeledNonUnique },
+    rejected: rejectedSorted,
     areas: perAreaStats,
     pool,
   };
@@ -125,6 +170,10 @@ export function main(argv = process.argv.slice(2)) {
   return buildPool({ perArea }).then((result) => {
     if (!existsSync(INDEX_DB)) throw new Error(`search index missing: ${INDEX_DB}`);
     writeFileSync(OUT_PATH, JSON.stringify(result, null, 2), 'utf8');
+    // Separate deterministic rejection manifest (Hermes 2026-07-28: a filter with no rejection
+    // log is indistinguishable from a filter that did nothing — and the log must outlive the
+    // pool file it explains).
+    writeFileSync(REJECTED_PATH, JSON.stringify({ poolHash: result.poolHash, rejected: result.rejected }, null, 2), 'utf8');
     if (argv.includes('--json')) {
       console.log(JSON.stringify(result, null, 2));
     } else {
@@ -132,7 +181,11 @@ export function main(argv = process.argv.slice(2)) {
       console.log(`  wrote ${OUT_PATH}`);
       const dry = result.areas.filter((s) => s.picked === 0);
       if (dry.length) console.log(`  areas with ZERO eligible candidates: ${dry.length} (e.g. ${dry.slice(0, 3).map((d) => d.area).join(', ')})`);
-      console.log(`  excluded (hard filters): existingAnswer=${result.exclusions.existingAnswer} protectedPrefix=${result.exclusions.protectedPrefix}`);
+      console.log(`  excluded (hard filters): existingAnswer=${result.exclusions.existingAnswer} protected/secret/symlink=${result.exclusions.protectedTotal} (manifest: _SYSTEM/state/atlas/bench-pool-rejected.json)`);
+      const reasons = new Map();
+      for (const r of result.rejected) { const k = r.reason.split(':')[0]; reasons.set(k, (reasons.get(k) || 0) + 1); }
+      console.log(`  rejection reasons: ${[...reasons.entries()].map(([k, v]) => `${k}=${v}`).join(' ')}`);
+      console.log(`  poolHash (deterministic payload): ${result.poolHash}`);
       console.log(`  labeled (kept, askable): fts_unreachable=${result.labels.fts_unreachable} basename_non_unique=${result.labels.basename_non_unique}`);
       console.log('  provenance guard: pool carries paths/areas/kinds/labels only — no serves/does, no tags, no descriptions');
     }
