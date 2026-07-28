@@ -10,10 +10,10 @@
       "failure_behaviour": "Returns an empty array when no file scores above zero."
     },
     "tool_b": {
-      "purpose": "Answers a task description with grouped matches from a fused local index covering documents, code structure, and registered mechanisms.",
-      "inputs": "query (string, required); top (integer, optional — maximum results per group).",
-      "outputs": "Text report of matching file paths grouped by source, with short context excerpts.",
-      "failure_behaviour": "Prints empty groups when nothing matches."
+      "purpose": "Searches several local indexes at once — full-text documents, a code-structure graph, and a registry of declared mechanisms — and merges their matches into one answer.",
+      "inputs": "query (string, required — a task or question); top (integer, optional — maximum matches kept per index).",
+      "outputs": "One section per index, each listing matching file paths with a short excerpt or the reason it matched.",
+      "failure_behaviour": "Prints empty sections when no index has a match."
     },
     "tool_c": {
       "purpose": "Finds registered mechanisms whose declared function matches a described need.",
