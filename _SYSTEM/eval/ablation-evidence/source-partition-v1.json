@@ -1,0 +1,61 @@
+{
+  "schema": "source-partition/v1",
+  "status": "DECIDED_NOT_YET_HASHED",
+  "decided_at": "2026-07-28",
+  "authority": "Hermes partition freeze — Orion REGISTRY reject of capabilities.json-as-NAV accepted; name REGISTRY over GENERATED_SELF_DESCRIPTION",
+  "note": "Class list is decided. Freeze hash requires committed candidate artifacts from partition-leak-scan.mjs (doctrine + registry). Fragment/line provenance binding per Atlas — classification is not source-file path alone.",
+  "classes": {
+    "NAV_SURFACE": {
+      "outcome": "FIND",
+      "members": [
+        "_SYSTEM/INDEX.md",
+        "context-registry.json (purpose-routing only)",
+        "knowledge-graph (structure browse only, not path dump)"
+      ]
+    },
+    "REGISTRY": {
+      "outcome": "REGISTRY_HIT",
+      "members": [
+        "_SYSTEM/capabilities.json",
+        "skills/skill-index.json",
+        "FTS/search-index dumps or id-map path lists if ever tool-readable in-harness"
+      ],
+      "rule": "Never counts toward nav-tool slot credit without a dedicated tool-vs-own-registry contrast cell"
+    },
+    "DOCTRINE": {
+      "outcome": "C_DISK_COPY",
+      "members": [
+        "CLAUDE.md (global + project)",
+        "AGENTS.md",
+        "SOUL.md",
+        "_SYSTEM/persona.md",
+        "_SYSTEM/yuri-origin.md",
+        ".cursor/rules/sync.mdc",
+        "unconditionally-loaded .claude/rules/*.md"
+      ]
+    },
+    "CORPUS": {
+      "outcome": "FIND",
+      "members": [
+        "everything else"
+      ]
+    }
+  },
+  "outcome_classes": [
+    "FIND",
+    "REGISTRY_HIT",
+    "C_DISK_COPY",
+    "PROMPT_COPY",
+    "CONFIRM_ONLY",
+    "WRONG",
+    "ABSTAIN"
+  ],
+  "related_artifacts": [
+    "_SYSTEM/eval/ablation-evidence/g-injected-doctrine-candidates.json",
+    "_SYSTEM/eval/ablation-evidence/g-registry-literal-candidates.json",
+    "_SYSTEM/eval/ablation-evidence/find40-doctrine-registry-overlap.json",
+    "_SYSTEM/eval/ablation-evidence/tier0-threshold-power.json"
+  ],
+  "falsifier": "If capability-recall systematically beats raw capabilities.json reads on the same questions under anonymized tool names, REGISTRY split was correct; if not, the arm is a wrapper and headline FIND was registry mining.",
+  "artifact_home": "_SYSTEM/eval/ablation-evidence/ (not state/atlas — that tree is gitignored for loop bulk)"
+}

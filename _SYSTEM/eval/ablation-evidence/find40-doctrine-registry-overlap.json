@@ -1,0 +1,77 @@
+{
+  "schema": "find40-doctrine-registry-overlap/v1",
+  "regenerator": "_SYSTEM/Scripts/atlas/partition-leak-scan.mjs",
+  "measured_at": "2026-07-28T15:55:41.005Z",
+  "doctrine_content_sha256": "76e00a1d630f07bf0f048bafd480ddac4389fb9620e105d50db029427f33e337",
+  "registry_content_sha256": "35b36b79a652d5db9b0d5757dd6e671377af1afa959e373811802c061f755116",
+  "n_find40": 40,
+  "doctrine_n": 12,
+  "registry_n": 27,
+  "intersection": {
+    "n": 6,
+    "ids": [
+      "q002",
+      "q003",
+      "q004",
+      "q019",
+      "q020",
+      "q035"
+    ]
+  },
+  "union": {
+    "n": 33,
+    "ids": [
+      "q002",
+      "q003",
+      "q004",
+      "q005",
+      "q006",
+      "q007",
+      "q010",
+      "q011",
+      "q012",
+      "q013",
+      "q014",
+      "q015",
+      "q016",
+      "q017",
+      "q018",
+      "q019",
+      "q020",
+      "q021",
+      "q022",
+      "q023",
+      "q025",
+      "q026",
+      "q027",
+      "q028",
+      "q029",
+      "q030",
+      "q031",
+      "q032",
+      "q033",
+      "q035",
+      "q036",
+      "q037",
+      "q038"
+    ],
+    "share_of_40": 0.825
+  },
+  "neither": {
+    "n": 7,
+    "ids": [
+      "q001",
+      "q008",
+      "q009",
+      "q024",
+      "q034",
+      "q039",
+      "q040"
+    ]
+  },
+  "reading": [
+    "Union 33/40 reachable as literals in DOCTRINE packet surfaces and/or REGISTRY files.",
+    "Intersection 6/40 appear in BOTH.",
+    "Remainder 7/40 not in D∪R under this static scan."
+  ]
+}

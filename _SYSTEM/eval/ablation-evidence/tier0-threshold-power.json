@@ -1,0 +1,240 @@
+{
+  "schema": "tier0-threshold-power/v1",
+  "regenerator": "_SYSTEM/Scripts/atlas/tier0-threshold-power.mjs",
+  "measured_at": "2026-07-28T15:55:41.197Z",
+  "instrument": "sequentialDecide (empirical-Bernstein CS) + Wilson one-shot reference",
+  "cs_params": {
+    "alpha": 0.05,
+    "range": [
+      0,
+      1
+    ],
+    "csConst": 1
+  },
+  "thresholds": [
+    0.6,
+    0.7
+  ],
+  "sample_sizes": [
+    28,
+    40,
+    88,
+    100,
+    145
+  ],
+  "ruling_2026_07_28": [
+    "Under CS_PARAMS, n=28 cannot CLEAR θ=0.6 even at 28/28 successes (perfect_p1_decision=undecided).",
+    "Tier-0 hard STOP/GO gate on Channel-C-stratified find-28 is DEAD under this instrument.",
+    "Hermes withdrew survival claim; Tier-0 on find-40 is DESCRIPTIVE ONLY (Option C).",
+    "Wilson one-shot can CLEAR at n=28 only with operable observed rate ≫ θ (see wilson_one_shot)."
+  ],
+  "cs_constant_p": {
+    "0.6": {
+      "28": {
+        "minP_decide_CLEAR_above": 1,
+        "maxP_decide_NOTCLEAR_below": 0.0163,
+        "perfect_p1_decision": "undecided",
+        "perfect_ci": {
+          "mean": 1,
+          "lo": 0.41628521517901673,
+          "hi": 1.5837147848209834,
+          "radius": 0.5837147848209833,
+          "n": 28
+        }
+      },
+      "40": {
+        "minP_decide_CLEAR_above": 1,
+        "maxP_decide_NOTCLEAR_below": 0.185,
+        "perfect_p1_decision": "undecided",
+        "perfect_ci": {
+          "mean": 1,
+          "lo": 0.5850322229461944,
+          "hi": 1.4149677770538056,
+          "radius": 0.4149677770538056,
+          "n": 40
+        }
+      },
+      "88": {
+        "minP_decide_CLEAR_above": 0.7943,
+        "maxP_decide_NOTCLEAR_below": 0.4057,
+        "perfect_p1_decision": "above",
+        "perfect_ci": {
+          "mean": 1,
+          "lo": 0.6040016913765476,
+          "hi": 1.3959983086234524,
+          "radius": 0.3959983086234525,
+          "n": 42
+        }
+      },
+      "100": {
+        "minP_decide_CLEAR_above": 0.7717,
+        "maxP_decide_NOTCLEAR_below": 0.4283,
+        "perfect_p1_decision": "above",
+        "perfect_ci": {
+          "mean": 1,
+          "lo": 0.6040016913765476,
+          "hi": 1.3959983086234524,
+          "radius": 0.3959983086234525,
+          "n": 42
+        }
+      },
+      "145": {
+        "minP_decide_CLEAR_above": 0.7198,
+        "maxP_decide_NOTCLEAR_below": 0.4802,
+        "perfect_p1_decision": "above",
+        "perfect_ci": {
+          "mean": 1,
+          "lo": 0.6040016913765476,
+          "hi": 1.3959983086234524,
+          "radius": 0.3959983086234525,
+          "n": 42
+        }
+      }
+    },
+    "0.7": {
+      "28": {
+        "minP_decide_CLEAR_above": 1,
+        "maxP_decide_NOTCLEAR_below": 0.1163,
+        "perfect_p1_decision": "undecided",
+        "perfect_ci": {
+          "mean": 1,
+          "lo": 0.41628521517901673,
+          "hi": 1.5837147848209834,
+          "radius": 0.5837147848209833,
+          "n": 28
+        }
+      },
+      "40": {
+        "minP_decide_CLEAR_above": 1,
+        "maxP_decide_NOTCLEAR_below": 0.285,
+        "perfect_p1_decision": "undecided",
+        "perfect_ci": {
+          "mean": 1,
+          "lo": 0.5850322229461944,
+          "hi": 1.4149677770538056,
+          "radius": 0.4149677770538056,
+          "n": 40
+        }
+      },
+      "88": {
+        "minP_decide_CLEAR_above": 0.8943,
+        "maxP_decide_NOTCLEAR_below": 0.5057,
+        "perfect_p1_decision": "above",
+        "perfect_ci": {
+          "mean": 1,
+          "lo": 0.7047038329731705,
+          "hi": 1.2952961670268295,
+          "radius": 0.2952961670268295,
+          "n": 57
+        }
+      },
+      "100": {
+        "minP_decide_CLEAR_above": 0.8717,
+        "maxP_decide_NOTCLEAR_below": 0.5283,
+        "perfect_p1_decision": "above",
+        "perfect_ci": {
+          "mean": 1,
+          "lo": 0.7047038329731705,
+          "hi": 1.2952961670268295,
+          "radius": 0.2952961670268295,
+          "n": 57
+        }
+      },
+      "145": {
+        "minP_decide_CLEAR_above": 0.8198,
+        "maxP_decide_NOTCLEAR_below": 0.5802,
+        "perfect_p1_decision": "above",
+        "perfect_ci": {
+          "mean": 1,
+          "lo": 0.7047038329731705,
+          "hi": 1.2952961670268295,
+          "radius": 0.2952961670268295,
+          "n": 57
+        }
+      }
+    }
+  },
+  "min_n_perfect_clear": {
+    "0.6": {
+      "n": 42,
+      "nUsed": 42,
+      "ci": {
+        "mean": 1,
+        "lo": 0.6040016913765476,
+        "hi": 1.3959983086234524,
+        "radius": 0.3959983086234525,
+        "n": 42
+      }
+    },
+    "0.7": {
+      "n": 57,
+      "nUsed": 57,
+      "ci": {
+        "mean": 1,
+        "lo": 0.7047038329731705,
+        "hi": 1.2952961670268295,
+        "radius": 0.2952961670268295,
+        "n": 57
+      }
+    }
+  },
+  "wilson_one_shot": {
+    "28_0.6": {
+      "clearMin": {
+        "k": 22,
+        "rate": 0.7857142857142857,
+        "lo": 0.6046105292072612,
+        "hi": 0.8978767829881058
+      },
+      "failMax": {
+        "k": 11,
+        "rate": 0.39285714285714285,
+        "lo": 0.23565451827580033,
+        "hi": 0.575912739650937
+      }
+    },
+    "40_0.6": {
+      "clearMin": {
+        "k": 31,
+        "rate": 0.775,
+        "lo": 0.6249660359590695,
+        "hi": 0.8768404674532148
+      },
+      "failMax": {
+        "k": 17,
+        "rate": 0.425,
+        "lo": 0.2850916852481588,
+        "hi": 0.5780519956394001
+      }
+    },
+    "28_0.7": {
+      "clearMin": {
+        "k": 25,
+        "rate": 0.8928571428571429,
+        "lo": 0.7280377463234292,
+        "hi": 0.9628823079452006
+      },
+      "failMax": {
+        "k": 14,
+        "rate": 0.5,
+        "lo": 0.32632846832446344,
+        "hi": 0.6736715316755366
+      }
+    },
+    "40_0.7": {
+      "clearMin": {
+        "k": 34,
+        "rate": 0.85,
+        "lo": 0.7092737396097997,
+        "hi": 0.9293890829149257
+      },
+      "failMax": {
+        "k": 22,
+        "rate": 0.55,
+        "lo": 0.3982882988844078,
+        "hi": 0.6929492471905531
+      }
+    }
+  },
+  "content_sha256": "8853dedf92a8a9a24e77d566135a6a5ece7d133c3237fd3157d0d046e410d4c1"
+}

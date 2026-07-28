@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @capability: partition-leak-scan
 // @serves: G-INJECTED-DOCTRINE candidate set | REGISTRY literal set | Channel-C static scan | doctrine vs registry overlap
-// @does: regenerable static literal scan of find-40 expects against frozen DOCTRINE packet surfaces and REGISTRY files; writes versioned JSON under _SYSTEM/state/atlas/
+// @does: regenerable static literal scan of find-40 expects against frozen DOCTRINE packet surfaces and REGISTRY files; writes versioned JSON under _SYSTEM/eval/ablation-evidence/
 // @use: after partition class list changes, after packet surfaces change, before recording a partition freeze hash
 // @exports: scanSurfaces, scanFind40, writeArtifacts, main
 // @tier: atlas-eval
@@ -10,7 +10,7 @@
 // ---------------------------------------------------------------------------------------------
 // 2026-07-28: Orion's DOCTRINE (12) and REGISTRY (~28) candidate sets lived only in /tmp.
 // Atlas correctly refused to reconstruct them from memory. A freeze hash over /tmp evidence is a
-// hash of nothing. This script is the regenerator; the JSON under _SYSTEM/state/atlas/ is the
+// hash of nothing. This script is the regenerator; the JSON under _SYSTEM/eval/ablation-evidence/ is the
 // committed snapshot. Re-run after packet or registry drift; do not hand-edit the JSON.
 //
 // USAGE
@@ -26,7 +26,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..', '..', '..');
 const BENCH = join(REPO, '_SYSTEM', 'eval', 'atlas-benchmark.jsonl');
-const OUT_DIR = join(REPO, '_SYSTEM', 'state', 'atlas');
+const OUT_DIR = join(REPO, '_SYSTEM', 'eval', 'ablation-evidence');
 
 /** Frozen packet surfaces for Channel-C / G-INJECTED-DOCTRINE static candidates. */
 export const DOCTRINE_SURFACES = [
@@ -216,7 +216,7 @@ export function main(argv = process.argv.slice(2)) {
   console.log(`  doctrine ids: ${doctrine.question_ids.join(', ')}`);
   console.log(`  registry  n: ${registry.n_candidates}`);
   console.log(`  intersection: ${overlap.intersection.n}  neither: ${overlap.neither.n}`);
-  console.log('Re-run with --write to refresh _SYSTEM/state/atlas/*.json');
+  console.log('Re-run with --write to refresh _SYSTEM/eval/ablation-evidence/*.json');
   return 0;
 }
 

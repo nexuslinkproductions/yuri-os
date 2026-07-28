@@ -1,0 +1,175 @@
+{
+  "schema": "athena-digest-expect-score/v1",
+  "status": "RECORDED_RESULT_NO_REGENERATOR",
+  "note": "Athena digest is awareness-only; no traces. Primary-path claim INDEX.md+reads is the load-bearing feasibility signal if true.",
+  "measured_at": "2026-07-28T15:35:00.000Z",
+  "n": 10,
+  "baseHit": 7,
+  "miss": [
+    {
+      "id": "q013",
+      "q": "I need to add a new agent role to the fleet — where is the canonical r",
+      "expect": [
+        "_SYSTEM/config/fleet-roles.json"
+      ],
+      "claimed": [
+        "agent-catalog.json",
+        "ROLE-TOPOLOGY.md"
+      ],
+      "baseHit": false,
+      "exact": false
+    },
+    {
+      "id": "q025",
+      "q": "where do I write a durable behavioral memory about how I work with the",
+      "expect": [
+        "_SYSTEM/Scripts/claude-memory-write.mjs"
+      ],
+      "claimed": [
+        "~/.claude/projects/YURI-OS-MUSUBI/memory/"
+      ],
+      "baseHit": false,
+      "exact": false
+    },
+    {
+      "id": "q029",
+      "q": "I want to know everything structurally connected to a given file or sy",
+      "expect": [
+        "_SYSTEM/Scripts/yuri-knowledge-graph.mjs"
+      ],
+      "claimed": [
+        "yuri-graph-unify.mjs",
+        "yuri-graph.json",
+        "yuri-id-bridge.mjs"
+      ],
+      "baseHit": false,
+      "exact": false
+    }
+  ],
+  "rows": [
+    {
+      "id": "q001",
+      "q": "where is model routing decided?",
+      "expect": [
+        "_SYSTEM/Scripts/llm-compat-contract.mjs"
+      ],
+      "claimed": [
+        "llm-compat-contract.mjs"
+      ],
+      "baseHit": true,
+      "exact": false
+    },
+    {
+      "id": "q005",
+      "q": "what mediates Track A canonical YURI memory (propose/decide/ledger)?",
+      "expect": [
+        "_SYSTEM/Scripts/memory-kernel.mjs"
+      ],
+      "claimed": [
+        "memory-kernel.mjs"
+      ],
+      "baseHit": true,
+      "exact": false
+    },
+    {
+      "id": "q009",
+      "q": "where does persona actually get injected into a live session at runtim",
+      "expect": [
+        ".claude/hooks/soul-persona-inject.js"
+      ],
+      "claimed": [
+        "soul-persona-inject.js"
+      ],
+      "baseHit": true,
+      "exact": false
+    },
+    {
+      "id": "q013",
+      "q": "I need to add a new agent role to the fleet — where is the canonical r",
+      "expect": [
+        "_SYSTEM/config/fleet-roles.json"
+      ],
+      "claimed": [
+        "agent-catalog.json",
+        "ROLE-TOPOLOGY.md"
+      ],
+      "baseHit": false,
+      "exact": false
+    },
+    {
+      "id": "q017",
+      "q": "a skill claims a /alias but the commands/ file is missing — what gener",
+      "expect": [
+        "_SYSTEM/Scripts/create-missing-commands.mjs"
+      ],
+      "claimed": [
+        "create-missing-commands.mjs"
+      ],
+      "baseHit": true,
+      "exact": false
+    },
+    {
+      "id": "q021",
+      "q": "where is the master list of every live skill with its one-line descrip",
+      "expect": [
+        "skills/skill-index.json"
+      ],
+      "claimed": [
+        "skill-index.json"
+      ],
+      "baseHit": true,
+      "exact": false
+    },
+    {
+      "id": "q025",
+      "q": "where do I write a durable behavioral memory about how I work with the",
+      "expect": [
+        "_SYSTEM/Scripts/claude-memory-write.mjs"
+      ],
+      "claimed": [
+        "~/.claude/projects/YURI-OS-MUSUBI/memory/"
+      ],
+      "baseHit": false,
+      "exact": false
+    },
+    {
+      "id": "q029",
+      "q": "I want to know everything structurally connected to a given file or sy",
+      "expect": [
+        "_SYSTEM/Scripts/yuri-knowledge-graph.mjs"
+      ],
+      "claimed": [
+        "yuri-graph-unify.mjs",
+        "yuri-graph.json",
+        "yuri-id-bridge.mjs"
+      ],
+      "baseHit": false,
+      "exact": false
+    },
+    {
+      "id": "q033",
+      "q": "a decision has multiple paths and uncertain parameters — what computes",
+      "expect": [
+        "_SYSTEM/Scripts/decision-sim.mjs"
+      ],
+      "claimed": [
+        "decision-sim.mjs"
+      ],
+      "baseHit": true,
+      "exact": false
+    },
+    {
+      "id": "q037",
+      "q": "a factor wants to trade real money — what computes the R0→R1→R2→R3 gra",
+      "expect": [
+        "_SYSTEM/Scripts/alpha-factor-library/graduation.mjs"
+      ],
+      "claimed": [
+        "graduation.mjs"
+      ],
+      "baseHit": true,
+      "exact": false
+    }
+  ],
+  "artifact_home": "_SYSTEM/eval/ablation-evidence/"
+}

@@ -1,0 +1,489 @@
+{
+  "schema": "G-REGISTRY-literal-candidates/v1",
+  "gate": "G-REGISTRY-HIT",
+  "status": "CANDIDATE_SET_STATIC_LITERALS",
+  "regenerator": "_SYSTEM/Scripts/atlas/partition-leak-scan.mjs",
+  "measured_at": "2026-07-28T15:55:40.969Z",
+  "registry_surfaces_scanned": [
+    "_SYSTEM/capabilities.json",
+    "skills/skill-index.json"
+  ],
+  "surfaces_present": [
+    "_SYSTEM/capabilities.json",
+    "skills/skill-index.json"
+  ],
+  "surfaces_missing": [],
+  "note": "REGISTRY class = backend of a Tier-1 arm / need→path index (Hermes partition freeze 2026-07-28). capabilities.json entry shape {id,serves,does,mechanism:path} is an answer key, not a human routing map. Outcome REGISTRY_HIT never counts toward nav-tool slot credit without a tool-vs-own-registry contrast cell. skill-index.json is belt/subclass (low hit density on find-40).",
+  "n_find40": 40,
+  "n_candidates": 27,
+  "question_ids": [
+    "q002",
+    "q003",
+    "q004",
+    "q006",
+    "q011",
+    "q013",
+    "q015",
+    "q016",
+    "q017",
+    "q018",
+    "q019",
+    "q020",
+    "q021",
+    "q022",
+    "q023",
+    "q026",
+    "q027",
+    "q028",
+    "q029",
+    "q030",
+    "q031",
+    "q032",
+    "q033",
+    "q035",
+    "q036",
+    "q037",
+    "q038"
+  ],
+  "candidates": [
+    {
+      "question_id": "q002",
+      "expect": "_SYSTEM/Scripts/capability-recall.mjs",
+      "basename": "capability-recall.mjs",
+      "q": "before building a new scorer or matcher, what do I check first so I don't rebuild a mechanism YURI already has?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "he source, never this file. Query: node _SYSTEM/Scripts/capability-recall.mjs \\\"<need>\\\". Mandate: .claude/rules/capa"
+        }
+      ]
+    },
+    {
+      "question_id": "q003",
+      "expect": "_SYSTEM/Scripts/xref-query.mjs",
+      "basename": "xref-query.mjs",
+      "q": "what do I run before broad exploration to navigate an unfamiliar task in this repo?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "\"run\" ], \"mechanism\": \"_SYSTEM/Scripts/xref-query.mjs\" }, { \"id\": \"contract-con"
+        }
+      ]
+    },
+    {
+      "question_id": "q004",
+      "expect": "_SYSTEM/Scripts/propagation-scan.mjs",
+      "basename": "propagation-scan.mjs",
+      "q": "how do I see what a change to a known circuitry node will propagate to downstream?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "ationScan\" ], \"mechanism\": \"_SYSTEM/Scripts/propagation-scan.mjs\" }, { \"id\": \"provider-rou"
+        }
+      ]
+    },
+    {
+      "question_id": "q006",
+      "expect": "_SYSTEM/Scripts/repo-integrity-tripwire.mjs",
+      "basename": "repo-integrity-tripwire.mjs",
+      "q": "what guards against sparse-checkout regressions silently deleting tracked files?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "a scheduled/health-check surface: `node _SYSTEM/Scripts/repo-integrity-tripwire.mjs`. Exit 0 = all clear, 1 = one or more A"
+        }
+      ]
+    },
+    {
+      "question_id": "q011",
+      "expect": "_SYSTEM/capabilities.json",
+      "basename": "capabilities.json",
+      "q": "where is the generated capability registry that capability-recall reads from?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "basename",
+          "snippet": "D per-input (generator-backed check for capabilities.json, indexed-commit marker for gitnexus, la"
+        }
+      ]
+    },
+    {
+      "question_id": "q013",
+      "expect": "_SYSTEM/config/fleet-roles.json",
+      "basename": "fleet-roles.json",
+      "q": "I need to add a new agent role to the fleet — where is the canonical role roster it gets validated against?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "loads + validates the MURE role roster (_SYSTEM/config/fleet-roles.json), indexes roles by id / group / capabil"
+        }
+      ]
+    },
+    {
+      "question_id": "q015",
+      "expect": "_SYSTEM/mure/company.mjs",
+      "basename": "company.mjs",
+      "q": "what turns a free-text task into a governed, role-cast fleet run — the top orchestrator a task actually goes through?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "\"ARM_FLAG\" ], \"mechanism\": \"_SYSTEM/mure/company.mjs\" }, { \"id\": \"mure-evolver"
+        }
+      ]
+    },
+    {
+      "question_id": "q016",
+      "expect": "_SYSTEM/Scripts/glm-fleet.mjs",
+      "basename": "glm-fleet.mjs",
+      "q": "what fans out N parallel Z.ai GLM lanes at high reasoning for the GLM substrate of the fleet?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "\"ARM_ENV\" ], \"mechanism\": \"_SYSTEM/Scripts/glm-fleet.mjs\" }, { \"id\": \"golden-ratio"
+        }
+      ]
+    },
+    {
+      "question_id": "q017",
+      "expect": "_SYSTEM/Scripts/create-missing-commands.mjs",
+      "basename": "create-missing-commands.mjs",
+      "q": "a skill claims a /alias but the commands/ file is missing — what generates or audits the missing command file?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "\"runWrite\" ], \"mechanism\": \"_SYSTEM/Scripts/create-missing-commands.mjs\" }, { \"id\": \"skill-hash-v"
+        }
+      ]
+    },
+    {
+      "question_id": "q018",
+      "expect": "_SYSTEM/Scripts/corpus-security-scan.mjs",
+      "basename": "corpus-security-scan.mjs",
+      "q": "before installing a foreign/downloaded skill, what statically scans it for malicious code so we don't ingest something dangerous?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "scanSkill\" ], \"mechanism\": \"_SYSTEM/Scripts/corpus-security-scan.mjs\" }, { \"id\": \"social-adapt"
+        }
+      ]
+    },
+    {
+      "question_id": "q019",
+      "expect": "_SYSTEM/Scripts/capability-scan.mjs",
+      "basename": "capability-scan.mjs",
+      "q": "what regenerates capabilities.json from the @capability tags left in source files?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "basename",
+          "snippet": "NEED->MECHANISM map. AUTO-GENERATED by capability-scan.mjs from @capability annotations at each me"
+        }
+      ]
+    },
+    {
+      "question_id": "q020",
+      "expect": "_SYSTEM/Scripts/skill-recall.mjs",
+      "basename": "skill-recall.mjs",
+      "q": "how do I find which of YURI's ~170 skills actually matches a task before building something new?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "ankSkills\" ], \"mechanism\": \"_SYSTEM/Scripts/skill-recall.mjs\" }, { \"id\": \"skill-securi"
+        }
+      ]
+    },
+    {
+      "question_id": "q021",
+      "expect": "skills/skill-index.json",
+      "basename": "skill-index.json",
+      "q": "where is the master list of every live skill with its one-line description, the thing skill routing is built from?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "basename",
+          "snippet": "ection of the canonical skills/ corpus (skill-index.json source of truth) into the OMP native sk"
+        }
+      ]
+    },
+    {
+      "question_id": "q022",
+      "expect": "_SYSTEM/mure/governance.mjs",
+      "basename": "governance.mjs",
+      "q": "a decision is safe, reversible, and evidence-decidable — what deterministically decides whether it's self-governable or needs the owner's sign-off?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "RINE_NOTE\" ], \"mechanism\": \"_SYSTEM/mure/governance.mjs\" }, { \"id\": \"mure-held-ru"
+        }
+      ]
+    },
+    {
+      "question_id": "q023",
+      "expect": "_SYSTEM/Scripts/_lib/lane-command-gate.mjs",
+      "basename": "lane-command-gate.mjs",
+      "q": "someone is trying to sneak a git mutation past the bash gate by hiding it behind global flags — what detects that?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "BCOMMANDS\" ], \"mechanism\": \"_SYSTEM/Scripts/_lib/lane-command-gate.mjs\" }, { \"id\": \"maker-exec-m"
+        }
+      ]
+    },
+    {
+      "question_id": "q026",
+      "expect": "_SYSTEM/Scripts/memory-canonical-store.mjs",
+      "basename": "memory-canonical-store.mjs",
+      "q": "what's the ONE event-sourced store any lane can read operator-approved canonical truth from, at peer level, without a wrapper?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "\"keyOf\" ], \"mechanism\": \"_SYSTEM/Scripts/memory-canonical-store.mjs\" }, { \"id\": \"memory-dedup"
+        }
+      ]
+    },
+    {
+      "question_id": "q027",
+      "expect": "_SYSTEM/Scripts/kagami-memory-consolidator.mjs",
+      "basename": "kagami-memory-consolidator.mjs",
+      "q": "what produces the quarterly dedup report for stale, overlapping memories that should be merged?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "ritten to a DATED\", \"use\": \"`node _SYSTEM/Scripts/kagami-memory-consolidator.mjs --report [--threshold 0.4]` before any\""
+        }
+      ]
+    },
+    {
+      "question_id": "q028",
+      "expect": "_SYSTEM/Scripts/xref-drift-scan.mjs",
+      "basename": "xref-drift-scan.mjs",
+      "q": "the search index feels behind HEAD — what detects that the corpus has drifted stale against real file content?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "seFileRef\" ], \"mechanism\": \"_SYSTEM/Scripts/xref-drift-scan.mjs\" }, { \"id\": \"yuri-doctor\""
+        }
+      ]
+    },
+    {
+      "question_id": "q029",
+      "expect": "_SYSTEM/Scripts/yuri-knowledge-graph.mjs",
+      "basename": "yuri-knowledge-graph.mjs",
+      "q": "I want to know everything structurally connected to a given file or symbol across scripts, skills, and state — what builds that unified graph?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "\"main\" ], \"mechanism\": \"_SYSTEM/Scripts/yuri-knowledge-graph.mjs\" }, { \"id\": \"yuri-local-s"
+        }
+      ]
+    },
+    {
+      "question_id": "q030",
+      "expect": "_SYSTEM/Scripts/enforce-claude-symlink.mjs",
+      "basename": "enforce-claude-symlink.mjs",
+      "q": "~/.claude keeps losing its symlink to this repo's .claude/ dir — what heals that automatically?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "\"main\" ], \"mechanism\": \"_SYSTEM/Scripts/enforce-claude-symlink.mjs\" }, { \"id\": \"cline-fleet-"
+        }
+      ]
+    },
+    {
+      "question_id": "q031",
+      "expect": "_SYSTEM/Scripts/math/math-kernel.mjs",
+      "basename": "math-kernel.mjs",
+      "q": "before hand-rolling entropy, KL divergence, or weighted variance for a new scorer, what's the shared math primitive module to reach for instead?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "\"median\" ], \"mechanism\": \"_SYSTEM/Scripts/math/math-kernel.mjs\" }, { \"id\": \"math-proof-g"
+        }
+      ]
+    },
+    {
+      "question_id": "q032",
+      "expect": "_SYSTEM/Scripts/math/yuri-energy.mjs",
+      "basename": "yuri-energy.mjs",
+      "q": "what computes the additive weighted composite badness score (U) that gates a proposed action?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "\"computeU\" ], \"mechanism\": \"_SYSTEM/Scripts/math/yuri-energy.mjs\" }, { \"id\": \"energy-gate-"
+        }
+      ]
+    },
+    {
+      "question_id": "q033",
+      "expect": "_SYSTEM/Scripts/decision-sim.mjs",
+      "basename": "decision-sim.mjs",
+      "q": "a decision has multiple paths and uncertain parameters — what computes the robust CVaR/minimax-regret score instead of a naive expected value?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "akeQmcRng\" ], \"mechanism\": \"_SYSTEM/Scripts/decision-sim.mjs\" }, { \"id\": \"run-swarm-or"
+        }
+      ]
+    },
+    {
+      "question_id": "q035",
+      "expect": "skills/genjutsu-design-audit/SKILL.md",
+      "basename": "SKILL.md",
+      "q": "what's the final checklist pass that scans for motion gaps, a11y violations, and visual inconsistencies at the end of a design pipeline?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json",
+        "skills/skill-index.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "basename",
+          "snippet": "gistry\", \"resumable third-party SKILL.md ingest\", \"authorized-lab gating"
+        },
+        {
+          "surface": "skills/skill-index.json",
+          "match": "full_path",
+          "snippet": "\"genjutsu-design-audit\", \"path\": \"skills/genjutsu-design-audit/SKILL.md\", \"sourceSha256\": \"aad1f1b3161dc2"
+        }
+      ]
+    },
+    {
+      "question_id": "q036",
+      "expect": "_SYSTEM/Scripts/alpha-factor-library/alpha-factor-store.mjs",
+      "basename": "alpha-factor-store.mjs",
+      "q": "where is the persistent store for alpha factors with FTS5 search and a lineage graph, the thing to reach for before building any new factor storage?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "Ancestors\" ], \"mechanism\": \"_SYSTEM/Scripts/alpha-factor-library/alpha-factor-store.mjs\" }, { \"id\": \"alpha-factor"
+        }
+      ]
+    },
+    {
+      "question_id": "q037",
+      "expect": "_SYSTEM/Scripts/alpha-factor-library/graduation.mjs",
+      "basename": "graduation.mjs",
+      "q": "a factor wants to trade real money — what computes the R0→R1→R2→R3 graduation ladder that gates that promotion?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "\"GATES\" ], \"mechanism\": \"_SYSTEM/Scripts/alpha-factor-library/graduation.mjs\" }, { \"id\": \"heldout-spli"
+        }
+      ]
+    },
+    {
+      "question_id": "q038",
+      "expect": "_SYSTEM/Scripts/october-capability-index.mjs",
+      "basename": "october-capability-index.mjs",
+      "q": "what projects October's live, installed MCP tool schemas into YURI so a lane knows what the canvas actually supports right now?",
+      "surfaces": [
+        "_SYSTEM/capabilities.json"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/capabilities.json",
+          "match": "full_path",
+          "snippet": "eRegistry\" ], \"mechanism\": \"_SYSTEM/Scripts/october-capability-index.mjs\" }, { \"id\": \"october-mcp-"
+        }
+      ]
+    }
+  ],
+  "content_sha256": "35b36b79a652d5db9b0d5757dd6e671377af1afa959e373811802c061f755116"
+}
