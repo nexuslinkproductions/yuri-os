@@ -3,7 +3,9 @@
 // @serves: benchmark ground-truth audit gate | leakage scan both channels | stratification and reachability report
 // @does: validates an AUTHORED n>=100 find set against the three-clause rule (owner directive
 //   2026-07-28) before anything is measured on it. Checks, in order:
-//   1. SHAPE — n>=100, unique ids, single expect path per question, type find or unset.
+//   1. SHAPE — n>=100, unique ids, single expect path per question, and FIND-ONLY: any non-find
+//      type FAILS (locate/enter are exploratory-contaminated and the n>=100 brief is a find set;
+//      a mixed set sneaks unmeasured types back in through the side door).
 //   2. REACHABILITY — every expect path exists in the id-map corpus AND the FTS search index.
 //      Unreachable = WARN (coverage ceiling; author decides — unwinnable questions are kept per
 //      doctrine but must be marked, never silent).
@@ -83,7 +85,7 @@ export async function validateBenchmark(filePath, { minN = MIN_N } = {}) {
       }
     }
     if (!Array.isArray(it.expect) || it.expect.length !== 1) failures.push(`${it.id}: expect must be a single path (got ${JSON.stringify(it.expect)})`);
-    if (it.type && it.type !== 'find') warnings.push(`${it.id}: non-find type "${it.type}" — the set is find-only by design`);
+    if (it.type && it.type !== 'find') failures.push(`${it.id}: non-find type "${it.type}" — this set is FIND-ONLY by design (locate/enter are exploratory-contaminated; no mixed types)`);
   }
 
   // Load corpora.
