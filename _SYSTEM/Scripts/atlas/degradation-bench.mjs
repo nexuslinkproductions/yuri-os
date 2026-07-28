@@ -60,17 +60,21 @@ export const TRANSFORMS_VOCAB = {
   first8: (q) => contentSpine(q).slice(0, 8).join(' '),
   first5: (q) => contentSpine(q).slice(0, 5).join(' '),
   first3: (q) => contentSpine(q).slice(0, 3).join(' '),
-  long_tokens_6: (q) => q.split(/\s+/).filter((t) => t.replace(/[^a-z0-9]/gi, '').length >= 6).join(' '),
   every_other: (q) => contentSpine(q).filter((_, i) => i % 2 === 0).join(' '),
 };
 
-/** G6a-span — raw positional family (early stop / truncation). v1 semantics preserved. */
+/** G6a-span — raw positional family (early stop / truncation). v1 semantics preserved.
+ *  long_tokens_6 lives HERE, not in vocab (Hermes classification ruling 2026-07-28): raw
+ *  whitespace tokens with len>=6 KEEP STOPWORDS ('before', 'should', 'whether'), which makes it a
+ *  LENGTH filter, not a vocabulary filter. UNCAPPED keep-all (Orion's capped hybrid rejected;
+ *  divergence documented). One name = one function. */
 export const TRANSFORMS_SPAN = {
   expert: (q) => q,
   first8: (q) => q.split(/\s+/).slice(0, 8).join(' '),
   first5: (q) => q.split(/\s+/).slice(0, 5).join(' '),
   first3: (q) => q.split(/\s+/).slice(0, 3).join(' '),
   every_other: (q) => q.split(/\s+/).filter((_, i) => i % 2 === 0).join(' '),
+  long_tokens_6: (q) => q.split(/\s+/).filter((t) => t.replace(/[^a-z0-9]/gi, '').length >= 6).join(' '),
 };
 
 /** Back-compat flat view (vocab family is the headline; span is always reported adjacent). */
@@ -198,16 +202,18 @@ export function main(argv = process.argv.slice(2)) {
         }
       }
       const shared = ['expert', 'first8', 'first5', 'first3', 'every_other'];
-      const vocabOnly = ['content_only', 'no_identifiers', 'long_tokens_6'];
+      const vocabOnly = ['content_only', 'no_identifiers'];
+      const spanOnly = ['long_tokens_6']; // length filter — lives in span (Hermes ruling 2026-07-28)
       const row = [
         `expert ${tables.vocab.expert.score.toFixed(4)}`,
         ...vocabOnly.map((t) => `v:${t} ${tables.vocab[t].score.toFixed(4)}`),
+        ...spanOnly.map((t) => `s:${t} ${tables.span[t].score.toFixed(4)}`),
         ...shared.slice(1).map((t) => `v:${t} ${tables.vocab[t].score.toFixed(4)} | s:${t} ${tables.span[t].score.toFixed(4)}`),
       ].join(' ; ');
-      // binding rule: family-worst per shared transform + overall worst
+      // binding rule: family-worst per shared transform + overall worst (span-only included)
       const sharedWorst = Object.fromEntries(shared.slice(1).map((t) => [t, Math.min(tables.vocab[t].score, tables.span[t].score)]));
-      const allScores = [...Object.values(tables.vocab).map((v) => v.score), ...shared.slice(1).map((t) => tables.span[t].score)];
-      const worst = Math.min(...allScores.slice(1)); // excluding expert
+      const degradedScores = (fam) => Object.entries(fam).filter(([t]) => t !== 'expert').map(([, v]) => v.score);
+      const worst = Math.min(...degradedScores(tables.vocab), ...degradedScores(tables.span));
       console.log(`\n${arm}: ${row}`);
       console.log(`  family-worst (binding): ${Object.entries(sharedWorst).map(([t, s]) => `${t} ${s.toFixed(4)}`).join(' | ')}`);
       console.log(`  WORST-CASE gate number: ${worst.toFixed(4)} | expert->worst drop: ${(tables.vocab.expert.score - worst).toFixed(4)}`);
@@ -215,7 +221,7 @@ export function main(argv = process.argv.slice(2)) {
       const ids = Object.keys(tables.vocab.expert.perQ);
       let varSum = 0;
       for (const id of ids) {
-        const vals = [...Object.values(tables.vocab), ...shared.slice(1).map((t) => tables.span[t])].map((v) => v.perQ[id]);
+        const vals = [...Object.values(tables.vocab), ...Object.values(tables.span)].map((v) => v.perQ[id]);
         const mean = vals.reduce((a, c) => a + c, 0) / vals.length;
         varSum += vals.reduce((a, c) => a + (c - mean) ** 2, 0) / vals.length;
       }

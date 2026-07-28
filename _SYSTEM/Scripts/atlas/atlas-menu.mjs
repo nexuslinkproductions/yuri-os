@@ -108,9 +108,17 @@ export function checkCoverage(checkpoints, nodes, label) {
  * loadMenu() — balanced flat area set by PER-NODE assignment: every corpus node takes its dir1
  * checkpoint if that area respects MAX_MEMBERS, else its dir2 checkpoint, else its dir3 checkpoint
  * (oversized leaf, flagged). Per-node assignment makes coverage exact and duplication impossible BY
- * CONSTRUCTION — tree-recursive splitting double-emits cross-boundary members (measured: 154 dupes
- * and 38 drops on this corpus). Areas are keyed depth+checkpoint-id, so same-named checkpoints at
- * different granularities can never overwrite each other (dir1/dir2/dir3 reuse label-derived ids).
+ * CONSTRUCTION. HISTORY, accurately stated: an earlier tree-recursive design (dir1->dir2 hierarchy
+ * with plurality parenting + scoped entry, symbols menuEnterScoped/parentsOfArea/scopedTokens)
+ * double-emitted cross-boundary members — measured 154 duplicate assignments and 38 drops on this
+ * corpus. Cross-boundary is a NESTING property (one dir2 checkpoint's members can span MULTIPLE
+ * dir1 parents), which produces ZERO duplicate slots inside any single partition file — all seven
+ * persisted partitions are disjoint (unique=4255, dupes=0, measured 2026-07-28) — so the defect
+ * only ever showed in the tree VIEW, never in per-file dup counts. That entire design was
+ * DELIBERATELY dropped when per-node assignment replaced it (2026-07-28): not silently lost, and
+ * stated here because a silently dropped feature and a deliberately removed one look identical
+ * afterward. Areas are keyed depth+checkpoint-id, so same-named checkpoints at different
+ * granularities can never overwrite each other (dir1/dir2/dir3 reuse label-derived ids).
  */
 export function loadMenu({ idMapPath } = {}) {
   if (MENU_CACHE && !idMapPath) return MENU_CACHE;
