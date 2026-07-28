@@ -4,6 +4,8 @@
   "frozen_at": "2026-07-28T15:58:00.000Z",
   "authority": "Hermes freeze precondition 1 — matcher written and committed BEFORE class rerun",
   "regenerator": "_SYSTEM/Scripts/atlas/partition-leak-scan.mjs",
+  "channel_split_at": "2026-07-28T16:34:00.000Z",
+  "channel_split_authority": "Hermes R2 ruling 2026-07-28 — C_inject and C_disk are DIFFERENT ON PURPOSE; never merge. Predicates unchanged; surface lists corrected for channel conflation in the original DOCTRINE key.",
   "incomparable_prior": {
     "reported_count": 28,
     "claimed_surface": "_SYSTEM/capabilities.json only (verbal report)",
@@ -17,11 +19,57 @@
     "note": "git hash-object / git rev-parse HEAD:path of the benchmark file at freeze time"
   },
   "surfaces": {
-    "DOCTRINE": [
-      "CLAUDE.md",
-      "AGENTS.md",
-      ".cursor/rules/sync.mdc"
-    ],
+    "DOCTRINE_C_INJECT": {
+      "role": "Tier -1 / Channel-C packet floor — what a subject actually receives",
+      "members": [
+        "CLAUDE.md",
+        "SOUL.md",
+        "_SYSTEM/persona.md",
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "resolution": "CLAUDE.md + transitive @-includes resolved mechanically from file headers (not a hand-list that drifts). Current resolution at channel_split_at: @_SYSTEM/yuri-origin.md, @SOUL.md, @_SYSTEM/persona.md.",
+      "excludes": [
+        "AGENTS.md",
+        ".cursor/rules/sync.mdc"
+      ],
+      "exclude_reason": "Other harnesses' adapters. On disk (C_disk), never injected into this experiment's packet.",
+      "candidate_artifact": "_SYSTEM/eval-evidence/g-cinject-doctrine-candidates.json",
+      "owner": "Phoenix — fixture + scan at pinned commit"
+    },
+    "DOCTRINE_C_DISK": {
+      "role": "partition class DOCTRINE — doctrine on disk reachable by grep; outcome C_DISK_COPY",
+      "members": [
+        "CLAUDE.md",
+        "AGENTS.md",
+        "SOUL.md",
+        "_SYSTEM/persona.md",
+        "_SYSTEM/yuri-origin.md",
+        ".cursor/rules/sync.mdc"
+      ],
+      "members_glob": [
+        ".claude/rules/*.md"
+      ],
+      "members_declared_out_of_repo": [
+        "~/.claude/CLAUDE.md (global) — declared in source-partition-v1 as 'CLAUDE.md (global + project)'; not scanned by the repo-rooted regenerator. Counts that omit it remain a lower bound if global adds literals."
+      ],
+      "candidate_artifact": "_SYSTEM/eval-evidence/g-disk-doctrine-candidates.json",
+      "owner": "Orion — full-class literals + union/intersection with REGISTRY"
+    },
+    "DOCTRINE": {
+      "status": "RETIRED_CHANNEL_CONFLATED",
+      "retired_at": "2026-07-28T16:34:00.000Z",
+      "members_were": [
+        "CLAUDE.md",
+        "AGENTS.md",
+        ".cursor/rules/sync.mdc"
+      ],
+      "defect": "Mixed C_inject and C_disk: scanned two never-injected adapters (AGENTS.md, sync.mdc) while missing three always-injected transitive includes (SOUL.md, persona.md, yuri-origin.md). Produced the under-scoped 12-id list.",
+      "retire_reasons": [
+        "SCAN-SURFACE-MISMATCHED",
+        "CHANNEL-CONFLATED"
+      ],
+      "do_not_use": true
+    },
     "REGISTRY": [
       "_SYSTEM/capabilities.json",
       "skills/skill-index.json"
@@ -56,14 +104,17 @@
     "aggregation": "A question is a candidate if ANY enabled predicate hits on ANY present surface in the class. Evidence records every (surface, predicate) hit with a ±40 char snippet around the first indexOf match (full_path preferred when both hit on the same surface)."
   },
   "outputs": {
-    "doctrine": "_SYSTEM/eval-evidence/g-injected-doctrine-candidates.json",
+    "doctrine_c_disk": "_SYSTEM/eval-evidence/g-disk-doctrine-candidates.json",
+    "doctrine_c_inject": "_SYSTEM/eval-evidence/g-cinject-doctrine-candidates.json",
+    "doctrine_retired_conflated": "_SYSTEM/eval-evidence/g-injected-doctrine-candidates.json",
     "registry": "_SYSTEM/eval-evidence/g-registry-literal-candidates.json",
     "overlap": "_SYSTEM/eval-evidence/find40-doctrine-registry-overlap.json",
     "must_embed": [
       "matcher_spec_schema",
       "matcher_spec_content_sha256",
       "question_set_blob_sha1",
-      "per-surface content sha256 at scan time"
+      "per-surface content sha256 at scan time",
+      "channel (C_DISK | C_INJECT | RETIRED_CHANNEL_CONFLATED)"
     ]
   }
 }

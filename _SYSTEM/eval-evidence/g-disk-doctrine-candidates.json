@@ -1,13 +1,14 @@
 {
-  "schema": "G-INJECTED-DOCTRINE-candidates/v1",
-  "gate": "G-INJECTED-DOCTRINE",
+  "schema": "G-DISK-DOCTRINE-candidates/v1",
+  "gate": "G-DISK-DOCTRINE",
   "class": "DOCTRINE",
-  "status": "RETIRED_SCAN_SURFACE_MISMATCHED_AND_CHANNEL_CONFLATED",
+  "channel": "C_DISK",
+  "status": "CANDIDATE_SET_STATIC_LITERALS",
   "regenerator": "_SYSTEM/Scripts/atlas/partition-leak-scan.mjs",
-  "measured_at": "2026-07-28T16:00:54.028Z",
+  "measured_at": "2026-07-28T16:37:59.417Z",
   "matcher_spec_schema": "partition-literal-matcher/v1",
   "matcher_spec_path": "_SYSTEM/eval-evidence/partition-literal-matcher-v1.json",
-  "matcher_spec_content_sha256": "cafff116bbdecd58509305242fe289a3b4d432d7c095af1aba5e89053f1cd0bf",
+  "matcher_spec_content_sha256": "cfad97e3f564cb4c6feb21eb4d4168435e133dee828ecc8466a8241202d35af8",
   "match_predicates": [
     "full_path",
     "basename"
@@ -34,36 +35,87 @@
   "surfaces_scanned": [
     "CLAUDE.md",
     "AGENTS.md",
-    ".cursor/rules/sync.mdc"
+    "SOUL.md",
+    "_SYSTEM/persona.md",
+    "_SYSTEM/yuri-origin.md",
+    ".cursor/rules/sync.mdc",
+    ".claude/rules/capability_first.md",
+    ".claude/rules/research_pipeline.md",
+    ".claude/rules/skill-creation.md",
+    ".claude/rules/yuri_operating_dna.md",
+    ".claude/rules/zread-repo-scrape.md"
   ],
   "surfaces_present": [
     "CLAUDE.md",
     "AGENTS.md",
-    ".cursor/rules/sync.mdc"
+    "SOUL.md",
+    "_SYSTEM/persona.md",
+    "_SYSTEM/yuri-origin.md",
+    ".cursor/rules/sync.mdc",
+    ".claude/rules/capability_first.md",
+    ".claude/rules/research_pipeline.md",
+    ".claude/rules/skill-creation.md",
+    ".claude/rules/yuri_operating_dna.md",
+    ".claude/rules/zread-repo-scrape.md"
   ],
   "surfaces_missing": [],
   "surface_sha256_at_scan": {
     "CLAUDE.md": "eda819105f8c9713ad2f6306ac71e21e30a48199bc2a34024dd02119eb0d740b",
     "AGENTS.md": "2eca58843897504a41db11dde185a44b82691427af968ed5bb5af1adf1717adc",
-    ".cursor/rules/sync.mdc": "af51fd0565bd0215c829e4359f186665aef21c2184e825a2e59b0d45d3e84985"
+    "SOUL.md": "5c78c9ab1076af7d5ac6ef31b9667e035613ea9664e1e935bc2a98756fafb51d",
+    "_SYSTEM/persona.md": "c61ffff6b2bcde9fa615f4a3aacf18c4bf83e1ebb14a95af6529b8fa4264bd51",
+    "_SYSTEM/yuri-origin.md": "e5fb52fb3b1b81d1f79b1f544d2420365c8854243b15fccd2ec79fb385d9369e",
+    ".cursor/rules/sync.mdc": "af51fd0565bd0215c829e4359f186665aef21c2184e825a2e59b0d45d3e84985",
+    ".claude/rules/capability_first.md": "8a84ac8ec038f7aa3eaba3d273d8fbf264940bff3ca61c832a2214a9d000a1ad",
+    ".claude/rules/research_pipeline.md": "2168f5d8ca265c3e31e5ee4f48bdfec0a6c771e4fc63e7ff08078b19957b9be7",
+    ".claude/rules/skill-creation.md": "cd069cda2cb8b8438e2202fbbf16a833a82cab0cad15272da63ba038846560bd",
+    ".claude/rules/yuri_operating_dna.md": "0442dcebb47afe4de334fdfb5a865e86682a4e2fda6d55838eb5843b00ba5d74",
+    ".claude/rules/zread-repo-scrape.md": "85aaebfba10c373a8fd401eefd81374ed7bcddaafe9b049e02a9213b50409557"
   },
   "n_find40": 40,
-  "n_candidates": 12,
+  "n_candidates": 17,
   "question_ids": [
+    "q001",
     "q002",
     "q003",
     "q004",
     "q005",
     "q007",
+    "q008",
+    "q009",
     "q010",
+    "q011",
     "q012",
     "q014",
     "q019",
     "q020",
     "q025",
+    "q026",
     "q035"
   ],
   "candidates": [
+    {
+      "question_id": "q001",
+      "expect": "_SYSTEM/Scripts/llm-compat-contract.mjs",
+      "basename": "llm-compat-contract.mjs",
+      "q": "where is model routing decided?",
+      "surfaces": [
+        "_SYSTEM/yuri-origin.md",
+        ".claude/rules/yuri_operating_dna.md"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "c`, `.codex/*` 6. Executable routing - `_SYSTEM/Scripts/llm-compat-contract.mjs` 7. On-demand references and skills 8."
+        },
+        {
+          "surface": ".claude/rules/yuri_operating_dna.md",
+          "match": "full_path",
+          "snippet": "eation.md` - skill creation workflow - `_SYSTEM/Scripts/llm-compat-contract.mjs` - routing and lifecycle contract ## L"
+        }
+      ]
+    },
     {
       "question_id": "q002",
       "expect": "_SYSTEM/Scripts/capability-recall.mjs",
@@ -71,7 +123,9 @@
       "q": "before building a new scorer or matcher, what do I check first so I don't rebuild a mechanism YURI already has?",
       "surfaces": [
         "CLAUDE.md",
-        ".cursor/rules/sync.mdc"
+        "_SYSTEM/yuri-origin.md",
+        ".cursor/rules/sync.mdc",
+        ".claude/rules/capability_first.md"
       ],
       "evidence": [
         {
@@ -80,9 +134,19 @@
           "snippet": "fore building any new primitive → `node _SYSTEM/Scripts/capability-recall.mjs \"<need>\"` FIRST (CAPABILITY-FIRST: chec"
         },
         {
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "basename",
+          "snippet": "s)** — local-first: `xref-query.mjs` + `capability-recall.mjs` (CAPABILITY-FIRST — never rebuild what"
+        },
+        {
           "surface": ".cursor/rules/sync.mdc",
           "match": "full_path",
           "snippet": "+ graph + GitNexus + capabilities node _SYSTEM/Scripts/capability-recall.mjs \"<need>\" # BEFORE building any new me"
+        },
+        {
+          "surface": ".claude/rules/capability_first.md",
+          "match": "full_path",
+          "snippet": "matcher / loop / parser: 1. Run `node _SYSTEM/Scripts/capability-recall.mjs \"<need>\"` — does YURI already have it?"
         }
       ]
     },
@@ -93,7 +157,9 @@
       "q": "what do I run before broad exploration to navigate an unfamiliar task in this repo?",
       "surfaces": [
         "CLAUDE.md",
-        ".cursor/rules/sync.mdc"
+        "_SYSTEM/yuri-origin.md",
+        ".cursor/rules/sync.mdc",
+        ".claude/rules/capability_first.md"
       ],
       "evidence": [
         {
@@ -102,9 +168,19 @@
           "snippet": "trap. - Task context/navigation → `node _SYSTEM/Scripts/xref-query.mjs \"<task>\"` before broad work; for a know"
         },
         {
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "sing plugin capability for a task, run `_SYSTEM/Scripts/xref-query.mjs \"<task>\"`; when a known circuitry node"
+        },
+        {
           "surface": ".cursor/rules/sync.mdc",
           "match": "full_path",
           "snippet": "before broad exploration) ```bash node _SYSTEM/Scripts/xref-query.mjs \"<task>\" # fused front-door: F"
+        },
+        {
+          "surface": ".claude/rules/capability_first.md",
+          "match": "basename",
+          "snippet": "ed>\"` — does YURI already have it? (`xref-query.mjs` now auto-surfaces ⚡ capability hits at"
         }
       ]
     },
@@ -115,6 +191,7 @@
       "q": "how do I see what a change to a known circuitry node will propagate to downstream?",
       "surfaces": [
         "CLAUDE.md",
+        "_SYSTEM/yuri-origin.md",
         ".cursor/rules/sync.mdc"
       ],
       "evidence": [
@@ -122,6 +199,11 @@
           "surface": "CLAUDE.md",
           "match": "full_path",
           "snippet": "; for a known circuitry node, run `node _SYSTEM/Scripts/propagation-scan.mjs <node-id> --dry-run`. Legacy packet rou"
+        },
+        {
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "known circuitry node is involved, run `_SYSTEM/Scripts/propagation-scan.mjs <node-id> --dry-run`. Use the xref evid"
         },
         {
           "surface": ".cursor/rules/sync.mdc",
@@ -136,13 +218,19 @@
       "basename": "memory-kernel.mjs",
       "q": "what mediates Track A canonical YURI memory (propose/decide/ledger)?",
       "surfaces": [
-        "CLAUDE.md"
+        "CLAUDE.md",
+        "_SYSTEM/yuri-origin.md"
       ],
       "evidence": [
         {
           "surface": "CLAUDE.md",
           "match": "basename",
           "snippet": "decisions, anything other lanes need → `memory-kernel.mjs` (Track A). Ambiguous → Track A. Writin"
+        },
+        {
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "STEM/OS_KERNEL/memory.db`) - Mediator: `_SYSTEM/Scripts/memory-kernel.mjs` - Pipeline: `propose → decide → ledger"
         }
       ]
     },
@@ -163,6 +251,38 @@
       ]
     },
     {
+      "question_id": "q008",
+      "expect": "_SYSTEM/Scripts/yuri-persona-check.mjs",
+      "basename": "yuri-persona-check.mjs",
+      "q": "what enforces the persona-contract headings so a doc rename doesn't silently break persona injection?",
+      "surfaces": [
+        "SOUL.md"
+      ],
+      "evidence": [
+        {
+          "surface": "SOUL.md",
+          "match": "full_path",
+          "snippet": "DINGS`) and the persona-contract gate (`_SYSTEM/Scripts/yuri-persona-check.mjs`) source by exact heading. **A heading"
+        }
+      ]
+    },
+    {
+      "question_id": "q009",
+      "expect": ".claude/hooks/soul-persona-inject.js",
+      "basename": "soul-persona-inject.js",
+      "q": "where does persona actually get injected into a live session at runtime?",
+      "surfaces": [
+        "SOUL.md"
+      ],
+      "evidence": [
+        {
+          "surface": "SOUL.md",
+          "match": "full_path",
+          "snippet": "at the runtime persona-injection hook (`.claude/hooks/soul-persona-inject.js` → `REQUIRED_HEADINGS`) and the persona"
+        }
+      ]
+    },
+    {
       "question_id": "q010",
       "expect": "_SYSTEM/Scripts/yuri-closeout.mjs",
       "basename": "yuri-closeout.mjs",
@@ -179,6 +299,22 @@
       ]
     },
     {
+      "question_id": "q011",
+      "expect": "_SYSTEM/capabilities.json",
+      "basename": "capabilities.json",
+      "q": "where is the generated capability registry that capability-recall reads from?",
+      "surfaces": [
+        ".claude/rules/capability_first.md"
+      ],
+      "evidence": [
+        {
+          "surface": ".claude/rules/capability_first.md",
+          "match": "full_path",
+          "snippet": "pts/capability-scan.mjs` to regenerate `_SYSTEM/capabilities.json`. The registry is GENERATED from these"
+        }
+      ]
+    },
+    {
       "question_id": "q012",
       "expect": "_SYSTEM/yuri-origin.md",
       "basename": "yuri-origin.md",
@@ -186,7 +322,10 @@
       "surfaces": [
         "CLAUDE.md",
         "AGENTS.md",
-        ".cursor/rules/sync.mdc"
+        "_SYSTEM/persona.md",
+        "_SYSTEM/yuri-origin.md",
+        ".cursor/rules/sync.mdc",
+        ".claude/rules/yuri_operating_dna.md"
       ],
       "evidence": [
         {
@@ -200,9 +339,24 @@
           "snippet": "ad Order (every session, natively) 1. `_SYSTEM/yuri-origin.md` — canonical operating contract (author"
         },
         {
+          "surface": "_SYSTEM/persona.md",
+          "match": "basename",
+          "snippet": ": a behavior layer. It never overrides `yuri-origin.md`, protected paths, owner intent, or ver"
+        },
+        {
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "filesystem reads and observed state 3. `_SYSTEM/yuri-origin.md` - canonical Yuri OS contract 4. `SOUL."
+        },
+        {
           "surface": ".cursor/rules/sync.mdc",
           "match": "full_path",
           "snippet": "licy. Where a rule appears here and in `_SYSTEM/yuri-origin.md`, the origin wins. Sibling adapters: `"
+        },
+        {
+          "surface": ".claude/rules/yuri_operating_dna.md",
+          "match": "full_path",
+          "snippet": "Operating DNA — Claude Bridge INHERIT: _SYSTEM/yuri-origin.md INHERIT: ../../SOUL.md This file is a"
         }
       ]
     },
@@ -235,7 +389,8 @@
       "q": "what regenerates capabilities.json from the @capability tags left in source files?",
       "surfaces": [
         "CLAUDE.md",
-        ".cursor/rules/sync.mdc"
+        ".cursor/rules/sync.mdc",
+        ".claude/rules/capability_first.md"
       ],
       "evidence": [
         {
@@ -247,6 +402,11 @@
           "surface": ".cursor/rules/sync.mdc",
           "match": "basename",
           "snippet": "sms with a `// @capability:` tag, then `capability-scan.mjs`. ## Skills Canonical skills live in"
+        },
+        {
+          "surface": ".claude/rules/capability_first.md",
+          "match": "full_path",
+          "snippet": "ts: mainFn, otherFn ``` Then run `node _SYSTEM/Scripts/capability-scan.mjs` to regenerate `_SYSTEM/capabilities.js"
         }
       ]
     },
@@ -272,13 +432,35 @@
       "basename": "claude-memory-write.mjs",
       "q": "where do I write a durable behavioral memory about how I work with the operator — comms style, tool habits, self-corrections?",
       "surfaces": [
-        "CLAUDE.md"
+        "CLAUDE.md",
+        "_SYSTEM/yuri-origin.md"
       ],
       "evidence": [
         {
           "surface": "CLAUDE.md",
           "match": "full_path",
           "snippet": "cope·trig·refs`. Full spec + CLI: `node _SYSTEM/Scripts/claude-memory-write.mjs surfaces`. ## Adversarial Verification"
+        },
+        {
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "e `memory/` dir is native and allowed; `_SYSTEM/Scripts/claude-memory-write.mjs` is an OPTIONAL validation/reindex help"
+        }
+      ]
+    },
+    {
+      "question_id": "q026",
+      "expect": "_SYSTEM/Scripts/memory-canonical-store.mjs",
+      "basename": "memory-canonical-store.mjs",
+      "q": "what's the ONE event-sourced store any lane can read operator-approved canonical truth from, at peer level, without a wrapper?",
+      "surfaces": [
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "evidence": [
+        {
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "h across all lanes\" surface. - Store: `_SYSTEM/Scripts/memory-canonical-store.mjs`; data at `_SYSTEM/state/memory-canonic"
         }
       ]
     },
@@ -289,7 +471,9 @@
       "q": "what's the final checklist pass that scans for motion gaps, a11y violations, and visual inconsistencies at the end of a design pipeline?",
       "surfaces": [
         "CLAUDE.md",
-        "AGENTS.md"
+        "AGENTS.md",
+        "_SYSTEM/persona.md",
+        ".claude/rules/skill-creation.md"
       ],
       "evidence": [
         {
@@ -301,36 +485,21 @@
           "surface": "AGENTS.md",
           "match": "basename",
           "snippet": "--json ``` Read each selected source `SKILL.md` completely before acting. When a selec"
+        },
+        {
+          "surface": "_SYSTEM/persona.md",
+          "match": "basename",
+          "snippet": "skills** (load on match; detail in each SKILL.md). Izanagi — simulate 3 divergent branch"
+        },
+        {
+          "surface": ".claude/rules/skill-creation.md",
+          "match": "basename",
+          "snippet": "ts/skills/`. ## Required Steps ### 1. SKILL.md frontmatter - `name`, `description`, `t"
         }
       ]
     }
   ],
-  "content_sha256": "79449b01c2626bd2c940dfd794fe3f341f23a8f32f0d3c955845c8ab9639b3f8",
-  "retired_at": "2026-07-28T16:37:59.417Z",
-  "retire_reasons": [
-    "SCAN-SURFACE-MISMATCHED",
-    "CHANNEL-CONFLATED"
-  ],
-  "retire_authority": "Hermes R2 ruling 2026-07-28 — accepted Orion pre-fixture surface-set catch",
-  "defect": "Scanned CLAUDE.md + AGENTS.md + sync.mdc. Mixed never-injected adapters (AGENTS/sync) with an incomplete inject set (missed SOUL.md, persona.md, yuri-origin.md transitive includes).",
-  "superseded_by": {
-    "c_disk": "_SYSTEM/eval-evidence/g-disk-doctrine-candidates.json",
-    "c_inject": "_SYSTEM/eval-evidence/g-cinject-doctrine-candidates.json (Phoenix — fixture at pinned commit)"
-  },
-  "do_not_cite_n_candidates": true,
-  "preserved_prior_n_candidates": 12,
-  "preserved_prior_question_ids": [
-    "q002",
-    "q003",
-    "q004",
-    "q005",
-    "q007",
-    "q010",
-    "q012",
-    "q014",
-    "q019",
-    "q020",
-    "q025",
-    "q035"
-  ]
+  "source_partition": "_SYSTEM/eval-evidence/source-partition-v1.json",
+  "note": "Full declared in-repo DOCTRINE class under matcher v1 predicates. Global ~/.claude/CLAUDE.md declared but out of repo scope — counts remain a lower bound if it adds literals.",
+  "content_sha256": "49137d261145ede7669e5acb783badc6fdac2366a682996f1d7a8adac11e5e5d"
 }

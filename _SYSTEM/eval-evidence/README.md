@@ -28,12 +28,21 @@ hits on **any** present surface file in that class.
 recorded as git `hash-object` of that file at scan time (see artifacts'
 `question_set.blob_sha1`).
 
-**Surfaces.**
+**Surfaces (channel-split — Hermes R2 2026-07-28).**
 
-| Class | Files |
-|---|---|
-| DOCTRINE | `CLAUDE.md`, `AGENTS.md`, `.cursor/rules/sync.mdc` |
-| REGISTRY | `_SYSTEM/capabilities.json`, `skills/skill-index.json` |
+`C_inject` and `C_disk` are **different on purpose**. Never merge them for Channel-C
+flags or union arithmetic.
+
+| Channel | Role | Files |
+|---|---|---|
+| DOCTRINE `C_INJECT` | Packet floor (Tier −1 / Channel C) | `CLAUDE.md` + transitive `@`-includes: `SOUL.md`, `_SYSTEM/persona.md`, `_SYSTEM/yuri-origin.md`. **Not** `AGENTS.md` / `sync.mdc`. Phoenix owns fixture + `g-cinject-doctrine-candidates.json`. |
+| DOCTRINE `C_DISK` | Partition class — grep-reachable doctrine | `CLAUDE.md`, `AGENTS.md`, `SOUL.md`, `_SYSTEM/persona.md`, `_SYSTEM/yuri-origin.md`, `.cursor/rules/sync.mdc`, `.claude/rules/*.md`. Artifact: `g-disk-doctrine-candidates.json`. |
+| REGISTRY | Tool-readable registries | `_SYSTEM/capabilities.json`, `skills/skill-index.json` |
+
+**Retired.** The original 3-surface “DOCTRINE” scan (`CLAUDE.md` + `AGENTS.md` +
+`sync.mdc`) is `RETIRED_SCAN_SURFACE_MISMATCHED_AND_CHANNEL_CONFLATED` — it mixed
+never-injected adapters with an incomplete inject set. Preserved under
+`g-injected-doctrine-candidates.json` for provenance only; **do not cite its 12**.
 
 **Normalization.** Expect path = `String(expect[0])` with a leading `./` stripped
 only. Basename = `path.basename(expect)` **including extension**. Surface bytes =
@@ -62,9 +71,15 @@ persisted artifact and no matcher metadata is `INCOMPARABLE_PRIOR_RESULT`. It is
 cited again (not as a range, not as an approximation). Official REGISTRY = **27/40**
 under matcher v1.
 
-**Locked counts under matcher v1 (regenerable).** DOCTRINE 12/40 · REGISTRY 27/40 ·
-UNION 33/40 · INTERSECTION 6/40. These are **candidate** ceilings for static literal
-presence, not confirmed subject contamination.
+**Locked counts under matcher v1 predicates (regenerable; C_disk channel).**
+DOCTRINE `C_DISK` 17/40 · REGISTRY 27/40 · UNION **36/40** · INTERSECTION 8/40 ·
+NEITHER 4/40 (`q024`, `q034`, `q039`, `q040`). These are **candidate** ceilings for
+static literal presence, not confirmed subject contamination.
+
+**Do not cite 33/40.** That union used the conflated 3-surface scan and is an
+`UNDER_SCOPED_FLOOR`. Full `C_disk` can only add hits (monotone). Global
+`~/.claude/CLAUDE.md` is declared in the partition class but out of the
+repo-rooted regenerator — if it adds literals, 36/40 is still a lower bound.
 
 ---
 
@@ -112,10 +127,12 @@ file was shipped. Recorded as provenance, not as a yardstick.
 
 | Artifact | Regenerator | Notes |
 |---|---|---|
-| `partition-literal-matcher-v1.json` | none (frozen spec) | Committed **before** class rerun |
-| `g-injected-doctrine-candidates.json` | `partition-leak-scan.mjs` | DOCTRINE candidates |
+| `partition-literal-matcher-v1.json` | none (frozen predicates; channel surfaces corrected R2) | Predicates frozen before class rerun; C_inject/C_disk split 2026-07-28 |
+| `g-disk-doctrine-candidates.json` | `partition-leak-scan.mjs` | **Cite this** for C_disk DOCTRINE literals |
+| `g-cinject-doctrine-candidates.json` | Phoenix (fixture @ pinned commit) | Packet-floor Channel C; not written by Orion `--write` |
+| `g-injected-doctrine-candidates.json` | preserved / retired | RETIRED — SCAN-SURFACE-MISMATCHED + CHANNEL-CONFLATED; do not cite 12 |
 | `g-registry-literal-candidates.json` | `partition-leak-scan.mjs` | REGISTRY candidates |
-| `find40-doctrine-registry-overlap.json` | `partition-leak-scan.mjs` | union / intersection |
+| `find40-doctrine-registry-overlap.json` | `partition-leak-scan.mjs` | C_disk ∪ REGISTRY — cite **36/40**, not 33/40 |
 | `tier0-threshold-power.json` | `tier0-threshold-power.mjs` | CS + Wilson; n=28 cannot CLEAR θ=0.6 at 28/28 |
 | `freeze-violation-matrix.json` | `freeze-violation-matrix.mjs` | Actual C1–C8 enforcement attempts on isolated scratch clones/worktrees; evaluator restoration is a postcondition |
 | `source-partition-v1.json` | none (hand-frozen class list) | NAV / REGISTRY / DOCTRINE / CORPUS |
