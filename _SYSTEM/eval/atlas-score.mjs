@@ -176,9 +176,74 @@ async function preloadAtlasResolver() {
   };
 }
 
+// FASTLEX — bounded BM25 over the FTS5 corpus, single in-process connection, no fusion.
+//
+// Added 2026-07-28 as a THIRD ARM, not as a scoring change. Nothing about how questions are asked
+// or how hits are counted is touched; this only gives `--resolver=` another candidate to compare.
+// The justification stands without reference to which questions currently fail, which is the test
+// for a legitimate evaluator edit in yuri-origin.md -> Loop Discipline: measuring an additional
+// candidate against a fixed metric is standard method, not tuning.
+//
+// WHY IT EXISTS: the entire Atlas project was premised on "xref costs ~17.5s per query, so a fast
+// graph layer is required." That figure was cited all day and never decomposed. Profiled:
+//   bare node process        111 ms
+//   module import             48 ms
+//   FTS5 db open              12 ms
+//   FTS5 with LIMIT 50       247 ms
+//   FTS5 UNLIMITED         5,249 ms   (ORDER BY rank over 23,008 matched rows, no LIMIT)
+//   full xrefQuery        32,500 ms   and it does NOT amortize — q1/q2/q3 all ~32.5s in one process
+// So xref is not slow because search is slow. Bounded BM25 was always available at sub-100ms.
+//
+// Deliberately minimal: tokenize, drop stopwords, OR the terms, LIMIT, dedupe by path. No graph,
+// no fusion, no reranking. It is the floor a navigation layer has to beat to justify existing.
+const FASTLEX_STOP = new Set(['the', 'a', 'an', 'is', 'are', 'what', 'where', 'how', 'do', 'i', 'to',
+  'in', 'of', 'for', 'and', 'or', 'that', 'this', 'it', 'my', 'we', 'our', 'before', 'after', 'which',
+  'does', 'so', 'not', 'no', 'any', 'can', 'use', 'used', 'uses', 'run', 'get', 'got', 'me', 'you',
+  'need', 'want', 'when', 'why', 'with', 'from', 'into', 'out', 'up', 'on', 'at', 'by']);
+const FASTLEX_LIMIT = 50;
+const INDEX_DB = path.join(REPO_ROOT, '_SYSTEM/OS_KERNEL/search-index.db');
+let _fastlexStmt = null;
+
+async function preloadFastlex() {
+  if (_fastlexStmt) return;
+  if (!existsSync(INDEX_DB)) {
+    const err = new Error(`search index not built at ${INDEX_DB} — run: node _SYSTEM/Scripts/yuri-search-index.mjs --full`);
+    err.exitCode = 2;
+    throw err;
+  }
+  const { default: Database } = await import('better-sqlite3');
+  const db = new Database(INDEX_DB, { readonly: true });
+  _fastlexStmt = db.prepare('SELECT path, bm25(docs) AS rank FROM docs WHERE docs MATCH ? ORDER BY rank LIMIT ?');
+}
+
+function resolveFastlex(question, top) {
+  if (!_fastlexStmt) throw new Error('fastlex not preloaded — call preloadFastlex() first');
+  const toks = String(question).toLowerCase().match(/[a-z0-9_.-]{3,}/g) || [];
+  const terms = [...new Set(toks.filter((t) => !FASTLEX_STOP.has(t)))].map((t) => `"${t}"`);
+  if (!terms.length) return { paths: [], hops: 1 };
+  let rows = [];
+  try {
+    rows = _fastlexStmt.all(terms.join(' OR '), FASTLEX_LIMIT);
+  } catch {
+    // a malformed FTS5 MATCH expression yields no hits rather than aborting the whole run
+    return { paths: [], hops: 1 };
+  }
+  const seen = new Set();
+  const paths = [];
+  for (const r of rows) {
+    if (r && typeof r.path === 'string' && !seen.has(r.path)) {
+      seen.add(r.path);
+      paths.push(r.path);
+      if (paths.length >= top) break;
+    }
+  }
+  return { paths, hops: 1 };
+}
+
 const RESOLVERS = {
   xref: resolveXref,
   atlas: resolveAtlas,
+  fastlex: resolveFastlex,
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -285,6 +350,15 @@ async function main() {
     } catch (e) {
       console.error(`atlas-score: failed to load atlas resolver: ${e.message}`);
       process.exit(1);
+    }
+  }
+
+  if (args.resolver === 'fastlex') {
+    try {
+      await preloadFastlex();
+    } catch (e) {
+      console.error(`atlas-score: failed to load fastlex resolver: ${e.message}`);
+      process.exit(e.exitCode || 1);
     }
   }
 
