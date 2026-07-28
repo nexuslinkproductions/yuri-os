@@ -1,0 +1,69 @@
+{
+  "schema": "partition-literal-matcher/v1",
+  "status": "FROZEN_BEFORE_RERUN",
+  "frozen_at": "2026-07-28T15:58:00.000Z",
+  "authority": "Hermes freeze precondition 1 — matcher written and committed BEFORE class rerun",
+  "regenerator": "_SYSTEM/Scripts/atlas/partition-leak-scan.mjs",
+  "incomparable_prior": {
+    "reported_count": 28,
+    "claimed_surface": "_SYSTEM/capabilities.json only (verbal report)",
+    "status": "INCOMPARABLE_PRIOR_RESULT",
+    "rule": "Do not cite 28 again in any artifact or summary, including as a range or approximation. No persisted capability-only artifact and no matcher metadata exist for that run."
+  },
+  "question_set": {
+    "path": "_SYSTEM/eval/atlas-benchmark.jsonl",
+    "filter": "rows where (type||'find')==='find', then slice(0,40) in file order",
+    "blob_sha1_at_freeze": "ffda87d16262c9761e4d2ee794bcee9dd739a20b",
+    "note": "git hash-object / git rev-parse HEAD:path of the benchmark file at freeze time"
+  },
+  "surfaces": {
+    "DOCTRINE": [
+      "CLAUDE.md",
+      "AGENTS.md",
+      ".cursor/rules/sync.mdc"
+    ],
+    "REGISTRY": [
+      "_SYSTEM/capabilities.json",
+      "skills/skill-index.json"
+    ]
+  },
+  "match_rules": {
+    "normalization": {
+      "expect_path": "String(expect[0]).replace(/^\\.\\//,'') — strip leading ./ only; no other path normalization",
+      "basename": "path.basename(expect_path) including extension",
+      "surface_bytes": "readFileSync utf8 as stored on disk; no NFC/NFD normalize; no line-ending normalize"
+    },
+    "predicates": [
+      {
+        "id": "full_path",
+        "rule": "surfaceText.includes(expect_path) — case-sensitive substring",
+        "counts": true
+      },
+      {
+        "id": "basename",
+        "rule": "surfaceText.includes(basename) — case-sensitive substring",
+        "counts": true
+      }
+    ],
+    "explicitly_disabled": [
+      "stem matching (basename without extension)",
+      "case-insensitive matching",
+      "word-boundary / regex token matching",
+      "path-segment fuzzy matching",
+      "symlink realpath rewriting of expect or surface"
+    ],
+    "context_policy": "A hit counts regardless of surrounding context: comments, URLs, markdown code fences, JSON string values, and prose all count. No exclusion by AST or comment-stripping.",
+    "aggregation": "A question is a candidate if ANY enabled predicate hits on ANY present surface in the class. Evidence records every (surface, predicate) hit with a ±40 char snippet around the first indexOf match (full_path preferred when both hit on the same surface)."
+  },
+  "outputs": {
+    "doctrine": "_SYSTEM/eval/ablation-evidence/g-injected-doctrine-candidates.json",
+    "registry": "_SYSTEM/eval/ablation-evidence/g-registry-literal-candidates.json",
+    "overlap": "_SYSTEM/eval/ablation-evidence/find40-doctrine-registry-overlap.json",
+    "must_embed": [
+      "matcher_spec_schema",
+      "matcher_spec_content_sha256",
+      "question_set_blob_sha1",
+      "per-surface content sha256 at scan time"
+    ]
+  }
+}
