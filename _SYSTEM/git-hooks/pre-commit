@@ -4,6 +4,50 @@ set -euo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 
+# FROZEN EVALUATOR GATE — the only freeze layer that travels with the repo.
+#
+# Doctrine (_SYSTEM/yuri-origin.md -> Loop Discipline) declared FOUR enforcement layers ordered by
+# universality. Audited 2026-07-28 by two independent lanes; three of the four did not exist:
+#   layer 1  chmod 444        CANNOT be committed. Git encodes only 100644/100755 — there is no
+#                             representation for a read-only bit, so it binds one machine and
+#                             evaporates on any clone or fresh worktree. Local hygiene, not a layer.
+#   layer 2  loop dirty-check EXISTS (atlas-loop.mjs), but only catches UNCOMMITTED eval changes.
+#                             Once an edit is committed, worktree == HEAD and the loop accepts it.
+#                             It cannot tell a sanctioned evaluator from an unsanctioned one already
+#                             baked into HEAD without a separately pinned baseline.
+#   layer 3  this check       DID NOT EXIST until now. It is the one that binds every clone.
+#   layer 4  harness config   harness-only, never load-bearing.
+#
+# So this gate is not "extra defence in depth" — before it, commit-time enforcement was zero and the
+# doctrine was overclaiming. An agent optimizing a system must not be able to edit the thing that
+# scores it; that is the single structural property separating a real improvement loop from an agent
+# agreeing with itself.
+#
+# ESCAPE HATCH is deliberate and loud: legitimate evaluator work exists (construct-validity repair,
+# adding a resolver ARM). It must be a conscious act, not a silent one. YURI_EVAL_UNFREEZE=1 states
+# intent; per doctrine a construct-validity repair also TERMINATES the current score series and
+# forces a re-baseline of every arm.
+echo "[pre-commit] frozen evaluator gate"
+EVAL_STAGED="$(git diff --cached --name-only -- _SYSTEM/eval || true)"
+if [ -n "$EVAL_STAGED" ]; then
+  if [ "${YURI_EVAL_UNFREEZE:-0}" != "1" ]; then
+    echo "[pre-commit] REJECTED — commit touches the FROZEN EVALUATOR:" >&2
+    echo "$EVAL_STAGED" | sed 's/^/    /' >&2
+    echo "" >&2
+    echo "    _SYSTEM/eval/ holds the scorer and benchmark that grade every candidate." >&2
+    echo "    A loop that can edit its own scorer will optimize the scorer, not the system." >&2
+    echo "" >&2
+    echo "    If this edit is legitimate — a construct-validity repair, or adding a resolver ARM" >&2
+    echo "    that changes no scoring math — re-run with:" >&2
+    echo "        YURI_EVAL_UNFREEZE=1 git commit ..." >&2
+    echo "" >&2
+    echo "    A construct-validity repair TERMINATES the score series: re-baseline every arm," >&2
+    echo "    record the version break, and treat prior scores as incomparable across it." >&2
+    exit 1
+  fi
+  echo "[pre-commit]   UNFROZEN by YURI_EVAL_UNFREEZE=1 — series break required if scoring changed"
+fi
+
 echo "[pre-commit] cached diff whitespace"
 git diff --cached --check
 

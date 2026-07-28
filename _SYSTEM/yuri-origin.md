@@ -185,11 +185,14 @@ Canonical for ALL lanes and harnesses (Claude Code, Codex CLI, OMP, Cursor, futu
 
 **The frozen-evaluator rule (non-negotiable).** A loop that optimizes a system MUST NOT be able to modify the thing that scores it. Optimizer and evaluator are separate artifacts, and the evaluator is immutable for the duration of the run. A lane that can edit its own scorer will optimize the scorer. This is the single structural property that separates a real improvement loop from an agent agreeing with itself — the failure mode is silent, produces rising numbers, and yields no actual improvement.
 
-Enforcement is layered BY MECHANISM, never by harness, because YURI's policy hooks bind only the harnesses that load them:
-1. OS file mode (read-only bits) — binds every process everywhere.
-2. The loop refuses to start, and re-checks each iteration, if the evaluator has uncommitted changes.
-3. A git-level hook rejecting commits that touch the evaluator without an explicit unfreeze env var.
-4. Harness permission config — a bonus layer only, never load-bearing.
+Enforcement is layered BY MECHANISM, never by harness, because YURI's policy hooks bind only the harnesses that load them. This list was audited 2026-07-28 by two independent lanes and **corrected downward** — as originally written it claimed four layers when three did not exist. State what enforces, not what was intended:
+
+1. **A git-level hook rejecting commits that touch the evaluator without an explicit unfreeze env var.** THE layer that travels with the repo — it binds every clone, worktree, and harness, because it is committed. Live in `_SYSTEM/git-hooks/pre-commit` (`YURI_EVAL_UNFREEZE=1` to override). If only one layer exists, it must be this one.
+2. **The loop refuses to start, and re-checks each iteration, if the evaluator has uncommitted changes.** Real, and live in `atlas-loop.mjs` — but bounded: it compares worktree against HEAD, so once an edit is COMMITTED the check passes. It cannot distinguish a sanctioned evaluator from an unsanctioned one already baked into HEAD without a separately pinned baseline commit. Layer 1 is what closes that hole.
+3. **Human review of any commit carrying the unfreeze flag.** The flag makes evaluator edits loud and greppable; it does not make them correct. The justification test still applies.
+4. Harness permission config — a bonus only, never load-bearing, binds one harness.
+
+**NOT a layer: OS file mode.** `chmod 444` cannot be committed — git encodes only `100644` and `100755`, so a read-only bit has no representation and evaporates on any clone or fresh worktree. It is a useful local hygiene tip and nothing more. It was previously listed FIRST as the layer that "binds every process everywhere"; that was false, and stating it created the illusion of protection that no clone actually had. A declared layer that does not enforce is worse than an acknowledged gap, because it stops anyone building the layer that would.
 
 **Verifier isolation.** The checker runs in a fresh process/context with no access to the maker's proposal, diff, or reasoning. A verifier that shares the maker's context inherits the maker's blind spots and rubber-stamps them. Maker and checker are separate lanes, not separate turns of one lane.
 
