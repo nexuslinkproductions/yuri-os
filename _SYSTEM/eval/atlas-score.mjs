@@ -171,8 +171,10 @@ function resolveAtlas(question, top) {
 async function preloadAtlasResolver() {
   if (_atlasResolveModule) return;
   const mod = await import(path.join(REPO_ROOT, '_SYSTEM/Scripts/atlas/atlas-resolve.mjs'));
+  const atlas = mod.loadAtlas();
   _atlasResolveModule = {
     resolve: (question, opts) => ({ paths: mod.resolve(question, opts) }),
+    resolveAmong: (question, candidates, opts) => mod.resolveAmong(question, candidates, opts, atlas),
   };
 }
 
@@ -240,10 +242,81 @@ function resolveFastlex(question, top) {
   return { paths, hops: 1 };
 }
 
+// ---------------------------------------------------------------------------------------------
+// BAKEOFF ARMS (2026-07-28 retrieval-structure bakeoff) — candidates C2/C4/C5/C6.
+// Same sanction as the fastlex arm above: adding resolver ARMS changes no scoring math, no
+// question, no hit rule. Every candidate's resolver LOGIC lives in
+// _SYSTEM/Scripts/atlas/retrieval-candidates.mjs (+ resolveAmong in atlas-resolve.mjs for C4) so
+// the arms here stay thin adapters and the timing probe measures the identical code path.
+//   C2 fastlex-split  — identifier-aware query tokenization (camel/snake/kebab/dot splitting)
+//   C4 rerank         — two-stage: BM25 recall@50, then Atlas's tier scorer reranks the 50
+//   C5 enriched       — fastlex against an index variant with serves/does text merged INTO the
+//                       FTS5 documents (index-side intent vocabulary instead of a second graph)
+//   C6 fastlex-syns   — serves-phrase co-occurrence query expansion
+// ---------------------------------------------------------------------------------------------
+let _candidatesMod = null;
+let _synLayer = null;
+let _enrichedStmt = null;
+const ENRICHED_INDEX_DB = path.join(REPO_ROOT, '_SYSTEM/OS_KERNEL/search-index.enriched.db');
+
+async function preloadCandidates() {
+  if (!_candidatesMod) {
+    _candidatesMod = await import(path.join(REPO_ROOT, '_SYSTEM/Scripts/atlas/retrieval-candidates.mjs'));
+  }
+  return _candidatesMod;
+}
+
+function resolveFastlexSplit(question, top) {
+  if (!_fastlexStmt) throw new Error('fastlex not preloaded — call preloadFastlex() first');
+  return _candidatesMod.fastlexQuery(_fastlexStmt, question, top, _candidatesMod.splitIdentifierTerms);
+}
+
+async function preloadSynLayer() {
+  if (_synLayer) return;
+  await preloadCandidates();
+  _synLayer = _candidatesMod.buildSynonymLayer();
+}
+
+function resolveFastlexSyns(question, top) {
+  if (!_fastlexStmt) throw new Error('fastlex not preloaded — call preloadFastlex() first');
+  if (!_synLayer) throw new Error('synonym layer not preloaded — call preloadSynLayer() first');
+  return _candidatesMod.fastlexQuery(_fastlexStmt, question, top, (q) => _candidatesMod.expandQueryTerms(q, _synLayer));
+}
+
+async function preloadEnriched() {
+  if (_enrichedStmt) return;
+  await preloadCandidates();
+  _enrichedStmt = await _candidatesMod.openFastlexStmt(ENRICHED_INDEX_DB);
+}
+
+function resolveEnriched(question, top) {
+  if (!_enrichedStmt) throw new Error(`enriched index not preloaded (build: _SYSTEM/Scripts/atlas/build-enriched-index.mjs)`);
+  return _candidatesMod.fastlexQuery(_enrichedStmt, question, top);
+}
+
+function resolveEnrichedSplit(question, top) {
+  if (!_enrichedStmt) throw new Error(`enriched index not preloaded (build: _SYSTEM/Scripts/atlas/build-enriched-index.mjs)`);
+  return _candidatesMod.fastlexQuery(_enrichedStmt, question, top, _candidatesMod.splitIdentifierTerms);
+}
+
+function resolveRerank(question, top) {
+  if (!_fastlexStmt) throw new Error('fastlex not preloaded — call preloadFastlex() first');
+  if (!_atlasResolveModule || !_atlasResolveModule.resolveAmong) {
+    throw new Error('atlas resolver module not preloaded — call preloadAtlasResolver() first');
+  }
+  const recall = resolveFastlex(question, 50).paths;
+  return { paths: _atlasResolveModule.resolveAmong(question, recall, { top }), hops: 1 };
+}
+
 const RESOLVERS = {
   xref: resolveXref,
   atlas: resolveAtlas,
   fastlex: resolveFastlex,
+  'fastlex-split': resolveFastlexSplit,
+  'fastlex-syns': resolveFastlexSyns,
+  enriched: resolveEnriched,
+  'enriched-split': resolveEnrichedSplit,
+  rerank: resolveRerank,
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -426,20 +499,20 @@ async function main() {
     process.exit(1);
   }
 
-  if (args.resolver === 'atlas' && existsSync(ATLAS_CHECKPOINTS)) {
+  const PRELOADERS = {
+    atlas: async () => { if (existsSync(ATLAS_CHECKPOINTS)) await preloadAtlasResolver(); },
+    fastlex: preloadFastlex,
+    'fastlex-split': async () => { await preloadFastlex(); await preloadCandidates(); },
+    'fastlex-syns': async () => { await preloadFastlex(); await preloadSynLayer(); },
+    enriched: preloadEnriched,
+    'enriched-split': async () => { await preloadEnriched(); await preloadCandidates(); },
+    rerank: async () => { await preloadFastlex(); await preloadCandidates(); await preloadAtlasResolver(); },
+  };
+  if (PRELOADERS[args.resolver]) {
     try {
-      await preloadAtlasResolver();
+      await PRELOADERS[args.resolver]();
     } catch (e) {
-      console.error(`atlas-score: failed to load atlas resolver: ${e.message}`);
-      process.exit(1);
-    }
-  }
-
-  if (args.resolver === 'fastlex') {
-    try {
-      await preloadFastlex();
-    } catch (e) {
-      console.error(`atlas-score: failed to load fastlex resolver: ${e.message}`);
+      console.error(`atlas-score: failed to load ${args.resolver} resolver: ${e.message}`);
       process.exit(e.exitCode || 1);
     }
   }
