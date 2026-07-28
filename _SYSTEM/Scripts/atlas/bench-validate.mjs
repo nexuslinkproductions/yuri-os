@@ -331,7 +331,7 @@ async function runSelfTest() {
     id: `c${i}`, q: `what retries backoff under contention variant ${i}`, expect: [EXPECT], provenance: prov(i % 2 ? 'commit-message' : 'reference-doc', f),
   }));
   const cleanFails = await failuresOf('clean', clean);
-  check('clean set: no L4 gate fires', !cleanFails.some((f) => f.startsWith('G-') || f.includes('provenance')), JSON.stringify(cleanFails.filter((f) => f.startsWith('G-'))));
+  check('clean set: no L4 gate fires', !cleanFails.some((f) => /: G-/.test(f) || f.startsWith('G-') || f.includes('provenance')), JSON.stringify(cleanFails.filter((f) => /G-/.test(f))));
 
   // NEGATIVE 1 — G-SELF-REFERENCE: question containing its answer's distinctive path token.
   const selfRef = [{ id: 's1', q: 'what does xref wire together at runtime', expect: [EXPECT], provenance: prov('commit-message', 'F1') }];
