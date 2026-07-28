@@ -6,7 +6,7 @@
 //        reporting every unmapped node rather than dropping it.
 // @use: run before building any cross-graph navigation feature; do not hand-roll a new id join —
 //       read _SYSTEM/state/atlas/id-map.json or re-run this script.
-// @exports: normalizePath, canonicalFileKey, buildAtlas, main
+// @exports: normalizePath, canonicalFileKey, mergeCapabilityDescription, SOURCE_INTEGRITY, assertSubstrateIntegrity, buildAtlas, main
 //
 // Phase 1 of the YURI Atlas plan. Read-only w.r.t. every input source; the only
 // files this script writes are its own output (_SYSTEM/state/atlas/id-map.json)
@@ -20,7 +20,7 @@ import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHash } from 'node:crypto';
 // The ONE deliberate exception to the fs/path/crypto-only rule (see the
 // extractGitNexus() doc comment below for why): node:child_process is a
 // node builtin, not an npm dependency, and is touched only when the
@@ -72,18 +72,93 @@ export function canonicalFileKey(repoRoot, relPath) {
 // Safe loaders
 // ---------------------------------------------------------------------------
 
+function sha256Text(s) {
+  return createHash('sha256').update(s).digest('hex');
+}
+
 function loadJSON(p, label, report) {
   if (!existsSync(p)) {
     report.missing.push({ source: label, path: p });
-    return null;
+    return { data: null, sha256: null };
   }
   try {
     const raw = readFileSync(p, 'utf8');
-    return JSON.parse(raw);
+    return { data: JSON.parse(raw), sha256: sha256Text(raw) };
   } catch (err) {
     report.missing.push({ source: label, path: p, reason: `parse error: ${err.message}` });
-    return null;
+    return { data: null, sha256: null };
   }
+}
+
+// ---------------------------------------------------------------------------
+// SUBSTRATE INTEGRITY — fail LOUD, never fail soft.
+//
+// Proof case (2026-07-28): the gitnexus probe fail-softed for days after an npx
+// cache corrupted. Nothing announced it; the corpus silently ran at 2,161
+// canonical nodes instead of 4,255, and every score measured in that window was
+// an artifact of half the repo being invisible. The single rule that would have
+// caught it on day one: A SOURCE RETURNING ZERO ROWS IS AN ERROR, not an empty
+// contribution.
+//
+// Floors are COLLAPSE detectors, not targets: each sits far below the source's
+// legitimate current size (circuitry 136, knowledge-graph 1001, arch-graph 232,
+// capabilities 286, gitnexus 4147 — measured 2026-07-28) so organic shrinkage
+// never trips them, but a probe that comes back empty, truncated, or misjoined
+// always does. Moving a floor is a deliberate, reviewed diff — there is NO
+// runtime bypass flag, because a bypass is exactly how fail-soft comes back.
+// ---------------------------------------------------------------------------
+
+export const SOURCE_INTEGRITY = Object.freeze({
+  circuitry: { minRecords: 50, input: '02_RESOURCES/RESEARCH/yuri-circuitry-graph.json' },
+  'knowledge-graph': { minRecords: 500, input: '_SYSTEM/state/yuri-knowledge-graph.json' },
+  'arch-graph': { minRecords: 100, input: '_SYSTEM/yuri-graph-state.json' },
+  capabilities: { minRecords: 100, input: '_SYSTEM/capabilities.json' },
+  gitnexus: { minRecords: 1000, input: '.gitnexus/meta.json' },
+});
+
+/**
+ * The gate. Throws on the FIRST integrity violation — a build that cannot see
+ * its sources must die here, before it writes an id-map that downstream lanes
+ * will trust. Returns a per-source health summary on success.
+ */
+export function assertSubstrateIntegrity({ perSource, gitnexusNote, missing, noGitnexus }) {
+  if (missing.length > 0) {
+    const m = missing[0];
+    throw new Error(
+      `SUBSTRATE INTEGRITY: input unreadable for source "${m.source}": ${m.path}`
+      + `${m.reason ? ` (${m.reason})` : ''}. A missing generated input is an ERROR — regenerate it, do not build past it.`,
+    );
+  }
+  if (gitnexusNote && !noGitnexus) {
+    throw new Error(
+      `SUBSTRATE INTEGRITY: gitnexus probe failed: ${gitnexusNote}. `
+      + 'The probe answering nothing is an ERROR — fix the probe (or pass --no-gitnexus explicitly, which is recorded in the fingerprint).',
+    );
+  }
+  for (const [sourceName, records] of Object.entries(perSource)) {
+    const floor = SOURCE_INTEGRITY[sourceName];
+    if (sourceName === 'gitnexus' && noGitnexus) continue; // explicit exclusion, recorded downstream
+    if (!floor) continue;
+    if (records.length === 0) {
+      throw new Error(
+        `SUBSTRATE INTEGRITY: source "${sourceName}" returned ZERO rows. `
+        + 'Zero rows is an ERROR (silent-empty is the 2026-07-28 failure class), never an empty contribution.',
+      );
+    }
+    if (records.length < floor.minRecords) {
+      throw new Error(
+        `SUBSTRATE INTEGRITY: source "${sourceName}" returned ${records.length} rows, below floor ${floor.minRecords}. `
+        + 'A collapse-class shortfall is an ERROR — investigate the source, do not absorb it.',
+      );
+    }
+    if (records.every((r) => !r.path)) {
+      throw new Error(
+        `SUBSTRATE INTEGRITY: source "${sourceName}" returned ${records.length} rows but NONE resolved to a path. `
+        + 'A fully unmapped source means the join key broke — that is an ERROR, not an unmapped list.',
+      );
+    }
+  }
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -159,14 +234,40 @@ function extractCapabilities(data) {
   const records = [];
   const list = Array.isArray(data && data.capabilities) ? data.capabilities : [];
   for (const c of list) {
+    // serves is an ARRAY of intent phrases; does is a SINGLE prose string.
+    // Both ride along on the record so buildAtlas can thread them onto the
+    // canonical node — the resolver's capability tier is blind without them.
+    const serves = Array.isArray(c.serves)
+      ? c.serves.filter((s) => typeof s === 'string' && s.length > 0)
+      : (typeof c.serves === 'string' && c.serves.length > 0 ? [c.serves] : []);
+    const does = typeof c.does === 'string' && c.does.length > 0 ? c.does : null;
     const norm = normalizePath(c.mechanism);
     if (!norm) {
-      records.push({ sourceId: c.id, path: null, label: c.id, reason: 'no mechanism field on capability entry' });
+      records.push({ sourceId: c.id, path: null, label: c.id, serves, does, reason: 'no mechanism field on capability entry' });
       continue;
     }
-    records.push({ sourceId: c.id, path: norm, label: c.id, evidence: 'mechanism field is this path' });
+    records.push({ sourceId: c.id, path: norm, label: c.id, evidence: 'mechanism field is this path', serves, does });
   }
   return records;
+}
+
+/**
+ * Merge one capability record's serves/does onto a canonical node, deduped.
+ * Multiple capability entries can share one mechanism path (e.g.
+ * _SYSTEM/Scripts/eval-processing.mjs has 4) — without per-node dedup every
+ * shared term would be carried 4x and the resolver's df map would be dishonest.
+ */
+export function mergeCapabilityDescription(node, rec) {
+  if (rec.serves && rec.serves.length > 0) {
+    if (!node.serves) node.serves = [];
+    for (const s of rec.serves) {
+      if (!node.serves.includes(s)) node.serves.push(s);
+    }
+  }
+  if (rec.does) {
+    if (!node.does) node.does = [];
+    if (!node.does.includes(rec.does)) node.does.push(rec.does);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -254,25 +355,35 @@ function parseMarkdownTable(markdown) {
 
 export function buildAtlas(opts = {}) {
   const report = { missing: [] };
-  const circuitryData = loadJSON(SOURCES.circuitry, 'circuitry', report);
-  const knowledgeGraphData = loadJSON(SOURCES.knowledgeGraph, 'knowledge-graph', report);
-  const archGraphMetricsData = loadJSON(SOURCES.archGraphMetrics, 'arch-graph-metrics', report);
-  const graphStateData = loadJSON(SOURCES.graphState, 'yuri-graph-state', report);
-  const gitnexusMetaData = loadJSON(SOURCES.gitnexusMeta, 'gitnexus-meta', report);
-  const capabilitiesData = loadJSON(SOURCES.capabilities, 'capabilities', report);
-
-  const perSource = {
-    circuitry: extractCircuitry(circuitryData),
-    'knowledge-graph': extractKnowledgeGraph(knowledgeGraphData),
-    'arch-graph': extractArchGraph(graphStateData),
-    capabilities: extractCapabilities(capabilitiesData),
+  const inputs = {
+    circuitry: loadJSON(SOURCES.circuitry, 'circuitry', report),
+    knowledgeGraph: loadJSON(SOURCES.knowledgeGraph, 'knowledge-graph', report),
+    archGraphMetrics: loadJSON(SOURCES.archGraphMetrics, 'arch-graph-metrics', report),
+    graphState: loadJSON(SOURCES.graphState, 'yuri-graph-state', report),
+    gitnexusMeta: loadJSON(SOURCES.gitnexusMeta, 'gitnexus-meta', report),
+    capabilities: loadJSON(SOURCES.capabilities, 'capabilities', report),
   };
 
-  const gitnexus = extractGitNexus(gitnexusMetaData, {
+  const perSource = {
+    circuitry: extractCircuitry(inputs.circuitry.data),
+    'knowledge-graph': extractKnowledgeGraph(inputs.knowledgeGraph.data),
+    'arch-graph': extractArchGraph(inputs.graphState.data),
+    capabilities: extractCapabilities(inputs.capabilities.data),
+  };
+
+  const gitnexus = extractGitNexus(inputs.gitnexusMeta.data, {
     noGitnexus: !!opts.noGitnexus,
     gitnexusTimeoutMs: opts.gitnexusTimeoutMs || 45000,
   });
   perSource.gitnexus = gitnexus.records;
+
+  // FAIL LOUD before any assembly: a degraded source never becomes an id-map.
+  assertSubstrateIntegrity({
+    perSource,
+    gitnexusNote: gitnexus.note,
+    missing: report.missing,
+    noGitnexus: !!opts.noGitnexus,
+  });
 
   const nodes = {};
   const unmapped = [];
@@ -299,6 +410,7 @@ export function buildAtlas(opts = {}) {
       }
       const node = nodes[key];
       if (rec.label && !node.labels.includes(rec.label)) node.labels.push(rec.label);
+      if (sourceName === 'capabilities') mergeCapabilityDescription(node, rec);
       node.aliases.push({
         source: sourceName,
         id: rec.sourceId,
@@ -312,6 +424,17 @@ export function buildAtlas(opts = {}) {
   const mappedCount = Object.values(bySource).reduce((a, s) => a + s.mapped, 0);
   const unmappedCount = unmapped.length;
 
+  // Content-stable corpus fingerprint: covers the node KEY SET + per-source
+  // totals + input hashes — deliberately NOT the volatile `generated`
+  // timestamp, so two regenerations over an unchanged corpus fingerprint
+  // identically and a real corpus change is DETECTED by comparison.
+  const corpusFingerprint = sha256Text(JSON.stringify({
+    keys: Object.keys(nodes).sort(),
+    perSource: Object.fromEntries(Object.entries(bySource).map(([k, v]) => [k, v.total])),
+    inputs: Object.fromEntries(Object.entries(inputs).map(([k, v]) => [k, v.sha256])),
+    gitnexus: opts.noGitnexus ? 'excluded-by-flag' : 'probed',
+  }));
+
   const atlas = {
     generated: new Date().toISOString(),
     canonical_scheme: '<repo_root>::<kind>::<stable-key>',
@@ -320,6 +443,12 @@ export function buildAtlas(opts = {}) {
       mapped: mappedCount,
       unmapped: unmappedCount,
       by_source: bySource,
+    },
+    substrate: {
+      gitnexus: opts.noGitnexus ? 'excluded-by-flag' : 'probed',
+      inputs: Object.fromEntries(Object.entries(inputs).map(([k, v]) => [k, { path: SOURCES[k] ? path.relative(ROOT, SOURCES[k]) : null, sha256: v.sha256 }])),
+      per_source: bySource,
+      corpus_fingerprint: corpusFingerprint,
     },
     nodes,
     unmapped,
@@ -381,10 +510,67 @@ export function runSelfTest() {
   const recCap = extractCapabilities(synthCaps);
   assert(recCap.length === 1 && recCap[0].path === '_SYSTEM/Scripts/fake-cap.mjs', 'capability mechanism join');
 
+  // serves/does ride along on extraction, normalized (serves always an array,
+  // does a string-or-null), and merge deduped per canonical node — a mechanism
+  // path shared by N capability entries must not carry its terms N times.
+  const synthCapsDesc = { capabilities: [{
+    id: 'cap-desc', mechanism: 'x.mjs', serves: ['alpha intent', 'shared'], does: 'does thing',
+  }] };
+  const recDesc = extractCapabilities(synthCapsDesc);
+  assert(recDesc[0].serves.length === 2 && recDesc[0].does === 'does thing', 'serves/does extracted with record');
+  const synthNode = { labels: [], aliases: [] };
+  mergeCapabilityDescription(synthNode, recDesc[0]);
+  mergeCapabilityDescription(synthNode, { serves: ['shared', 'beta intent'], does: 'does thing' });
+  assert(synthNode.serves.length === 3 && synthNode.does.length === 1, 'duplicate capability records dedupe per node');
+
   // markdown table parser
   const md = '| id | path | name |\n| --- | --- | --- |\n| File:a.ts | a.ts | a.ts |\n| File:b.ts | b.ts | b.ts |';
   const rows = parseMarkdownTable(md);
   assert(rows.length === 2 && rows[0].path === 'a.ts' && rows[1].path === 'b.ts', 'markdown table parses gitnexus cypher rows');
+
+  // SUBSTRATE INTEGRITY GATE — the fail-loud contract (2026-07-28 silent
+  // fail-soft proof case). Every degradation class must THROW, never absorb.
+  const healthySources = Object.fromEntries(Object.keys(SOURCE_INTEGRITY).map((k) => [
+    k,
+    Array.from({ length: SOURCE_INTEGRITY[k].minRecords }, (_, i) => ({ path: `pkg/${k}-${i}.mjs` })),
+  ]));
+  assert(
+    assertSubstrateIntegrity({ perSource: healthySources, gitnexusNote: null, missing: [], noGitnexus: false }) === true,
+    'healthy substrate passes the gate',
+  );
+  const expectThrow = (fn, label) => {
+    let threw = false;
+    try { fn(); } catch { threw = true; }
+    assert(threw, `gate throws on ${label}`);
+  };
+  expectThrow(
+    () => assertSubstrateIntegrity({ perSource: healthySources, gitnexusNote: null, missing: [{ source: 'capabilities', path: '/x' }], noGitnexus: false }),
+    'missing input file',
+  );
+  expectThrow(
+    () => assertSubstrateIntegrity({ perSource: healthySources, gitnexusNote: 'probe failed (npx cache)', missing: [], noGitnexus: false }),
+    'gitnexus probe failure note',
+  );
+  expectThrow(
+    () => assertSubstrateIntegrity({ perSource: { ...healthySources, gitnexus: [] }, gitnexusNote: null, missing: [], noGitnexus: false }),
+    'zero-row source',
+  );
+  expectThrow(
+    () => assertSubstrateIntegrity({ perSource: { ...healthySources, capabilities: [{ path: 'a.mjs' }] }, gitnexusNote: null, missing: [], noGitnexus: false }),
+    'below-floor source',
+  );
+  expectThrow(
+    () => assertSubstrateIntegrity({
+      perSource: { ...healthySources, circuitry: Array.from({ length: 60 }, () => ({ path: null })) },
+      gitnexusNote: null, missing: [], noGitnexus: false,
+    }),
+    'fully unmapped source',
+  );
+  // Explicit --no-gitnexus exclusion bypasses ONLY the gitnexus checks.
+  assert(
+    assertSubstrateIntegrity({ perSource: { ...healthySources, gitnexus: [] }, gitnexusNote: 'skipped via --no-gitnexus', missing: [], noGitnexus: true }) === true,
+    'explicit --no-gitnexus exclusion passes with zero gitnexus rows',
+  );
 
   return true;
 }

@@ -8,7 +8,7 @@
 // @use: reach for this instead of re-deriving checkpoint lookup logic; it is the resolver atlas-score.mjs's
 //   --resolver=atlas branch calls. No model calls, no embeddings, no randomness — same input always yields
 //   the same output, which is required for the frozen evaluator to be meaningful.
-// @exports: loadAtlas, locate, enter, resolve, main
+// @exports: loadAtlas, locate, enter, resolve, resolveAmong, main
 //
 // atlas-resolve.mjs — Phase 4 library (see _SYSTEM/eval/atlas-score.mjs header for the evaluator contract
 // this feeds). Reality this was designed against, from _SYSTEM/state/atlas/checkpoints.json (884 regions):
@@ -20,7 +20,8 @@
 //   node _SYSTEM/Scripts/atlas/atlas-resolve.mjs "<question>" [--top=N] [--json]
 //   node _SYSTEM/Scripts/atlas/atlas-resolve.mjs --test
 
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -173,15 +174,25 @@ export function loadAtlas({ checkpointsPath = CHECKPOINTS_PATH, idMapPath = ID_M
     });
   }
 
-  // Precompute per-node token sets (path + labels).
+  // Precompute per-node token sets (path + labels + capability description).
+  // capabilityTokens is the ONE canonical node-level capability field set: the
+  // node's own serves[]/does[] threaded from capabilities.json by
+  // atlas-identity.mjs. docFreq below and resolve() both read THIS set — the
+  // IDF scale and the scorer can never decouple from each other.
   const nodeTokens = new Map();
   for (const [id, node] of Object.entries(nodes)) {
     const p = node.path || '';
+    // Defensive shape handling: serves is an array of phrases; does is an
+    // array of distinct strings on regenerated id-maps, but tolerate a legacy
+    // bare string (fixtures, older id-map builds).
+    const serves = Array.isArray(node.serves) ? node.serves : (typeof node.serves === 'string' ? [node.serves] : []);
+    const does = Array.isArray(node.does) ? node.does : (typeof node.does === 'string' ? [node.does] : []);
     nodeTokens.set(id, {
       pathTokens: tokenSet(p),
       basenameNoExt: basenameNoExt(p).toLowerCase(),
       fullPathLower: normalizePath(p).toLowerCase(),
       labelTokens: tokenSet((node.labels || []).join(' ')),
+      capabilityTokens: tokenSet(`${serves.join(' ')} ${does.join(' ')}`),
     });
   }
 
@@ -189,9 +200,12 @@ export function loadAtlas({ checkpointsPath = CHECKPOINTS_PATH, idMapPath = ID_M
   // IDF index — built once at load, from the corpus itself. No external statistics, no tuning.
   //
   // Document frequency counts, per DISTINCT token, how many of the 2,161 nodes contain it in ANY
-  // of the five token sources (path segments, basename, label, checkpoint capability tags,
-  // checkpoint hub). Counting over the union rather than per-field keeps one global rarity scale,
-  // so a token's weight does not change depending on which tier it happened to match in.
+  // of the six token sources (path segments, basename, label, node capability description
+  // (serves/does from capabilities.json), checkpoint capability tags, checkpoint hub). Counting
+  // over the union rather than per-field keeps one global rarity scale, so a token's weight does
+  // not change depending on which tier it happened to match in. The docFreq field set here MUST
+  // stay identical to the field set resolve() scores — they both read the same precomputed
+  // nodeTokens/checkpointTokens sets, so adding a field in one place adds it in both.
   //
   // Iteration order is Object.entries(nodes) — the id-map's own key order — and all arithmetic is
   // deterministic, so identical inputs always produce identical scores.
@@ -205,6 +219,7 @@ export function loadAtlas({ checkpointsPath = CHECKPOINTS_PATH, idMapPath = ID_M
     const seen = new Set(nt.pathTokens);
     for (const t of tokenize(nt.basenameNoExt)) seen.add(t);
     for (const t of nt.labelTokens) seen.add(t);
+    for (const t of nt.capabilityTokens) seen.add(t);
     if (ct) {
       for (const t of ct.capabilityTokens) seen.add(t);
       for (const t of ct.hubTokens) seen.add(t);
@@ -376,10 +391,13 @@ export function resolve(question, { top = 5 } = {}, atlas = loadAtlas()) {
       if (w === undefined) continue; // token absent from the whole corpus — contributes nothing
       if (nt.pathTokens.has(t)) idfPath += w;
       if (nt.labelTokens.has(t)) idfLabel += w;
-      if (ct) {
-        if (ct.capabilityTokens.has(t)) idfCap += w;
-        if (ct.hubTokens.has(t)) idfHub += w;
-      }
+      // Capability tier = declared-purpose tokens. Node-local serves/does (from
+      // capabilities.json, threaded by atlas-identity) and the region-level
+      // facets.capability tags are the same epistemic class — declared capability
+      // metadata — so they share the tier at its UNCHANGED weight. Union check:
+      // a token present in both is still one capability-tier match, never 2x.
+      if (nt.capabilityTokens.has(t) || (ct && ct.capabilityTokens.has(t))) idfCap += w;
+      if (ct && ct.hubTokens.has(t)) idfHub += w;
     }
     const bm = idfPath * 1000 + idfLabel * 100 + idfCap * 10 + idfHub * 1;
 
@@ -396,6 +414,69 @@ export function resolve(question, { top = 5 } = {}, atlas = loadAtlas()) {
   scored.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     return a.path.localeCompare(b.path);
+  });
+
+  return scored.slice(0, top).map((s) => s.path);
+}
+
+// ---------------------------------------------------------------------------------------------
+// resolveAmong(question, candidatePaths, {top}) — TWO-STAGE retrieve-then-rerank (bakeoff C4).
+// Same machinery, same formula, same precomputed sets as resolve() — the ONLY difference is the
+// candidate set comes from an upstream retriever (e.g. bounded BM25 recall@50) instead of the
+// whole corpus. Atlas's tier scorer is a precision instrument over a small candidate set, which
+// is exactly the job it is good at; it loses as a corpus-wide retriever (measured: 0.0250 vs
+// fastlex 0.3450 on the 4,255-node corpus).
+//
+// Ordering contract: candidates with a positive tier score rank first (score desc); ties and
+// zero-scored candidates keep their upstream retrieval order — so when Atlas knows nothing about
+// a candidate set, the output DEGRADES TO the retriever's own ranking rather than scrambling it.
+// Candidates not present in the id-map corpus score 0 and flow through the same way.
+// ---------------------------------------------------------------------------------------------
+
+export function resolveAmong(question, candidatePaths, { top = 5 } = {}, atlas = loadAtlas()) {
+  const qTokens = tokenSet(question);
+  const qLower = String(question || '').toLowerCase();
+  const { nodes, nodeTokens, nodeToCheckpoint, checkpointTokens, idf, pathToId } = atlas;
+
+  const scored = [];
+  for (let i = 0; i < candidatePaths.length; i++) {
+    const rawPath = candidatePaths[i];
+    const id = pathToId.get(normalizePath(rawPath));
+    let score = 0;
+    let outPath = rawPath;
+    if (id) {
+      const node = nodes[id];
+      const nt = nodeTokens.get(id);
+      const checkpointId = nodeToCheckpoint.get(id);
+      const ct = checkpointId ? checkpointTokens.get(checkpointId) : null;
+      let idfPath = 0;
+      let idfLabel = 0;
+      let idfCap = 0;
+      let idfHub = 0;
+      for (const t of qTokens) {
+        const w = idf.get(t);
+        if (w === undefined) continue;
+        if (nt.pathTokens.has(t)) idfPath += w;
+        if (nt.labelTokens.has(t)) idfLabel += w;
+        if (nt.capabilityTokens.has(t) || (ct && ct.capabilityTokens.has(t))) idfCap += w;
+        if (ct && ct.hubTokens.has(t)) idfHub += w;
+      }
+      const bm = idfPath * 1000 + idfLabel * 100 + idfCap * 10 + idfHub * 1;
+      let exactBonus = 0;
+      if (nt.fullPathLower && qLower.includes(nt.fullPathLower)) exactBonus += 20000;
+      else if (nt.basenameNoExt && nt.basenameNoExt.length >= 3 && qLower.includes(nt.basenameNoExt)) exactBonus += 10000;
+      score = exactBonus + bm;
+      outPath = node.path;
+    }
+    scored.push({ path: outPath, score, upstream: i });
+  }
+
+  scored.sort((a, b) => {
+    const aPos = a.score > 0 ? 1 : 0;
+    const bPos = b.score > 0 ? 1 : 0;
+    if (aPos !== bPos) return bPos - aPos;             // positive tier scores first
+    if (a.score !== b.score) return b.score - a.score; // then score desc
+    return a.upstream - b.upstream;                    // then upstream retrieval order
   });
 
   return scored.slice(0, top).map((s) => s.path);
@@ -431,8 +512,68 @@ function runSelfTest() {
   console.log(`[atlas-resolve --test] locate()+enter() round trip: ${roundTrip ? 'PASS' : 'FAIL'}`);
   if (!roundTrip) pass = false;
 
+  // End-to-end capability-representation assertion: a question asked PURELY in
+  // intent language (zero token overlap with the mechanism's path or labels)
+  // must return the mechanism whose serves/does carry that intent. Built on a
+  // synthetic 3-node fixture in tmpdir so it is independent of corpus drift —
+  // on the real 4,255-node map, unlabeled gitnexus nodes can legitimately bury
+  // the capability-tier signal, which is a corpus-composition fact, not a
+  // threading failure.
+  const fx = buildCapabilityFixture();
+  const fxAtlas = loadAtlas({ checkpointsPath: fx.checkpointsPath, idMapPath: fx.idMapPath });
+  const fxHits = resolve('purple monkey dishwasher', { top: 3 }, fxAtlas);
+  const capOnly = fxHits[0] === 'pkg/carrier-wobble.mjs';
+  console.log(`[atlas-resolve --test] capability-only intent -> mechanism (fixture): ${capOnly ? 'PASS' : 'FAIL'}`);
+  console.log(`  fixture -> ${JSON.stringify(fxHits)}`);
+  if (!capOnly) pass = false;
+
+  // resolveAmong (C4 two-stage): reranks ONLY the given candidates, degrades to
+  // upstream order when no candidate scores, keeps unknown candidates flowing.
+  const among = resolveAmong('purple monkey dishwasher', ['pkg/alpha-quux.mjs', 'pkg/carrier-wobble.mjs', 'pkg/beta-fizz.mjs'], { top: 3 }, fxAtlas);
+  const amongOk = among[0] === 'pkg/carrier-wobble.mjs' && among.length === 3;
+  console.log(`[atlas-resolve --test] resolveAmong reranks candidate set: ${amongOk ? 'PASS' : 'FAIL'}`);
+  console.log(`  among -> ${JSON.stringify(among)}`);
+  if (!amongOk) pass = false;
+  const amongZero = resolveAmong('zzz-no-such-token-anywhere', ['pkg/beta-fizz.mjs', 'not/in/corpus.txt', 'pkg/alpha-quux.mjs'], { top: 3 }, fxAtlas);
+  const degradeOk = JSON.stringify(amongZero) === JSON.stringify(['pkg/beta-fizz.mjs', 'not/in/corpus.txt', 'pkg/alpha-quux.mjs']);
+  console.log(`[atlas-resolve --test] resolveAmong degrades to upstream order at zero signal: ${degradeOk ? 'PASS' : 'FAIL'}`);
+  if (!degradeOk) pass = false;
+  fx.cleanup();
+
   console.log(`[atlas-resolve --test] overall: ${pass ? 'PASS' : 'FAIL'}`);
   return pass;
+}
+
+/**
+ * Synthetic 3-node atlas fixture: two decoy nodes whose paths/labels share no
+ * tokens with the query, plus carrier-wobble.mjs whose ONLY bridge to the query
+ * is its serves[]/does[] description (path/label token overlap with the query
+ * is ZERO by construction — a pass via the 1000x path tier is impossible). If
+ * threading breaks (identity drops the fields, loadAtlas stops reading them, or
+ * df/score field sets decouple), the query scores 0 everywhere and fails.
+ */
+function buildCapabilityFixture() {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'atlas-resolve-fx-'));
+  const mk = (rel, extra = {}) => [
+    `FIX::file::${rel}`,
+  { kind: 'file', path: rel, repo_root: 'FIX', labels: [], aliases: [], ...extra },
+  ];
+  const nodes = Object.fromEntries([
+    mk('pkg/alpha-quux.mjs'),
+    mk('pkg/beta-fizz.mjs'),
+    mk('pkg/carrier-wobble.mjs', { serves: ['purple monkey dishwasher'], does: 'handles the purple monkey dishwasher flow' }),
+  ]);
+  const idMapPath = path.join(dir, 'id-map.json');
+  writeFileSync(idMapPath, JSON.stringify({ nodes }), 'utf8');
+  const checkpointsPath = path.join(dir, 'checkpoints.json');
+  writeFileSync(checkpointsPath, JSON.stringify([
+    { id: 'cp-1', label: 'fixture region', hub: null, members: Object.keys(nodes), facets: { capability: [] } },
+  ]), 'utf8');
+  return {
+    idMapPath,
+    checkpointsPath,
+    cleanup() { try { rmSync(dir, { recursive: true, force: true }); } catch { /* best-effort */ } },
+  };
 }
 
 // ---------------------------------------------------------------------------------------------
