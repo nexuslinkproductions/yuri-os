@@ -29,7 +29,7 @@ Local-first (above) governs DISCOVERY. This governs VERIFICATION. Online verific
 - Final report max: 120 lines unless explicitly blocked.
 - Never full-crawl without explicit owner approval.
 - DeepSeek reinforcement: compact evidence only. No raw dumps.
-- gh is not installed; do not rely on it as a default path.
+- gh IS installed (`/opt/homebrew/bin/gh`) and authenticated — verified 2026-07-28, correcting a stale claim that it was absent. It is sanctioned for repo/PR operations (`gh pr create`, `gh pr view`, `gh api`). It is still NOT the default path for package or source RESEARCH: prefer `npm view` and `raw.githubusercontent.com` there, because a rendered API round-trip costs more than the raw fetch for the same bytes.
 - curl allowed for raw.githubusercontent.com and api.github.com; hook-gated for all other domains.
 
 ## RESEARCH LADDER
@@ -89,7 +89,7 @@ OUTPUT_CAP: 80 lines research / 120 lines final report
 ## STOP CONDITIONS
 
 Stop and request owner approval if:
-- gh commands would be required (not installed).
+- (RETIRED 2026-07-28 — gh is installed and authenticated; this was a stale stop condition that would have blocked the sanctioned worktree PR lane. Left as a named retirement rather than deleted, so a lane that remembers the old rule finds its repeal instead of a silent gap.)
 - curl is required for a domain other than raw.githubusercontent.com or api.github.com.
 - Evidence would exceed 80 lines before filtering.
 
