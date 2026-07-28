@@ -1,0 +1,44 @@
+{
+  "frozen": "2026-07-28 — Hermes ablation design. Sections identical per tool; no examples; no target-specific hints. Written BLIND: derived from function signatures and observed CLI behaviour, never from find-40 content and never from @serves/@does header prose.",
+  "byte_budget_words": 70,
+  "template": ["purpose", "inputs", "outputs", "failure_behaviour"],
+  "descriptions": {
+    "tool_a": {
+      "purpose": "Ranks repository files by relevance to a natural-language question, weighting rare terms over common ones.",
+      "inputs": "question (string, required); top (integer, optional, default 5 — maximum results).",
+      "outputs": "JSON array of repo-relative file paths, most relevant first. Paths only; no scores.",
+      "failure_behaviour": "Returns an empty array when no file scores above zero."
+    },
+    "tool_b": {
+      "purpose": "Answers a task description with grouped matches from a fused local index covering documents, code structure, and registered mechanisms.",
+      "inputs": "query (string, required); top (integer, optional — maximum results per group).",
+      "outputs": "Text report of matching file paths grouped by source, with short context excerpts.",
+      "failure_behaviour": "Prints empty groups when nothing matches."
+    },
+    "tool_c": {
+      "purpose": "Finds registered mechanisms whose declared function matches a described need.",
+      "inputs": "need (string, required — a description of what you want to accomplish).",
+      "outputs": "Ranked list of matching entries with their file paths and declared purposes.",
+      "failure_behaviour": "Prints an empty result when no entry matches."
+    },
+    "tool_d": {
+      "purpose": "Runs ranked full-text search over a local document corpus.",
+      "inputs": "query (string, required); top (integer, optional — maximum results).",
+      "outputs": "Ranked list of matching documents with scores and excerpts.",
+      "failure_behaviour": "Prints no results when no document matches."
+    },
+    "tool_e": {
+      "purpose": "Finds files by literal text content or by file-name pattern.",
+      "inputs": "operation (string, required — \"content\" to search inside files, \"name\" to match file names); pattern (string, required — literal text, regex, or name pattern); scope (path, optional — where to look).",
+      "outputs": "Matching file paths; for content search, the matching lines as well.",
+      "failure_behaviour": "Prints nothing and exits non-zero when there are no matches; rejects an unknown operation with a usage error."
+    }
+  },
+  "binding_harness_side_only": {
+    "tool_a": "atlas resolve(question, {top}) — library, atlas-resolve.mjs",
+    "tool_b": "node _SYSTEM/Scripts/xref-query.mjs \"<query>\" [--top N]",
+    "tool_c": "node _SYSTEM/Scripts/capability-recall.mjs \"<need>\"",
+    "tool_d": "ai search \"<query>\" [--top N] [--json]",
+    "tool_e": "rg <pattern> [scope] / file-name glob"
+  }
+}
