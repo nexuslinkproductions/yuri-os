@@ -1,12 +1,33 @@
 {
   "schema": "find40-doctrine-registry-overlap/v1",
   "regenerator": "_SYSTEM/Scripts/atlas/partition-leak-scan.mjs",
-  "measured_at": "2026-07-28T15:55:41.005Z",
-  "doctrine_content_sha256": "76e00a1d630f07bf0f048bafd480ddac4389fb9620e105d50db029427f33e337",
-  "registry_content_sha256": "35b36b79a652d5db9b0d5757dd6e671377af1afa959e373811802c061f755116",
+  "measured_at": "2026-07-28T15:59:02.139Z",
+  "matcher_spec_schema": "partition-literal-matcher/v1",
+  "matcher_spec_path": "_SYSTEM/eval/ablation-evidence/partition-literal-matcher-v1.json",
+  "matcher_spec_content_sha256": "e16eb8486ce5342ba39e41f4571eb0d142378d3c5ea2bcf47e19175b718fa4a0",
+  "match_predicates": [
+    "full_path",
+    "basename"
+  ],
+  "match_disabled": [
+    "stem matching (basename without extension)",
+    "case-insensitive matching",
+    "word-boundary / regex token matching",
+    "path-segment fuzzy matching",
+    "symlink realpath rewriting of expect or surface"
+  ],
+  "incomparable_prior": {
+    "reported_count": 28,
+    "claimed_surface": "_SYSTEM/capabilities.json only (verbal report)",
+    "status": "INCOMPARABLE_PRIOR_RESULT",
+    "rule": "Do not cite 28 again in any artifact or summary, including as a range or approximation. No persisted capability-only artifact and no matcher metadata exist for that run."
+  },
+  "doctrine_content_sha256": "12ab8a12c57667cf535efda2d6fd8d4cd1705e40813ecba1420b7aa27c674c3a",
+  "registry_content_sha256": "103fa4f877ca7cdd648ccf4eda74e3fe1638333a5b33d48c113e7d82e30c169a",
   "n_find40": 40,
   "doctrine_n": 12,
   "registry_n": 27,
+  "capabilities_json_only_n": 27,
   "intersection": {
     "n": 6,
     "ids": [
@@ -70,8 +91,10 @@
     ]
   },
   "reading": [
-    "Union 33/40 reachable as literals in DOCTRINE packet surfaces and/or REGISTRY files.",
-    "Intersection 6/40 appear in BOTH.",
-    "Remainder 7/40 not in D∪R under this static scan."
+    "Union 33/40 reachable as literals under frozen matcher v1.",
+    "Intersection 6/40 appear in BOTH classes.",
+    "capabilities.json alone under same matcher: 27/40.",
+    "Remainder 7/40 not in D∪R.",
+    "Verbal prior \"28\" is INCOMPARABLE_PRIOR_RESULT — not cited."
   ]
 }

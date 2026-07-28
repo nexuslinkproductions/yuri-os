@@ -1,10 +1,37 @@
 {
   "schema": "G-INJECTED-DOCTRINE-candidates/v1",
   "gate": "G-INJECTED-DOCTRINE",
+  "class": "DOCTRINE",
   "status": "CANDIDATE_SET_NOT_CONFIRMED",
   "regenerator": "_SYSTEM/Scripts/atlas/partition-leak-scan.mjs",
-  "measured_at": "2026-07-28T15:55:40.969Z",
-  "packet_surfaces_scanned": [
+  "measured_at": "2026-07-28T15:59:02.083Z",
+  "matcher_spec_schema": "partition-literal-matcher/v1",
+  "matcher_spec_path": "_SYSTEM/eval/ablation-evidence/partition-literal-matcher-v1.json",
+  "matcher_spec_content_sha256": "e16eb8486ce5342ba39e41f4571eb0d142378d3c5ea2bcf47e19175b718fa4a0",
+  "match_predicates": [
+    "full_path",
+    "basename"
+  ],
+  "match_disabled": [
+    "stem matching (basename without extension)",
+    "case-insensitive matching",
+    "word-boundary / regex token matching",
+    "path-segment fuzzy matching",
+    "symlink realpath rewriting of expect or surface"
+  ],
+  "incomparable_prior": {
+    "reported_count": 28,
+    "claimed_surface": "_SYSTEM/capabilities.json only (verbal report)",
+    "status": "INCOMPARABLE_PRIOR_RESULT",
+    "rule": "Do not cite 28 again in any artifact or summary, including as a range or approximation. No persisted capability-only artifact and no matcher metadata exist for that run."
+  },
+  "question_set": {
+    "path": "_SYSTEM/eval/atlas-benchmark.jsonl",
+    "filter": "(type||'find')==='find'; slice(0,40)",
+    "blob_sha1": "ffda87d16262c9761e4d2ee794bcee9dd739a20b",
+    "n": 40
+  },
+  "surfaces_scanned": [
     "CLAUDE.md",
     "AGENTS.md",
     ".cursor/rules/sync.mdc"
@@ -15,7 +42,11 @@
     ".cursor/rules/sync.mdc"
   ],
   "surfaces_missing": [],
-  "note": "Static literal scan only. Proven Channel C = intersection with Tier -1 attended set. Stratify UNION(candidates, Tier-1 attended) out of slot-earning means. Valid only for packets that include these surfaces byte-identically; re-scan on prompt_hash change. q035 basename SKILL.md is WEAK (many mentions); keep tagged but do not treat as strong alone.",
+  "surface_sha256_at_scan": {
+    "CLAUDE.md": "eda819105f8c9713ad2f6306ac71e21e30a48199bc2a34024dd02119eb0d740b",
+    "AGENTS.md": "2eca58843897504a41db11dde185a44b82691427af968ed5bb5af1adf1717adc",
+    ".cursor/rules/sync.mdc": "af51fd0565bd0215c829e4359f186665aef21c2184e825a2e59b0d45d3e84985"
+  },
   "n_find40": 40,
   "n_candidates": 12,
   "question_ids": [
@@ -274,5 +305,5 @@
       ]
     }
   ],
-  "content_sha256": "76e00a1d630f07bf0f048bafd480ddac4389fb9620e105d50db029427f33e337"
+  "content_sha256": "12ab8a12c57667cf535efda2d6fd8d4cd1705e40813ecba1420b7aa27c674c3a"
 }

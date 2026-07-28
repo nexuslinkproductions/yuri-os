@@ -1,10 +1,37 @@
 {
   "schema": "G-REGISTRY-literal-candidates/v1",
   "gate": "G-REGISTRY-HIT",
+  "class": "REGISTRY",
   "status": "CANDIDATE_SET_STATIC_LITERALS",
   "regenerator": "_SYSTEM/Scripts/atlas/partition-leak-scan.mjs",
-  "measured_at": "2026-07-28T15:55:40.969Z",
-  "registry_surfaces_scanned": [
+  "measured_at": "2026-07-28T15:59:02.083Z",
+  "matcher_spec_schema": "partition-literal-matcher/v1",
+  "matcher_spec_path": "_SYSTEM/eval/ablation-evidence/partition-literal-matcher-v1.json",
+  "matcher_spec_content_sha256": "e16eb8486ce5342ba39e41f4571eb0d142378d3c5ea2bcf47e19175b718fa4a0",
+  "match_predicates": [
+    "full_path",
+    "basename"
+  ],
+  "match_disabled": [
+    "stem matching (basename without extension)",
+    "case-insensitive matching",
+    "word-boundary / regex token matching",
+    "path-segment fuzzy matching",
+    "symlink realpath rewriting of expect or surface"
+  ],
+  "incomparable_prior": {
+    "reported_count": 28,
+    "claimed_surface": "_SYSTEM/capabilities.json only (verbal report)",
+    "status": "INCOMPARABLE_PRIOR_RESULT",
+    "rule": "Do not cite 28 again in any artifact or summary, including as a range or approximation. No persisted capability-only artifact and no matcher metadata exist for that run."
+  },
+  "question_set": {
+    "path": "_SYSTEM/eval/atlas-benchmark.jsonl",
+    "filter": "(type||'find')==='find'; slice(0,40)",
+    "blob_sha1": "ffda87d16262c9761e4d2ee794bcee9dd739a20b",
+    "n": 40
+  },
+  "surfaces_scanned": [
     "_SYSTEM/capabilities.json",
     "skills/skill-index.json"
   ],
@@ -13,7 +40,10 @@
     "skills/skill-index.json"
   ],
   "surfaces_missing": [],
-  "note": "REGISTRY class = backend of a Tier-1 arm / need→path index (Hermes partition freeze 2026-07-28). capabilities.json entry shape {id,serves,does,mechanism:path} is an answer key, not a human routing map. Outcome REGISTRY_HIT never counts toward nav-tool slot credit without a tool-vs-own-registry contrast cell. skill-index.json is belt/subclass (low hit density on find-40).",
+  "surface_sha256_at_scan": {
+    "_SYSTEM/capabilities.json": "19bb411faf2a6a9ea1784a2128a3640532b2b99cb56b1d53cd1a8777034f5371",
+    "skills/skill-index.json": "e3d8ed01846c6ca9454bfd1308736dde1ad9f5061fe66c2f06eca86d4dde520e"
+  },
   "n_find40": 40,
   "n_candidates": 27,
   "question_ids": [
@@ -485,5 +515,38 @@
       ]
     }
   ],
-  "content_sha256": "35b36b79a652d5db9b0d5757dd6e671377af1afa959e373811802c061f755116"
+  "capabilities_json_only_under_same_matcher": {
+    "n": 27,
+    "question_ids": [
+      "q002",
+      "q003",
+      "q004",
+      "q006",
+      "q011",
+      "q013",
+      "q015",
+      "q016",
+      "q017",
+      "q018",
+      "q019",
+      "q020",
+      "q021",
+      "q022",
+      "q023",
+      "q026",
+      "q027",
+      "q028",
+      "q029",
+      "q030",
+      "q031",
+      "q032",
+      "q033",
+      "q035",
+      "q036",
+      "q037",
+      "q038"
+    ],
+    "note": "Same matcher as REGISTRY class. skill-index adds candidates not already in capabilities.json; it cannot lower this count. Official REGISTRY count is n_candidates above (capabilities ∪ skill-index)."
+  },
+  "content_sha256": "103fa4f877ca7cdd648ccf4eda74e3fe1638333a5b33d48c113e7d82e30c169a"
 }
