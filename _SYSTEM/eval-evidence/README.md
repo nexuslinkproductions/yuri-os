@@ -68,6 +68,34 @@ presence, not confirmed subject contamination.
 
 ---
 
+## Negative tests bind only the context they ran in
+
+This is **not** “run more tests.” A negative test’s scope is the **context it
+executed in**. A claim of universal binding therefore has to be violated from the
+context **most likely to escape** — the stale worktree, the older checkout, the
+other harness — not from the one you happen to be standing in. Without that
+distinction the line collapses into generic diligence advice and gets ignored.
+
+**Measurement (2026-07-28, Hermes, from a worktree) — cite, do not re-derive:**
+`core.hooksPath` is **RELATIVE** (`_SYSTEM/git-hooks`), so each worktree runs its
+own checked-out copy of the hook. Exec bit armed in `c641bd22`. Mode at main HEAD:
+`100755` (hook runs). Mode at older worktree checkouts: `100644` (hook **silently
+skipped**). Git reports the skip as `hint: The '_SYSTEM/git-hooks/pre-commit' hook
+was ignored because it's not set as executable` — **not an error**, so the lane
+sees nothing. At measurement: **54 of 64** worktrees running without the armed
+hook. Layer 1 (`chmod 444` on `_SYSTEM/eval/*`) was designed to bind every process
+and was **never applied** (files remain 644).
+
+Orion’s main-root freeze rejection (commit to `atlas-score.mjs` without
+`YURI_EVAL_UNFREEZE` → REJECTED) was correct procedure and correct in **one place
+out of sixty-four**. Necessary; insufficient as a fleet-wide claim.
+
+Fixing relative `hooksPath` / layer 1 is an owner decision (pushing the exec bit
+forward does not fix worktrees pinned before `c641bd22`). Do not self-assign from
+this note.
+
+---
+
 ## S1 provenance (not a yardstick)
 
 S1 was evaluated as a calibration yardstick and COLLAPSED. It yielded 8 navigation
