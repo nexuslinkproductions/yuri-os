@@ -337,6 +337,45 @@ const RESOLVERS = {
   menu: resolveMenu,
 };
 
+// ARM STATUS — a withdrawn arm is indistinguishable from a live one at the CLI, and
+// `enriched-split` at 0.3950 still reads as the leader to anyone who runs the arms
+// without the withdrawal context. Status therefore lives HERE, at the point of
+// temptation, not only in doctrine and commit messages that nobody reads at the
+// moment they type --resolver. ADVISORY ONLY: emits to stderr, never touches a score.
+//
+// live               usable candidate
+// live-inert         runs correctly, changes no outcome on the current series
+// dead               measured and lost; kept for the record, not a candidate
+// withdrawn-contaminated  apparent gain traced to leakage. DO NOT RESURRECT.
+// hybrid-diagnostic  measured for comparison; its claim is not this arm's atlas_score
+const ARM_STATUS = {
+  xref: ['live', 'fused 7-leg retrieval; 0.2550 on find-40 at ~32.5s/query'],
+  atlas: ['live', 'spectral checkpoints; 0.0250'],
+  fastlex: ['live', 'BASELINE 0.3450 @64ms — every delta is measured relative to this'],
+  'fastlex-split': ['live-inert', 'identical per-question vector to fastlex on find-40 (40/40, diff=0). Measure for the record; spend no analysis until a series exists where split moves >=1 question'],
+  'fastlex-syns': ['dead', '0.2150 vs 0.3450 baseline — synonym expansion loses outright'],
+  enriched: ['withdrawn-contaminated', 'same leakage channel as enriched-split'],
+  'enriched-split': ['withdrawn-contaminated', 'apparent 0.3950 was SELF-DESCRIPTION BOOST, not retrieval: G1 stratum null gave NONCAP n=19 delta 0.000, and G2 answer-node holdout collapsed it to exactly the 0.3450 baseline. The gain was injecting each answer\'s own @serves/@does card into that answer\'s own FTS body. DO NOT RESURRECT'],
+  rerank: ['dead', '0.3100 vs 0.3450 at 2x latency, p~0.68 — a coin-flip reshuffle'],
+  menu: ['hybrid-diagnostic', 'closed-vocabulary area selection; verdict PARKED pending an n>=100 area-spread set. 35/40 current find answers sit in one top-level area, so this series cannot discriminate any directory-aligned menu'],
+};
+
+// Fail loud if an arm is added without a status, or a status outlives its arm. Without
+// this the map silently reverts to the unmarked state the moment someone adds arm #10 —
+// which is how every inert marker in this repo got that way.
+{
+  const armKeys = Object.keys(RESOLVERS).sort();
+  const statusKeys = Object.keys(ARM_STATUS).sort();
+  if (armKeys.join('|') !== statusKeys.join('|')) {
+    throw new Error(
+      `atlas-score: ARM_STATUS is out of sync with RESOLVERS.\n`
+      + `  arms without status: ${armKeys.filter((k) => !ARM_STATUS[k]).join(', ') || '(none)'}\n`
+      + `  status without arm:  ${statusKeys.filter((k) => !RESOLVERS[k]).join(', ') || '(none)'}\n`
+      + `  Every arm carries a status. Adding one is part of adding an arm.`,
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------------------------
 // SCORING CORE
 // ---------------------------------------------------------------------------------------------
@@ -515,6 +554,18 @@ async function main() {
   if (!resolverFn) {
     console.error(`atlas-score: unknown resolver "${args.resolver}" (known: ${Object.keys(RESOLVERS).join(', ')})`);
     process.exit(1);
+  }
+
+  // Announce a non-live arm AT INVOCATION. A status nobody reads at the moment they
+  // type --resolver is decoration; this fires when the arm actually runs. stderr only,
+  // so it never contaminates the scalar on stdout.
+  const [armState, armWhy] = ARM_STATUS[args.resolver];
+  if (armState === 'withdrawn-contaminated' || armState === 'dead') {
+    console.error(`atlas-score: WARNING — arm "${args.resolver}" is ${armState.toUpperCase()}.`);
+    console.error(`  ${armWhy}`);
+    console.error(`  Its score is reported for the record. It is NOT a promotion candidate.`);
+  } else if (armState !== 'live') {
+    console.error(`atlas-score: note — arm "${args.resolver}" is ${armState}: ${armWhy}`);
   }
 
   const PRELOADERS = {
