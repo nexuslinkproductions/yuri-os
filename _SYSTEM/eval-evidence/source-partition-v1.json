@@ -51,11 +51,14 @@
     "ABSTAIN"
   ],
   "related_artifacts": [
+    "_SYSTEM/eval-evidence/g-disk-doctrine-candidates.json",
+    "_SYSTEM/eval-evidence/g-cinject-doctrine-candidates.json",
     "_SYSTEM/eval-evidence/g-injected-doctrine-candidates.json",
     "_SYSTEM/eval-evidence/g-registry-literal-candidates.json",
     "_SYSTEM/eval-evidence/find40-doctrine-registry-overlap.json",
     "_SYSTEM/eval-evidence/tier0-threshold-power.json"
   ],
+  "channel_note": "C_inject (packet) ≠ C_disk (partition DOCTRINE). Hermes R2 2026-07-28. g-injected-doctrine-candidates.json is RETIRED (channel-conflated 3-surface scan).",
   "falsifier": "If capability-recall systematically beats raw capabilities.json reads on the same questions under anonymized tool names, REGISTRY split was correct; if not, the arm is a wrapper and headline FIND was registry mining.",
   "artifact_home": "_SYSTEM/eval-evidence/ (tracked, not frozen; not state/atlas loop-bulk)"
 }

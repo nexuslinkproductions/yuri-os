@@ -1,10 +1,11 @@
 {
   "schema": "find40-doctrine-registry-overlap/v1",
   "regenerator": "_SYSTEM/Scripts/atlas/partition-leak-scan.mjs",
-  "measured_at": "2026-07-28T16:00:54.065Z",
+  "measured_at": "2026-07-28T16:37:59.455Z",
+  "doctrine_channel": "C_DISK",
   "matcher_spec_schema": "partition-literal-matcher/v1",
   "matcher_spec_path": "_SYSTEM/eval-evidence/partition-literal-matcher-v1.json",
-  "matcher_spec_content_sha256": "cafff116bbdecd58509305242fe289a3b4d432d7c095af1aba5e89053f1cd0bf",
+  "matcher_spec_content_sha256": "cfad97e3f564cb4c6feb21eb4d4168435e133dee828ecc8466a8241202d35af8",
   "match_predicates": [
     "full_path",
     "basename"
@@ -22,32 +23,37 @@
     "status": "INCOMPARABLE_PRIOR_RESULT",
     "rule": "Do not cite 28 again in any artifact or summary, including as a range or approximation. No persisted capability-only artifact and no matcher metadata exist for that run."
   },
-  "doctrine_content_sha256": "79449b01c2626bd2c940dfd794fe3f341f23a8f32f0d3c955845c8ab9639b3f8",
-  "registry_content_sha256": "3cd92edb6c862da49df2bdf78bfb769a823228b9d5008538e08bc70fef7ea533",
+  "doctrine_content_sha256": "49137d261145ede7669e5acb783badc6fdac2366a682996f1d7a8adac11e5e5d",
+  "registry_content_sha256": "71be4f9a18c4d7d3eb3053de7f7121e69d38fe2144b05adcc3c85eccc140674c",
   "n_find40": 40,
-  "doctrine_n": 12,
+  "doctrine_n": 17,
   "registry_n": 27,
   "capabilities_json_only_n": 27,
   "intersection": {
-    "n": 6,
+    "n": 8,
     "ids": [
       "q002",
       "q003",
       "q004",
+      "q011",
       "q019",
       "q020",
+      "q026",
       "q035"
     ]
   },
   "union": {
-    "n": 33,
+    "n": 36,
     "ids": [
+      "q001",
       "q002",
       "q003",
       "q004",
       "q005",
       "q006",
       "q007",
+      "q008",
+      "q009",
       "q010",
       "q011",
       "q012",
@@ -76,25 +82,28 @@
       "q037",
       "q038"
     ],
-    "share_of_40": 0.825
+    "share_of_40": 0.9
   },
   "neither": {
-    "n": 7,
+    "n": 4,
     "ids": [
-      "q001",
-      "q008",
-      "q009",
       "q024",
       "q034",
       "q039",
       "q040"
     ]
   },
+  "under_scoped_prior": {
+    "union_n": 33,
+    "doctrine_n": 12,
+    "status": "UNDER_SCOPED_FLOOR",
+    "note": "Prior union 33/40 used the CHANNEL-CONFLATED 3-surface DOCTRINE scan. Full C_disk DOCTRINE can only add hits (monotone). Cite the C_disk union below, not 33/40."
+  },
   "reading": [
-    "Union 33/40 reachable as literals under frozen matcher v1.",
-    "Intersection 6/40 appear in BOTH classes.",
-    "capabilities.json alone under same matcher: 27/40.",
-    "Remainder 7/40 not in D∪R.",
-    "Verbal prior \"28\" is INCOMPARABLE_PRIOR_RESULT — not cited."
+    "C_disk DOCTRINE 17/40 · REGISTRY 27/40 · UNION 36/40 · INTERSECTION 8/40.",
+    "Prior conflated-scan union 33/40 is an UNDER_SCOPED_FLOOR — do not cite as the figure.",
+    "Remainder 4/40 not in C_disk-D ∪ R (static-clean ceiling under matcher v1).",
+    "Verbal prior \"28\" is INCOMPARABLE_PRIOR_RESULT — not cited.",
+    "C_inject candidate list is a SEPARATE artifact (Phoenix); never merge with C_disk for union arithmetic."
   ]
 }
