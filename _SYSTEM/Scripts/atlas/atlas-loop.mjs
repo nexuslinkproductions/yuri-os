@@ -606,7 +606,35 @@ function realEffects() {
       git(['commit', '-m', message, '--', ...paths]);
       return git(['rev-parse', 'HEAD']).stdout.trim();
     },
-    resetHard: (sha) => { git(['reset', '--hard', sha]); },
+    // REVERT IS PATH-SCOPED, NEVER REPO-WIDE.
+    // This was `git reset --hard <sha>` — repo-wide, no pathspec. Preflight only ever checked that
+    // the KNOB files were clean, so a rejected iteration silently destroyed every OTHER modified
+    // tracked file in the checkout (187 of them here at the time of the fix). Untracked files
+    // survived, since `reset --hard` is not `clean` — but modified-tracked work did not, and the
+    // byte-exact verification could not see the loss, because it only re-hashes knob files.
+    // Found by adversarial review 2026-07-27. Four lanes and the orchestrator all walked past it:
+    // each verified its own component, none modeled the revert against a SHARED dirty checkout.
+    // Same shape as the sparse-checkout incident — a mechanism whose blast radius is wider than
+    // its own safety check inspects.
+    //
+    // The obvious alternative, demanding a clean worktree before arming, is unattainable in this
+    // repo and would only move the failure to "the loop can never start". Path isolation is
+    // strictly better: it makes an unrelated dirty tree IRRELEVANT rather than forbidden.
+    //
+    // Three steps rather than one because git refuses a pathspec with --soft/--hard, and
+    // `git reset <tree-ish> -- <paths>` cannot move HEAD:
+    //   1. --soft   moves the branch pointer back, leaving the working tree entirely untouched
+    //   2. checkout restores index+worktree for ONLY these paths
+    //   3. reset --  unstages them, so the index matches HEAD again
+    // Every step is pathspec-bounded except (1), which touches no files at all.
+    revertPaths: (sha, paths) => {
+      if (!Array.isArray(paths) || paths.length === 0) {
+        throw new Error('revertPaths refused: no pathspec given — a revert must never be repo-wide');
+      }
+      git(['reset', '--soft', sha]);
+      git(['checkout', sha, '--', ...paths]);
+      git(['reset', '--', ...paths]);
+    },
     regenerate: (stages) => {
       const log = [];
       for (const s of stages) {
@@ -647,16 +675,34 @@ function stubEffects({ scores = null } = {}) {
     },
     writeFile: (rel, text) => { files.set(rel, text); },
     head: () => fakeHead,
-    commit: () => {
+    // Commit is PATHSPEC-BOUNDED, mirroring realEffects' `git commit -- <paths>`.
+    // Previously this cleared the ENTIRE pending overlay, which meant an unrelated modified file
+    // vanished at commit time rather than at revert time. Real git does not do that: committing
+    // one pathspec leaves every other working-tree modification exactly where it was. Caught by
+    // the 5c blast-radius test 2026-07-28 — the same class of stub infidelity already fixed once
+    // in this file, in a different method.
+    commit: (paths) => {
       const sha = `dry${String(++n).padStart(37, '0')}`;
+      const scope = Array.isArray(paths) && paths.length ? paths : [...files.keys()];
       const merged = new Map(overlayFor(fakeHead));
-      for (const [k, v] of files) merged.set(k, v);
+      for (const rel of scope) if (files.has(rel)) merged.set(rel, files.get(rel));
       history.set(sha, merged);
-      files = new Map();
+      for (const rel of scope) files.delete(rel);   // only the committed paths leave the overlay
       fakeHead = sha;
       return sha;
     },
-    resetHard: (sha) => { files = new Map(); fakeHead = sha; },
+    // Models the PATH-SCOPED revert. The old stub cleared the entire pending overlay, which
+    // faithfully mirrored the old repo-wide `reset --hard` — and that fidelity is exactly why the
+    // stub must change too. Dropping only the named paths is what makes an unrelated pending edit
+    // survive a revert in the dry run, so the dry run can actually demonstrate the isolation
+    // rather than merely assert it.
+    revertPaths: (sha, paths) => {
+      if (!Array.isArray(paths) || paths.length === 0) {
+        throw new Error('revertPaths refused: no pathspec given — a revert must never be repo-wide');
+      }
+      for (const rel of paths) files.delete(rel);
+      fakeHead = sha;
+    },
     regenerate: (stages) => stages.map((s) => s.id),
     score: () => {
       // Deterministic synthetic trajectory: improves, then plateaus, then regresses — so the
@@ -837,8 +883,11 @@ export function runLoop({ iters = 8, effects = null, repoRoot = REPO_ROOT, regis
     } else {
       verdict = 'reverted';
       if (!note) note = scored === null ? 'no score' : `no improvement vs best ${best.toFixed(4)}`;
-      fx.resetHard(headBefore);
-      // artifacts are gitignored — reset --hard did not restore them; rebuild from restored source
+      // knobFiles is the ONLY pathspec a revert may touch. It is the same set the iteration
+      // committed (see fx.commit above, also pathspec-bounded), so the revert is the exact inverse
+      // of the mutation — nothing wider.
+      fx.revertPaths(headBefore, knobFiles);
+      // artifacts are gitignored — the revert did not restore them; rebuild from restored source
       try {
         fx.regenerate(stagesFor(knob.rebuild));
       } catch (err) {
@@ -1108,10 +1157,50 @@ export function selfTest() {
     eq('stub: kept value readable after commit', fx.readFile(rel), 'v1');
     fx.writeFile(rel, 'v2');                  // iteration 2: mutate
     fx.commit([rel]);
-    fx.resetHard(beforeIter2);                // iteration 2: revert
-    eq('stub: reset restores the KEPT value, not the pre-loop value', fx.readFile(rel), 'v1');
-    eq('stub: reset restores HEAD', fx.head(), beforeIter2);
+    fx.revertPaths(beforeIter2, [rel]);       // iteration 2: revert
+    eq('stub: revert restores the KEPT value, not the pre-loop value', fx.readFile(rel), 'v1');
+    eq('stub: revert restores HEAD', fx.head(), beforeIter2);
     eq('stub: unwritten file falls through to disk', fx.readFile('_SYSTEM/Scripts/atlas/atlas-loop.mjs') !== null, true);
+  }
+
+  // --- 5c. REVERT BLAST RADIUS -----------------------------------------------------------------
+  // The defect this suite exists to prevent from returning: the revert was `git reset --hard`
+  // repo-wide while preflight only checked knob files, so a rejected iteration destroyed every
+  // OTHER modified tracked file. The byte-exact check could not detect it (knob files only).
+  // Found by adversarial review 2026-07-27, after four lanes each verified their own component.
+  {
+    const fx = stubEffects();
+    const knob = '_SYSTEM/Scripts/atlas/__blast_knob__.mjs';
+    const bystander = '_SYSTEM/Scripts/atlas/__blast_bystander__.mjs';
+
+    fx.writeFile(knob, 'k1');
+    const base = fx.commit([knob]);
+    fx.writeFile(bystander, 'UNRELATED-UNCOMMITTED-WORK');  // a dirty tracked file the loop must not own
+    fx.writeFile(knob, 'k2');                                // the iteration's single-knob mutation
+    fx.commit([knob]);
+    fx.revertPaths(base, [knob]);
+
+    eq('revert restores the knob file', fx.readFile(knob), 'k1');
+    eq('revert does NOT touch an unrelated pending file', fx.readFile(bystander), 'UNRELATED-UNCOMMITTED-WORK');
+
+    // A revert with no pathspec is the original bug. It must be structurally impossible, not
+    // merely discouraged — so both effect objects refuse it rather than defaulting to repo-wide.
+    let threwEmpty = false, threwMissing = false;
+    try { fx.revertPaths(base, []); } catch { threwEmpty = true; }
+    try { fx.revertPaths(base); } catch { threwMissing = true; }
+    eq('revert refuses an empty pathspec', threwEmpty, true);
+    eq('revert refuses a missing pathspec', threwMissing, true);
+
+    // The real effects object must carry the identical guard — a stub-only guard protects nothing.
+    let realThrew = false;
+    try { realEffects().revertPaths('HEAD', []); } catch { realThrew = true; }
+    eq('real effects refuse an empty pathspec too', realThrew, true);
+    // Assert the API shape, not the source text. A regex over this file's own source cannot tell
+    // code from prose — and self-matches its own pattern literal, which is how the first version
+    // of this assertion failed. The behavioural guarantee is that the repo-wide entry point is
+    // GONE from both effect objects, so no future call site can reach it by name.
+    eq('real effects expose no repo-wide resetHard', 'resetHard' in realEffects(), false);
+    eq('stub effects expose no repo-wide resetHard', 'resetHard' in stubEffects(), false);
   }
 
   // --- 6. bare-`main` guard (the repo quirk that produced wrong numbers twice) ------------------
