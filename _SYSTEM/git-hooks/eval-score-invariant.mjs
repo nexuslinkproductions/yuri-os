@@ -77,6 +77,12 @@ if (findRows.length !== EXPECTED_FIND_N) {
 // accidentally reproduce the pin and pass a broken scorer.
 const malformed = findRows.find((q) => typeof q.value !== 'number' || !Number.isFinite(q.value));
 if (malformed) rejectCouldNotMeasure(`find row ${malformed.id || '?'} has non-finite value (${JSON.stringify(malformed.value)})`);
+// A row with an ERROR is a measurement failure, not a score: the scorer emits value=0 for
+// errored questions and only exits nonzero when ALL questions error, so a partial resolver
+// failure would otherwise be mislabeled SCORE MOVED. Distinguish the two or the gate lies
+// about which one it caught (advisory 2026-07-28).
+const errored = findRows.find((q) => q.error);
+if (errored) rejectCouldNotMeasure(`find row ${errored.id} errored during scoring: ${String(errored.error).slice(0, 200)}`);
 const findMean = findRows.reduce((a, q) => a + q.value, 0) / findRows.length;
 if (!Number.isFinite(findMean)) rejectCouldNotMeasure('find mean is not finite');
 
