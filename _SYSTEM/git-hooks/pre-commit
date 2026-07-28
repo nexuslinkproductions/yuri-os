@@ -4,6 +4,27 @@ set -euo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 
+# When core.hooksPath is absolute (primary _SYSTEM/git-hooks), this dir is the primary checkout's
+# hooks — use sibling Scripts for checks that must bind fleet-wide the moment the primary file lands.
+HOOKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HOOK_SCRIPTS="$(cd "$HOOKS_DIR/../Scripts" && pwd)"
+
+# Marker-only on pass; print captured output on failure (Hermes B2 2026-07-28).
+run_quiet() {
+  local label="$1"
+  shift
+  local out rc
+  set +e
+  out="$("$@" 2>&1)"
+  rc=$?
+  set -e
+  if [ "$rc" -ne 0 ]; then
+    echo "[pre-commit] FAILED: $label (exit $rc)" >&2
+    printf '%s\n' "$out" >&2
+    exit "$rc"
+  fi
+}
+
 # FROZEN EVALUATOR GATE — the only freeze layer that travels with the repo.
 #
 # Doctrine (_SYSTEM/yuri-origin.md -> Loop Discipline) declared FOUR enforcement layers ordered by
@@ -73,24 +94,26 @@ echo "[pre-commit] secret leak scan"
 node _SYSTEM/Scripts/secret-leak-scan.mjs
 
 echo "[pre-commit] llm-compat contract dispatch drift"
-node _SYSTEM/Scripts/llm-compat-contract-dispatch-check.mjs >/dev/null
+run_quiet "llm-compat contract dispatch drift" node "$HOOK_SCRIPTS/llm-compat-contract-dispatch-check.mjs"
 
 echo "[pre-commit] gitnexus block normalize"
 node _SYSTEM/Scripts/gitnexus-block-normalize.mjs
 
 echo "[pre-commit] root architecture"
-node _SYSTEM/Scripts/root-architecture.test.mjs >/dev/null
+# Run the hook-adjacent copy so absolute hooksPath binds primary's B-A fix fleet-wide immediately.
+# Script resolves scan root via git show-toplevel (this worktree), basename via git-common-dir.
+run_quiet "root architecture" node "$HOOK_SCRIPTS/root-architecture.test.mjs"
 
 echo "[pre-commit] persona contract"
-node _SYSTEM/Scripts/yuri-persona-check.mjs >/dev/null
+run_quiet "persona contract" node "$HOOK_SCRIPTS/yuri-persona-check.mjs"
 
 echo "[pre-commit] skill registry"
-node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate >/dev/null
+run_quiet "skill registry" node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate
 
 echo "[pre-commit] capability registry"
-node _SYSTEM/Scripts/capability-scan.mjs --check >/dev/null
+run_quiet "capability registry" node _SYSTEM/Scripts/capability-scan.mjs --check
 
 echo "[pre-commit] GitNexus staged scope"
-node _SYSTEM/Scripts/gitnexus-detect-changes.mjs yuri-os staged >/dev/null
+run_quiet "GitNexus staged scope" node _SYSTEM/Scripts/gitnexus-detect-changes.mjs yuri-os staged
 
 echo "[pre-commit] pass"

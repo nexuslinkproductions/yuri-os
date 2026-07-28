@@ -1,13 +1,33 @@
 #!/usr/bin/env node
 
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(SCRIPT_DIR, '../..');
+/** Worktree being committed (cwd), not the script's install location. */
+const REPO_ROOT = (() => {
+  try {
+    return execFileSync('git', ['rev-parse', '--show-toplevel'], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    }).trim();
+  } catch {
+    return path.resolve(SCRIPT_DIR, '../..');
+  }
+})();
 const ABSOLUTE_REPO_ROOT_LITERAL = ['', 'Users', 'marcelspatz', 'YURI-OS-MUSUBI'].join('/');
+
+/** Primary checkout root = parent of git-common-dir. Worktree basenames are arbitrary. */
+function resolveCanonicalRepoRoot(fromDir = REPO_ROOT) {
+  const common = execFileSync('git', ['rev-parse', '--path-format=absolute', '--git-common-dir'], {
+    cwd: fromDir,
+    encoding: 'utf8',
+  }).trim();
+  return path.resolve(common, '..');
+}
 
 const activeScanRoots = [
   '_SYSTEM/Scripts',
@@ -177,8 +197,12 @@ for (const filePath of files) {
 }
 
 assert.deepEqual(violations, [], `root architecture violations:\n${violations.join('\n')}`);
-assert.equal(path.basename(REPO_ROOT), 'YURI-OS-MUSUBI', 'test must resolve the canonical repo root');
-
+const CANONICAL_ROOT = resolveCanonicalRepoRoot(REPO_ROOT);
+assert.equal(
+  path.basename(CANONICAL_ROOT),
+  'YURI-OS-MUSUBI',
+  'test must resolve the canonical repo root',
+);
 const gitNexusAdapterViolations = validateGitNexusAdapterSkillLinks();
 assert.deepEqual(
   gitNexusAdapterViolations,
