@@ -134,7 +134,8 @@ file was shipped. Recorded as provenance, not as a yardstick.
 | `g-registry-literal-candidates.json` | `partition-leak-scan.mjs` | REGISTRY candidates |
 | `find40-doctrine-registry-overlap.json` | `partition-leak-scan.mjs` | C_disk ∪ REGISTRY — cite **36/40**, not 33/40 |
 | `tier0-threshold-power.json` | `tier0-threshold-power.mjs` | CS + Wilson; n=28 cannot CLEAR θ=0.6 at 28/28 |
-| `freeze-violation-matrix.json` | `freeze-violation-matrix.mjs` | Actual C1–C8 enforcement attempts on isolated scratch clones/worktrees; evaluator restoration is a postcondition |
+| `freeze-violation-matrix.json` | `freeze-violation-matrix.mjs` | **v1 / incomparable across version break**; evaluator restoration is a postcondition |
+| `freeze-violation-matrix-v2.json` | `freeze-violation-matrix.mjs` | v2 explicit relative/absolute hook-resolution contexts; C3b is N/A until an absolute install exists |
 | `source-partition-v1.json` | none (hand-frozen class list) | NAV / REGISTRY / DOCTRINE / CORPUS |
 | `athena-digest-expect-score.json` | **none** — `RECORDED_RESULT_NO_REGENERATOR` | ad-hoc digest vs expect |
 
@@ -143,11 +144,20 @@ match behaviour; then `--write`.
 
 ## Freeze violation matrix
 
+The v1 result (`freeze-violation-matrix.json`, score 0.5) is retained as historical
+evidence but is **INCOMPARABLE_ACROSS_VERSION_BREAK**. Its runner imposed a relative
+`core.hooksPath` in every scratch context, so it could not observe an absolute-hook repair.
+The v2 runner keeps the evaluator and verdict logic unchanged while treating hook resolution
+as an explicit context variable: C3 is the relative stale-worktree regression probe and C3b
+is the corresponding absolute-install context. C3b is `NOT_APPLICABLE` when no absolute
+installed hooksPath exists; it is never counted as an escape or included in a bare denominator.
+Report `blocked/applicable` with the applicable count beside it.
+
 Run from a clean checkout with the evaluator unchanged:
 
 ```bash
 node _SYSTEM/eval-evidence/freeze-violation-matrix.mjs \
-  --write=_SYSTEM/eval-evidence/freeze-violation-matrix.json
+  --write=_SYSTEM/eval-evidence/freeze-violation-matrix-v2.json
 ```
 
 The runner creates disposable clones and nested worktrees, attempts a comment-only edit of

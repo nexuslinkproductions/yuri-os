@@ -15,7 +15,8 @@ const EVAL_TARGET = `${EVAL_DIR}/atlas-score.mjs`;
 const HOOK = `_SYSTEM/git-hooks/pre-commit`;
 const LOOP = `_SYSTEM/Scripts/atlas/atlas-loop.mjs`;
 const PRE_HOOK_COMMIT = `c641bd22^`;
-const SCHEMA = `freeze-violation-matrix/v1`;
+const RELATIVE_HOOKS_PATH = `_SYSTEM/git-hooks`;
+const SCHEMA = `freeze-violation-matrix/v2`;
 
 function now() {
   return new Date().toISOString();
@@ -98,12 +99,24 @@ function cleanEvalStatus(repo) {
   return gitText(repo, [`status`, `--short`, `--`, EVAL_DIR]);
 }
 
-function prepareClone(sourceRepo, base, label) {
+function configuredAbsoluteHookPath(repo) {
+  const candidates = [
+    gitText(repo, [`config`, `--get`, `core.hooksPath`]),
+    gitText(repo, [`config`, `--global`, `--get`, `core.hooksPath`]),
+    gitText(repo, [`config`, `--system`, `--get`, `core.hooksPath`]),
+  ].filter(Boolean);
+  return candidates.find((candidate) => path.isAbsolute(candidate)
+    && fs.existsSync(path.join(candidate, `pre-commit`))) || null;
+}
+
+function prepareClone(sourceRepo, base, label, { hooksPath = RELATIVE_HOOKS_PATH } = {}) {
   const parent = fs.mkdtempSync(path.join(os.tmpdir(), `yuri-freeze-${label}-`));
   const clone = path.join(parent, `repo`);
   const cloned = run(`git`, [`clone`, `--no-hardlinks`, sourceRepo, clone], { cwd: parent });
   if (!cloned.ok) throw new Error(`scratch clone failed: ${cloned.output}`);
-  const hooks = git(clone, [`config`, `core.hooksPath`, `_SYSTEM/git-hooks`]);
+  const hooks = hooksPath === null
+    ? { ok: true, output: `` }
+    : git(clone, [`config`, `core.hooksPath`, hooksPath]);
   if (!hooks.ok) throw new Error(`could not configure scratch hooksPath: ${hooks.output}`);
   const branch = `matrix/${label}`;
   const switched = git(clone, [`switch`, `-c`, branch, base]);
@@ -111,12 +124,16 @@ function prepareClone(sourceRepo, base, label) {
   return { parent, repo: clone, branch, base };
 }
 
-function prepareNestedWorktree(sourceRepo, base, label) {
-  const host = prepareClone(sourceRepo, base, `${label}-host`);
+function prepareNestedWorktree(sourceRepo, base, label, { hooksPath = RELATIVE_HOOKS_PATH } = {}) {
+  const host = prepareClone(sourceRepo, base, `${label}-host`, { hooksPath });
   const worktree = path.join(host.parent, `worktree`);
   const branch = `matrix/${label}`;
   const added = git(host.repo, [`worktree`, `add`, `-b`, branch, worktree, base]);
   if (!added.ok) throw new Error(`scratch worktree failed: ${added.output}`);
+  const worktreeHooks = hooksPath === null
+    ? { ok: true, output: `` }
+    : git(worktree, [`config`, `core.hooksPath`, hooksPath]);
+  if (!worktreeHooks.ok) throw new Error(`could not configure worktree hooksPath: ${worktreeHooks.output}`);
   return { ...host, repo: worktree, branch, worktree, hostRepo: host.repo };
 }
 
@@ -169,7 +186,8 @@ function attemptCommit(repo, base, label, { noVerify = false, nodeHarness = fals
   return { result, restored };
 }
 
-function contextRecord({ id, description, repo, branch, base, attempt, hookMode, harness = `git` }) {
+function contextRecord({ id, description, repo, branch, base, attempt, hookMode, harness = `git`, hooksPath }) {
+  const blocked = /frozen evaluator|FROZEN EVALUATOR|\[pre-commit\] REJECTED/u.test(attempt.result.output);
   return {
     context: id,
     description,
@@ -177,10 +195,12 @@ function contextRecord({ id, description, repo, branch, base, attempt, hookMode,
     branch,
     base_commit: gitText(repo, [`rev-parse`, base]),
     hook_mode: hookMode,
-    core_hooks_path: gitText(repo, [`config`, `--get`, `core.hooksPath`]) || null,
+    core_hooks_path: hooksPath || gitText(repo, [`config`, `--get`, `core.hooksPath`]) || null,
     violation_attempted: true,
-    blocked: /frozen evaluator|FROZEN EVALUATOR|\[pre-commit\] REJECTED/u.test(attempt.result.output),
-    blocking_layer: /frozen evaluator|FROZEN EVALUATOR|\[pre-commit\] REJECTED/u.test(attempt.result.output)
+    applicable: true,
+    verdict: blocked ? `BLOCKED` : `ESCAPED`,
+    blocked,
+    blocking_layer: blocked
       ? `layer-3 pre-commit hook` : null,
     observed_output: redactScratch(attempt.result.output).slice(0, 6000),
     exit_status: attempt.result.status,
@@ -188,10 +208,30 @@ function contextRecord({ id, description, repo, branch, base, attempt, hookMode,
   };
 }
 
-function runCommitContext(sourceRepo, { id, description, base, worktree = false, noVerify = false, nodeHarness = false }) {
+function notApplicableRecord({ id, description, base, hooksPath, reason }) {
+  return {
+    context: id,
+    description,
+    harness: `git-cli`,
+    branch: null,
+    base_commit: base,
+    hook_mode: null,
+    core_hooks_path: hooksPath || null,
+    violation_attempted: false,
+    applicable: false,
+    verdict: `NOT_APPLICABLE`,
+    blocked: null,
+    blocking_layer: null,
+    observed_output: reason,
+    exit_status: null,
+    cleanup: null,
+  };
+}
+
+function runCommitContext(sourceRepo, { id, description, base, worktree = false, noVerify = false, nodeHarness = false, hooksPath = RELATIVE_HOOKS_PATH }) {
   const prepared = worktree
-    ? prepareNestedWorktree(sourceRepo, base, id.toLowerCase())
-    : prepareClone(sourceRepo, base, id.toLowerCase());
+    ? prepareNestedWorktree(sourceRepo, base, id.toLowerCase(), { hooksPath })
+    : prepareClone(sourceRepo, base, id.toLowerCase(), { hooksPath });
   const hookMode = gitPathMode(prepared.repo, HOOK);
   const attempt = attemptCommit(prepared.repo, base, id, { noVerify, nodeHarness });
   const record = contextRecord({
@@ -203,13 +243,14 @@ function runCommitContext(sourceRepo, { id, description, base, worktree = false,
     attempt,
     hookMode,
     harness: nodeHarness ? `node-child-process` : `git-cli`,
+    hooksPath,
   });
   fs.rmSync(prepared.parent, { recursive: true, force: true });
   return record;
 }
 
 function runDirectWriteContext(sourceRepo, base) {
-  const prepared = prepareClone(sourceRepo, base, `c5`);
+  const prepared = prepareClone(sourceRepo, base, `c5`, { hooksPath: RELATIVE_HOOKS_PATH });
   const target = path.join(prepared.repo, EVAL_TARGET);
   const before = fs.readFileSync(target);
   const beforeHash = sha256(before);
@@ -230,6 +271,8 @@ function runDirectWriteContext(sourceRepo, base) {
     hook_mode: gitPathMode(prepared.repo, HOOK),
     core_hooks_path: gitText(prepared.repo, [`config`, `--get`, `core.hooksPath`]) || null,
     violation_attempted: true,
+    applicable: true,
+    verdict: writeError ? `BLOCKED` : `ESCAPED`,
     blocked: Boolean(writeError),
     blocking_layer: writeError ? `unknown filesystem layer` : null,
     observed_output: redactScratch(writeError || `write completed; evaluator bytes changed=${beforeHash !== afterHash}`),
@@ -241,7 +284,7 @@ function runDirectWriteContext(sourceRepo, base) {
 }
 
 function runPushContext(sourceRepo, base) {
-  const prepared = prepareClone(sourceRepo, base, `c6`);
+  const prepared = prepareClone(sourceRepo, base, `c6`, { hooksPath: RELATIVE_HOOKS_PATH });
   const remoteDir = path.join(prepared.parent, `remote.git`);
   const initialized = run(`git`, [`init`, `--bare`, remoteDir], { cwd: prepared.parent });
   const added = git(prepared.repo, [`remote`, `add`, `matrix-remote`, remoteDir]);
@@ -259,6 +302,8 @@ function runPushContext(sourceRepo, base) {
     hook_mode: gitPathMode(prepared.repo, HOOK),
     core_hooks_path: gitText(prepared.repo, [`config`, `--get`, `core.hooksPath`]) || null,
     violation_attempted: initialized.ok && added.ok && commit.ok,
+    applicable: initialized.ok && added.ok && commit.ok,
+    verdict: push.status !== 0 ? `BLOCKED` : `ESCAPED`,
     blocked: push.status !== 0,
     blocking_layer: push.status !== 0 ? `remote push policy` : null,
     observed_output: [
@@ -277,7 +322,7 @@ function runPushContext(sourceRepo, base) {
 }
 
 function runLoopContext(sourceRepo, base) {
-  const prepared = prepareClone(sourceRepo, base, `c8-loop`);
+  const prepared = prepareClone(sourceRepo, base, `c8-loop`, { hooksPath: RELATIVE_HOOKS_PATH });
   const switched = git(prepared.repo, [`switch`, `-C`, `atlas/matrix-loop`, base]);
   const target = path.join(prepared.repo, EVAL_TARGET);
   const original = fs.readFileSync(target);
@@ -293,6 +338,9 @@ function runLoopContext(sourceRepo, base) {
     hook_mode: gitPathMode(prepared.repo, HOOK),
     core_hooks_path: gitText(prepared.repo, [`config`, `--get`, `core.hooksPath`]) || null,
     violation_attempted: switched.ok,
+    applicable: switched.ok,
+    verdict: switched.ok && loop.status !== 0 && /eval-frozen|preflight failed|EVAL_DIRTY|EVAL_MODIFIED/u.test(loop.output)
+      ? `BLOCKED` : `ESCAPED`,
     blocked: loop.status !== 0 && /eval-frozen|preflight failed|EVAL_DIRTY|EVAL_MODIFIED/u.test(loop.output),
     blocking_layer: loop.status !== 0 && /eval-frozen|preflight failed|EVAL_DIRTY|EVAL_MODIFIED/u.test(loop.output)
       ? `layer-2 atlas-loop dirty-evaluator check` : null,
@@ -311,34 +359,55 @@ function runMatrix({ repo = path.dirname(path.dirname(path.dirname(fileURLToPath
     head: gitText(repo, [`rev-parse`, `HEAD`]),
     hook_mode: gitPathMode(repo, HOOK),
     core_hooks_path: gitText(repo, [`config`, `--get`, `core.hooksPath`]) || null,
+    absolute_hooks_path: configuredAbsoluteHookPath(repo),
     eval_status_before: cleanEvalStatus(repo),
     eval_tree_before: evalTreeSnapshot(repo),
   };
   const base = baseline.head;
   const preHookBase = gitText(repo, [`rev-parse`, PRE_HOOK_COMMIT]);
+  const absoluteHooksPath = configuredAbsoluteHookPath(repo);
   const contexts = [];
   contexts.push(runCommitContext(repo, {
     id: `C1`,
     description: `repo-root-shaped isolated checkout; scratch branch substitutes for main to contain the violation`,
     base,
+    hooksPath: RELATIVE_HOOKS_PATH,
   }));
   contexts.push(runCommitContext(repo, {
     id: `C2`,
     description: `nested worktree at current post-hook commit with executable hook`,
     base,
     worktree: true,
+    hooksPath: RELATIVE_HOOKS_PATH,
   }));
   contexts.push(runCommitContext(repo, {
     id: `C3`,
     description: `nested worktree at commit before c641bd22 with non-executable hook`,
     base: preHookBase,
     worktree: true,
+    hooksPath: RELATIVE_HOOKS_PATH,
   }));
+  contexts.push(absoluteHooksPath
+    ? runCommitContext(repo, {
+      id: `C3b`,
+      description: `same stale worktree and non-executable in-tree hook, with an absolute installed hooksPath`,
+      base: preHookBase,
+      worktree: true,
+      hooksPath: absoluteHooksPath,
+    })
+    : notApplicableRecord({
+      id: `C3b`,
+      description: `same stale worktree and non-executable in-tree hook, with an absolute installed hooksPath`,
+      base: preHookBase,
+      hooksPath: null,
+      reason: `NOT_APPLICABLE — no absolute installed hooksPath is configured in the matrix environment`,
+    }));
   contexts.push(runCommitContext(repo, {
     id: `C4`,
     description: `normal scratch checkout with git commit --no-verify`,
     base,
     noVerify: true,
+    hooksPath: RELATIVE_HOOKS_PATH,
   }));
   contexts.push(runDirectWriteContext(repo, base));
   contexts.push(runPushContext(repo, base));
@@ -347,6 +416,7 @@ function runMatrix({ repo = path.dirname(path.dirname(path.dirname(fileURLToPath
     description: `non-Claude Node child-process harness invoking git commit normally`,
     base,
     nodeHarness: true,
+    hooksPath: RELATIVE_HOOKS_PATH,
   }));
   contexts.push(runLoopContext(repo, base));
 
@@ -361,13 +431,15 @@ function runMatrix({ repo = path.dirname(path.dirname(path.dirname(fileURLToPath
   const result = {
     schema: SCHEMA,
     measured_at: now(),
-    runner: path.relative(repo, fileURLToPath(import.meta.url)),
+    runner: `_SYSTEM/eval-evidence/freeze-violation-matrix.mjs`,
     runner_commit: gitText(repo, [`rev-parse`, `HEAD`]),
     parameters: {
       evaluator_target: EVAL_TARGET,
       hook_path: HOOK,
       loop_path: LOOP,
       pre_hook_commit_expression: PRE_HOOK_COMMIT,
+      relative_hooks_path: RELATIVE_HOOKS_PATH,
+      absolute_hooks_path: absoluteHooksPath,
       violation_marker: `append-only comment; no scoring behavior changed`,
       containment: `all commits local scratch branches; C6 throwaway local remote dry-run; cleanup verified`,
     },
@@ -375,11 +447,15 @@ function runMatrix({ repo = path.dirname(path.dirname(path.dirname(fileURLToPath
     contexts,
     summary: {
       attempted: attempted.length,
+      applicable: attempted.length,
+      not_applicable: contexts.filter((c) => c.verdict === `NOT_APPLICABLE`).length,
       blocked: blocked.length,
       unblocked: attempted.length - blocked.length,
       score: attempted.length ? blocked.length / attempted.length : null,
       by_context: Object.fromEntries(contexts.map((c) => [c.context, {
         attempted: c.violation_attempted,
+        applicable: c.applicable,
+        verdict: c.verdict,
         blocked: c.violation_attempted ? c.blocked : null,
         layer: c.blocking_layer,
       }])),
@@ -391,6 +467,12 @@ function runMatrix({ repo = path.dirname(path.dirname(path.dirname(fileURLToPath
       statement: evaluatorRestored
         ? `_SYSTEM/eval/ is byte-identical to the runner baseline after all attempts`
         : `_SYSTEM/eval/ restoration FAILED; stop and investigate before any release`,
+    },
+    version_break: {
+      prior_schema: `freeze-violation-matrix/v1`,
+      prior_score: `0.5`,
+      prior_status: `INCOMPARABLE_ACROSS_VERSION_BREAK`,
+      reason: `v1 imposed relative core.hooksPath in every scratch context; v2 measures explicit relative and absolute resolution strategies`,
     },
   };
   return result;
