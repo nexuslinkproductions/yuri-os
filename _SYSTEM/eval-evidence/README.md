@@ -167,3 +167,15 @@ live `main` branch because the containment rule forbids violating commits on `ma
 throwaway local bare remote and `--dry-run`; it does not measure server-side branch protection.
 The result is valid only if `postcondition.evaluator_restored` is true and the recorded evaluator
 tree digest is unchanged.
+
+## Freeze repair (Orion, owner scope)
+
+Artifact: `freeze-repair-phases-2-4.json`.
+
+| Ship | Mechanism |
+|---|---|
+| Absolute `core.hooksPath` | `node _SYSTEM/Scripts/yuri-git-hooks-path.mjs --apply` |
+| `chmod 444` on `_SYSTEM/eval/*` | `node _SYSTEM/Scripts/yuri-eval-chmod-advisory.mjs --apply` (advisory, per-checkout) |
+
+C4 / C6 = **OPEN-BY-OWNER-DECISION**. No CI workflow. No installer sync.
+`pre-push` = KNOWN INERT GUARD (mode 100644). v2 matrix files untouched.
