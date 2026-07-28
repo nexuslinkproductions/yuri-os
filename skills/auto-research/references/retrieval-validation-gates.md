@@ -61,11 +61,42 @@ Report DECIDED-BETTER / DECIDED-WORSE / UNDECIDED-AT-THIS-N, plus n_improved / n
 UNDECIDED means do not promote **even if monotone** — strict dominance is interesting, never a
 substitute for G1–G4.
 
-**G6 — Paraphrase sensitivity (SLM usability).** Generate k degraded variants per question — shorter,
-vaguer, pronoun-heavy, missing proper nouns — without reading `serves`/`does`. Report within-question
-variance and mean drop from expert phrasing. An arm that wins on expert-written NL and collapses on
-degraded variants is **not SLM-ready**: its headline is an upper bound obtained with an expert querier.
-Report beside `atlas_score`, never folded into it.
+**G6 — Paraphrase sensitivity (SLM usability).** Owner constraint: a small model must reach the same
+result as a large one. An arm whose accuracy depends on query craft gives big models one number and
+small models another. Report beside `atlas_score`, never folded into it.
+
+Two distinct questions — do not conflate them (Orion, 2026-07-28):
+
+- **G6a — mechanical degradation. Available immediately, no new authorship.** Deterministic transforms
+  of the question text only, never touching the answer: content-words-only, identifiers stripped,
+  first-N content tokens, long-tokens-only, every-other-token. Introduces **no new circularity**,
+  because nothing is authored. Measures sensitivity to information loss — a proxy for "small model
+  emits shorter, vaguer text," not a sample from a real 3B querier. **Use as a PRE-GATE on every arm,
+  including any menu/faceted design**, before spending on authored paraphrases.
+
+- **G6b — independently authored paraphrases. Requires sealed provenance.** Any author with the
+  worktree mounted can re-read `capabilities.json`, in-source tags, or the gold expect path, which
+  reopens Channels E and S. *"Don't look" is not enforceable on a lane with filesystem access.*
+  Authentic SLM-distribution paraphrases need a provenance-isolated author with expect IDs sealed
+  until after paraphrase lock. That is new process, not a trick available on an existing set.
+
+**Measured baseline for calibration** — `fastlex` on find-40 under G6a:
+
+```
+expert 0.3450 | content_only 0.3450 | no_identifiers 0.3050 | long_tokens_6 0.3050
+every_other 0.3100 | first8 0.2700 | first5 0.2100 | first3 0.1050
+23/40 questions change score under some degradation
+16/40 expert hits collapse to ZERO under at least one degradation
+mean expert -> worst drop 0.325
+```
+
+So bounded BM25 is **already highly phrasing-dependent**, and the constraint is not hypothetical —
+it is visible under mechanical shortening alone, with no new questions required. Any headline score
+on expert-written NL should be read as an upper bound until G6a is reported next to it.
+
+**G6a caveat:** it does *not* clear Channel S. Distinctive leaked tokens often survive truncation —
+`sparse-checkout` is still present in the first-N content words — so a contaminated question stays
+contaminated after degradation.
 
 ## Promotion rule
 
