@@ -26,7 +26,10 @@ itself.
 ## WHERE (absolute paths)
 
 - **Cockpit root**: `C:\Users\rene\Claude\Projects\STOCK\PROCUREMENT - STEFAN\landed-cost-cogs\cockpit\`
-  — self-contained, its own local git repo (no remote), NOT inside yuri-os.
+  — self-contained, its own git repo, NOT inside yuri-os. Remote (added 2026-07-28):
+  `github.com/CGSSCHWEIZ/landed-cost-cogs`, **private**, branch `master`. The repo root also
+  carries its own `CLAUDE.md` + `docs/cockpit-memory.md`, so a clone on any machine is workable
+  without yuri-os or this skill — keep those two in sync when cockpit facts change.
 - **Backend** (`backend/`): `app.py` (FastAPI app + route wiring), `db.py` (SQLite access), `woo.py`
   (WooCommerce REST sync), `engine_bridge.py` (reads the cgs-cogs engine), `auth.py` (password gate),
   `backup.py` (off-site SSH backup), `cam_index.py` (CNC drive scanner for "ready to build"),
@@ -60,6 +63,20 @@ itself.
   denied". Reboot-verified 2026-07-19: auto-starts, Tailscale up, auth still enforced.
 - **Frontend build**: `cd frontend && npm run build` → outputs `dist/`, which the FastAPI backend
   serves directly (no separate frontend server in normal operation).
+
+## BACKUPS — two systems, neither replaces the other (2026-07-28)
+
+- **Code + costing ledgers → GitHub.** `auto-push.bat`, Scheduled Task **"CGS Cockpit Git Push"**,
+  every 6 h, runs as user `rene` (Git Credential Manager stores the token per-user, so a SYSTEM-run
+  task fails every push). Auto-commits ONLY `cgs-cogs/data/`, then pushes; source files are never
+  swept, so in-flight edits are safe — and NOT backed up until committed. Log:
+  `cockpit/logs/auto-push.log`.
+- **The database → hosttech, over SSH.** `backend/backup.py`, Scheduled Task **"CGS Cockpit Backup"**,
+  daily 09:00, keeps 14. **Git does NOT cover `cockpit.db`** (gitignored) — this is the only backup
+  of the actual sales history. Health: `.backup_status.json` → `last_ok`/`last_run`/`last_size`.
+- `docs/cockpit-memory.md` in the cockpit repo is a **hand-refreshed** snapshot of this skill's Track-B
+  memory file (owner decision 2026-07-28: deliberately not automated). Refresh it after meaningful
+  work here, or a remote session reads stale context.
 
 ## THE RESTART GOTCHA (high-value — this bites every session that touches the backend)
 
@@ -124,9 +141,9 @@ rewrite, or accepting the current local-box + Tailscale + backup model.
   before claiming a fix works — this app has a documented history of confidently-wrong claims later
   found false under direct testing (see the memory file's 2026-07-19 adversarial-review entry).
 - `tsc` clean + a real HTTP check (not just "it compiled") before calling frontend work done.
-- Git commits inside `landed-cost-cogs/` (the cockpit's own local-only repo) use scoped pathspecs, same
+- Git commits inside `landed-cost-cogs/` (the cockpit's own repo) use scoped pathspecs, same
   discipline as yuri-os itself. **Never mix a cockpit-tree change into a yuri-os commit** — they are
-  two separate repos with two separate histories.
+  two separate repos with two separate histories and two different remotes.
 - The cgs-cogs costing engine (`../cgs-cogs/`) is READ-ONLY from the cockpit's side by default — it's
   owned by a different skill; don't edit its `engine.py`/data files from a cockpit task without reason.
 
