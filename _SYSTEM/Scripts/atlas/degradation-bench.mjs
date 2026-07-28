@@ -41,9 +41,11 @@ const OUT_DIR = path.join(REPO_ROOT, '_SYSTEM/state/atlas/degraded');
 //      table is not ground truth (ad hoc, unpersisted — quarantined by Hermes).
 //   2. TOKENIZER: /[a-z0-9_.-]{3,}/g (strips punctuation, re-tokenizes — identical to the fastlex
 //      arm's query path, so a transform never produces tokens the resolver cannot consume).
-//   3. long_tokens_6 = UNCAPPED keep-all len>=6 on RAW whitespace tokens (vocabulary filter, pure).
-//      Orion's was spine -> len>=6 -> slice(0,6) CAPPED (a truncation hybrid). Same name, different
-//      function — that is exactly what v2 forbids: one name = one function, semantics written down.
+//   3. long_tokens_6 = UNCAPPED keep-all len>=6 on RAW whitespace tokens. A LENGTH filter, NOT a
+//      vocabulary filter — raw keeps len>=6 stopwords ('before', 'should', 'whether'), so it lives
+//      in G6a-SPAN (Hermes classification ruling 2026-07-28). Orion's was spine -> len>=6 ->
+//      slice(0,6) CAPPED (a truncation hybrid). Same name, different function — that is exactly
+//      what v2 forbids: one name = one function, semantics written down.
 //   4. no_identifiers = identifier-SHAPED tokens /[._/-]|[a-z][A-Z]/ (also kills camelCase:
 //      vocabulary poverty includes not knowing identifier FORMS, not only paths). Documented, chosen.
 export function contentSpine(question) {
