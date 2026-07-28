@@ -117,8 +117,26 @@ file was shipped. Recorded as provenance, not as a yardstick.
 | `g-registry-literal-candidates.json` | `partition-leak-scan.mjs` | REGISTRY candidates |
 | `find40-doctrine-registry-overlap.json` | `partition-leak-scan.mjs` | union / intersection |
 | `tier0-threshold-power.json` | `tier0-threshold-power.mjs` | CS + Wilson; n=28 cannot CLEAR θ=0.6 at 28/28 |
+| `freeze-violation-matrix.json` | `freeze-violation-matrix.mjs` | Actual C1–C8 enforcement attempts on isolated scratch clones/worktrees; evaluator restoration is a postcondition |
 | `source-partition-v1.json` | none (hand-frozen class list) | NAV / REGISTRY / DOCTRINE / CORPUS |
 | `athena-digest-expect-score.json` | **none** — `RECORDED_RESULT_NO_REGENERATOR` | ad-hoc digest vs expect |
 
 Do not hand-edit regenerable JSON. Change the matcher spec (new version) before changing
 match behaviour; then `--write`.
+
+## Freeze violation matrix
+
+Run from a clean checkout with the evaluator unchanged:
+
+```bash
+node _SYSTEM/eval-evidence/freeze-violation-matrix.mjs \
+  --write=_SYSTEM/eval-evidence/freeze-violation-matrix.json
+```
+
+The runner creates disposable clones and nested worktrees, attempts a comment-only edit of
+`_SYSTEM/eval/atlas-score.mjs`, captures the actual guard output, and removes only its own
+scratch directories. C1 is intentionally a repo-root-shaped scratch checkout rather than the
+live `main` branch because the containment rule forbids violating commits on `main`. C6 uses a
+throwaway local bare remote and `--dry-run`; it does not measure server-side branch protection.
+The result is valid only if `postcondition.evaluator_restored` is true and the recorded evaluator
+tree digest is unchanged.
