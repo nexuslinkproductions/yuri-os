@@ -23,6 +23,17 @@
 //      FAILS if any single area holds >25% of answers (find-40's defect: 87.5% in one tree) or
 //      if fewer than 8 areas are occupied (owner requirement 2026-07-28: the set must span at
 //      least 8 areas). 8-19 occupied areas = WARN (thin but valid); >=20 = healthy spread.
+//   5. PROVENANCE GATES (L4, Hermes assignment 2026-07-28) — for generated candidates, provenance
+//      is MANDATORY: missing provenance = unauditable = FAIL.
+//      G-SELF-REFERENCE: a question sharing even ONE distinctive token (corpus path-token df <= 25)
+//      with its own answer's path segments, basename, or in-source tags = automatic FAIL. This is
+//      the mechanized version of the retracted locate-leak class (q041/q042/q045: 'atlas' df=19,
+//      'policy' df=16 — both under 25; structural tokens like 'system' df=2573 sit far above, so
+//      the floor separates leak vocabulary from corpus structure by construction, not by taste).
+//      G-FRAME-DIVERSITY: fewer than 5 distinct frames at n>=100, or one frame above 2x uniform
+//      share (the point where a single phrasing dominates the variance estimate) = FAIL.
+//      G-SOURCE-CONCENTRATION: one source_kind above 50% of the set = FAIL (majority-cap; a
+//      dominant register measures register sensitivity, not navigation).
 //   Exit 1 on any FAIL. Every check prints per-question evidence, never just a count.
 // @use: node bench-validate.mjs <authored.jsonl> [--json] [--min-n=100]
 // @exports: validateBenchmark, main
@@ -41,6 +52,10 @@ const MAX_AREA_SHARE = 0.25;
 const MIN_AREAS_OCCUPIED_FAIL = 8; // owner requirement: at least 8 areas (hard floor)
 const MIN_AREAS_OCCUPIED_WARN = 20; // below this the spread is thin but valid
 const DISTINCTIVE_CARD_DF = 5; // a card token appearing in <=5 cards is distinctive
+const SELF_REFERENCE_DF = 25; // corpus path-token df ceiling for G-SELF-REFERENCE (see header: leak class 16-19, structural >50)
+const MIN_DISTINCT_FRAMES = 5; // at n>=100, fewer means phrasing samples, not questions
+const MAX_FRAME_SHARE_MULTIPLE = 2; // >2x uniform share = one phrasing dominates the variance estimate
+const MAX_SOURCE_KIND_SHARE = 0.5; // majority-cap: above this the set measures register, not navigation
 
 function qTokens(text) {
   return new Set((String(text).toLowerCase().match(/[a-z0-9_.-]{3,}/g) || []).filter((t) => !FASTLEX_STOP.has(t)));
@@ -114,9 +129,37 @@ export async function validateBenchmark(filePath, { minN = MIN_N } = {}) {
     for (const t of toks) cardDf.set(t, (cardDf.get(t) || 0) + 1);
   }
 
+  // Corpus path-token df (for G-SELF-REFERENCE distinctiveness) — computed once per run.
+  const pathTokenDf = new Map();
+  for (const n of Object.values(nodes)) {
+    if (!n || typeof n.path !== 'string') continue;
+    const toks = new Set(n.path.toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length >= 3));
+    for (const t of toks) pathTokenDf.set(t, (pathTokenDf.get(t) || 0) + 1);
+  }
+
   for (const it of items) {
     const expect = String(it.expect?.[0] || '').replace(/^\.\//, '').replace(/\/+$/, '');
     const qt = qTokens(it.q);
+
+    // PROVENANCE presence — ALL FOUR fields mandatory for every question (an unattributable
+    // question is unauditable and gets culled on sight; partial provenance is partial auditability).
+    const p = it.provenance;
+    const provenanceOk = p && typeof p === 'object'
+      && typeof p.source_kind === 'string' && p.source_kind.length > 0
+      && typeof p.source_path === 'string' && p.source_path.length > 0
+      && typeof p.source_line === 'number' && Number.isFinite(p.source_line)
+      && typeof p.frame_id === 'string' && p.frame_id.length > 0;
+    if (!provenanceOk) {
+      failures.push(`${it.id}: missing mandatory provenance {source_kind, source_path, source_line, frame_id} — all four required, partial provenance is partial auditability`);
+    }
+
+    // G-SELF-REFERENCE: no distinctive token (df <= 25) shared with the answer's own path segments
+    // or basename. This is the mechanized locate-leak (q041/q042/q045) class.
+    const segs = expect.toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length >= 3);
+    const selfHits = [...qt].filter((t) => segs.includes(t) && (pathTokenDf.get(t) || 0) <= SELF_REFERENCE_DF && !['mjs', 'json', 'jsonl', 'yaml', 'ts', 'tsx', 'jsx', 'py'].includes(t));
+    if (selfHits.length > 0) {
+      failures.push(`${it.id}: G-SELF-REFERENCE — question shares distinctive token(s) [${selfHits.join(', ')}] with its own answer's path (automatic fail; the retracted locate-leak class)`);
+    }
 
     // 2. REACHABILITY
     const nodeId = menu.l1.pathToId.get(expect);
@@ -161,6 +204,30 @@ export async function validateBenchmark(filePath, { minN = MIN_N } = {}) {
   }
   db.close();
 
+  // G-FRAME-DIVERSITY + G-SOURCE-CONCENTRATION (provenance-driven)
+  const frameCounts = new Map();
+  const kindCounts = new Map();
+  for (const it of items) {
+    if (it.provenance?.frame_id) frameCounts.set(it.provenance.frame_id, (frameCounts.get(it.provenance.frame_id) || 0) + 1);
+    if (it.provenance?.source_kind) kindCounts.set(it.provenance.source_kind, (kindCounts.get(it.provenance.source_kind) || 0) + 1);
+  }
+  if (items.length >= minN && frameCounts.size > 0) {
+    if (frameCounts.size < MIN_DISTINCT_FRAMES) {
+      failures.push(`G-FRAME-DIVERSITY: only ${frameCounts.size} distinct frames at n=${items.length} (< ${MIN_DISTINCT_FRAMES}) — phrasing samples, not independent questions`);
+    }
+    const topFrame = [...frameCounts.entries()].sort((a, b) => b[1] - a[1])[0];
+    const uniform = items.length / frameCounts.size;
+    if (topFrame[1] > MAX_FRAME_SHARE_MULTIPLE * uniform) {
+      failures.push(`G-FRAME-DIVERSITY: frame "${topFrame[0]}" holds ${topFrame[1]}/${items.length} (> ${MAX_FRAME_SHARE_MULTIPLE}x uniform ${uniform.toFixed(1)}) — one phrasing dominates the variance estimate`);
+    }
+  }
+  if (items.length >= minN && kindCounts.size > 0) {
+    const topKind = [...kindCounts.entries()].sort((a, b) => b[1] - a[1])[0];
+    if (topKind[1] / items.length > MAX_SOURCE_KIND_SHARE) {
+      failures.push(`G-SOURCE-CONCENTRATION: source kind "${topKind[0]}" holds ${(100 * topKind[1] / items.length).toFixed(0)}% of the set (> ${MAX_SOURCE_KIND_SHARE * 100}%) — measures register sensitivity, not navigation`);
+    }
+  }
+
   // 4. STRATIFICATION
   const areaDist = new Map();
   let unassigned = 0;
@@ -193,6 +260,8 @@ export async function validateBenchmark(filePath, { minN = MIN_N } = {}) {
     failures,
     warnings,
     unreachableCount: unreachable,
+    frameMix: Object.fromEntries(frameCounts),
+    sourceKindMix: Object.fromEntries(kindCounts),
     stratification: {
       areasOccupied: areaDist.size,
       topArea: topArea ? { area: topArea[0], count: topArea[1], share: topArea[1] / items.length } : null,
@@ -203,6 +272,9 @@ export async function validateBenchmark(filePath, { minN = MIN_N } = {}) {
 }
 
 export function main(argv = process.argv.slice(2)) {
+  if (argv.includes('--test')) {
+    return runSelfTest().then((ok) => (ok ? 0 : 1));
+  }
   const file = argv.find((a) => !a.startsWith('--'));
   if (!file) {
     console.error('usage: bench-validate.mjs <authored.jsonl> [--json] [--min-n=100]');
@@ -228,3 +300,62 @@ export function main(argv = process.argv.slice(2)) {
 
 const isMain = process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url;
 if (isMain) main().then((code) => { process.exitCode = code; });
+
+// ---------------------------------------------------------------------------
+// SELF-TEST — every L4 gate OBSERVED FIRING on a synthetic failing case (the
+// coverage-gate standard: a gate never watched rejecting something cannot reject).
+// Probes evaluate ONLY their targeted gate's failure prefixes; unrelated failures
+// from other checks are ignored so each probe isolates one instrument.
+// ---------------------------------------------------------------------------
+import { mkdtempSync, writeFileSync as writeTmp, rmSync } from 'node:fs';
+import os from 'node:os';
+
+async function runSelfTest() {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'bench-validate-test-'));
+  let pass = true;
+  const check = (name, cond, detail = '') => {
+    console.log(`[bench-validate --test] ${name}: ${cond ? 'PASS' : 'FAIL'}${cond ? '' : ` ${detail}`}`);
+    if (!cond) pass = false;
+  };
+  const prov = (kind, frame, line = 7) => ({ source_kind: kind, source_path: 'synthetic/source.md', source_line: line, frame_id: frame });
+  const mk = (name, items) => {
+    const p = path.join(dir, `${name}.jsonl`);
+    writeTmp(p, items.map((i) => JSON.stringify(i)).join('\n') + '\n', 'utf8');
+    return p;
+  };
+  const failuresOf = async (name, items, minN = 2) => (await validateBenchmark(mk(name, items), { minN })).failures;
+  const EXPECT = '_SYSTEM/Scripts/xref-query.mjs';
+
+  // CLEAN — every L4 gate quiet on a well-formed small set.
+  const clean = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6'].map((f, i) => ({
+    id: `c${i}`, q: `what retries backoff under contention variant ${i}`, expect: [EXPECT], provenance: prov(i % 2 ? 'commit-message' : 'reference-doc', f),
+  }));
+  const cleanFails = await failuresOf('clean', clean);
+  check('clean set: no L4 gate fires', !cleanFails.some((f) => f.startsWith('G-') || f.includes('provenance')), JSON.stringify(cleanFails.filter((f) => f.startsWith('G-'))));
+
+  // NEGATIVE 1 — G-SELF-REFERENCE: question containing its answer's distinctive path token.
+  const selfRef = [{ id: 's1', q: 'what does xref wire together at runtime', expect: [EXPECT], provenance: prov('commit-message', 'F1') }];
+  const srFails = await failuresOf('selfref', selfRef);
+  check('G-SELF-REFERENCE rejects a question naming its own answer token', srFails.some((f) => f.startsWith('s1: G-SELF-REFERENCE')), JSON.stringify(srFails));
+
+  // NEGATIVE 2 — G-FRAME-DIVERSITY: all questions one frame.
+  const oneFrame = Array.from({ length: 6 }, (_, i) => ({ id: `f${i}`, q: `where is thing ${i} handled`, expect: [EXPECT], provenance: prov(i % 2 ? 'a' : 'b', 'F1') }));
+  const fdFails = await failuresOf('framediv', oneFrame, 6);
+  check('G-FRAME-DIVERSITY rejects a single-frame set', fdFails.some((f) => f.startsWith('G-FRAME-DIVERSITY')), JSON.stringify(fdFails));
+
+  // NEGATIVE 3 — G-SOURCE-CONCENTRATION: 5/6 from one source kind.
+  const oneKind = Array.from({ length: 6 }, (_, i) => ({ id: `k${i}`, q: `what computes thing ${i}`, expect: [EXPECT], provenance: prov(i === 0 ? 'reference-doc' : 'commit-message', `F${(i % 6) + 1}`) }));
+  const scFails = await failuresOf('srckind', oneKind, 6);
+  check('G-SOURCE-CONCENTRATION rejects register dominance', scFails.some((f) => f.startsWith('G-SOURCE-CONCENTRATION')), JSON.stringify(scFails));
+
+  // NEGATIVE 4 — partial provenance (missing source_line) is not auditable.
+  const partial = [{ id: 'p1', q: 'what retries backoff', expect: [EXPECT], provenance: { source_kind: 'commit-message', source_path: 'x.md', frame_id: 'F1' } }];
+  const pvFails = await failuresOf('prov', partial);
+  check('partial provenance FAILS (all four fields mandatory)', pvFails.some((f) => f.includes('missing mandatory provenance')), JSON.stringify(pvFails));
+
+  try { rmSync(dir, { recursive: true, force: true }); } catch { /* best-effort */ }
+  console.log(`[bench-validate --test] overall: ${pass ? 'PASS' : 'FAIL'}`);
+  return pass;
+}
+
+export { runSelfTest };
