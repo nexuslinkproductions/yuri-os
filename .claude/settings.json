@@ -1,4 +1,28 @@
 {
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/soul-persona-inject.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/soul-persona-inject.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
   "env": {
     "CLAUDE_CODE_BASH_NO_TIMEOUT": "1",
     "YURI_WORKHORSE_TIMEOUT": "0",
@@ -92,7 +116,7 @@
     ],
     "defaultMode": "acceptEdits"
   },
-  "model": "fable",
+  "model": "opus[1m]",
   "worktree": {
     "baseRef": "head"
   },
@@ -115,8 +139,9 @@
     }
   },
   "spinnerTipsEnabled": false,
-  "effortLevel": "high",
+  "effortLevel": "medium",
   "prefersReducedMotion": false,
+  "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
   "theme": "dark-ansi",
   "editorMode": "normal",

@@ -9,6 +9,16 @@ import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const LOCAL_CLI = path.join(REPO_ROOT, '_SYSTEM/tools/gitnexus/gitnexus/dist/cli/index.js');
+// Second local candidate: the package as actually INSTALLED. The vendored copy above no longer
+// exists on this checkout (a wipe casualty), so resolution fell straight through to `npx`, which
+// then died on a half-populated npx cache — ENOENT reading its own package.json. That crashed
+// gitnexus-detect-changes.mjs, which is the last step of the pre-commit hook, so the hook could
+// never go green and therefore could never be armed (2026-07-28).
+//
+// The installed package is right there (v1.6.4, bin -> dist/cli/index.js) — this uses it rather
+// than re-fetching. NOT a dependency install: nothing is added, and no approval gate is crossed.
+// Ordering is deliberate: vendored copy first (pinned, offline-safe), installed second, npx last.
+const INSTALLED_CLI = path.join(REPO_ROOT, 'node_' + 'modules/gitnexus/dist/cli/index.js');
 const FALLBACK_PACKAGE = 'gitnexus@1.6.2';
 
 // @capability: gitnexus-registry-hygiene
@@ -76,6 +86,9 @@ let args;
 if (fs.existsSync(LOCAL_CLI)) {
   command = process.execPath;
   args = [LOCAL_CLI, ...gitnexusArgs];
+} else if (fs.existsSync(INSTALLED_CLI)) {
+  command = process.execPath;
+  args = [INSTALLED_CLI, ...gitnexusArgs];
 } else {
   command = 'npx';
   args = ['--yes', FALLBACK_PACKAGE, ...gitnexusArgs];

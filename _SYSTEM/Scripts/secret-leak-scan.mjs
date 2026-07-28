@@ -25,7 +25,21 @@ const secretPatterns = [
   ['aws_access_key', /\bAKIA[0-9A-Z]{16}\b/g],
   [
     'secret_assignment',
-    /\b([A-Za-z_][A-Za-z0-9_-]*(?:api[_-]?key|access[_-]?token|auth[_-]?token|bearer[_-]?token|client[_-]?secret|private[_-]?key|webhook[_-]?secret|secret|password)[A-Za-z0-9_-]*)\s*[:=]\s*['"]?([^'"\s,;`\\]{20,})/gi,
+    // The name prefix is OPTIONAL (`*`, not `[A-Za-z_]` + `*`). It used to REQUIRE at least one
+    // character before the keyword, which silently blinded the scanner to the most common way a
+    // credential is ever written:
+    //   const apiKey = "sk-live-..."      MISSED        const myApiKey = "sk-live-..."   caught
+    //   const api_key = "..."             MISSED        const clientSecret = "..."       caught
+    //   const access_token = "..."        MISSED
+    //   const password = "..."            MISSED
+    //   const secret = "..."              MISSED
+    //   apiKey: "sk-live-...",            MISSED
+    // Only a PREFIXED name matched, so the scanner caught the awkward spellings and missed the
+    // idiomatic ones. Found 2026-07-28 while investigating a FALSE POSITIVE — the probe lines
+    // written to prove credential-bearing URLs still flag never matched the rule at all, which is
+    // what exposed this. 8/8 of the cases above now match; the value-level filters below still
+    // exclude env references, placeholders, and bare endpoint URLs, so precision is unchanged.
+    /\b([A-Za-z0-9_-]*(?:api[_-]?key|access[_-]?token|auth[_-]?token|bearer[_-]?token|client[_-]?secret|private[_-]?key|webhook[_-]?secret|secret|password)[A-Za-z0-9_-]*)\s*[:=]\s*['"]?([^'"\s,;`\\]{20,})/gi,
   ],
 ];
 
@@ -34,6 +48,38 @@ const codeReferenceValue = /^\(?(process\.env|this\.|document\.|row\.|opts?\.|co
 const filesystemReferenceValue = /^(?:\/|\.\.?\/|[A-Za-z]:[\\/])/;
 const expressionReferenceValue = /^(?:\$|\$\{|op:\/\/|!!|bool\(|Boolean\(|self\.|settings\.|localStorage\.|bpy\.|[A-Za-z_][A-Za-z0-9_.]*\()/;
 const symbolReferenceValue = /^[A-Z][A-Z0-9_]+$/;
+// A bare endpoint URL is a LOCATION, not a credential — the same class as the filesystem and code
+// reference exclusions above. The `secret_assignment` rule matches on the VARIABLE NAME, so any
+// constant whose name contains "secret"/"token"/"key" trips it regardless of what it holds:
+//   const CLIENT_SECRETS_URL = "https://api.openai.com/v1/realtime/client_secrets";
+// That flagged line (index.js:5349, 2026-07-28) was the sole finding blocking the pre-commit hook
+// from ever being armed, and the genuine credential two lines below it was correctly read from
+// settings at runtime rather than hardcoded. A scanner that cries wolf on endpoint constants is a
+// scanner nobody arms.
+//
+// NARROWED DELIBERATELY — this must not become a bypass. A URL still flags when it CARRIES a
+// credential rather than merely naming one:
+//   - embedded userinfo:      https://user:pass@host/...   (lookahead rejects an `@` before the path)
+//   - secret-bearing query:   https://host/x?api_key=...   (checked separately below)
+const urlReferenceValue = /^https?:\/\/(?![^/\s@]*@)[^\s'"]*$/i;
+// An AWS ARN is a resource NAME. `...:secret:order-api-key-*` identifies WHERE a secret lives; it
+// is not the secret.
+//
+// The match lands INSIDE the ARN rather than at its start, which is why an anchored `^arn:aws:`
+// test fails: in
+//   "Resource": "arn:aws:secretsmanager:us-east-1:123456789012:secret:order-api-key-*"
+// the rule reads `secretsmanager` as the name, `:` as the separator, and
+// `us-east-1:123456789012:secret:order-api-key-*` as the value — a value that does not begin with
+// `arn:`. So the check has to look at the LINE and confirm the matched value sits within the ARN
+// token itself. Narrow on purpose: a genuine credential sharing a line with an ARN is NOT inside
+// the ARN token, so it still flags.
+const arnTokenOnLine = (line) => (line.match(/\barn:aws[a-z-]*:[^\s'"]+/i) || [null])[0];
+// A brace template is the same idea as the <...> placeholder handled by isPlaceholder(), in the
+// other bracket style: `?auth_token={token}` names a parameter, it does not carry one. Requires the
+// braces to be the ONLY credential-shaped content, so `?auth_token={token}&k=REALKEY...` still flags.
+const braceTemplateValue = (v) => /\{[^}]{1,60}\}/.test(v)
+  && !HIGH_ENTROPY_RUN.test(v.replace(/\{[^}]*\}/g, '').replace(/^https?:\/\/[^?]*/i, ''));
+const urlCarriesCredential = /[?&](?:api[_-]?key|access[_-]?token|auth[_-]?token|bearer|token|secret|password|passwd|sig|signature)=/i;
 // Dotted identifier chain (e.g. data.session.provider_token) — whole-value, no hyphens/quotes/secrets.
 const dottedIdentifierValue = /^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+;?$/;
 // Angle-bracket placeholders are benign ONLY if no high-entropy secret-shaped run is embedded.
@@ -74,6 +120,27 @@ function listedFiles() {
   return raw.split('\0').filter(Boolean);
 }
 
+// EXPLICIT, AUDITABLE SUPPRESSIONS — file -> reason.
+//
+// Mirrors the `allowedMatches` convention in root-architecture.test.mjs deliberately: suppression
+// belongs in a list a human can read and challenge, NOT buried in a regex tuned until the number
+// goes green. Every entry states WHY, and the value-level filters above still apply first — this
+// list is the last resort, not the first.
+//
+// Added 2026-07-28 when widening the secret_assignment name pattern took findings 1 -> 6. All six
+// were triaged by hand and all six were benign: security-training documentation and test fixtures.
+// If an entry here ever stops being true, DELETE IT rather than editing the scanner.
+const allowedSecretFiles = new Map([
+  ['.claude/skills-labgated/cyber-abusing-dpapi-for-credential-access/SKILL.md',
+    'security-training doc; the flagged value is the xkcd example passphrase in a SharpDPAPI command line'],
+  ['.claude/skills-labgated/cyber-exploiting-oauth-misconfiguration/SKILL.md',
+    'security-training doc; the flagged value is the literal descriptive string "captured_access_token"'],
+  ['_SYSTEM/Scripts/math/yuri-energy-hardening.test.mjs',
+    'test fixture — a deliberately fake key used to VERIFY the hardening detects one; removing it weakens the test'],
+  ['_SYSTEM/archive/legacy-purge-2026-05/backend-scripts/auth.test.mjs',
+    'archived test fixture, not live code'],
+]);
+
 function scanText({ text, rel, source, object }) {
   const localFindings = [];
   const lines = text.split(/\r?\n/);
@@ -93,6 +160,10 @@ function scanText({ text, rel, source, object }) {
           expressionReferenceValue.test(value) ||
           symbolReferenceValue.test(value) ||
           dottedIdentifierValue.test(value) ||
+          (urlReferenceValue.test(value) && !urlCarriesCredential.test(value)) ||
+          (arnTokenOnLine(line)?.includes(value) ?? false) ||
+          braceTemplateValue(value) ||
+          allowedSecretFiles.has(rel) ||
           isPlaceholder(value)
         ) continue;
         localFindings.push({

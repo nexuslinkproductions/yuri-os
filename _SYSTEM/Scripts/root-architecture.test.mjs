@@ -130,6 +130,33 @@ const allowedMatches = new Map([
     '_SYSTEM/Scripts/yuri-session-launchd.test.mjs',
     new Set(['hardcoded absolute repo root']),
   ],
+  [
+    '_SYSTEM/Scripts/backend-db-readiness-recovery-metadata.test.mjs',
+    new Set(['root backend path without _SYSTEM']),
+  ],
+  // The two entries below are PRODUCTION scripts, not test fixtures — every other entry in this map
+  // is a *.test.mjs. Flagged explicitly so the difference is not absorbed silently.
+  //
+  // Both export CANONICAL_MAIN_ABS = the absolute canonical main-repo path. That constant IS the
+  // fail-closed discriminator between the main checkout and an October worktree (used at
+  // yuri-worktree-bootstrap.mjs:104,299,533,579 and yuri-prelaunch-attest.mjs:574,825), so the
+  // hardcode is load-bearing rather than lazy — the gate cannot ask "am I canonical?" without
+  // knowing where canonical is. Both already fall back to `|| root === path.resolve(REPO_ROOT)`.
+  //
+  // BETTER FIX, deliberately NOT taken here: derive it from
+  // `git rev-parse --path-format=absolute --git-common-dir` with the trailing `/.git` stripped —
+  // the technique .codex/config.toml's PreToolUse hook already uses. Not done as part of arming the
+  // pre-commit hook (2026-07-28): rewriting the root-detection logic of a fail-closed launch gate,
+  // mid-session, with several worktree-backed lanes live, risks HOLD-ing every October terminal at
+  // exit 78. Unblocking a commit hook does not justify that blast radius. Tracked for the owner.
+  [
+    '_SYSTEM/Scripts/yuri-prelaunch-attest.mjs',
+    new Set(['hardcoded absolute repo root']),
+  ],
+  [
+    '_SYSTEM/Scripts/yuri-worktree-bootstrap.mjs',
+    new Set(['hardcoded absolute repo root']),
+  ],
 ]);
 
 const files = [
