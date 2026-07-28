@@ -21,15 +21,8 @@ tool_timeout_sec = 21600
 
 [mcp_servers.october]
 command = "sh"
-args = [
-    "-c",
-    'exec node "$(git rev-parse --show-toplevel)/_SYSTEM/Scripts/october-mcp-stdio-bridge.mjs"',
-]
-env_vars = [
-    "OCTOBER_BUS_PORT",
-    "OCTOBER_BUS_CANVAS",
-    "OCTOBER_BUS_NODE",
-]
+args = ["-c", 'exec node "$(git rev-parse --show-toplevel)/_SYSTEM/Scripts/october-mcp-stdio-bridge.mjs"']
+env_vars = ["OCTOBER_BUS_PORT", "OCTOBER_BUS_CANVAS", "OCTOBER_BUS_NODE"]
 enabled = true
 startup_timeout_sec = 10
 tool_timeout_sec = 130
@@ -52,22 +45,9 @@ startup_timeout_sec = 15
 tool_timeout_sec = 60
 
 [mcp_servers.october-bus]
-# October's bus port is EPHEMERAL — 59207 in the current process, 52381 in an earlier one — so a
-# pinned port is dead on the next restart. It was pinned to 52381, which had no listener.
-#
-# Honest uncertainty, stated rather than hidden: no other `url` field in this repo uses
-# interpolation, so there is no in-repo proof Codex expands ${VAR} here (the sibling
-# [mcp_servers.october] entry is a stdio server and passes the port through `env_vars` instead,
-# which is a different mechanism). This swap is still strictly non-worsening: the previous value
-# pointed at a port with no listener, so the entry was already non-functional. Worst case it stays
-# broken; best case it now follows the live port.
-#
-# The PRIMARY October path is [mcp_servers.october] above (october-mcp-stdio-bridge.mjs), which
-# resolves the port dynamically and fails closed on a missing OCTOBER_BUS_PORT. This entry is the
-# secondary. It is kept rather than deleted because it carries the message_peer approval gate below
-# — removing the duplicate would silently drop that gate.
-url = "http://127.0.0.1:${OCTOBER_BUS_PORT}/mcp"
-env_http_headers = { "X-October-Canvas" = "OCTOBER_BUS_CANVAS", "X-October-Node" = "OCTOBER_BUS_NODE" }
+command = "sh"
+args = ["-c", 'exec node "$(git rev-parse --show-toplevel)/_SYSTEM/Scripts/october-mcp-stdio-bridge.mjs"']
+env_vars = ["OCTOBER_BUS_PORT", "OCTOBER_BUS_CANVAS", "OCTOBER_BUS_NODE"]
 [mcp_servers.october-bus.tools.message_peer]
 approval_mode = "approve"
 
