@@ -308,6 +308,23 @@ function resolveRerank(question, top) {
   return { paths: _atlasResolveModule.resolveAmong(question, recall, { top }), hops: 1 };
 }
 
+// MENU — closed-vocabulary hierarchical area menu (atlas-menu.mjs). HYBRID DIAGNOSTIC arm:
+// free-text query -> L1/L2 area selection -> scoped enter -> resolveAmong within the area.
+// Measured for G6a degradation-slope comparison; the phrasing-invariance claim itself lives in
+// the menu_list/menu_enter API and the selection-accuracy measurement, not in this arm.
+let _menuMod = null;
+async function preloadMenu() {
+  if (_menuMod) return;
+  _menuMod = await import(path.join(REPO_ROOT, '_SYSTEM/Scripts/atlas/atlas-menu.mjs'));
+  _menuMod.loadMenu();
+}
+
+function resolveMenu(question, top) {
+  if (!_menuMod) throw new Error('menu not preloaded — call preloadMenu() first');
+  const r = _menuMod.menuResolve(question, { top });
+  return { paths: r.paths, hops: 1 };
+}
+
 const RESOLVERS = {
   xref: resolveXref,
   atlas: resolveAtlas,
@@ -317,6 +334,7 @@ const RESOLVERS = {
   enriched: resolveEnriched,
   'enriched-split': resolveEnrichedSplit,
   rerank: resolveRerank,
+  menu: resolveMenu,
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -507,6 +525,7 @@ async function main() {
     enriched: preloadEnriched,
     'enriched-split': async () => { await preloadEnriched(); await preloadCandidates(); },
     rerank: async () => { await preloadFastlex(); await preloadCandidates(); await preloadAtlasResolver(); },
+    menu: preloadMenu,
   };
   if (PRELOADERS[args.resolver]) {
     try {
