@@ -51,11 +51,11 @@
     "ABSTAIN"
   ],
   "related_artifacts": [
-    "_SYSTEM/eval/ablation-evidence/g-injected-doctrine-candidates.json",
-    "_SYSTEM/eval/ablation-evidence/g-registry-literal-candidates.json",
-    "_SYSTEM/eval/ablation-evidence/find40-doctrine-registry-overlap.json",
-    "_SYSTEM/eval/ablation-evidence/tier0-threshold-power.json"
+    "_SYSTEM/eval-evidence/g-injected-doctrine-candidates.json",
+    "_SYSTEM/eval-evidence/g-registry-literal-candidates.json",
+    "_SYSTEM/eval-evidence/find40-doctrine-registry-overlap.json",
+    "_SYSTEM/eval-evidence/tier0-threshold-power.json"
   ],
   "falsifier": "If capability-recall systematically beats raw capabilities.json reads on the same questions under anonymized tool names, REGISTRY split was correct; if not, the arm is a wrapper and headline FIND was registry mining.",
-  "artifact_home": "_SYSTEM/eval/ablation-evidence/ (not state/atlas — that tree is gitignored for loop bulk)"
+  "artifact_home": "_SYSTEM/eval-evidence/ (tracked, not frozen; not state/atlas loop-bulk)"
 }

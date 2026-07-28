@@ -4,10 +4,10 @@
   "class": "DOCTRINE",
   "status": "CANDIDATE_SET_NOT_CONFIRMED",
   "regenerator": "_SYSTEM/Scripts/atlas/partition-leak-scan.mjs",
-  "measured_at": "2026-07-28T15:59:02.083Z",
+  "measured_at": "2026-07-28T16:00:54.028Z",
   "matcher_spec_schema": "partition-literal-matcher/v1",
-  "matcher_spec_path": "_SYSTEM/eval/ablation-evidence/partition-literal-matcher-v1.json",
-  "matcher_spec_content_sha256": "e16eb8486ce5342ba39e41f4571eb0d142378d3c5ea2bcf47e19175b718fa4a0",
+  "matcher_spec_path": "_SYSTEM/eval-evidence/partition-literal-matcher-v1.json",
+  "matcher_spec_content_sha256": "cafff116bbdecd58509305242fe289a3b4d432d7c095af1aba5e89053f1cd0bf",
   "match_predicates": [
     "full_path",
     "basename"
@@ -305,5 +305,5 @@
       ]
     }
   ],
-  "content_sha256": "12ab8a12c57667cf535efda2d6fd8d4cd1705e40813ecba1420b7aa27c674c3a"
+  "content_sha256": "79449b01c2626bd2c940dfd794fe3f341f23a8f32f0d3c955845c8ab9639b3f8"
 }

@@ -19,7 +19,7 @@ import { sequentialDecide } from '../eval-processing.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..', '..', '..');
-const OUT_DIR = join(REPO, '_SYSTEM', 'eval', 'ablation-evidence');
+const OUT_DIR = join(REPO, '_SYSTEM', 'eval-evidence');
 
 export const CS_PARAMS = {
   alpha: 0.05,
@@ -173,7 +173,7 @@ export function main(argv = process.argv.slice(2)) {
     console.log(`  n=28 θ=${θ}: perfect_p1=${row.perfect_p1_decision}  minP_CLEAR=${row.minP_decide_CLEAR_above}`);
   }
   console.log(`  min n for p=1 CLEAR θ=0.6: ${JSON.stringify(table.min_n_perfect_clear[0.6])}`);
-  console.log('Re-run with --write to refresh _SYSTEM/eval/ablation-evidence/tier0-threshold-power.json');
+  console.log('Re-run with --write to refresh _SYSTEM/eval-evidence/tier0-threshold-power.json');
   return 0;
 }
 

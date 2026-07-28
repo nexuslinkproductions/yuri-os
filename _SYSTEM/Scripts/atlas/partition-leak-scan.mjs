@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @capability: partition-leak-scan
 // @serves: G-INJECTED-DOCTRINE candidate set | REGISTRY literal set | Channel-C static scan | doctrine vs registry overlap
-// @does: regenerable static literal scan of find-40 expects against frozen DOCTRINE packet surfaces and REGISTRY files under partition-literal-matcher-v1; writes versioned JSON under _SYSTEM/eval/ablation-evidence/
+// @does: regenerable static literal scan of find-40 expects against frozen DOCTRINE packet surfaces and REGISTRY files under partition-literal-matcher-v1; writes versioned JSON under _SYSTEM/eval-evidence/
 // @use: after partition class list changes, after packet surfaces change, before recording a partition freeze hash
 // @exports: loadMatcherSpec, scanSurfaces, writeArtifacts, main
 // @tier: atlas-eval
@@ -27,7 +27,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..', '..', '..');
 const BENCH = join(REPO, '_SYSTEM', 'eval', 'atlas-benchmark.jsonl');
-const OUT_DIR = join(REPO, '_SYSTEM', 'eval', 'ablation-evidence');
+const OUT_DIR = join(REPO, '_SYSTEM', 'eval-evidence');
 const MATCHER_PATH = join(OUT_DIR, 'partition-literal-matcher-v1.json');
 
 function sha256Bytes(buf) {
@@ -51,7 +51,7 @@ export function loadMatcherSpec(path = MATCHER_PATH) {
     spec,
     raw,
     content_sha256: sha256Bytes(raw),
-    path: '_SYSTEM/eval/ablation-evidence/partition-literal-matcher-v1.json',
+    path: '_SYSTEM/eval-evidence/partition-literal-matcher-v1.json',
   };
 }
 
@@ -263,7 +263,7 @@ export function main(argv = process.argv.slice(2)) {
   console.log(`partition-leak-scan — matcher ${matcher.content_sha256.slice(0, 12)}…`);
   console.log(`  DOCTRINE ${doctrine.n_candidates}/40  REGISTRY ${registry.n_candidates}/40  caps-only ${registry.capabilities_json_only_under_same_matcher.n}/40`);
   console.log(`  UNION ${overlap.union.n}/40  INTERSECTION ${overlap.intersection.n}/40`);
-  console.log('Re-run with --write to refresh ablation-evidence JSON.');
+  console.log('Re-run with --write to refresh eval-evidence JSON.');
   return 0;
 }
 

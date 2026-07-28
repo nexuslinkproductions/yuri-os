@@ -4,10 +4,10 @@
   "class": "REGISTRY",
   "status": "CANDIDATE_SET_STATIC_LITERALS",
   "regenerator": "_SYSTEM/Scripts/atlas/partition-leak-scan.mjs",
-  "measured_at": "2026-07-28T15:59:02.083Z",
+  "measured_at": "2026-07-28T16:00:54.028Z",
   "matcher_spec_schema": "partition-literal-matcher/v1",
-  "matcher_spec_path": "_SYSTEM/eval/ablation-evidence/partition-literal-matcher-v1.json",
-  "matcher_spec_content_sha256": "e16eb8486ce5342ba39e41f4571eb0d142378d3c5ea2bcf47e19175b718fa4a0",
+  "matcher_spec_path": "_SYSTEM/eval-evidence/partition-literal-matcher-v1.json",
+  "matcher_spec_content_sha256": "cafff116bbdecd58509305242fe289a3b4d432d7c095af1aba5e89053f1cd0bf",
   "match_predicates": [
     "full_path",
     "basename"
@@ -548,5 +548,5 @@
     ],
     "note": "Same matcher as REGISTRY class. skill-index adds candidates not already in capabilities.json; it cannot lower this count. Official REGISTRY count is n_candidates above (capabilities ∪ skill-index)."
   },
-  "content_sha256": "103fa4f877ca7cdd648ccf4eda74e3fe1638333a5b33d48c113e7d82e30c169a"
+  "content_sha256": "3cd92edb6c862da49df2bdf78bfb769a823228b9d5008538e08bc70fef7ea533"
 }

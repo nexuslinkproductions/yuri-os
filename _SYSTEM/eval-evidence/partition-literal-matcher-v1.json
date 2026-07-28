@@ -56,9 +56,9 @@
     "aggregation": "A question is a candidate if ANY enabled predicate hits on ANY present surface in the class. Evidence records every (surface, predicate) hit with a ±40 char snippet around the first indexOf match (full_path preferred when both hit on the same surface)."
   },
   "outputs": {
-    "doctrine": "_SYSTEM/eval/ablation-evidence/g-injected-doctrine-candidates.json",
-    "registry": "_SYSTEM/eval/ablation-evidence/g-registry-literal-candidates.json",
-    "overlap": "_SYSTEM/eval/ablation-evidence/find40-doctrine-registry-overlap.json",
+    "doctrine": "_SYSTEM/eval-evidence/g-injected-doctrine-candidates.json",
+    "registry": "_SYSTEM/eval-evidence/g-registry-literal-candidates.json",
+    "overlap": "_SYSTEM/eval-evidence/find40-doctrine-registry-overlap.json",
     "must_embed": [
       "matcher_spec_schema",
       "matcher_spec_content_sha256",
