@@ -80,19 +80,66 @@ Two distinct questions — do not conflate them (Orion, 2026-07-28):
   Authentic SLM-distribution paraphrases need a provenance-isolated author with expect IDs sealed
   until after paraphrase lock. That is new process, not a trick available on an existing set.
 
-**Measured baseline for calibration** — `fastlex` on find-40 under G6a:
+### ⚠️ CALIBRATION TABLE QUARANTINED 2026-07-28 — DO NOT CITE THE NUMBERS
+
+The table previously printed here was produced by **ad-hoc, unpersisted code** in an authoring
+session. No committed harness reproduces it. It is withdrawn as a reference baseline; the numbers
+below are kept only as a worked example of how far a shared metric forks when its transforms are
+defined twice.
+
+Three independent runs of the **same arm, same frozen scorer, same 40 questions, same corpus**:
 
 ```
-expert 0.3450 | content_only 0.3450 | no_identifiers 0.3050 | long_tokens_6 0.3050
-every_other 0.3100 | first8 0.2700 | first5 0.2100 | first3 0.1050
-23/40 questions change score under some degradation
-16/40 expert hits collapse to ZERO under at least one degradation
-mean expert -> worst drop 0.325
+                     first3   every_other  no_identifiers  long_tokens_6   content_only
+orion ad-hoc (was)   0.1050     0.3100         0.3050          0.3050         0.3450
+committed harness    0.1400     0.2950         0.2850          0.3200         0.3450
+raw-positional (v1)  0.0350     0.2150            —               —            0.3450
 ```
 
-So bounded BM25 is **already highly phrasing-dependent**, and the constraint is not hypothetical —
-it is visible under mechanical shortening alone, with no new questions required. Any headline score
-on expert-written NL should be read as an upper bound until G6a is reported next to it.
+`content_only` is **0.3450 in all three**. That exact agreement is the proof the scorer, benchmark
+and corpus are common — every divergence is transform definition, and it survives even after the
+content-spine repair. **Four independent definition deltas**, not one (measured, Orion 2026-07-28):
+
+1. **Stopword set** — the ad-hoc `STOP` ≠ `FASTLEX_STOP`. `before` / `run` / `want` flip membership,
+   which moves the content spine and everything derived from it.
+2. **Tokenizer** — whitespace-split-then-filter (keeps `decided?`) vs `/[a-z0-9_.-]{3,}/g` (strips
+   punctuation and re-tokenizes).
+3. **`long_tokens_6` is a different function under the same name** — spine → `len>=6` → **capped at
+   6** vs raw → `len>=6` → **uncapped**. This is why it moves *opposite* to every other transform:
+   the uncapped form retains extra long tokens (`self-governable` on q022, 0.4 → 1.0) and can also
+   hurt (q032, 0.4 → 0 via a retained `action?`).
+4. **`no_identifiers` ontology** — path/extension stripping vs `/[._/-]|[a-z][A-Z]/`, which also
+   kills camelCase.
+
+**Do not chase byte-identity with the phantom script.** An unpersisted implementation is not ground
+truth. Re-baseline against whatever the committed harness emits, under an explicit series break.
+
+### G6a is TWO proxies, not one — report both, gate on the worse
+
+The single-transform-family design was wrong, and the argument that killed it is worth keeping:
+"content tokens" is **not a natural kind**. It imports a stopword list and a tokenizer, and two
+reasonable choices of those produced `first3` 0.1050 vs 0.1400 on identical inputs. A definition
+whose value depends on a preprocessing judgment cannot be the sole authority for a portability gate.
+
+- **G6a-vocab** — content-spine transforms (`content_only`, spine-`firstN`, spine-`every_other`).
+  Proxies **vocabulary poverty**: a small model emitting keywords instead of prose.
+- **G6a-span** — raw positional transforms (raw `firstN`, raw `every_other`). Proxies **early stop**:
+  max-tokens truncation, cut-off tool args, mid-span generation failure. This is the *purer* ablation
+  — one operation on the surface string, no vocabulary judgment — and the *worse* proxy for
+  vocabulary poverty. Both failure modes are real for SLMs.
+
+**Binding rule: an arm is gated on the WORSE of the two.** Reporting two numbers without this is an
+invitation to cherry-pick, which is how a two-metric gate stops being a gate.
+
+**Do not read `content_only ≈ expert` as evidence for the vocabulary model.** That identity is close
+to guaranteed when the expert questions are already keyword-dense BM25 bait; it confirms the
+tokenizer, not the theory of how small models shorten queries.
+
+**What survives the fork.** Bounded BM25 is **highly phrasing-dependent** under every implementation
+measured: `first3` lands between 0.0350 and 0.1400 against an expert 0.3450, so the collapse is
+2.5–10× regardless of whose definitions you use. The owner constraint is not hypothetical, and any
+headline score on expert-written NL is an upper bound until G6a is reported beside it. The
+qualitative finding is robust; only the calibration constants were not.
 
 **G6a caveat:** it does *not* clear Channel S. Distinctive leaked tokens often survive truncation —
 `sparse-checkout` is still present in the first-N content words — so a contaminated question stays
