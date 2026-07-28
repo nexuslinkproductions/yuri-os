@@ -46,6 +46,24 @@ if [ -n "$EVAL_STAGED" ]; then
     exit 1
   fi
   echo "[pre-commit]   UNFROZEN by YURI_EVAL_UNFREEZE=1 — series break required if scoring changed"
+
+  # SCORE-INVARIANT GATE (owner-approved 2026-07-28, Hermes spec). Only inside this block:
+  # eval staged AND explicitly unfrozen. Converts "no scoring math changed" from a commit-message
+  # sentence into a checked fact. Non-eval commits never reach here — zero added latency.
+  echo "[pre-commit] score-invariant gate"
+  # ATOMICITY: the gate measures the WORKTREE scorer but the commit ships the STAGED scorer.
+  # Partial staging (old scorer staged, changed scorer left in the worktree) would let a bad
+  # commit pass measured against code it does not contain. Refuse when _SYSTEM/eval has BOTH
+  # staged and unstaged changes — the commit must be atomic w.r.t. the evaluator.
+  UNSTAGED_EVAL="$(git diff --name-only -- _SYSTEM/eval || true)"
+  if [ -n "$UNSTAGED_EVAL" ]; then
+    echo "[pre-commit] REJECTED — _SYSTEM/eval has BOTH staged and unstaged changes:" >&2
+    echo "$UNSTAGED_EVAL" | sed 's/^/    /' >&2
+    echo "    The score-invariant gate measures the worktree scorer; a partially staged evaluator" >&2
+    echo "    would be verified against code the commit does not contain. Stage or stash the rest." >&2
+    exit 1
+  fi
+  node _SYSTEM/git-hooks/eval-score-invariant.mjs
 fi
 
 echo "[pre-commit] cached diff whitespace"
