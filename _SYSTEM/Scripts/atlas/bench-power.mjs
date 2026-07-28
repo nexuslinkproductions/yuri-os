@@ -4,6 +4,12 @@
 // @does: computes required n per effect size, and smallest resolvable effect per n, against the SAME confidence sequence the arm gate uses
 // @use: before authoring or expanding any benchmark, and before believing any UNDECIDED verdict is a small-sample problem
 // @exports: requiredN, smallestResolvableEffect, powerTable, main
+// @tier: generic
+// @couples: none
+// @deps: none
+//   Top of the release bundle: bench-power -> eval-processing -> decision-sim. All three generic,
+//   node builtins only. This is the extractable unit — NOT bench-power alone, which was my claim
+//   before extraction-scan traced the chain and falsified it.
 //
 // bench-power.mjs — REPRODUCIBLE statistical power for the Atlas benchmark.
 //

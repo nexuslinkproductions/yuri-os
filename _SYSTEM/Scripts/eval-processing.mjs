@@ -28,6 +28,12 @@ const isNum = (x) => typeof x === 'number' && Number.isFinite(x);
 // @does: Welford online moments (mean/variance/min/max, exact, O(1) memory) + a Vitter reservoir sample for quantiles/bootstrap — consume evals one at a time, never hoard the array
 // @use: any time a sim produces a large stream of values and you only need its summary + a bootstrappable sub-sample; the first layer of the eval funnel (never store, reduce streaming)
 // @exports: mkAggregator
+// @tier: generic
+// @couples: none
+// @deps: none
+//   FILE-LEVEL tier (this file carries several capability blocks). Imports only decision-sim,
+//   which is itself generic — genericness is a property of the subgraph, not of one file.
+//   Middle of the release bundle: bench-power -> eval-processing -> decision-sim.
 // ===========================================================================
 /**
  * Streaming aggregator: O(1)-memory exact moments (Welford) + a bounded reservoir (Vitter Algorithm R) for

@@ -52,6 +52,11 @@
 // @does: the robust-optimization engine — robustScore (0.5·mean+0.5·CVaR), crossEntropyOptimize, minimaxRegret, pgdWitness (flip rule), infoGapHorizon, multiverse, + halton/sobolish QMC samplers; seeded/reproducible
 // @use: a decision with 2+ paths whose outcome depends on uncertain params — reach here for the COMPUTED EV/worst-case (the quantitative tier under izanagi-bridge); pair with eval-processing for streaming/CRN/stopping
 // @exports: robustScore, crossEntropyOptimize, minimaxRegret, pgdWitness, infoGapHorizon, multiverse, makeRng, halton, makeQmcRng
+// @tier: generic
+// @couples: none
+// @deps: none
+//   Leaf of the measurement chain — imports nothing repo-local, node builtins only.
+//   Bottom of the release bundle: bench-power -> eval-processing -> decision-sim.
 export function makeRng(seed = 1) {
   let a = seed >>> 0;
   return function rng() {
