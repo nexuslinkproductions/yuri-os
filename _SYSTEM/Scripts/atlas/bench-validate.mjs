@@ -239,6 +239,8 @@ export async function validateBenchmark(filePath, { minN = MIN_N } = {}) {
   let siblingOverlapCount = 0; // REPORTED PROPERTY (not a gate) — question contains another file's
   let indexerOverlapCount = 0; // REPORTED RATE (Hermes A1 2026-07-28) — convergence under tag-strip
   const indexerOverlapItems = [];
+  let enricherOverlapCount = 0; // REPORTED RATE (Hermes Ruling 1 2026-07-28) — same demotion, same precondition
+  const enricherOverlapItems = [];
                                   // basename in the answer's directory; a leakage-shape signal,
                                   // structural not gated.
   const rejectionTracker = makeRejectionTracker();
@@ -419,18 +421,20 @@ export async function validateBenchmark(filePath, { minN = MIN_N } = {}) {
       if (hit) siblingOverlapCount++;
     }
 
-    // 3b. ENRICHER channel (capability card serves/does) — HARD GATE (kept; Hermes 2026-07-28
-    // demoted INDEXER explicitly and left ENRICHER standing). The observed rate is derivable
-    // from result.rejected (ENRICHER-CHANNEL reasons / n) and goes to Hermes as data.
+    // 3b. ENRICHER channel (capability card serves/does) — REPORTED RATE, not a gate (Hermes
+    // 2026-07-28 Ruling 1: same demotion as INDEXER, EARNED BY TAG-STRIPPING — authors never see
+    // capabilities.json nor the file's tag lines, so overlap is convergent, not copied. If
+    // tag-stripping is ever weakened or bypassed, this gate and INDEXER go HARD again
+    // immediately: copying and convergence become indistinguishable the moment the author can
+    // see the source. Rate derivable here and reported per batch; rising rate = inspect.)
     const card = capByMech.get(expect);
     if (card) {
       const cardToks = new Set();
       for (const s of [...card.serves, ...card.does]) for (const t of s.toLowerCase().match(/[a-z0-9_.-]{3,}/g) || []) cardToks.add(t);
       const shared = [...qt].filter((t) => cardToks.has(t) && (cardDf.get(t) || 99) <= DISTINCTIVE_CARD_DF);
       if (shared.length > 0) {
-        const reason = `${it.id}: ENRICHER-CHANNEL leak — question shares distinctive card token(s) [${shared.join(', ')}] with the answer's capability card (provenance-undecidable overlap; the 2026-07-28 enrichment lesson)`;
-        failures.push(reason);
-        recordReject(rejectionTracker, it.id, 'ENRICHER-CHANNEL');
+        enricherOverlapCount++;
+        enricherOverlapItems.push({ id: it.id, shared });
       }
     }
 
@@ -638,6 +642,8 @@ export async function validateBenchmark(filePath, { minN = MIN_N } = {}) {
     siblingOverlapRate: items.length ? siblingOverlapCount / items.length : 0, // REPORTED, never gated on
     indexerOverlapRate: items.length ? indexerOverlapCount / items.length : 0, // REPORTED (Hermes A1), never gated on
     indexerOverlap: { count: indexerOverlapCount, items: indexerOverlapItems }, // REPORTED — rising rate = inspect
+    enricherOverlapRate: items.length ? enricherOverlapCount / items.length : 0, // REPORTED (Hermes Ruling 1), never gated on
+    enricherOverlap: { count: enricherOverlapCount, items: enricherOverlapItems }, // REPORTED — rising rate = inspect
     w1ParentDirToken: { count: w1Items.length, items: w1Items }, // REPORTED, never gated on (Hermes 2026-07-28 deferral)
     frameMix: Object.fromEntries(frameCounts),
     sourceKindMix: Object.fromEntries(kindCounts),
@@ -735,10 +741,9 @@ async function runSelfTest() {
   // lines. Contract (Hermes 2026-07-28): expect = '_SYSTEM/Scripts/xref-query.mjs' and question
   // = a >=5-token run from xref-query's actual @serves header. The legacy INDEXER channel is
   // suppressed by the echo gate; once G-ECHO fires, INDEXER is NOT reported. The ENRICHER
-  // channel is a separate, INDEPENDENT check (distinctive card tokens, not tag-line verbatim
-  // runs) and may legitimately also fire when the echo run happens to include tokens that are
-  // distinctive in the capability card. The isolation contract is therefore: G-ECHO MUST fire,
-  // INDEXER MUST NOT fire (legacy Channel S is suppressed). ENRICHER MAY fire.
+  // channel is a separate signal (distinctive card tokens, REPORTED RATE per Ruling 1) and may
+  // legitimately also register when the echo run includes card-distinctive tokens. The
+  // isolation contract is therefore: G-ECHO MUST fire. INDEXER/ENRICHER are rates, not gates.
   //
   // Run: "search navigate find code where" — the first 5 tokens of xref-query's @serves line,
   // verified verbatim against the file header.
@@ -811,6 +816,21 @@ async function runSelfTest() {
   check('G-SOURCE-CLASS fires when source_path is the capabilities.json mirror',
     scRes.rejected.some((r) => r.id === 'sc1' && r.reasons.includes('G-SOURCE-CLASS')),
     JSON.stringify(scRes.rejected));
+
+  // ---- CONTENT-SNIFF POSITIVE (juno 2026-07-28, live-regex sweep of 4371 tracked files):
+  // eval-processing.mjs is the ONLY non-registry file carrying >=3 @capability annotation
+  // blocks. A question sourced from its tag blocks is the same laundering channel as the
+  // registry — the sniff (not the basename) must catch it.
+  const sniffPos = [{
+    id: 'sp1',
+    q: 'what computes the emissive coefficient under load',
+    expect: [EXPECT],
+    provenance: prov('reference-doc', 'F1', '_SYSTEM/Scripts/eval-processing.mjs', 1),
+  }];
+  const spRes = await runVal('sniffpos', sniffPos, 1);
+  check('G-SOURCE-CLASS fires on a registry-class file by CONTENT, not basename',
+    spRes.rejected.some((r) => r.id === 'sp1' && r.reasons.includes('G-SOURCE-CLASS')),
+    JSON.stringify(spRes.rejected));
 
   // ---- SKILL CARD IS NOT A MIRROR (Hermes final ruling 2026-07-28: relation over file type).
   // A real tracked skill card (ONE @capability block) as source_path must NOT fire G-SOURCE-CLASS.
