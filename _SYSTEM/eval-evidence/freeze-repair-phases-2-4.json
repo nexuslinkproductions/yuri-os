@@ -1,0 +1,45 @@
+{
+  "schema": "freeze-repair-phases-2-4/v1",
+  "status": "OWNER_SCOPE",
+  "authority": "Marcel via Hermes 2026-07-28 — no GitHub Pro; two commands; CI drop FINAL",
+  "repaired_by": "orion/freeze-repair-phases-2-4",
+  "updated_at": "2026-07-28T17:32:00.000Z",
+  "ships": {
+    "absolute_hooksPath": {
+      "command": "node _SYSTEM/Scripts/yuri-git-hooks-path.mjs --apply",
+      "effect": "git config core.hooksPath <absolute primary-checkout>/_SYSTEM/git-hooks",
+      "residual": "Hooks live inside the primary working tree. If primary is checked out to an old commit, every worktree's hook goes stale simultaneously. Lower probability than relative-per-worktree (primary sits on main) but higher blast radius."
+    },
+    "chmod_444": {
+      "command": "node _SYSTEM/Scripts/yuri-eval-chmod-advisory.mjs --apply",
+      "limit": "PER-CHECKOUT AND ADVISORY. Evaporates on clone/new worktree. Never a universal layer."
+    }
+  },
+  "cancelled": {
+    "branch_protection_rulesets": "CANCELLED — no GitHub Pro; public rejected",
+    "eval_freeze_ci_workflow": "DROPPED FINAL — without required-check gate it is an inert guard",
+    "installer_sync_hash_daemon": "DROPPED",
+    "doctrine_staleness_preflight": "DROPPED as machinery — habit: git fetch && rebase onto origin/main"
+  },
+  "residual_open_by_owner_decision": {
+    "C4_no_verify": "OPEN-BY-OWNER-DECISION",
+    "C6_direct_push": "OPEN-BY-OWNER-DECISION",
+    "C5_direct_write": "ESCAPED — chmod advisory only"
+  },
+  "known_inert_guards": [
+    {
+      "id": "pre-push-never-executable",
+      "path": "_SYSTEM/git-hooks/pre-push",
+      "mode_at_main": "100644",
+      "status": "KNOWN INERT GUARD — has never run; same class as pre-commit before c641bd22",
+      "action": "Do not arm in this PR; know what it enforces before chmod +x"
+    }
+  ],
+  "matrix": {
+    "v1_score_0_5": "INCOMPARABLE_ACROSS_VERSION_BREAK",
+    "v2_baseline": "on main via PR #9 — preserved untouched by this PR"
+  },
+  "related": {
+    "hook_unblock_pr": "PR #10 merged — B-A canonical root + B2 failure diagnostics"
+  }
+}
