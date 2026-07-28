@@ -440,7 +440,12 @@ export function main(argv = process.argv.slice(2)) {
   const maxExpectsPerQ = Math.max(0, ...[...expectsByQ.values()].map((s) => s.size));
   console.log(`bench-generate: ${candidates.length} candidates -> ${outPath}`);
   console.log(`  [content-lint] candidates=${candidates.length} distinctQuestions=${distinctQ.size} distinctFragments=${fragFanout.size} topFragmentFanout=${Math.max(0, ...fragFanout.values())} maxExpectsPerQuestion=${maxExpectsPerQ}`);
-  console.log(`  [content-lint] kindMix=${JSON.stringify(kinds)} kindEntropy=${entropy.toFixed(2)}bit ungeneratable=${ungeneratable.length} hygieneFiltered=${hygieneFiltered.length} sourceClassFiltered=${sourceClassFiltered.length}`);
+  // Class-separated exclusion counts. The DETAIL bucket for hygiene+discrimination records is
+  // shared (hygieneFiltered, keyed by reason); the COUNTS are still reported per class — a
+  // combined detail list must never collapse the accounting (advisory 2026-07-28).
+  const nHygieneOnly = hygieneFiltered.filter((h) => !h.reason.startsWith('non-discriminating')).length;
+  const nDiscOnly = hygieneFiltered.length - nHygieneOnly;
+  console.log(`  [content-lint] kindMix=${JSON.stringify(kinds)} kindEntropy=${entropy.toFixed(2)}bit ungeneratable=${ungeneratable.length} hygieneFiltered=${nHygieneOnly} discriminationFiltered=${nDiscOnly} sourceClassFiltered=${sourceClassFiltered.length}`);
   for (const u of ungeneratable.slice(0, 10)) console.log(`    ${u.path} — ${u.reason}`);
 }
 
