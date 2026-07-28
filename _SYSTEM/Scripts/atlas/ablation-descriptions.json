@@ -12,19 +12,19 @@
     "tool_b": {
       "purpose": "Searches several local indexes at once — full-text documents, a code-structure graph, and a registry of declared mechanisms — and merges their matches into one answer.",
       "inputs": "query (string, required — a task or question); top (integer, optional — maximum matches kept per index).",
-      "outputs": "One section per index, each listing matching file paths with a short excerpt or the reason it matched.",
+      "outputs": "One section per index, each listing matching file paths with a short excerpt showing why it matched.",
       "failure_behaviour": "Prints empty sections when no index has a match."
     },
     "tool_c": {
       "purpose": "Finds registered mechanisms whose declared function matches a described need.",
       "inputs": "need (string, required — a description of what you want to accomplish).",
-      "outputs": "Ranked list of matching entries with their file paths and declared purposes.",
+      "outputs": "Ranked text list of matching entries, best match first: each entry's file path and declared purpose. Ranking is by term overlap between the need and each entry's declared function.",
       "failure_behaviour": "Prints an empty result when no entry matches."
     },
     "tool_d": {
       "purpose": "Runs ranked full-text search over a local document corpus.",
       "inputs": "query (string, required); top (integer, optional — maximum results).",
-      "outputs": "Ranked list of matching documents with scores and excerpts.",
+      "outputs": "Ranked text list of matching documents, best match first, each with a relevance score and a short excerpt (BM25 term-frequency ranking); a --json flag switches the output to a JSON array.",
       "failure_behaviour": "Prints no results when no document matches."
     },
     "tool_e": {

@@ -1,0 +1,49 @@
+{
+  "frozen": "2026-07-28 — Hermes partition ruling (NAV_SURFACE / REGISTRY / DOCTRINE / CORPUS), fragment-granular. Frozen BEFORE any subject runs; hash recorded in every episode record. Classification is by the file a tool READ, never by the expect path.",
+  "source_kinds": {
+    "arm_output": "The result was produced BY a nav arm under test (tool_a..tool_d). NOT a partition class — a transport annotation. Outcome FIND stands on its own; it is never re-classified through the partition.",
+    "file_read": "The result names the file it was read from (tool_e grep hits, or any executor result line that carries a source file). EVERY file_read fragment is classified into exactly one of the four partition classes below."
+  },
+  "classes": {
+    "NAV_SURFACE": {
+      "outcome": "FIND",
+      "reason": "artifacts built to route — using the repo's own index IS navigation (Athena Q1 precedent)",
+      "files": [
+        "_SYSTEM/INDEX.md",
+        "_SYSTEM/context/context-registry.json"
+      ]
+    },
+    "REGISTRY": {
+      "outcome": "REGISTRY_HIT",
+      "reason": "backend of an arm under test or an index artifact — mining it by hand is performing the tool's job (28/40 literal-measure, Orion)",
+      "files": [
+        "_SYSTEM/capabilities.json",
+        "_SYSTEM/state/atlas/id-map.json",
+        "_SYSTEM/state/yuri-knowledge-graph.json",
+        "skills/domain-index.json"
+      ],
+      "judgement_notes": "id-map.json is tool_a's backend (arm backend = REGISTRY by mechanism). knowledge-graph classed REGISTRY not NAV_SURFACE: Hermes ruled 'browsed as structure' only, and a grep hit IS a path dump. skills/domain-index.json carried as belt subclass (~1/40 hits, borderline)."
+    },
+    "DOCTRINE": {
+      "outcome": "C_DISK_COPY",
+      "reason": "policy prose that is also the injected packet — grepping it is mining the prompt off disk, never FIND credit",
+      "files": [
+        "CLAUDE.md",
+        "AGENTS.md",
+        "SOUL.md",
+        "_SYSTEM/persona.md",
+        "_SYSTEM/yuri-origin.md",
+        ".cursor/rules/sync.mdc"
+      ],
+      "globs": [
+        ".claude/rules/*.md"
+      ]
+    },
+    "CORPUS": {
+      "outcome": "FIND",
+      "reason": "everything else — ordinary code and prose",
+      "files": []
+    }
+  },
+  "r2_rule": "Discovery requires the expect path to appear in tool OUTPUT. An appearance only in the subject's own call arguments is not discovery (Atlas R2 hole, closed)."
+}
