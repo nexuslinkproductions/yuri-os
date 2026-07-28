@@ -65,6 +65,16 @@ function parseArgs(argv) {
     else if (raw.startsWith('--resolver=')) args.resolver = raw.slice('--resolver='.length);
     else if (raw.startsWith('--benchmark=')) args.benchmark = raw.slice('--benchmark='.length);
     else if (raw.startsWith('--top=')) args.top = parseInt(raw.slice('--top='.length), 10) || 5;
+    else {
+      // FAIL LOUD on unrecognized argv FORMS (2026-07-28 defect): the previous silent
+      // ignore meant `--resolver menu` (space-separated) discarded the flag and ran
+      // the DEFAULT arm — xref at ~32.5s/query, ~27 minutes of silence that looks
+      // exactly like a hang. A typo must cost a second, not half an hour.
+      // Scope: unknown FORMS only. Resolver-NAME validation stays with RESOLVERS /
+      // ARM_STATUS (single source of truth for what an arm is and its status).
+      console.error(`atlas-score: unrecognized argument "${raw}". Accepted forms: --resolver=<arm> --benchmark=<path> --top=N --json --self-check --help`);
+      process.exit(1);
+    }
   }
   return args;
 }
@@ -523,7 +533,18 @@ function runSelfCheck(benchmark) {
   if (!pass) {
     process.exitCode = 1;
   }
-  return pass;
+
+  // parseArgs rejection probe (2026-07-28 defect): an unknown argv FORM must fail loud, never
+  // silently fall back to the default xref arm. Space-separated `--resolver menu` is the exact
+  // typo that once cost 27 silent minutes on the wrong resolver. Probed in a child process
+  // because the rejection is (correctly) process-level.
+  const probe = spawnSync(process.execPath, [fileURLToPath(import.meta.url), '--resolver', 'menu'], { encoding: 'utf8', timeout: 15000 });
+  const rejected = probe.status === 1 && /unrecognized argument/.test(String(probe.stderr || ''));
+  console.log(`[self-check] parseArgs rejects unknown argv form (no silent xref fallback): ${rejected ? 'PASS' : 'FAIL'}`);
+  if (!rejected) {
+    process.exitCode = 1;
+  }
+  return pass && rejected;
 }
 
 // ---------------------------------------------------------------------------------------------
