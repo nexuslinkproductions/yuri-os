@@ -260,12 +260,81 @@ function isHit(expectList, resultPaths, k) {
   return top.some((p) => expectNorm.some((e) => p === e || p.endsWith('/' + e) || e.endsWith('/' + p)));
 }
 
+// QUESTION TYPES — expandable, deterministic, and fair across candidates.
+//
+// Added 2026-07-28. The original benchmark had exactly one shape: "what file does X?" with a single
+// expected path. That shape can only ever reward a filename index, which is why the checkpoint layer
+// scored identically under every region partition tested including a degenerate 77% blob — nothing
+// ever asked it to do its distinctive job. Construct-validity repair, per yuri-origin.md ->
+// Loop Discipline, which is why it terminates the score series and forces a re-baseline.
+//
+// SCORE-PRESERVING BY CONSTRUCTION. Every type returns a per-question score in [0,1] and the
+// composite is their MEAN. For a `find` question that per-question score is 0.6*h1 + 0.4*h3, so
+// when every question is `find` the mean is exactly 0.6*hit@1 + 0.4*hit@3 — algebraically identical
+// to the previous formula. Adding types therefore cannot silently move the existing number; the
+// 40-question corpus must still report 0.3450 for fastlex after this refactor, and that is asserted
+// by re-running, not assumed.
+//
+// FAIRNESS RULE, and it is the one that keeps this honest: a question type must be answerable IN
+// PRINCIPLE by every candidate. Adding a type only the graph layer can serve would rig the benchmark
+// toward Atlas — the exact mirror image of deleting the questions Atlas fails. `locate` and `enter`
+// both pass: a pure lexical resolver can attempt them by returning paths. `route` does NOT pass —
+// it needs real traversal — so the schema supports it and NO route questions are added. If route
+// questions are ever written, they must be reported as a SEPARATE number, never folded into a
+// composite compared against non-graph candidates.
+//
+//   find    (default)  expect: [paths]       -> 0.6*hit@1 + 0.4*hit@3        "what file does X?"
+//   locate             expect: [area prefix] -> 1.0 top-1, 0.5 within top-3  "what area am I in?"
+//   enter              expect: [path set]    -> F1 of returned top-k vs set  "list the X in area Y"
+//   route              expect: [node path]   -> DEFINED, NOT POPULATED (see fairness rule)
+
+function scoreFind(item, paths) {
+  const h1 = isHit(item.expect, paths, 1);
+  const h3 = isHit(item.expect, paths, 3);
+  return { value: 0.6 * (h1 ? 1 : 0) + 0.4 * (h3 ? 1 : 0), hit1: h1, hit3: h3 };
+}
+
+// An area is a path PREFIX (e.g. "_SYSTEM/Scripts/policy"). Any resolver that returns paths can be
+// judged on it — no checkpoint structure required — which is what keeps the type candidate-neutral.
+function scoreLocate(item, paths) {
+  const areas = item.expect.map(normalize);
+  const inArea = (p) => areas.some((a) => normalize(p) === a || normalize(p).startsWith(a + '/'));
+  const top1 = paths.length > 0 && inArea(paths[0]);
+  const top3 = paths.slice(0, 3).some(inArea);
+  return { value: top1 ? 1 : (top3 ? 0.5 : 0), hit1: top1, hit3: top3 };
+}
+
+// Set retrieval scored by F1, because the right answer is a SET with no meaningful ranking — hit@k
+// cannot express it. This is the actual fast-travel use case: "filter this region like a web shop."
+function scoreEnter(item, paths, top) {
+  const want = new Set(item.expect.map(normalize));
+  const got = paths.slice(0, Math.max(top, want.size)).map(normalize);
+  const gotSet = new Set(got);
+  let tp = 0;
+  for (const w of want) if (gotSet.has(w)) tp++;
+  const precision = got.length ? tp / got.length : 0;
+  const recall = want.size ? tp / want.size : 0;
+  const f1 = (precision + recall) ? (2 * precision * recall) / (precision + recall) : 0;
+  return { value: f1, hit1: tp > 0 && normalize(got[0] || '') && want.has(normalize(got[0])), hit3: tp > 0, precision, recall };
+}
+
+const TYPE_SCORERS = {
+  find: scoreFind,
+  locate: scoreLocate,
+  enter: scoreEnter,
+};
+
 function score(benchmark, resolverFn, top) {
   let hit1 = 0;
   let hit3 = 0;
   let totalHops = 0;
+  let valueSum = 0;
+  const byType = {};
   const perQuestion = [];
   for (const item of benchmark) {
+    const type = item.type || 'find';
+    const scorer = TYPE_SCORERS[type];
+    if (!scorer) throw new Error(`benchmark question ${item.id} has unknown type "${type}" (known: ${Object.keys(TYPE_SCORERS).join(', ')})`);
     let paths = [];
     let hops = 1;
     let error = null;
@@ -276,23 +345,36 @@ function score(benchmark, resolverFn, top) {
     } catch (e) {
       error = e.message;
     }
-    const h1 = !error && isHit(item.expect, paths, 1);
-    const h3 = !error && isHit(item.expect, paths, 3);
+    const s = error ? { value: 0, hit1: false, hit3: false } : scorer(item, paths, top);
+    const h1 = !!s.hit1;
+    const h3 = !!s.hit3;
     if (h1) hit1++;
     if (h3) hit3++;
+    valueSum += s.value;
     totalHops += hops;
-    perQuestion.push({ id: item.id, q: item.q, hit1: h1, hit3: h3, hops, error, resolved: paths.slice(0, top) });
+    (byType[type] ||= { n: 0, sum: 0 });
+    byType[type].n++;
+    byType[type].sum += s.value;
+    perQuestion.push({ id: item.id, q: item.q, type, value: s.value, hit1: h1, hit3: h3, hops, error, resolved: paths.slice(0, top) });
   }
   const n = benchmark.length;
   const hitAt1 = n ? hit1 / n : 0;
   const hitAt3 = n ? hit3 / n : 0;
   const meanHops = n ? totalHops / n : 0;
-  const atlasScore = 0.6 * hitAt1 + 0.4 * hitAt3;
-  return { atlasScore, hitAt1, hitAt3, meanHops, n, perQuestion };
+  const atlasScore = n ? valueSum / n : 0;
+  const perType = {};
+  for (const [t, v] of Object.entries(byType)) perType[t] = { n: v.n, score: v.n ? v.sum / v.n : 0 };
+  return { atlasScore, hitAt1, hitAt3, meanHops, n, perType, perQuestion };
 }
 
 function formatLine(r) {
-  return `atlas_score: ${r.atlasScore.toFixed(4)}   hit@1: ${r.hitAt1.toFixed(4)}  hit@3: ${r.hitAt3.toFixed(4)}  mean_hops: ${r.meanHops.toFixed(2)}  n: ${r.n}`;
+  const base = `atlas_score: ${r.atlasScore.toFixed(4)}   hit@1: ${r.hitAt1.toFixed(4)}  hit@3: ${r.hitAt3.toFixed(4)}  mean_hops: ${r.meanHops.toFixed(2)}  n: ${r.n}`;
+  const types = Object.entries(r.perType || {});
+  // Only append the per-type breakdown when the corpus is actually mixed — a single-type run
+  // should print exactly what it printed before, so old output stays diffable.
+  if (types.length <= 1) return base;
+  const parts = types.map(([t, v]) => `${t} ${v.score.toFixed(4)} (n=${v.n})`).join('  ');
+  return `${base}\n  by type: ${parts}`;
 }
 
 // ---------------------------------------------------------------------------------------------
