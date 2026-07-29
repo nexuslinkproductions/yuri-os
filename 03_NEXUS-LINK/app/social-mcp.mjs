@@ -15,7 +15,7 @@
  */
 import { createServer } from "node:http";
 import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync, appendFileSync, renameSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { store } from "./backend/store.mjs";
 import { policy } from "./backend/policy.mjs";
@@ -53,18 +53,29 @@ function parseDraft(raw) {
   return { frontmatter: fm, body: (m[2] || "").trim(), tail: m[3] || "" };
 }
 
+// '..' matches [\w.-]+ in the shape regex below, so the regex alone does not
+// stop '../secrets.md' from escaping the drafts sandbox — the resolved-path
+// containment check is the check that actually holds (mirrors server.mjs's
+// resolveDraft).
+function safeDraftPath(id) {
+  if (typeof id !== "string" || !/^[\w.-]+\/[\w.-]+\.md$/.test(id) || id.includes("..")) return null;
+  const p = resolve(DRAFTS, id);
+  if (!p.startsWith(resolve(DRAFTS) + sep)) return null;
+  return p;
+}
+
 function readDraft(id) {
-  if (!/^[\w.-]+\/[\w.-]+\.md$/.test(id)) return null;
-  const p = join(DRAFTS, id);
-  if (!existsSync(p)) return null;
+  const p = safeDraftPath(id);
+  if (!p || !existsSync(p)) return null;
   const parsed = parseDraft(readFileSync(p, "utf8"));
   return parsed ? { id, path: p, ...parsed } : null;
 }
 
 function writeDraft(id, frontmatter, body, tail) {
+  const p = safeDraftPath(id);
+  if (!p) throw new Error("invalid_draft_id");
   const fm = Object.entries(frontmatter).map(([k, v]) => `${k}: ${v}`).join("\n");
   const content = `---\n${fm}\n---\n\n${body}\n${tail || "\n---\ninfographic: none\nmedia_needed: none"}\n`;
-  const p = join(DRAFTS, id);
   const tmp = p + ".tmp";
   writeFileSync(tmp, content, "utf8");
   renameSync(tmp, p);

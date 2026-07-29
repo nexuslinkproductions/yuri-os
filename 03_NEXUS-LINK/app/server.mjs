@@ -534,11 +534,27 @@ async function apiDraftEdit(req, res) {
   const { id, body } = await readBody(req);
   if (typeof body !== 'string' || !body.trim()) return sendErr(res, 400, 'body_required');
   if (!(await gated(req, res, 'draft.edit', { id }))) return;
-  const out = await mutateDraft(id, (parts) => ({
-    raw: rebuildWithBody(parts, body),
-    draft: { id, chars: body.trim().length },
-  }));
+  // Editing an already-approved draft must force re-approval: otherwise the
+  // approved status + approved-by relationship persist across the edit and
+  // swapped/unreviewed content stays publishable without another review.
+  let wasApproved = false;
+  const out = await mutateDraft(id, (parts) => {
+    wasApproved = parseFrontmatter(parts.fmLines).status === 'approved';
+    let editParts = parts;
+    if (wasApproved) {
+      const lines = [...parts.lines];
+      for (let i = parts.seps[0] + 1; i < parts.seps[1]; i++) {
+        if (/^status:/.test(lines[i])) { lines[i] = 'status: draft'; break; }
+      }
+      editParts = { ...parts, lines };
+    }
+    return {
+      raw: rebuildWithBody(editParts, body),
+      draft: { id, chars: body.trim().length },
+    };
+  });
   if (out.error) return sendErr(res, out.code, out.error);
+  if (wasApproved) store.unrelate(id, 'marcel', 'approved-by');
   await indexDraftFromDisk(id);
   sendJson(res, 200, { ok: true, id, chars: out.draft.chars });
 }
@@ -586,11 +602,16 @@ async function apiQueuePosted(req, res) {
   const drafts = await listDrafts();
   const draft = drafts.find(d => d.id === id);
   if (!draft) return sendErr(res, 404, 'draft_not_found');
+  // posted is a terminal state — without this check the same draft can be
+  // posted and ledger-logged repeatedly, since the approved-by relationship
+  // otherwise persists and keeps gating post.execute open.
+  if (draft.status === 'posted') return sendErr(res, 409, 'already_posted');
   if (!(await gated(req, res, 'post.execute', { id, permalink: permalink.trim() }))) return;
   const out = await mutateDraft(id, (parts) => ({
     raw: rebuildWithFrontmatter(parts, (fm) => fm.map(l => /^status:/.test(l) ? 'status: posted' : l)),
   }));
   if (out.error) return sendErr(res, out.code, out.error);
+  store.unrelate(id, 'marcel', 'approved-by');
   const entry = { ts: new Date().toISOString(), platform: draft.platform, file: id, permalink: permalink.trim() };
   await fs.mkdir(CONTENT_ENGINE, { recursive: true });
   await fs.appendFile(LEDGER_PATH, JSON.stringify(entry) + '\n', 'utf8');

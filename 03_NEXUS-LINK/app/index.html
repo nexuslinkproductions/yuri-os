@@ -532,6 +532,15 @@
 <script type="module">
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Scheme allowlist for anything rendered into an href — esc() only entity-encodes,
+// it never validates scheme, so a javascript:/data: URL from scraped/caller data
+// would otherwise survive into a clickable link and execute in this origin.
+const safeUrl = (u) => {
+  try {
+    const parsed = new URL(String(u ?? ''), window.location.href);
+    return ['http:', 'https:', 'mailto:'].includes(parsed.protocol) ? parsed.href : '#';
+  } catch { return '#'; }
+};
 const fmtN = (n) => (n === null || n === undefined || isNaN(Number(n))) ? null : Number(n).toLocaleString('en-US');
 
 async function fetchJson(url, opts) {
@@ -749,7 +758,7 @@ function renderRadar() {
     `<span class="tchip"><b>${esc(t.word)}</b><i>x${t.count}</i></span>`
   ).join('') || '<div class="empty">no trend data</div>';
   $('#siglist').innerHTML = (r.items || []).map((it, i) =>
-    `<div class="sig"><span class="rank">${String(i + 1).padStart(2, '0')}</span><span class="score">${esc(it.signal)}</span><span class="title"><a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a></span><span class="src">${esc(it.channel)}</span></div>`
+    `<div class="sig"><span class="rank">${String(i + 1).padStart(2, '0')}</span><span class="score">${esc(it.signal)}</span><span class="title"><a href="${safeUrl(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a></span><span class="src">${esc(it.channel)}</span></div>`
   ).join('') || '<div class="empty">no items in sweep</div>';
 }
 
@@ -1450,7 +1459,7 @@ function renderJleeGroup(j, c) {
               <span class="rp">${esc(fmtN(p.likes) ?? 'n/a')} likes</span>
               <span class="rp">${esc(fmtN(p.comments) ?? 'n/a')} comments</span>
               <span class="rcap">${esc(snippet(p.caption, 100))}</span>
-              <a class="rlink" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(shortIg(p.url))}</a>
+              <a class="rlink" href="${safeUrl(p.url)}" target="_blank" rel="noopener">${esc(shortIg(p.url))}</a>
             </div>`).join('')) : ''}
         </div>`;
       }).join('')}
@@ -1570,7 +1579,7 @@ function renderQueue() {
             <span class="kicker dim">${d.chars} chars · ${esc(d.date)}${led ? ' · posted' : ''}</span>
           </div>
           ${platformMock(d)}
-          ${led ? `<div style="font-family:var(--mono);font-size:11px;margin-top:12px;word-break:break-all"><a href="${esc(led.permalink)}" target="_blank" rel="noopener">${esc(led.permalink)}</a></div>` : ''}
+          ${led ? `<div style="font-family:var(--mono);font-size:11px;margin-top:12px;word-break:break-all"><a href="${safeUrl(led.permalink)}" target="_blank" rel="noopener">${esc(led.permalink)}</a></div>` : ''}
           <div class="qactions">
             <button class="btn" data-copy="${esc(d.id)}">Copy text</button>
             ${!led && !formOpen ? `<button class="btn cyan" data-postform="${esc(d.id)}">Mark posted</button>` : ''}
@@ -1582,7 +1591,7 @@ function renderQueue() {
   }
   $('#ledger-count').textContent = state.ledger.length ? state.ledger.length + ' entries' : '';
   $('#ledger').innerHTML = state.ledger.slice().reverse().map(e =>
-    `<div class="lrow"><span class="lts">${esc(String(e.ts).replace('T', ' ').slice(0, 16))}</span><span class="lpl">${esc(e.platform)}</span><span class="lfile">${esc(e.file)}</span><a href="${esc(e.permalink)}" target="_blank" rel="noopener">permalink</a></div>`
+    `<div class="lrow"><span class="lts">${esc(String(e.ts).replace('T', ' ').slice(0, 16))}</span><span class="lpl">${esc(e.platform)}</span><span class="lfile">${esc(e.file)}</span><a href="${safeUrl(e.permalink)}" target="_blank" rel="noopener">permalink</a></div>`
   ).join('') || '<div class="empty">nothing posted yet</div>';
 }
 $('#queue-list').addEventListener('click', async (e) => {
@@ -1638,7 +1647,7 @@ function renderConnections() {
     <div class="panel conn">
       <div class="cname">${esc(c.name)}<span class="badge ${esc(c.status_class)}">${esc(c.status)}</span></div>
       <div class="cdesc">${esc(c.description)}</div>
-      ${c.link ? `<div class="cpath"><a href="${esc(c.link)}">${esc(c.link)}</a></div>` : (c.path ? `<div class="cpath">${esc(c.path)}</div>` : '')}
+      ${c.link ? `<div class="cpath"><a href="${safeUrl(c.link)}">${esc(c.link)}</a></div>` : (c.path ? `<div class="cpath">${esc(c.path)}</div>` : '')}
     </div>`).join('') || '<div class="empty">no connections configured</div>';
 }
 
