@@ -1,0 +1,38 @@
+{
+  "schema": "tier-minus-one-fixture/v1",
+  "generated_at": "2026-07-28T16:53:23.656Z",
+  "repo": "YURI-OS-MUSUBI",
+  "pinned_commit": "bc1b4e7f9f3b87e1e2111ca7874b24906fc15112",
+  "entry": "CLAUDE.md",
+  "order": "depth-first pre-order of @-include graph, deduplicated, cycles hard-error",
+  "delimiter_pattern": "\n\n=== TIER-MINUS-ONE-FIXTURE DELIMITER ===\npath: {path}\ncommit: {commit}\n===\n\n",
+  "sources": [
+    {
+      "path": "CLAUDE.md",
+      "blob_sha": "e6e8778b62bfa01fbb8f97a5feffdf43796ceaa3",
+      "content_sha256": "eda819105f8c9713ad2f6306ac71e21e30a48199bc2a34024dd02119eb0d740b",
+      "size": 18998
+    },
+    {
+      "path": "_SYSTEM/yuri-origin.md",
+      "blob_sha": "6f7c1fcf3b924c558e69d5651895a114d5b2dc18",
+      "content_sha256": "e5fb52fb3b1b81d1f79b1f544d2420365c8854243b15fccd2ec79fb385d9369e",
+      "size": 25557
+    },
+    {
+      "path": "SOUL.md",
+      "blob_sha": "9345653d8f0056580bcca6be76dcb8e462e1af27",
+      "content_sha256": "5c78c9ab1076af7d5ac6ef31b9667e035613ea9664e1e935bc2a98756fafb51d",
+      "size": 3617
+    },
+    {
+      "path": "_SYSTEM/persona.md",
+      "blob_sha": "8525f9fd5694132dd6fc3a7f989decd36ec3fd2d",
+      "content_sha256": "c61ffff6b2bcde9fa615f4a3aacf18c4bf83e1ebb14a95af6529b8fa4264bd51",
+      "size": 19536
+    }
+  ],
+  "packet_path": "_SYSTEM/eval-evidence/tier-minus-one-fixture.packet",
+  "packet_sha256": "f65eb002cec43cb002a8fee2c5cab810b7b1d7afd5a15bc3d39f0fc6d4c01ca8",
+  "regenerator": "_SYSTEM/Scripts/atlas/tier-minus-one-fixture-build.mjs"
+}
