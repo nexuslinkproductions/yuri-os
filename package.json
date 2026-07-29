@@ -1,3 +1,4 @@
+PACKAGE_JSON
 {
   "name": "yuri-os-musubi",
   "version": "1.0.0",
@@ -115,6 +116,7 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "@openai/codex-security": "^0.1.1",
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.0",
     "@types/react": "^19.2.14",
