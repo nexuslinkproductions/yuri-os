@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 // @capability: ablation-descriptions-check
 // @serves: ablation answer-echo gate | description contamination check | pre-audit gate
-// @does: FAIL-CLOSED gate over _SYSTEM/Scripts/atlas/ablation-descriptions.json (Hermes
-//   2026-07-28): no description may contain any find-40 expect path, expect basename, or a
-//   near-paraphrase of any find-40 question. A description written with knowledge of the
-//   question set measures marketing-copy alignment with the benchmark, not tool utility.
-//   Near-paraphrase bar: token Jaccard >= 0.5 between a description's full text and any
-//   question text (descriptions are short generic prose; 0.5 is deliberately conservative).
+// @does: FAIL-CLOSED gate over _SYSTEM/Scripts/atlas/ablation-descriptions.json. Check families:
+//   (1) literal expect path / expect basename from the benchmark; (2) near-paraphrase of any
+//   benchmark question (PER-FIELD max token Jaccard >= 0.5); (3) template parity + word budget;
+//   (4) rubric: data-structure outputs, default values / omission behaviour for optional inputs,
+//   failure behaviour naming status channel AND observable; (5) identity fingerprint: distinctive
+//   n-grams appearing only in the tool's own source (canonical path normalization, evidence-set
+//   self-immunity, rg errors fail closed); (6) implementation fingerprint: proper-noun
+//   algorithm/tool names (BM25 et al.) a zero-context subject could look up out-of-band.
+//   Shape checks fail closed on missing/unexpected labels, non-object descriptions, empty
+//   benchmark. --test runs 25 negative+positive fixtures against a synthetic mini-corpus.
 // @use: node _SYSTEM/Scripts/atlas/ablation-descriptions-check.mjs  -> exit 0 clean, 1 violation
 // @exports: checkDescriptions
 
@@ -216,7 +220,7 @@ export async function main() {
     for (const v of violations) console.error(`  ${v}`);
     return 1;
   }
-  console.log(`ablation-descriptions-check: PASS (${checked} descriptions, no expect path/basename, no near-paraphrase >= ${NEAR_PARAPHRASE_JACCARD}, template parity)`);
+  console.log(`ablation-descriptions-check: PASS (${checked} descriptions; families: literal-echo, per-field-paraphrase, template+budget, rubric, identity-fingerprint, implementation-fingerprint, shape)`);
   return 0;
 }
 
@@ -304,7 +308,7 @@ async function runSelfTest() {
   check('bare status token without observable FAILS (juno F4-1)', bareStatus.violations.some((v) => v.includes('status channel AND an observable')), JSON.stringify(bareStatus.violations));
 
   const control = await runOn(fixture((d) => { d.descriptions.tool_b.purpose = 'Searches the fused local index for grounded answers.'; }));
-  check('mandated control phrase fused local index FIRES (juno F5-1 fix)', control.violations.some((v) => v.includes('IDENTITY FINGERPRINT')), JSON.stringify(control.violations.slice(0, 2)));
+  check('synthetic identity-control phrase FIRES (juno F5-1 fix; the phrase is deliberately synthetic, never in the real xref-query.mjs)', control.violations.some((v) => v.includes('IDENTITY FINGERPRINT')), JSON.stringify(control.violations.slice(0, 2)));
 
   const mirror = await runOn(fixture((d) => { d.descriptions.tool_b.purpose = 'A surface that auto-surfaces capability hits for everyone.'; }));
   check('multi-file registry mirror is correctly NON-unique (juno retraction honored)', !mirror.violations.some((v) => v.includes('auto-surfaces')), JSON.stringify(mirror.violations.slice(0, 3)));
