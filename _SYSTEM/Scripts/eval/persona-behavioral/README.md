@@ -2,6 +2,13 @@
 
 Status: **Seed (draft für Owner-Review)** · Rubric-Version: `1.0.0` · Stand: 2026-07-29
 
+Das Ausführungsprotokoll ist in
+[`experiment-contract.v1.json`](./experiment-contract.v1.json) eingefroren.
+Es ist noch nicht ausführungsbereit: Owner-Ratifikation, drei gebundene
+Instruction-Fixtures, statische Kontrastkontrollen und ein identitätsgebundener
+Subject-Adapter fehlen. Diese Blocker dürfen nicht durch ein freies
+`--subject`-Kommando umgangen werden.
+
 ## Zweck
 
 Das globale Instruction-System (origin, persona, Adapter) ist nach der Konsolidierung
@@ -43,14 +50,18 @@ nicht reproduzierbar. Spaetere semantische Erweiterungen (z. B. Decode-Qualitaet
 jenseits von Keywords) gehoeren in eine **separate, ebenfalls versionierte** Rubrik,
 nie in den gefrorenen Kern.
 
-## Konstruktvaliditaet (vor dem Score die Fragen lesen)
+## Scorer-Korrespondenz (noch keine Konstruktvalidität)
 
 - Die Checks belohnen das distinktive Verhalten des Systems (Anti-Slop,
   Evidence-Tagging, Challenge-once, Safety-Stopps). Ein generisches Modell
-  ohne diese Instruktionen sollte messbar schlechter abschneiden.
+  ohne diese Instruktionen **muss erst im eingefrorenen A/B/C-Versuch**
+  messbar schlechter abschneiden; vorher ist das eine Hypothese.
 - `runner.mjs --selftest` synthetisiert pro Case eine GT-konforme und eine
   GT-verletzende Antwort: 40/40 muessen diskriminieren (PASS bzw. FAIL),
-  sonst ist die Rubrik defekt. Aktueller Stand: **40/40**.
+  sonst ist die Rubrik defekt. Aktueller Stand: **40/40**. Dieser Test beweist
+  nur, dass die Regex-/String-Regeln ihre eigenen synthetischen Fixtures
+  unterscheiden. Er beweist weder semantische Konstruktvalidität noch einen
+  Persona-Effekt.
 - Bekannte Blindleflecke (bewusst behalten): keyword-basierte Decode-Checks
   koennen durch zufaellige Keyword-Nennung ohne echtes Verstaendnis bestanden
   werden; `challenge_once` misst Marker, nicht Ueberzeugungskraft. Diese
@@ -84,14 +95,13 @@ Ergebnislog (append-only, niemals ueberschrieben):
 runId, subject, rubricVersion, pass, failedChecks (bounded), Response-SHA256 und
 180-Zeichen-Excerpt. Volle Antworten werden nicht geloggt.
 
-## Vergleichsprotokoll (Arm A gegen Arm B)
+## Vergleichsprotokoll
 
-1. Scratch-Branch, nie main.
-2. Pro Arm: `--selftest` gruen, dann `--run` mit fester `--run-id`.
-3. Score = Pass-Rate gesamt + Pass-Rate je Dimension (nicht nur die Zahl lesen:
-  welche Dimension kippt?).
-4. Single-Knob-Regel: eine Aenderung pro Vergleich, sonst ist die Attribution weg.
-5. Ergebnis ins Log, Entscheid dokumentiert (keep/revert + Begruendung).
+Das bindende A/B/C-Protokoll, seine Ausführungsblocker, K=3, semantischen
+Positiv-/Negativkontrollen, Konfidenzintervalle, Safety-Floor und
+Keep/Retain/Undecided-Regel stehen ausschließlich in
+`experiment-contract.v1.json`. Der aktuelle freie `--subject`-Pfad ist
+Entwicklungsapparatur und darf keine Entscheidungsdaten erzeugen.
 
 ## Roadmap
 
