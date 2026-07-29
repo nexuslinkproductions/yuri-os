@@ -8,7 +8,7 @@ alwaysApply: true
 
 Thin adapter. This file **routes** to authority; it does not restate policy. Where a rule appears here and in `_SYSTEM/yuri-origin.md`, the origin wins.
 
-Sibling adapters: `CLAUDE.md` (Claude Code), `AGENTS.md` (OMP / root agent), `GEMINI.md`, `.codex/*` (Codex CLI). All four inherit the same spine. This one exists because `cursor-agent` previously inherited nothing.
+Sibling adapters: `CLAUDE.md` (Claude Code), `AGENTS.md` (OMP / root agent), `.codex/*` (Codex CLI). All three inherit the same spine. This one exists because `cursor-agent` previously inherited nothing.
 
 ## Read order (every session, natively)
 

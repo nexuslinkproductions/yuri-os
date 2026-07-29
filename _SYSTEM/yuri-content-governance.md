@@ -9,7 +9,7 @@ Enterprise-ready content classification and governance policy for all Markdown a
 ## Classification Categories
 
 ### KEEP_TRACKED_CONTROL
-True Yuri OS control surfaces. Tracked, reviewed, origin-aware. Includes `_SYSTEM/yuri-origin.md`, `SOUL.md`, executable routing in `_SYSTEM/Scripts/llm-compat-contract.mjs`, thin tool adapters (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.clinerules`, `.cursorrules`, `.windsurfrules`, `.clauderules`, `.cursor/rules/sync.mdc`, `.codex/*`), operating references (`.claude/rules/*.md`, `.cline/rules/*.md`), and reference data (`_SYSTEM/model-registry.md`). These are the canonical set for context, evidence, and review.
+True Yuri OS control surfaces. Tracked, reviewed, origin-aware. Includes `_SYSTEM/yuri-origin.md`, `SOUL.md`, executable routing in `_SYSTEM/Scripts/llm-compat-contract.mjs`, thin tool adapters (`AGENTS.md`, `CLAUDE.md`, `.clinerules`, `.cursorrules`, `.windsurfrules`, `.clauderules`, `.cursor/rules/sync.mdc`, `.codex/*`), operating references (`.claude/rules/*.md`, `.cline/rules/*.md`), and reference data (`_SYSTEM/model-registry.md`). These are the canonical set for context, evidence, and review.
 
 ### KEEP_REFERENCE_CURATED
 Curated historical or reference content. Not current doctrine but preserved for audit. Includes `_SYSTEM/yuri-history-archive/` (session exports) and curated vault Markdown. Reference-only unless promoted by evidence contract.
