@@ -111,6 +111,16 @@ export async function checkDescriptions({ descriptionsPath = DESCRIPTIONS, bench
     if (!hasChannel || !hasObservable) {
       violations.push(`${label}: rubric — failure behaviour must name the status channel AND an observable (empty output / message text / silence / exit outcome), got: "${desc.failure_behaviour.slice(0, 60)}"`);
     }
+    // 6. IMPLEMENTATION FINGERPRINT (Hermes 2026-07-28, after BM25 passed the n-gram family — a
+    // proper-noun algorithm/tool name is a single-token identity a zero-context subject can look
+    // up out-of-band. The n-gram scan can't see single tokens; this family can. Behavioral
+    // paraphrase is always available: 'term-frequency ranking', 'weighting rare terms'.)
+    const IMPL_FINGERPRINTS = /\b(bm25|okapi|fts5|ripgrep|tantivy|lunr|elasticsearch|lucene|xgboost|pytorch|tensorflow)\b/i;
+    const allText = [desc.purpose, desc.inputs, desc.outputs, desc.failure_behaviour].join(' ');
+    const implHit = allText.match(IMPL_FINGERPRINTS);
+    if (implHit) {
+      violations.push(`${label}: IMPLEMENTATION FINGERPRINT — names the algorithm/tool "${implHit[1]}"; a subject can identify the tool out-of-band. Use the behavioural paraphrase instead`);
+    }
   }
 
   // 5. IDENTITY FINGERPRINT (Hermes 2026-07-28, mechanized): distinctive n-grams (n=3..5) from
@@ -286,6 +296,9 @@ async function runSelfTest() {
 
   const bareVerb = await runOn(fixture((d) => { d.descriptions.tool_b.inputs = 'query (string, optional; if omitted returns).'; }));
   check('bare verb is not an omission behaviour (juno B1-B2)', bareVerb.violations.some((v) => v.includes('no default value or omission behaviour')), JSON.stringify(bareVerb.violations));
+
+  const bm25 = await runOn(fixture((d) => { d.descriptions.tool_d.outputs = 'Ranked list (BM25 term-frequency ranking).'; }));
+  check('family 6: BM25 proper noun FAILS (implementation fingerprint)', bm25.violations.some((v) => v.includes('IMPLEMENTATION FINGERPRINT')), JSON.stringify(bm25.violations));
 
   const bareStatus = await runOn(fixture((d) => { d.descriptions.tool_a.failure_behaviour = 'status ERROR.'; }));
   check('bare status token without observable FAILS (juno F4-1)', bareStatus.violations.some((v) => v.includes('status channel AND an observable')), JSON.stringify(bareStatus.violations));
