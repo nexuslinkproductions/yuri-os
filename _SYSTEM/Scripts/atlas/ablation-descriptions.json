@@ -24,7 +24,7 @@
     "tool_d": {
       "purpose": "Runs ranked full-text search over a local document corpus.",
       "inputs": "query (string, required); top (integer, optional, default 5 — maximum results).",
-      "outputs": "A header reporting matches found and corpus size, then a ranked list of matching documents, best match first (BM25 term-frequency ranking), each with a short excerpt; no numeric scores are printed.",
+      "outputs": "A header reporting matches found and corpus size, then a ranked list of matching documents, best match first (term-frequency ranking, rare terms weighted higher), each with a short excerpt; no numeric scores are printed.",
       "failure_behaviour": "No matches: status OK, the header reads 'no matches' with the corpus size; no list."
     },
     "tool_e": {
