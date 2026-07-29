@@ -1,6 +1,6 @@
 # Yuri OS Canonical Origin
 
-Canonical operating contract for all Yuri OS / YURI CLI and agent surfaces. This file is the single home of shared policy. Adapters (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, provider rule files) inherit it and add only surface-specific launch or compatibility rules. They must not restate policy that lives here.
+Canonical operating contract for all Yuri OS / YURI CLI and agent surfaces. This file is the single home of shared policy. Adapters (`CLAUDE.md`, `AGENTS.md`, provider rule files) inherit it and add only surface-specific launch or compatibility rules. They must not restate policy that lives here.
 
 ## Authority Hierarchy
 
