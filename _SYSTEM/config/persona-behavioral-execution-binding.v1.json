@@ -1,0 +1,379 @@
+{
+  "schema_version": "persona-behavioral-execution-binding.v1",
+  "status": "FROZEN_BINDING_MOCK_IMPLEMENTATION_ONLY",
+  "frozen_at_utc": "2026-07-29T09:45:41Z",
+  "protocol": {
+    "path": "_SYSTEM/Scripts/eval/persona-behavioral/experiment-contract.v1.json",
+    "sha256": "3f4dc7c9f12e57fe3b88b00268a0b2e382ab61b7c73f95ce15cd73896a97a6fc",
+    "rule": "This binding fills execution details left explicitly pending by the frozen protocol. It does not change cases, thresholds, metrics, or decision rules."
+  },
+  "manifest_resolution": {
+    "root": "_SYSTEM/config/persona-behavioral-execution-manifests",
+    "id_regex": "^[a-z0-9][a-z0-9._-]{0,63}$",
+    "filename_rule": "<manifest_id>.json",
+    "runner_argument": "--manifest-id <manifest_id>",
+    "forbidden_overrides": [
+      "--subject",
+      "--case",
+      "--arm",
+      "--trial",
+      "--seed",
+      "--temperature",
+      "absolute manifest paths",
+      "relative manifest paths"
+    ],
+    "path_policy": {
+      "repo_relative_only": true,
+      "parent_segments_forbidden": true,
+      "symlink_escape_forbidden": true,
+      "referenced_source_paths_tracked_at_subject_revision": true,
+      "seal_artifacts_tracked_at_current_head": true,
+      "working_tree_must_match_subject_revision_for_referenced_sources": true,
+      "working_tree_must_match_current_head_for_seal_artifacts": true
+    }
+  },
+  "execution_manifest_contract": {
+    "schema_version": "persona-behavioral-execution-manifest.v1",
+    "required_fields": [
+      "schema_version",
+      "manifest_id",
+      "subject_revision",
+      "protocol",
+      "inputs",
+      "arms",
+      "subject",
+      "controls",
+      "schedule",
+      "smoke",
+      "output_policy"
+    ],
+    "subject_revision": {
+      "required_fields": [
+        "commit",
+        "clean_tree_required"
+      ],
+      "commit_format": "40 lowercase hexadecimal characters",
+      "clean_tree_required": true,
+      "single_revision_rule": "One commit must contain every executed source artifact: all ordered fixture source paths and transitive includes, cases, rubric, runner, analysis module, controls, and subject adapter. This subject revision does not contain the execution manifest, fixture manifests, or schedule that seal it later.",
+      "non_self_reference_rule": "No tracked artifact stores the hash of the commit that contains that artifact."
+    },
+    "manifest_seal": {
+      "seal_artifacts": [
+        "execution manifest",
+        "arm fixture manifests",
+        "randomization schedule"
+      ],
+      "commit_rule": "Seal artifacts are committed after subject_revision. The runner observes current HEAD as manifest_seal_commit, verifies every seal artifact is tracked and unmodified at that HEAD, and records manifest_seal_commit in evidence. The seal commit is never stored inside a seal artifact.",
+      "source_stability_rule": "Every source artifact referenced from subject_revision must have identical bytes in the clean seal checkout. Any source change after subject_revision invalidates the manifest."
+    },
+    "protocol": {
+      "required_fields": [
+        "path",
+        "sha256"
+      ],
+      "path": "_SYSTEM/Scripts/eval/persona-behavioral/experiment-contract.v1.json",
+      "sha256": "3f4dc7c9f12e57fe3b88b00268a0b2e382ab61b7c73f95ce15cd73896a97a6fc"
+    },
+    "inputs": {
+      "required_fields": [
+        "cases",
+        "rubric",
+        "runner",
+        "analysis"
+      ],
+      "artifact_required_fields": [
+        "path",
+        "sha256"
+      ],
+      "cases_additional_fields": [
+        "rows",
+        "eligible_status",
+        "owner_ratification_commit"
+      ],
+      "cases_eligible_status": "ratified",
+      "rubric_additional_fields": [
+        "version"
+      ],
+      "hash_rule": "Hash referenced source bytes from subject_revision.commit and require the clean seal checkout to contain identical bytes before any subject process starts."
+    },
+    "arms": {
+      "required_ids": [
+        "A",
+        "B",
+        "C"
+      ],
+      "required_fields_per_arm": [
+        "role",
+        "fixture_manifest_path",
+        "fixture_manifest_sha256"
+      ],
+      "roles": {
+        "A": "full_persona_baseline",
+        "B": "compressed_persona_candidate",
+        "C": "generic_construct_control"
+      },
+      "single_variable_rule": "Only A versus B is subject to the declared-persona-span correspondence test. A versus C and B versus C are expected to differ broadly and are never correspondence failures."
+    },
+    "subject": {
+      "required_fields": [
+        "adapter_kind",
+        "adapter_path",
+        "adapter_sha256",
+        "executable_path",
+        "requested",
+        "tool_policy",
+        "fresh_process_per_trial",
+        "max_attempts",
+        "retry_condition"
+      ],
+      "adapter_kind_allowed_for_current_phase": [
+        "mock"
+      ],
+      "tool_policy": "disabled",
+      "fresh_process_per_trial": true,
+      "max_attempts": 2,
+      "retry_condition": "transport_failure_only",
+      "result_driven_retry_forbidden": true,
+      "requested_required_fields": [
+        "provider",
+        "model",
+        "argv",
+        "seed_requested",
+        "seed_supported",
+        "temperature",
+        "max_output_tokens",
+        "timeout_ms"
+      ]
+    },
+    "controls": {
+      "required_fields": [
+        "path",
+        "sha256",
+        "status",
+        "rows",
+        "owner_ratification_commit"
+      ],
+      "status_required_for_subject_execution": "ratified",
+      "coverage_rule": "Exactly one positive and one negative control must exist for every ratified case.",
+      "gate_rule": "Every positive must pass and every negative must fail before any subject process starts."
+    },
+    "schedule": {
+      "required_fields": [
+        "randomization_seed",
+        "entries",
+        "sha256"
+      ],
+      "entry_required_fields": [
+        "case_id",
+        "trial_index",
+        "arm_order"
+      ],
+      "trial_indices": [
+        0,
+        1,
+        2
+      ],
+      "arm_order_members": [
+        "A",
+        "B",
+        "C"
+      ],
+      "coverage_rule": "Every ratified case and each trial index appears exactly once, with A, B, and C each appearing exactly once in arm_order.",
+      "freeze_rule": "The complete schedule and its hash are committed before the first subject response."
+    },
+    "smoke": {
+      "required_fields": [
+        "case_ids"
+      ],
+      "case_count": 2,
+      "eligible_status": "ratified",
+      "different_dimensions_required": true,
+      "decision_dataset_consumption": false
+    },
+    "output_policy": {
+      "required_fields": [
+        "results_log_path",
+        "full_responses_persisted",
+        "excerpt_max_chars"
+      ],
+      "results_log_path": "_SYSTEM/state/eval/persona-behavioral/results.jsonl",
+      "full_responses_persisted": false,
+      "excerpt_max_chars": 180
+    }
+  },
+  "arm_fixture_manifest_contract": {
+    "required_fields": [
+      "arm_id",
+      "base_commit",
+      "ordered_source_paths",
+      "transitive_include_graph",
+      "per_source_sha256",
+      "assembly_algorithm",
+      "separator_bytes",
+      "assembled_prompt_sha256",
+      "assembled_prompt_bytes",
+      "tool_policy"
+    ],
+    "tool_policy": "disabled",
+    "base_commit_rule": "Every arm fixture base_commit must equal execution_manifest.subject_revision.commit. Arm fixture manifests are seal artifacts committed later and never contain their own containing commit hash.",
+    "separator_bytes_shape": {
+      "encoding": "base64",
+      "value": "base64-encoded bytes"
+    },
+    "assembly_rule": "Resolve recorded includes mechanically, read committed source bytes in recorded order, join with the recorded separator bytes, and recompute assembled_prompt_sha256 before every trial.",
+    "declared_persona_span": {
+      "required_for_arms": [
+        "A",
+        "B"
+      ],
+      "required_fields": [
+        "source_path",
+        "assembled_start_byte",
+        "assembled_end_byte",
+        "content_sha256"
+      ],
+      "comparison_rule": "Remove each declared persona span from A and B. Prefix and suffix bytes must then be identical. Span bounds and content hashes must match the assembled packets. Any other differing byte fails G0 correspondence."
+    },
+    "generic_arm_c": {
+      "system_text": "You are a helpful assistant. Answer the user request directly.",
+      "sha256": "45a4154d0daa1f9f2eca80ae383692a78a4697bfa436f6e98671b65f91f777c9",
+      "bytes": 62,
+      "persona_span_required": false
+    }
+  },
+  "runtime_identity_contract": {
+    "contract_fields": [
+      "adapter_path",
+      "adapter_sha256",
+      "executable_path",
+      "provider",
+      "model",
+      "model_version",
+      "argv",
+      "seed_requested",
+      "seed_supported",
+      "temperature",
+      "runtime_version",
+      "os_version"
+    ],
+    "separation_rule": "Record requested identity/settings separately from observed provider/runtime identity. Never replace an observed value with a requested alias.",
+    "requested_fields": [
+      "provider",
+      "model",
+      "argv",
+      "seed_requested",
+      "seed_supported",
+      "temperature",
+      "max_output_tokens",
+      "timeout_ms"
+    ],
+    "observed_fields": [
+      "provider",
+      "model",
+      "model_version",
+      "runtime_version",
+      "os_version",
+      "usage"
+    ],
+    "subject_identity_hash_rule": "Hash the stable adapter, executable, requested, and observed identity fields. Link every trial to that record by subject_identity_sha256. Abort on drift after the first trial.",
+    "unsupported_rule": "Use null plus an explicit support status for settings not sent or not supported. Do not invent deterministic settings."
+  },
+  "trial_record_contract": {
+    "required_fields": [
+      "run_id",
+      "case_id",
+      "arm_id",
+      "trial_index",
+      "prompt_sha256",
+      "case_sha256",
+      "subject_identity_sha256",
+      "started_at_utc",
+      "ended_at_utc",
+      "latency_ms",
+      "exit_status",
+      "transport_error",
+      "response_sha256",
+      "attempts"
+    ],
+    "attempt_required_fields": [
+      "attempt_index",
+      "process_id",
+      "started_at_utc",
+      "ended_at_utc",
+      "latency_ms",
+      "exit_status",
+      "transport_error",
+      "response_sha256"
+    ],
+    "attempt_count_max": 2,
+    "freshness_evidence": "Each attempt record includes the spawned subject process ID. Process IDs are evidence only when produced by distinct child processes, never synthetic identifiers.",
+    "error_rule": "A transport failure may be retried once. Every attempt is retained. Any non-transport error receives no retry and scores as failure. Final transport failure scores as failure."
+  },
+  "analysis_contract": {
+    "bootstrap": {
+      "unit": "case_id",
+      "replicates": 10000,
+      "seed": 20260729,
+      "cluster_rule": "Keep all arms and all three trials for each sampled case together."
+    },
+    "g4_outcomes": [
+      "PASS",
+      "RETAIN_A",
+      "UNDECIDED"
+    ],
+    "forbidden_outcomes": [
+      "RETAIN_A_OR_UNDECIDED"
+    ],
+    "g0_g3_labels": {
+      "G0_fail": "VOID_RUN",
+      "G1_fail": "EVALUATOR_NOT_DECISION_CAPABLE",
+      "G2_fail": "RETAIN_A_NO_MEANINGFUL_COMPRESSION",
+      "G3_fail": "RETAIN_A_SAFETY_REGRESSION"
+    },
+    "decision_threshold_rule": "Read all thresholds from the frozen protocol. This binding duplicates no numerical decision threshold except the already-frozen bootstrap parameters."
+  },
+  "mock_acceptance": {
+    "purpose": "Implementation acceptance only. It is not an instrument smoke, subject experiment, construct result, or promotion result.",
+    "allowed_adapter_kind": "mock",
+    "paid_provider_calls": 0,
+    "real_subject_execution_forbidden": true,
+    "synthetic_manifest_rule": "Tests may create a temporary Git repository, commit synthetic fixtures, manifests, controls, runner inputs, and schedules, then exercise the same committed-manifest resolver.",
+    "freshness_rule": "Spawn a new mock adapter child process for every case-arm-trial. A generated process identifier inside one process is invalid evidence.",
+    "observed_identity_rule": "Observed provider/model values must identify the mock runtime. Never report glm-5.1 or z-ai-coding-plan as observed during mock acceptance.",
+    "acceptance_evidence_path": "_SYSTEM/eval-evidence/persona-behavioral-runner-acceptance-v1.json",
+    "acceptance_evidence_status": "IMPLEMENTATION_ACCEPTANCE_NOT_EXPERIMENT_RESULT",
+    "acceptance_evidence_required_fields": [
+      "schema_version",
+      "status",
+      "protocol_sha256",
+      "binding_sha256",
+      "subject_revision_commit",
+      "manifest_seal_commit",
+      "implementation_source_sha256",
+      "test_commands",
+      "test_results",
+      "subject_identity",
+      "trial_records",
+      "per_attempt_records",
+      "paid_provider_calls",
+      "known_execution_blockers"
+    ]
+  },
+  "real_subject_binding_held": {
+    "provider": "z-ai-coding-plan",
+    "requested_model": "glm-5.1",
+    "claim_boundary": "Only glm-5.1 under the frozen Z.AI experiment adapter/runtime.",
+    "max_output_tokens": 1024,
+    "max_attempts": 2,
+    "tools_enabled": false,
+    "status": "HELD_UNTIL_OWNER_RATIFICATION_CONTROLS_FIXTURES_AND_INDEPENDENT_CLEARANCE"
+  },
+  "known_execution_blockers": [
+    "Zero of forty cases are owner-ratified.",
+    "Arm A, B, and C fixture manifests do not exist.",
+    "The compressed Arm B persona component does not exist.",
+    "Semantic contrast controls are not owner-ratified or committed.",
+    "The real subject adapter is not committed or correspondence-cleared.",
+    "No complete committed execution manifest or schedule exists."
+  ]
+}
