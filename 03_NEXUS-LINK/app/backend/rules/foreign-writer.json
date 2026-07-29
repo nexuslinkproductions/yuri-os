@@ -1,0 +1,9 @@
+{
+  "id": "foreign-writer",
+  "description": "an actor outside the allowlist attempted a gated mutation",
+  "match": {
+    "field_op": { "field": "actor", "op": "not_in", "value": ["marcel", "apollo", "hermes", "atlas", "dashboard", "mcp"] }
+  },
+  "severity": "critical",
+  "score": 75
+}

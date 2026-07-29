@@ -67,3 +67,7 @@ one aggregator MCP, 7 curated verbs, no CRUD dump:
 4. **Any LLM can drive it.** The MCP seam is the contract; the UI is one
    client among many.
 5. **Earned numbers only.** Every metric on screen traces to a file.
+6. **PRs are the final verification.** Nothing lands on `nexus-workbench`
+   (or `main`) by direct push. Every unit of work ships as a feature branch
+   → pull request with verification evidence in the body → review → merge.
+   This holds for Marcel and for every agent lane.

@@ -51,6 +51,7 @@ them (drawer open, textarea or input focused, mark-posted form open).
 | GET | `/api/voice` | — | trimmed voice corpus (bio, eras, voice facts, posts) |
 | GET | `/api/benchmarks` | — | contents of `benchmarks.json` |
 | GET | `/api/connections` | — | contents of `connections.json` |
+| GET | `/api/alerts` | — | risk-banner state from the backend spine: `{threshold, window_hours, alerts:[{actor, rule_id, score, count, ...}]}` |
 
 All writes are atomic-ish (write tmp file, then rename). Draft `id` is a
 relative path like `2026-07-29/threads-foo.md` and is validated to stay inside
@@ -93,3 +94,22 @@ media_needed: ...
 
 Edit/approve/disapprove/posted mutations only touch the frontmatter or the
 body section; the tail block is preserved byte-for-byte.
+
+## Backend spine (`backend/`)
+
+Zero-dep (node builtins: `node:sqlite`, `node:crypto`), engineered core per
+`BACKEND-SPEC.md` modules 1–5. All mutations in `server.mjs` and all mutating
+`social-mcp.mjs` verbs pass one policy gate before touching files.
+
+| Module | What it does |
+|--------|--------------|
+| `backend/store.mjs` | Typed object store (STIX-style: signal, draft, post, media, reference-pack, benchmark, capture, decision, note, alert) + first-class relationships on `node:sqlite` (WAL) at `_SYSTEM/state/nexus/nexus.db`. `indexDraft(id, frontmatter, body)` upserts a draft from its on-disk file — file = text truth, store = graph truth. |
+| `backend/policy.mjs` | Deny-by-default action registry (`draft.edit`, `draft.approve`, `draft.disapprove`, `post.execute`, `media.write`, `store.delete`). `authorize(actor, action, args)` → `{decision, reason}` and appends a hash-chained event to `_SYSTEM/state/nexus/audit.jsonl` (cross-process serialized via lockfile). `post.execute` denies unless the draft is approved. `verifyAuditChain()` re-verifies the whole chain. |
+| `backend/rules.mjs` + `backend/rules/*.json` | Detection-as-code: rules consume audit events and write `alert` objects. Seeds: `post-attempt-unapproved`, `draft-edited-after-approval`, `media-missing-on-approve`, `foreign-writer`. |
+| `backend/alerts.mjs` | Risk-based alerting: per actor+rule score over a rolling 24h window; banner only at score ≥ 75. Served at `GET /api/alerts` → `{threshold, window_hours, alerts}`. |
+| `backend/verify.mjs` | CLI release gate: `node backend/verify.mjs <path>` secret sweep (AWS/GitHub/OpenAI/Anthropic keys, private-key blocks, high-entropy assignments) + sha256 manifest + report written next to each other; `node backend/verify.mjs --audit` re-verifies the audit chain. Exit 1 on findings/broken chain. |
+
+Actors: dashboard mutations use `"dashboard"`, MCP verbs use `"mcp"`. A policy
+deny returns HTTP 403 with `{ok:false, error:<reason>}` from the dashboard and
+the verb's existing error shape from MCP. Tests: `node --test` from this
+directory (or `node --test "backend/**/*.test.mjs"`).

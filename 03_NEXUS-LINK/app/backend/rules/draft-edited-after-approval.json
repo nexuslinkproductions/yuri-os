@@ -1,0 +1,10 @@
+{
+  "id": "draft-edited-after-approval",
+  "description": "a draft whose current status is approved was edited — invalidates the approval",
+  "match": {
+    "action": "draft.edit",
+    "field_op": { "field": "object.status", "op": "eq", "value": "approved" }
+  },
+  "severity": "medium",
+  "score": 50
+}
