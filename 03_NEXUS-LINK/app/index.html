@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NEXUS LINK · Work Dashboard</title>
+<link rel="icon" href="data:,">
 <style>
   :root {
     --bg: #05060e;
@@ -188,7 +189,7 @@
   .voicepanel { margin-bottom: 24px; background: var(--panel2); }
   .voicepanel .vbody { font-size: 12px; color: var(--dim); white-space: pre-wrap; font-family: var(--mono); line-height: 1.7; }
   .starfield-wrap {
-    position: relative; height: calc(100vh - 320px); min-height: 560px;
+    position: relative; height: calc(100vh - 455px); min-height: 460px;
     border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
     background: #030409;
   }
@@ -1183,7 +1184,7 @@ function sfInit() {
     SF.pointer.dragged = false;
     SF.pointer.sx = e.clientX; SF.pointer.sy = e.clientY;
     SF.pointer.camX = SF.cam.x; SF.pointer.camY = SF.cam.y;
-    SF.cv.setPointerCapture(e.pointerId);
+    try { SF.cv.setPointerCapture(e.pointerId); } catch { /* synthetic or stale pointer */ }
     SF.cv.style.cursor = 'grabbing';
   });
   SF.cv.addEventListener('pointermove', (e) => {
@@ -1216,6 +1217,16 @@ function sfInit() {
   SF.cv.addEventListener('pointerleave', () => {
     SF.pointer.x = -1; SF.pointer.y = -1;
     SF.hoverId = null;
+    // a release outside the window never reaches us; end any drag at the edge
+    if (SF.pointer.down) {
+      SF.pointer.down = false;
+      SF.pointer.dragged = false;
+      SF.cv.style.cursor = 'grab';
+    }
+  });
+  window.addEventListener('blur', () => {
+    SF.pointer.down = false;
+    SF.pointer.dragged = false;
   });
   SF.cv.addEventListener('wheel', (e) => {
     e.preventDefault();
@@ -1241,6 +1252,7 @@ function sfInit() {
   });
 
   SF.nextShoot = performance.now() + 8000;
+  window.__SF = SF; // read-only inspection handle for debugging
 }
 sfInit();
 

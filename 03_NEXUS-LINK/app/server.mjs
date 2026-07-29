@@ -25,6 +25,7 @@ const CONNECTIONS_PATH = path.join(__dirname, 'connections.json');
 const INDEX_PATH = path.join(__dirname, 'index.html');
 const CATALOG_PATH = path.join(CONTENT_ENGINE, 'references', 'jlee', 'catalog.json');
 const MEDIA_DIR = path.join(CONTENT_ENGINE, 'media');
+const MEDIA_TYPES = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.svg': 'image/svg+xml' };
 const JLEE_SYNTHESIS_PATH = path.join(CONTENT_ENGINE, 'references', 'jlee', 'SYNTHESIS.md');
 const X_SYNTHESIS_PATH = path.join(CONTENT_ENGINE, 'references', 'x', 'X-SYNTHESIS.md');
 
