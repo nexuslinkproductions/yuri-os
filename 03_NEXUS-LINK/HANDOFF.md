@@ -75,11 +75,18 @@ Apollo/Kimi = orchestrator, radar, research, QA, posting lane.
 contract). Atlas/Codex = imagery (board tasks, anti-slop test in
 references/REFERENCE.md). Marcel = approval + merge.
 
-### Open PRs (merge order)
+### Already merged into `nexus-workbench` (2026-07-29)
 - **PR #27** feat/backend-spine — backend/ + wiring + process docs +
-  Intelligence view (+ constellation build swept in, noted in PR comment)
+  Intelligence view (+ constellation build swept in, noted in PR comment).
+  Merged 16:08Z.
 - **PR #28** feat/star-constellation — constellation hardening delta +
-  MEDIA_TYPES fix (/media/* was 500ing; now 200)
+  MEDIA_TYPES fix (/media/* was 500ing; now 200). Merged 16:09Z.
+- **PR #30** fix/nexus-security — closes 4 confirmed holes: XSS scheme
+  allowlist (`safeUrl`) on all five href sinks; approval bypass (editing an
+  approved draft now resets status to draft and clears `approved-by`); MCP
+  path traversal in `readDraft`/`writeDraft`; duplicate-publish terminal
+  guard (409 `already_posted`). Merged 17:26Z. Pull latest `nexus-workbench`
+  before touching approval or publish paths.
 
 ## 2. Data contracts (do not break)
 
@@ -121,7 +128,9 @@ references/REFERENCE.md). Marcel = approval + merge.
 ## 4. Next steps (in order)
 
 ### Immediate (this week)
-1. **Marcel merges PR #27 + #28.** Then rebase this plan onto the merge.
+1. **Pull latest `nexus-workbench`.** The backend spine (#27), constellation
+   (#28), and security fixes (#30) are already merged — nothing to merge
+   here. Rebase onto current `nexus-workbench` before starting.
 2. **Loop engine** (`_SYSTEM/content-engine/loops/loop-runner.mjs` +
    `loops/loop-ledger.jsonl` + `adjustments.jsonl`): implement L1 sweep
    scoring (engagement percentile per account, 30-day cohort, recency
