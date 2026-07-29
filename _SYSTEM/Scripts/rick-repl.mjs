@@ -392,7 +392,7 @@ function cyberBlockText(routeDecision) {
 }
 
 function goalText() {
-  if (!existsSync(GOAL_DOC)) return `current goal doc missing: ${GOAL_DOC}`;
+  if (!existsSync(GOAL_DOC)) return 'no active north-star goal set — Upgreat retired 2026-07-29; awaiting owner directive';
   const text = readFileSync(GOAL_DOC, 'utf8');
   const title = text.match(/^#\s+(.+)$/m)?.[1] || 'YURI OS current goal';
   const goal = text.match(/## Goal\s+([\s\S]*?)(?=\n## |$)/)?.[1]?.trim() || '';
@@ -1509,7 +1509,7 @@ async function main() {
         source: 'rick:/goal',
         lane: 'rick',
         goalId: 'yuri-disciplined-self-improvement-2026-05-23',
-        evidenceRefs: ['_SYSTEM/docs/YURI_OS_DISCIPLINED_SELF_IMPROVEMENT_GOAL_2026-05-23.md'],
+        evidenceRefs: [],
       });
       ui.appendSystem(goalText());
       return;

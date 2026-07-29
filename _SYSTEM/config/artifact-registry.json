@@ -904,18 +904,6 @@
       "notes": "Structure cleanup audit and remaining work."
     },
     {
-      "path": "_SYSTEM/docs/YURI_OS_DISCIPLINED_SELF_IMPROVEMENT_GOAL_2026-05-23.md",
-      "type": "doc",
-      "class": "system_control_plane",
-      "owner": "YURI self-improvement",
-      "status": "active_goal",
-      "readByDefault": false,
-      "protected": false,
-      "storageRule": "Active goals live in _SYSTEM/docs/ until promoted.",
-      "rebuildRule": "Update as unlocks and cleanup gates land.",
-      "notes": "Current disciplined self-improvement goal."
-    },
-    {
       "path": "_SYSTEM/docs/YURI_OS_CYBERSECURITY_COMPANY_SUPERCHARGE_GOAL_2026-05-22.md",
       "type": "doc",
       "class": "system_control_plane",
@@ -1106,42 +1094,6 @@
       "storageRule": "Cyber runtime scripts live in _SYSTEM/Scripts/.",
       "rebuildRule": "Run pilot-pack tests and write pilot reports.",
       "notes": "Generates Upgreat pilot readiness, regional packs, and managed-ops pre-study."
-    },
-    {
-      "path": "_SYSTEM/Scripts/cyber-meeting-pack.mjs",
-      "type": "script",
-      "class": "system_control_plane",
-      "owner": "YURI cyber reports",
-      "status": "active",
-      "readByDefault": false,
-      "protected": false,
-      "storageRule": "Cyber runtime scripts live in _SYSTEM/Scripts/.",
-      "rebuildRule": "Run meeting-pack tests and write meeting packet.",
-      "notes": "Generates Upgreat meeting packet."
-    },
-    {
-      "path": "_SYSTEM/Scripts/cyber-demo-runner.mjs",
-      "type": "script",
-      "class": "system_control_plane",
-      "owner": "YURI cyber reports",
-      "status": "active",
-      "readByDefault": false,
-      "protected": false,
-      "storageRule": "Cyber runtime scripts live in _SYSTEM/Scripts/.",
-      "rebuildRule": "Run demo-runner tests and write demo transcript.",
-      "notes": "Generates demo transcript for the Upgreat meeting flow."
-    },
-    {
-      "path": "_SYSTEM/Scripts/cyber-meeting-release.mjs",
-      "type": "script",
-      "class": "system_control_plane",
-      "owner": "YURI cyber reports",
-      "status": "active",
-      "readByDefault": false,
-      "protected": false,
-      "storageRule": "Cyber runtime scripts live in _SYSTEM/Scripts/.",
-      "rebuildRule": "Run meeting-release tests.",
-      "notes": "Checks and emits the Upgreat meeting release packet."
     },
     {
       "path": "_SYSTEM/Scripts/rails.mjs",
@@ -1406,54 +1358,6 @@
       "storageRule": "Cyber reports live in _SYSTEM/reports/.",
       "rebuildRule": "node _SYSTEM/Scripts/cyber-proof-cards.mjs --write",
       "notes": "Client-facing cyber proof cards."
-    },
-    {
-      "path": "_SYSTEM/reports/YURI_UPGREAT_PILOT_READINESS_2026-05-22.md",
-      "type": "report",
-      "class": "generated_artifact",
-      "owner": "YURI cyber reports",
-      "status": "generated_report",
-      "readByDefault": false,
-      "protected": false,
-      "storageRule": "Cyber reports live in _SYSTEM/reports/.",
-      "rebuildRule": "node _SYSTEM/Scripts/cyber-pilot-pack.mjs --write",
-      "notes": "Pilot readiness report for Upgreat."
-    },
-    {
-      "path": "_SYSTEM/reports/YURI_UPGREAT_MEETING_PACKET_2026-05-23.md",
-      "type": "report",
-      "class": "generated_artifact",
-      "owner": "YURI cyber reports",
-      "status": "generated_report",
-      "readByDefault": false,
-      "protected": false,
-      "storageRule": "Cyber reports live in _SYSTEM/reports/.",
-      "rebuildRule": "node _SYSTEM/Scripts/cyber-meeting-pack.mjs --write",
-      "notes": "Meeting packet report for Upgreat."
-    },
-    {
-      "path": "_SYSTEM/reports/YURI_UPGREAT_DEMO_TRANSCRIPT_2026-05-23.md",
-      "type": "report",
-      "class": "generated_artifact",
-      "owner": "YURI cyber reports",
-      "status": "generated_report",
-      "readByDefault": false,
-      "protected": false,
-      "storageRule": "Cyber reports live in _SYSTEM/reports/.",
-      "rebuildRule": "node _SYSTEM/Scripts/cyber-demo-runner.mjs --write",
-      "notes": "Demo transcript report for Upgreat."
-    },
-    {
-      "path": "_SYSTEM/reports/YURI_UPGREAT_MEETING_RELEASE_2026-05-23.md",
-      "type": "report",
-      "class": "generated_artifact",
-      "owner": "YURI cyber reports",
-      "status": "generated_report",
-      "readByDefault": false,
-      "protected": false,
-      "storageRule": "Cyber reports live in _SYSTEM/reports/.",
-      "rebuildRule": "node _SYSTEM/Scripts/cyber-meeting-release.mjs",
-      "notes": "Upgreat meeting release manifest."
     },
     {
       "path": "_SYSTEM/reports/YURI_REGIONAL_INTELLIGENCE_PACKS_2026-05-22.md",
