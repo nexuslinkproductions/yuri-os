@@ -1,0 +1,575 @@
+{
+  "schema": "G-CINJECT-DOCTRINE-candidates/v1",
+  "gate": "G-CINJECT-DOCTRINE",
+  "class": "DOCTRINE_C_INJECT",
+  "channel": "C_INJECT",
+  "status": "CANDIDATE_SET_NOT_CONFIRMED",
+  "regenerator": "_SYSTEM/Scripts/atlas/partition-leak-scan.mjs",
+  "measured_at": "2026-07-29T00:28:29.230Z",
+  "matcher_spec_schema": "partition-literal-matcher/v2",
+  "matcher_spec_path": "_SYSTEM/eval-evidence/partition-literal-matcher-v2.json",
+  "matcher_spec_content_sha256": "60223df2c678b67bfdd4ee3fc6fe14c7bfdce2a83643ab93deddaf4372e232b5",
+  "match_predicates": [
+    "full_path",
+    "basename"
+  ],
+  "match_disabled": [
+    "stem matching (basename without extension)",
+    "case-insensitive matching",
+    "word-boundary / regex token matching",
+    "path-segment fuzzy matching",
+    "symlink realpath rewriting of expect or surface"
+  ],
+  "incomparable_prior": {
+    "schema": "partition-literal-matcher/v1",
+    "reason": "v1 used (type||'find')==='find'; slice(0,40), covering only 40 of the 50 benchmark rows. C_inject counts from v1 and v2 cannot be compared.",
+    "v1_doctrine_c_disk": "17/40",
+    "v1_registry": "27/40",
+    "v1_union": "36/40",
+    "rule": "Do not put v1 and v2 figures in the same table. Cite v1 numbers only as historical/incomparable when needed."
+  },
+  "question_set": {
+    "path": "_SYSTEM/eval/atlas-benchmark.jsonl",
+    "filter": "all 50 rows in file order; no type filter",
+    "blob_sha1": "ffda87d16262c9761e4d2ee794bcee9dd739a20b",
+    "n": 50
+  },
+  "fixture": {
+    "metadata_path": "_SYSTEM/eval-evidence/tier-minus-one-fixture.json",
+    "metadata_content_sha256": "dc4581e86966618015ed9f9dac9e93c11f1dc28e2765c677c18f29ab90b5eb57",
+    "packet_path": "_SYSTEM/eval-evidence/tier-minus-one-fixture.packet",
+    "packet_sha256": "f65eb002cec43cb002a8fee2c5cab810b7b1d7afd5a15bc3d39f0fc6d4c01ca8",
+    "pinned_commit": "bc1b4e7f9f3b87e1e2111ca7874b24906fc15112",
+    "sources": [
+      {
+        "path": "CLAUDE.md",
+        "blob_sha": "e6e8778b62bfa01fbb8f97a5feffdf43796ceaa3",
+        "content_sha256": "eda819105f8c9713ad2f6306ac71e21e30a48199bc2a34024dd02119eb0d740b",
+        "size": 18998
+      },
+      {
+        "path": "_SYSTEM/yuri-origin.md",
+        "blob_sha": "6f7c1fcf3b924c558e69d5651895a114d5b2dc18",
+        "content_sha256": "e5fb52fb3b1b81d1f79b1f544d2420365c8854243b15fccd2ec79fb385d9369e",
+        "size": 25557
+      },
+      {
+        "path": "SOUL.md",
+        "blob_sha": "9345653d8f0056580bcca6be76dcb8e462e1af27",
+        "content_sha256": "5c78c9ab1076af7d5ac6ef31b9667e035613ea9664e1e935bc2a98756fafb51d",
+        "size": 3617
+      },
+      {
+        "path": "_SYSTEM/persona.md",
+        "blob_sha": "8525f9fd5694132dd6fc3a7f989decd36ec3fd2d",
+        "content_sha256": "c61ffff6b2bcde9fa615f4a3aacf18c4bf83e1ebb14a95af6529b8fa4264bd51",
+        "size": 19536
+      }
+    ]
+  },
+  "surfaces_scanned": [
+    "CLAUDE.md",
+    "SOUL.md",
+    "_SYSTEM/persona.md",
+    "_SYSTEM/yuri-origin.md"
+  ],
+  "surfaces_present": [
+    "CLAUDE.md",
+    "SOUL.md",
+    "_SYSTEM/persona.md",
+    "_SYSTEM/yuri-origin.md"
+  ],
+  "surfaces_missing": [],
+  "surface_sha256_at_scan": {
+    "CLAUDE.md": "eda819105f8c9713ad2f6306ac71e21e30a48199bc2a34024dd02119eb0d740b",
+    "_SYSTEM/yuri-origin.md": "e5fb52fb3b1b81d1f79b1f544d2420365c8854243b15fccd2ec79fb385d9369e",
+    "SOUL.md": "5c78c9ab1076af7d5ac6ef31b9667e035613ea9664e1e935bc2a98756fafb51d",
+    "_SYSTEM/persona.md": "c61ffff6b2bcde9fa615f4a3aacf18c4bf83e1ebb14a95af6529b8fa4264bd51"
+  },
+  "n_find40": 50,
+  "n_candidates": 22,
+  "question_ids": [
+    "q001",
+    "q002",
+    "q003",
+    "q004",
+    "q005",
+    "q007",
+    "q008",
+    "q009",
+    "q010",
+    "q012",
+    "q014",
+    "q019",
+    "q025",
+    "q026",
+    "q035",
+    "q041",
+    "q042",
+    "q043",
+    "q044",
+    "q045",
+    "q047",
+    "q049"
+  ],
+  "candidates": [
+    {
+      "question_id": "q001",
+      "expect": "_SYSTEM/Scripts/llm-compat-contract.mjs",
+      "basename": "llm-compat-contract.mjs",
+      "q": "where is model routing decided?",
+      "surfaces": [
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/Scripts/llm-compat-contract.mjs",
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "c`, `.codex/*` 6. Executable routing - `_SYSTEM/Scripts/llm-compat-contract.mjs` 7. On-demand references and skills 8."
+        }
+      ]
+    },
+    {
+      "question_id": "q002",
+      "expect": "_SYSTEM/Scripts/capability-recall.mjs",
+      "basename": "capability-recall.mjs",
+      "q": "before building a new scorer or matcher, what do I check first so I don't rebuild a mechanism YURI already has?",
+      "surfaces": [
+        "CLAUDE.md",
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/Scripts/capability-recall.mjs",
+          "surface": "CLAUDE.md",
+          "match": "full_path",
+          "snippet": "fore building any new primitive → `node _SYSTEM/Scripts/capability-recall.mjs \"<need>\"` FIRST (CAPABILITY-FIRST: chec"
+        },
+        {
+          "expect": "_SYSTEM/Scripts/capability-recall.mjs",
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "basename",
+          "snippet": "s)** — local-first: `xref-query.mjs` + `capability-recall.mjs` (CAPABILITY-FIRST — never rebuild what"
+        },
+        {
+          "expect": ".claude/rules/capability_first.md",
+          "surface": "CLAUDE.md",
+          "match": "full_path",
+          "snippet": "-surfaces ⚡ capability hits). Mandate: `.claude/rules/capability_first.md`. Register new mechanisms with `@capabi"
+        }
+      ]
+    },
+    {
+      "question_id": "q003",
+      "expect": "_SYSTEM/Scripts/xref-query.mjs",
+      "basename": "xref-query.mjs",
+      "q": "what do I run before broad exploration to navigate an unfamiliar task in this repo?",
+      "surfaces": [
+        "CLAUDE.md",
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/Scripts/xref-query.mjs",
+          "surface": "CLAUDE.md",
+          "match": "full_path",
+          "snippet": "trap. - Task context/navigation → `node _SYSTEM/Scripts/xref-query.mjs \"<task>\"` before broad work; for a know"
+        },
+        {
+          "expect": "_SYSTEM/Scripts/xref-query.mjs",
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "sing plugin capability for a task, run `_SYSTEM/Scripts/xref-query.mjs \"<task>\"`; when a known circuitry node"
+        }
+      ]
+    },
+    {
+      "question_id": "q004",
+      "expect": "_SYSTEM/Scripts/propagation-scan.mjs",
+      "basename": "propagation-scan.mjs",
+      "q": "how do I see what a change to a known circuitry node will propagate to downstream?",
+      "surfaces": [
+        "CLAUDE.md",
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/Scripts/propagation-scan.mjs",
+          "surface": "CLAUDE.md",
+          "match": "full_path",
+          "snippet": "; for a known circuitry node, run `node _SYSTEM/Scripts/propagation-scan.mjs <node-id> --dry-run`. Legacy packet rou"
+        },
+        {
+          "expect": "_SYSTEM/Scripts/propagation-scan.mjs",
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "known circuitry node is involved, run `_SYSTEM/Scripts/propagation-scan.mjs <node-id> --dry-run`. Use the xref evid"
+        }
+      ]
+    },
+    {
+      "question_id": "q005",
+      "expect": "_SYSTEM/Scripts/memory-kernel.mjs",
+      "basename": "memory-kernel.mjs",
+      "q": "what mediates Track A canonical YURI memory (propose/decide/ledger)?",
+      "surfaces": [
+        "CLAUDE.md",
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/Scripts/memory-kernel.mjs",
+          "surface": "CLAUDE.md",
+          "match": "basename",
+          "snippet": "decisions, anything other lanes need → `memory-kernel.mjs` (Track A). Ambiguous → Track A. Writin"
+        },
+        {
+          "expect": "_SYSTEM/Scripts/memory-kernel.mjs",
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "STEM/OS_KERNEL/memory.db`) - Mediator: `_SYSTEM/Scripts/memory-kernel.mjs` - Pipeline: `propose → decide → ledger"
+        }
+      ]
+    },
+    {
+      "question_id": "q007",
+      "expect": "_SYSTEM/Scripts/yuri-worktree-bootstrap.mjs",
+      "basename": "yuri-worktree-bootstrap.mjs",
+      "q": "what is the canonical prelaunch gate for October isolated worktrees?",
+      "surfaces": [
+        "CLAUDE.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/Scripts/yuri-worktree-bootstrap.mjs",
+          "surface": "CLAUDE.md",
+          "match": "full_path",
+          "snippet": "ktrees → canonical prelaunch gate `node _SYSTEM/Scripts/yuri-worktree-bootstrap.mjs` (fail-closed wrap; HOLD→exit 78). Do n"
+        }
+      ]
+    },
+    {
+      "question_id": "q008",
+      "expect": "_SYSTEM/Scripts/yuri-persona-check.mjs",
+      "basename": "yuri-persona-check.mjs",
+      "q": "what enforces the persona-contract headings so a doc rename doesn't silently break persona injection?",
+      "surfaces": [
+        "SOUL.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/Scripts/yuri-persona-check.mjs",
+          "surface": "SOUL.md",
+          "match": "full_path",
+          "snippet": "DINGS`) and the persona-contract gate (`_SYSTEM/Scripts/yuri-persona-check.mjs`) source by exact heading. **A heading"
+        }
+      ]
+    },
+    {
+      "question_id": "q009",
+      "expect": ".claude/hooks/soul-persona-inject.js",
+      "basename": "soul-persona-inject.js",
+      "q": "where does persona actually get injected into a live session at runtime?",
+      "surfaces": [
+        "SOUL.md"
+      ],
+      "evidence": [
+        {
+          "expect": ".claude/hooks/soul-persona-inject.js",
+          "surface": "SOUL.md",
+          "match": "full_path",
+          "snippet": "at the runtime persona-injection hook (`.claude/hooks/soul-persona-inject.js` → `REQUIRED_HEADINGS`) and the persona"
+        }
+      ]
+    },
+    {
+      "question_id": "q010",
+      "expect": "_SYSTEM/Scripts/yuri-closeout.mjs",
+      "basename": "yuri-closeout.mjs",
+      "q": "what runs the deterministic session closeout for /eot?",
+      "surfaces": [
+        "CLAUDE.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/Scripts/yuri-closeout.mjs",
+          "surface": "CLAUDE.md",
+          "match": "full_path",
+          "snippet": "→ the lean deterministic closeout via `_SYSTEM/Scripts/yuri-closeout.mjs` (the `end-of-transmission` skill holds"
+        }
+      ]
+    },
+    {
+      "question_id": "q012",
+      "expect": "_SYSTEM/yuri-origin.md",
+      "basename": "yuri-origin.md",
+      "q": "what file is the canonical operating contract / authority hierarchy for all Yuri OS lanes?",
+      "surfaces": [
+        "CLAUDE.md",
+        "_SYSTEM/yuri-origin.md",
+        "_SYSTEM/persona.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/yuri-origin.md",
+          "surface": "CLAUDE.md",
+          "match": "full_path",
+          "snippet": "@_SYSTEM/yuri-origin.md @SOUL.md @_SYSTEM/persona.md # CLAUDE."
+        },
+        {
+          "expect": "_SYSTEM/yuri-origin.md",
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "filesystem reads and observed state 3. `_SYSTEM/yuri-origin.md` - canonical Yuri OS contract 4. `SOUL."
+        },
+        {
+          "expect": "_SYSTEM/yuri-origin.md",
+          "surface": "_SYSTEM/persona.md",
+          "match": "basename",
+          "snippet": ": a behavior layer. It never overrides `yuri-origin.md`, protected paths, owner intent, or ver"
+        }
+      ]
+    },
+    {
+      "question_id": "q014",
+      "expect": "_SYSTEM/config/provider-route-registry.json",
+      "basename": "provider-route-registry.json",
+      "q": "a lane keeps getting rejected even though it's in the agent catalog — what gates admission by canary-proven history before a route is allowed to fire?",
+      "surfaces": [
+        "CLAUDE.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/config/provider-route-registry.json",
+          "surface": "CLAUDE.md",
+          "match": "full_path",
+          "snippet": "gated by the provider-route registry (`_SYSTEM/config/provider-route-registry.json`): `canary-proven` admission history AN"
+        }
+      ]
+    },
+    {
+      "question_id": "q019",
+      "expect": "_SYSTEM/Scripts/capability-scan.mjs",
+      "basename": "capability-scan.mjs",
+      "q": "what regenerates capabilities.json from the @capability tags left in source files?",
+      "surfaces": [
+        "CLAUDE.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/Scripts/capability-scan.mjs",
+          "surface": "CLAUDE.md",
+          "match": "basename",
+          "snippet": "w mechanisms with `@capability` tags + `capability-scan.mjs`. - Capability → skills (`.claude/skill"
+        }
+      ]
+    },
+    {
+      "question_id": "q025",
+      "expect": "_SYSTEM/Scripts/claude-memory-write.mjs",
+      "basename": "claude-memory-write.mjs",
+      "q": "where do I write a durable behavioral memory about how I work with the operator — comms style, tool habits, self-corrections?",
+      "surfaces": [
+        "CLAUDE.md",
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/Scripts/claude-memory-write.mjs",
+          "surface": "CLAUDE.md",
+          "match": "full_path",
+          "snippet": "cope·trig·refs`. Full spec + CLI: `node _SYSTEM/Scripts/claude-memory-write.mjs surfaces`. ## Adversarial Verification"
+        },
+        {
+          "expect": "_SYSTEM/Scripts/claude-memory-write.mjs",
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "e `memory/` dir is native and allowed; `_SYSTEM/Scripts/claude-memory-write.mjs` is an OPTIONAL validation/reindex help"
+        }
+      ]
+    },
+    {
+      "question_id": "q026",
+      "expect": "_SYSTEM/Scripts/memory-canonical-store.mjs",
+      "basename": "memory-canonical-store.mjs",
+      "q": "what's the ONE event-sourced store any lane can read operator-approved canonical truth from, at peer level, without a wrapper?",
+      "surfaces": [
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/Scripts/memory-canonical-store.mjs",
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "h across all lanes\" surface. - Store: `_SYSTEM/Scripts/memory-canonical-store.mjs`; data at `_SYSTEM/state/memory-canonic"
+        }
+      ]
+    },
+    {
+      "question_id": "q035",
+      "expect": "skills/genjutsu-design-audit/SKILL.md",
+      "basename": "SKILL.md",
+      "q": "what's the final checklist pass that scans for motion gaps, a11y violations, and visual inconsistencies at the end of a design pipeline?",
+      "surfaces": [
+        "CLAUDE.md",
+        "_SYSTEM/persona.md"
+      ],
+      "evidence": [
+        {
+          "expect": "skills/genjutsu-design-audit/SKILL.md",
+          "surface": "CLAUDE.md",
+          "match": "basename",
+          "snippet": "afts) → load `skills/claude-output-lane/SKILL.md`. Writing requires the packet grants `C"
+        },
+        {
+          "expect": "skills/genjutsu-design-audit/SKILL.md",
+          "surface": "_SYSTEM/persona.md",
+          "match": "basename",
+          "snippet": "skills** (load on match; detail in each SKILL.md). Izanagi — simulate 3 divergent branch"
+        }
+      ]
+    },
+    {
+      "question_id": "q041",
+      "expect": "_SYSTEM/Scripts/policy",
+      "basename": "policy",
+      "q": "I have _SYSTEM/Scripts/policy/yuri-safety-core.mjs open — what area of the system am I standing in?",
+      "surfaces": [
+        "CLAUDE.md",
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/Scripts/policy",
+          "surface": "CLAUDE.md",
+          "match": "basename",
+          "snippet": "he control-plane owner: it does not set policy, define gates, or hold ultimate release"
+        },
+        {
+          "expect": "_SYSTEM/Scripts/policy",
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "basename",
+          "snippet": "priority ## Canonical Shape - Shared policy lives once here or in executable contra"
+        }
+      ]
+    },
+    {
+      "question_id": "q042",
+      "expect": "_SYSTEM/Scripts/atlas",
+      "basename": "atlas",
+      "q": "I am reading atlas-regions.mjs and I do not know where it sits — which part of the system does it belong to?",
+      "surfaces": [
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/Scripts/atlas",
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "basename",
+          "snippet": "committed changes.** Real, and live in `atlas-loop.mjs` — but bounded: it compares wo"
+        }
+      ]
+    },
+    {
+      "question_id": "q043",
+      "expect": "_SYSTEM/eval",
+      "basename": "eval",
+      "q": "where do the frozen scorers that gate improvement loops live?",
+      "surfaces": [
+        "CLAUDE.md",
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/eval",
+          "surface": "CLAUDE.md",
+          "match": "basename",
+          "snippet": "rom active navigation. - Action / claim evaluation → the energy gate (`computeU`) re"
+        },
+        {
+          "expect": "_SYSTEM/eval",
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "basename",
+          "snippet": "on loop run against YURI. **The frozen-evaluator rule (non-negotiable).** A loop th"
+        }
+      ]
+    },
+    {
+      "question_id": "q044",
+      "expect": "_SYSTEM/git-hooks",
+      "basename": "git-hooks",
+      "q": "a commit was just rejected by a hook — which directory holds the hooks git actually runs?",
+      "surfaces": [
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/git-hooks",
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "ness, because it is committed. Live in `_SYSTEM/git-hooks/pre-commit` (`YURI_EVAL_UNFREEZE=1` to"
+        }
+      ]
+    },
+    {
+      "question_id": "q045",
+      "expect": "_SYSTEM/Scripts/math",
+      "basename": "math",
+      "q": "I need the shared math primitives — entropy, KL divergence, weighted variance — which area are they in?",
+      "surfaces": [
+        "SOUL.md",
+        "_SYSTEM/persona.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/Scripts/math",
+          "surface": "SOUL.md",
+          "match": "basename",
+          "snippet": "focus become tunnel vision. **Use polymathic transfer with verification.** See `_S"
+        },
+        {
+          "expect": "_SYSTEM/Scripts/math",
+          "surface": "_SYSTEM/persona.md",
+          "match": "basename",
+          "snippet": "iagnosis) Marcel runs an **AuDHD + polymath operating reality** (user-reported beha"
+        }
+      ]
+    },
+    {
+      "question_id": "q047",
+      "expect": "_SYSTEM/Scripts/atlas/atlas-loop.mjs",
+      "basename": "atlas-loop.mjs",
+      "q": "list every stage of the Atlas navigation build pipeline",
+      "surfaces": [
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/Scripts/atlas/atlas-loop.mjs",
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "basename",
+          "snippet": "committed changes.** Real, and live in `atlas-loop.mjs` — but bounded: it compares worktree ag"
+        }
+      ]
+    },
+    {
+      "question_id": "q049",
+      "expect": "_SYSTEM/git-hooks/pre-commit",
+      "basename": "pre-commit",
+      "q": "show me the git hooks this repo installs",
+      "surfaces": [
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "evidence": [
+        {
+          "expect": "_SYSTEM/git-hooks/pre-commit",
+          "surface": "_SYSTEM/yuri-origin.md",
+          "match": "full_path",
+          "snippet": "ness, because it is committed. Live in `_SYSTEM/git-hooks/pre-commit` (`YURI_EVAL_UNFREEZE=1` to override)."
+        }
+      ]
+    }
+  ],
+  "content_sha256": "885e20f92260ce1158109294a998209147eef3ec78b556daaf6bf95920c4c59d"
+}

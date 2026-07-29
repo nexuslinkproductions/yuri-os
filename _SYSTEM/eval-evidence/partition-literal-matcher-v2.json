@@ -1,0 +1,122 @@
+{
+  "schema": "partition-literal-matcher/v2",
+  "status": "FROZEN_V2",
+  "frozen_at": "2026-07-28T17:58:00.000Z",
+  "authority": "R3 ruling 2026-07-28 — C_inject prompt-leak scan must cover the same question set the experiment runs (50 rows). v1 numbers over 40 questions are INCOMPARABLE to v2 numbers over 50.",
+  "incomparable_prior": {
+    "schema": "partition-literal-matcher/v1",
+    "reason": "v1 used (type||'find')==='find'; slice(0,40), covering only 40 of the 50 benchmark rows. C_inject counts from v1 and v2 cannot be compared.",
+    "v1_doctrine_c_disk": "17/40",
+    "v1_registry": "27/40",
+    "v1_union": "36/40",
+    "rule": "Do not put v1 and v2 figures in the same table. Cite v1 numbers only as historical/incomparable when needed."
+  },
+  "channel_split_at": "2026-07-28T16:34:00.000Z",
+  "channel_split_authority": "R2 ruling 2026-07-28 — C_inject and C_disk are DIFFERENT ON PURPOSE; never merge. Predicates unchanged; surface lists corrected for channel conflation in the original DOCTRINE key.",
+  "regenerator": "_SYSTEM/Scripts/atlas/partition-leak-scan.mjs",
+  "question_set": {
+    "path": "_SYSTEM/eval/atlas-benchmark.jsonl",
+    "filter": "all 50 rows in file order; no type filter",
+    "blob_sha1_at_freeze": "ffda87d16262c9761e4d2ee794bcee9dd739a20b",
+    "note": "git hash-object / git rev-parse HEAD:path of the benchmark file at freeze time"
+  },
+  "surfaces": {
+    "DOCTRINE_C_INJECT": {
+      "role": "Tier -1 / Channel-C packet floor — what a subject actually receives",
+      "members": [
+        "CLAUDE.md",
+        "SOUL.md",
+        "_SYSTEM/persona.md",
+        "_SYSTEM/yuri-origin.md"
+      ],
+      "resolution": "CLAUDE.md + transitive @-includes resolved mechanically from file headers (not a hand-list that drifts). Current resolution at channel_split_at: @_SYSTEM/yuri-origin.md, @SOUL.md, @_SYSTEM/persona.md.",
+      "excludes": [
+        "AGENTS.md",
+        ".cursor/rules/sync.mdc"
+      ],
+      "exclude_reason": "Other harnesses' adapters. On disk (C_disk), never injected into this experiment's packet.",
+      "candidate_artifact": "_SYSTEM/eval-evidence/g-cinject-doctrine-candidates.json",
+      "owner": "C_inject fixture + scan at pinned commit"
+    },
+    "DOCTRINE_C_DISK": {
+      "role": "partition class DOCTRINE — doctrine on disk reachable by grep; outcome C_DISK_COPY",
+      "members": [
+        "CLAUDE.md",
+        "AGENTS.md",
+        "SOUL.md",
+        "_SYSTEM/persona.md",
+        "_SYSTEM/yuri-origin.md",
+        ".cursor/rules/sync.mdc"
+      ],
+      "members_glob": [
+        ".claude/rules/*.md"
+      ],
+      "members_declared_out_of_repo": [
+        "~/.claude/CLAUDE.md (global) — declared in source-partition-v1 as 'CLAUDE.md (global + project)'; not scanned by the repo-rooted regenerator. Counts that omit it remain a lower bound if global adds literals."
+      ],
+      "candidate_artifact": "_SYSTEM/eval-evidence/g-disk-doctrine-candidates.json",
+      "owner": "C_disk full-class literals + union/intersection with REGISTRY"
+    },
+    "DOCTRINE": {
+      "status": "RETIRED_CHANNEL_CONFLATED",
+      "retired_at": "2026-07-28T16:34:00.000Z",
+      "members_were": [
+        "CLAUDE.md",
+        "AGENTS.md",
+        ".cursor/rules/sync.mdc"
+      ],
+      "defect": "Mixed C_inject and C_disk: scanned two never-injected adapters (AGENTS.md, sync.mdc) while missing three always-injected transitive includes (SOUL.md, persona.md, yuri-origin.md). Produced the under-scoped 12-id list.",
+      "retire_reasons": [
+        "SCAN-SURFACE-MISMATCHED",
+        "CHANNEL-CONFLATED"
+      ],
+      "do_not_use": true
+    },
+    "REGISTRY": [
+      "_SYSTEM/capabilities.json",
+      "skills/skill-index.json"
+    ]
+  },
+  "match_rules": {
+    "normalization": {
+      "expect_path": "for each String(expect[i]).replace(/^\\.\\//,'') — strip leading ./ only; no other path normalization",
+      "basename": "path.basename(expect_path) including extension",
+      "surface_bytes": "readFileSync utf8 as stored on disk; no NFC/NFD normalize; no line-ending normalize"
+    },
+    "predicates": [
+      {
+        "id": "full_path",
+        "rule": "surfaceText.includes(expect_path) — case-sensitive substring",
+        "counts": true
+      },
+      {
+        "id": "basename",
+        "rule": "surfaceText.includes(basename) — case-sensitive substring",
+        "counts": true
+      }
+    ],
+    "explicitly_disabled": [
+      "stem matching (basename without extension)",
+      "case-insensitive matching",
+      "word-boundary / regex token matching",
+      "path-segment fuzzy matching",
+      "symlink realpath rewriting of expect or surface"
+    ],
+    "context_policy": "A hit counts regardless of surrounding context: comments, URLs, markdown code fences, JSON string values, and prose all count. No exclusion by AST or comment-stripping.",
+    "aggregation": "A question is a candidate if ANY enabled predicate hits on ANY present surface in the class for ANY of the question's declared expect paths. Evidence records every (expect, surface, predicate) hit with a ±40 char snippet around the first indexOf match (full_path preferred when both hit on the same surface)."
+  },
+  "outputs": {
+    "doctrine_c_disk": "_SYSTEM/eval-evidence/g-disk-doctrine-candidates.json",
+    "doctrine_c_inject": "_SYSTEM/eval-evidence/g-cinject-doctrine-candidates.json",
+    "doctrine_retired_conflated": "_SYSTEM/eval-evidence/g-injected-doctrine-candidates.json",
+    "registry": "_SYSTEM/eval-evidence/g-registry-literal-candidates.json",
+    "overlap": "_SYSTEM/eval-evidence/find40-doctrine-registry-overlap.json",
+    "must_embed": [
+      "matcher_spec_schema",
+      "matcher_spec_content_sha256",
+      "question_set_blob_sha1",
+      "per-surface content sha256 at scan time",
+      "channel (C_DISK | C_INJECT | RETIRED_CHANNEL_CONFLATED)"
+    ]
+  }
+}
