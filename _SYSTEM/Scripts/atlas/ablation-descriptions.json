@@ -12,7 +12,7 @@
     "tool_b": {
       "purpose": "Searches multiple search sources at once — full-text documents, a code graph, a mechanism registry — into one ranked list.",
       "inputs": "query (string, required); top (integer, optional, default 5 — maximum hits shown).",
-      "outputs": "A header reporting hit counts, then one ranked list of file paths; a hit shows an excerpt, its source, a confidence value.",
+      "outputs": "Plain text: a header reporting hit counts, then one ranked list of file paths; a hit shows an excerpt, its source, and a confidence value (0-1).",
       "failure_behaviour": "No matches: status OK, only the header prints, counts zero; no list."
     },
     "tool_c": {
