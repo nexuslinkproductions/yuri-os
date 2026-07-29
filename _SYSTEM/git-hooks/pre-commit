@@ -90,6 +90,9 @@ fi
 echo "[pre-commit] cached diff whitespace"
 git diff --cached --check
 
+echo "[pre-commit] manifest json validity"
+run_quiet "manifest json validity" node "$HOOK_SCRIPTS/manifest-validate.mjs"
+
 echo "[pre-commit] secret leak scan"
 node _SYSTEM/Scripts/secret-leak-scan.mjs
 
