@@ -57,10 +57,11 @@ itself.
   remote access.
 - `start.bat` — localhost-only (127.0.0.1:8000). Only relevant if Tailscale Serve is ever wired up
   (currently deferred — plain HTTP over the tailnet is live instead, see REMOTE ACCESS).
-- `start-service.bat` + `install-autostart.bat` — creates/registers the Windows Scheduled Task
-  **"CGS Cockpit"** (at startup, as SYSTEM, `/rl highest`). `install-autostart.bat` MUST be run from an
-  **elevated** shell (right-click → Run as administrator) — unelevated `/ru SYSTEM` fails "Access is
-  denied". Reboot-verified 2026-07-19: auto-starts, Tailscale up, auth still enforced.
+- `start-service.bat` — the unattended launcher (no pip, no browser, restart loop, 0.0.0.0). Since
+  2026-07-29 it is started **as `rene` at logon** from `Startup\CGS Cockpit.lnk`, not by a task.
+- `install-autostart.bat` — **DO NOT RUN AS-IS.** It registers the "CGS Cockpit" task with `/ru SYSTEM`,
+  which is exactly what breaks the CAM scan (see THE SYSTEM/SMB FOOTGUN below). The SYSTEM task was
+  deleted 2026-07-29.
 - **Frontend build**: `cd frontend && npm run build` → outputs `dist/`, which the FastAPI backend
   serves directly (no separate frontend server in normal operation).
 
@@ -90,6 +91,24 @@ no window to close manually.
 Fix: open Task Manager **as admin** → Details tab → find the `python.exe` PID listening on port 8000
 (cross-check with `netstat -ano | grep :8000`) → End Task → relaunch via `start-lan.bat` (**never**
 `start.bat` — see RUN above, binding matters).
+
+## THE SYSTEM/SMB FOOTGUN — "CAM drive not reachable" while Explorer works
+
+Recurring false alarm on the Molds page. **Never a network fault.** When the backend runs as SYSTEM (the
+old `/ru SYSTEM` scheduled task), it hits SMB as the **machine account** `HOST$`, which the CNC PC grants
+nothing → `os.path.isdir()` in `cam_index.scan()` is False forever, no matter how healthy the network is.
+Explorer works because Explorer is `rene`. Same class as the auto-push task needing `rene` for its
+per-user git credentials.
+
+- **Diagnose without admin**: `netstat -ano | grep :8000` → `Get-Process -Id <pid> | Select SessionId`.
+  **si=0 = SYSTEM = broken. si=1 = rene = correct.**
+- **Cross-check the path** from the app's own venv as rene — but build the UNC with `chr(92)`, because
+  bash mangles backslashes and hands you a false negative that looks like a genuine failure.
+- **Killing it takes two steps**: `start-service.bat` is a restart loop, so deleting the task and killing
+  the python just respawns it with a new PID every 10 s. Kill the parent `cmd.exe` running
+  `start-service.bat` FIRST, then the python — both need an elevated shell.
+- **Accepted trade-off of the logon-Startup model**: after an unattended reboot with nobody logged in,
+  the cockpit (and Tailscale remote access to it) stays down until René logs in.
 
 ## ENV QUIRKS (this Windows box specifically)
 
