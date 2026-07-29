@@ -1,0 +1,10 @@
+{
+  "id": "media-missing-on-approve",
+  "description": "a draft was approved while its media_needed is neither none nor READY",
+  "match": {
+    "action": "draft.approve",
+    "field_op": { "field": "object.media_ready", "op": "eq", "value": false }
+  },
+  "severity": "medium",
+  "score": 30
+}

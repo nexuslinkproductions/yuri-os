@@ -187,22 +187,31 @@
   /* ---------- star map ---------- */
   .voicepanel { margin-bottom: 24px; background: var(--panel2); }
   .voicepanel .vbody { font-size: 12px; color: var(--dim); white-space: pre-wrap; font-family: var(--mono); line-height: 1.7; }
-  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px; align-items: start; }
-  .pcol-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
-  .pcol-stats { display: flex; gap: 12px; font-family: var(--mono); font-size: 9px; color: var(--faint); letter-spacing: 0.08em; align-items: center; }
-  .pcol-stats .sdot { width: 6px; height: 6px; flex-basis: 6px; }
-  .nodes { display: flex; flex-direction: column; gap: 8px; }
-  .node {
-    display: flex; gap: 12px; align-items: center; text-align: left; width: 100%;
-    padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px;
-    cursor: pointer; background: var(--panel2); color: var(--text);
-    transition: border-color 150ms var(--ease), transform 150ms var(--ease), box-shadow 150ms var(--ease);
+  .starfield-wrap {
+    position: relative; height: calc(100vh - 320px); min-height: 560px;
+    border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+    background: #030409;
   }
-  .node:hover { border-color: var(--line2); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.35); }
-  .node .nbody { flex: 1; min-width: 0; }
-  .node .ntitle { display: block; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .node .nmeta { display: block; font-family: var(--mono); font-size: 10px; color: var(--faint); letter-spacing: 0.04em; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .node .nstatus { font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; flex: 0 0 auto; }
+  #starfield { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+  .sf-legend {
+    position: absolute; left: 16px; bottom: 13px; display: flex; gap: 18px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--dim); pointer-events: none; user-select: none;
+  }
+  .sf-li { display: inline-flex; align-items: center; gap: 7px; }
+  .sf-li.zero { opacity: 0.35; }
+  .sf-li i { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .sf-hint {
+    position: absolute; right: 16px; bottom: 13px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em;
+    color: var(--faint); pointer-events: none; user-select: none;
+  }
+  .sf-empty {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--faint); font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+    pointer-events: none;
+  }
+  .sf-empty[hidden] { display: none; }
 
   /* ---------- drawer ---------- */
   .scrim { position: fixed; inset: 0; background: rgba(3,4,10,0.65); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity 200ms var(--ease); z-index: 40; }
@@ -450,13 +459,18 @@
             <div class="kicker">content pipeline</div>
             <h2>Star Map</h2>
           </div>
-          <div class="vmeta">click a node to review, edit, approve</div>
+          <div class="vmeta">click a star to review, edit, approve</div>
         </header>
         <div class="panel voicepanel">
           <div class="phead"><span class="kicker">voice reference, verified posts corpus</span></div>
           <div class="vbody" id="voicebody">loading</div>
         </div>
-        <div class="cols" id="starmap-cols"></div>
+        <div class="starfield-wrap" id="starfield-wrap">
+          <canvas id="starfield"></canvas>
+          <div class="sf-legend" id="sf-legend"></div>
+          <div class="sf-hint">drag to pan · scroll to zoom · double-click to reset</div>
+          <div class="sf-empty" id="sf-empty" hidden>no drafts in the inbox</div>
+        </div>
       </section>
 
       <section class="view" id="view-intel">
@@ -710,8 +724,10 @@ function drawSweep(dt) {
 
 let lastT = performance.now();
 function animLoop(t) {
-  drawSweep(t - lastT);
+  const dt = t - lastT;
   lastT = t;
+  drawSweep(dt);
+  sfFrame(dt, t);
   requestAnimationFrame(animLoop);
 }
 requestAnimationFrame(animLoop);
@@ -736,45 +752,497 @@ function renderRadar() {
   ).join('') || '<div class="empty">no items in sweep</div>';
 }
 
-/* ---------- star map ---------- */
+/* ---------- star map: constellation field ---------- */
 const PLATFORM_ORDER = ['threads', 'linkedin'];
 const STATUSES = ['draft', 'approved', 'rejected', 'posted'];
+const SF_STYLE = {
+  draft:    { rgb: '113,128,156', alpha: 0.72, glow: 0 },
+  approved: { rgb: '0,200,240',   alpha: 1,    glow: 1 },
+  rejected: { rgb: '158,82,94',   alpha: 0.78, glow: 0 },
+  posted:   { rgb: '232,180,74',  alpha: 1,    glow: 0.75 },
+};
 
 function firstLine(body) {
   const line = String(body || '').split('\n').find(l => l.trim());
   return line ? (line.length > 96 ? line.slice(0, 96) + '...' : line) : '(empty draft)';
 }
 
-function renderStarMap() {
-  const byPlat = {};
-  for (const d of state.drafts) (byPlat[d.platform] || (byPlat[d.platform] = [])).push(d);
-  const plats = [...PLATFORM_ORDER, ...Object.keys(byPlat).filter(p => !PLATFORM_ORDER.includes(p))].filter(p => byPlat[p]);
-  $('#starmap-cols').innerHTML = plats.map(plat => {
-    const list = byPlat[plat];
-    const counts = STATUSES.map(s => [s, list.filter(d => d.status === s).length]).filter(([, n]) => n > 0);
-    return `<div class="panel pcol">
-      <div class="pcol-head">
-        <span class="kicker">${esc(plat)}</span>
-        <span class="pcol-stats">${counts.map(([s, n]) => `<span class="sdot ${s}"></span>${n} ${s}`).join('')}</span>
-      </div>
-      <div class="nodes" data-plat="${esc(plat)}">
-        ${list.map(d => `
-          <button class="node" data-id="${esc(d.id)}">
-            <span class="sdot ${esc(d.status)}"></span>
-            <span class="nbody">
-              <span class="ntitle">${esc(firstLine(d.body))}</span>
-              <span class="nmeta">${esc(d.date)} · ${esc(d.pillar || 'no pillar')} · ${d.chars} chars</span>
-            </span>
-            <span class="nstatus stxt ${esc(d.status)}">${esc(d.status)}</span>
-          </button>`).join('')}
-      </div>
-    </div>`;
-  }).join('') || '<div class="panel"><div class="empty">no drafts in the inbox</div></div>';
+function sfHash(s) {
+  let h = 2166136261;
+  for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
+  return ((h >>> 0) % 100000) / 100000;
 }
-$('#starmap-cols').addEventListener('click', (e) => {
-  const node = e.target.closest('.node');
-  if (node) openDraft(node.dataset.id);
-});
+
+const SF = {
+  wrap: null, cv: null, ctx: null,
+  w: 0, h: 0, dpr: 1,
+  cam: { x: 0, y: 0, zoom: 1 },
+  camHome: { x: 0, y: 0, zoom: 1 },
+  camAnim: null,
+  touched: false,
+  stars: [], clusters: [],
+  bgFar: [], bgNear: [],
+  hoverId: null,
+  pointer: { x: -1, y: -1, down: false, dragged: false, sx: 0, sy: 0, camX: 0, camY: 0 },
+  shooting: null, nextShoot: 0,
+  reduce: false, mq: null,
+  bgGrad: null, vigGrad: null, noisePat: null,
+};
+
+/* Semantic layout: one cluster per platform (threads left, linkedin right),
+   pillar sets the angle around the cluster center, index+chars set radius/size. */
+function sfBuildStars() {
+  const prev = new Map(SF.stars.map(s => [s.id, s]));
+  const byPlat = {};
+  for (const d of state.drafts) {
+    const p = d.platform || 'unknown';
+    (byPlat[p] || (byPlat[p] = [])).push(d);
+  }
+  const plats = Object.keys(byPlat).sort((a, b) => {
+    const ia = PLATFORM_ORDER.indexOf(a), ib = PLATFORM_ORDER.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+  });
+  SF.clusters = plats.map((p, i) => {
+    let x;
+    if (p === 'threads') x = -430;
+    else if (p === 'linkedin') x = 430;
+    else x = -430 + i * 860;
+    return { platform: p, x, y: 0 };
+  });
+  const stars = [];
+  for (const cl of SF.clusters) {
+    const list = byPlat[cl.platform].slice().sort((a, b) => a.id.localeCompare(b.id));
+    const pillars = [...new Set(list.map(d => d.pillar || 'none'))].sort();
+    const angOf = {};
+    pillars.forEach((p, i) => { angOf[p] = -Math.PI / 2 + (i * Math.PI * 2) / pillars.length; });
+    const perPillar = {};
+    for (const d of list) {
+      const pillar = d.pillar || 'none';
+      const idx = perPillar[pillar] || 0;
+      perPillar[pillar] = idx + 1;
+      const h1 = sfHash(d.id), h2 = sfHash(d.id + '~2');
+      const ang = angOf[pillar] + (h1 - 0.5) * 0.24;
+      const rad = 92 + idx * 58 + h2 * 22;
+      const old = prev.get(d.id);
+      stars.push({
+        id: d.id, d, cluster: cl, group: cl.platform + '|' + pillar,
+        ang, rad,
+        wx: cl.x + Math.cos(ang) * rad,
+        wy: cl.y + Math.sin(ang) * rad,
+        outx: Math.cos(ang), outy: Math.sin(ang),
+        r: 1.7 + Math.min(3.1, (d.chars || 0) / 1100),
+        phase: old ? old.phase : h2 * Math.PI * 2,
+        status: d.status,
+      });
+    }
+  }
+  for (const s of stars) { s.cx = s.wx; s.cy = s.wy; }
+  SF.stars = stars;
+}
+
+function sfFitHome() {
+  if (!SF.stars.length || !SF.w || !SF.h) return;
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const s of SF.stars) {
+    minX = Math.min(minX, s.wx); maxX = Math.max(maxX, s.wx);
+    minY = Math.min(minY, s.wy); maxY = Math.max(maxY, s.wy);
+  }
+  const pad = 170;
+  const bw = Math.max(1, maxX - minX + pad * 2);
+  const bh = Math.max(1, maxY - minY + pad * 2);
+  const zoom = Math.min(2.5, Math.max(0.5, Math.min(SF.w / bw, SF.h / bh)));
+  SF.camHome = { x: (minX + maxX) / 2, y: (minY + maxY) / 2, zoom };
+  if (!SF.touched) SF.cam = { ...SF.camHome };
+}
+
+function sfSize() {
+  const w = Math.floor(SF.wrap.clientWidth), h = Math.floor(SF.wrap.clientHeight);
+  if (!w || !h) return;
+  const dpr = window.devicePixelRatio || 1;
+  if (w === SF.w && h === SF.h && dpr === SF.dpr) return;
+  const bg = SF.ctx.createRadialGradient(w / 2, h * 0.44, 0, w / 2, h / 2, Math.hypot(w, h) * 0.62);
+  bg.addColorStop(0, '#05060e');
+  bg.addColorStop(0.55, '#04050c');
+  bg.addColorStop(1, '#010209');
+  const vig = SF.ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.38, w / 2, h / 2, Math.hypot(w, h) * 0.66);
+  vig.addColorStop(0, 'rgba(1,2,9,0)');
+  vig.addColorStop(1, 'rgba(1,2,9,0.55)');
+  SF.bgGrad = bg;
+  SF.vigGrad = vig;
+  SF.w = w; SF.h = h; SF.dpr = dpr;
+  SF.cv.width = Math.round(w * dpr);
+  SF.cv.height = Math.round(h * dpr);
+  SF.cv.style.width = w + 'px';
+  SF.cv.style.height = h + 'px';
+  sfSeedBg();
+  sfFitHome();
+}
+
+function sfSeedBg() {
+  const mk = (n, aMin, aMax, rMax) => Array.from({ length: n }, () => ({
+    x: Math.random() * (SF.w + 240) - 120,
+    y: Math.random() * (SF.h + 240) - 120,
+    r: 0.4 + Math.random() * rMax,
+    a: aMin + Math.random() * (aMax - aMin),
+    ph: Math.random() * Math.PI * 2,
+    tw: 0.00025 + Math.random() * 0.0006,
+  }));
+  SF.bgFar = mk(Math.round((SF.w * SF.h) / 12000), 0.05, 0.16, 0.4);
+  SF.bgNear = mk(Math.round((SF.w * SF.h) / 20000), 0.08, 0.3, 0.8);
+}
+
+function sfHit(sx, sy) {
+  const p = {
+    x: SF.cam.x + (sx - SF.w / 2) / SF.cam.zoom,
+    y: SF.cam.y + (sy - SF.h / 2) / SF.cam.zoom,
+  };
+  let best = null, bd = 13 / SF.cam.zoom;
+  for (const s of SF.stars) {
+    const dist = Math.hypot(s.cx - p.x, s.cy - p.y) - s.r;
+    if (dist < bd) { bd = dist; best = s; }
+  }
+  return best;
+}
+
+function sfFly(to, dur) {
+  SF.camAnim = { from: { ...SF.cam }, to, t0: performance.now(), dur: SF.reduce ? 0 : dur };
+}
+
+function sfUpdateHover() {
+  if (SF.pointer.x < 0) { SF.hoverId = null; return; }
+  if (SF.pointer.down) return;
+  const hit = sfHit(SF.pointer.x, SF.pointer.y);
+  SF.hoverId = hit ? hit.id : null;
+  SF.cv.style.cursor = hit ? 'pointer' : 'grab';
+}
+
+function sfComputePositions(t) {
+  for (const s of SF.stars) {
+    let ox = 0, oy = 0;
+    if (!SF.reduce) {
+      ox = Math.sin(t * 0.00042 + s.phase) * 2.6;
+      oy = Math.cos(t * 0.00035 + s.phase * 1.7) * 2.6;
+      if (s.status === 'rejected') {
+        const cyc = (t * 0.000018 + s.phase * 0.17) % 2;
+        const tri = cyc < 1 ? cyc : 2 - cyc;
+        ox += s.outx * tri * 30;
+        oy += s.outy * tri * 30;
+      }
+    }
+    s.cx = s.wx + ox;
+    s.cy = s.wy + oy;
+  }
+}
+
+function sfDrawBgStars(layer, par, t) {
+  const { ctx, w, h, cam } = SF;
+  const m = 120, W = w + 2 * m, H = h + 2 * m;
+  const drift = SF.reduce ? 0 : t * 0.0016 * par;
+  const offX = -cam.x * par + drift;
+  const offY = -cam.y * par;
+  ctx.fillStyle = '#b8c6de';
+  for (const s of layer) {
+    let x = (s.x + offX) % W; if (x < 0) x += W; x -= m;
+    let y = (s.y + offY) % H; if (y < 0) y += H; y -= m;
+    let a = s.a;
+    if (!SF.reduce) a *= 0.72 + 0.28 * Math.sin(t * s.tw + s.ph);
+    ctx.globalAlpha = Math.max(0, a);
+    ctx.fillRect(x, y, s.r, s.r);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function sfDrawLines() {
+  const { ctx, cam } = SF;
+  const groups = new Map();
+  for (const s of SF.stars) {
+    const arr = groups.get(s.group) || [];
+    arr.push(s);
+    groups.set(s.group, arr);
+  }
+  ctx.lineWidth = 0.5 / cam.zoom;
+  for (const arr of groups.values()) {
+    if (arr.length < 2) continue;
+    arr.sort((a, b) => a.ang - b.ang || a.rad - b.rad);
+    const hot = arr.some(s => s.id === SF.hoverId);
+    ctx.strokeStyle = hot ? 'rgba(160,182,218,0.25)' : 'rgba(160,182,218,0.08)';
+    ctx.beginPath();
+    ctx.moveTo(arr[0].cx, arr[0].cy);
+    for (let i = 1; i < arr.length; i++) ctx.lineTo(arr[i].cx, arr[i].cy);
+    ctx.stroke();
+  }
+}
+
+function sfDrawStars(t) {
+  const { ctx, cam } = SF;
+  const drawerId = state.drawer && state.drawer.id;
+  for (const s of SF.stars) {
+    const st = SF_STYLE[s.status] || SF_STYLE.draft;
+    let alpha = st.alpha, r = s.r, glow = st.glow;
+    if (s.status === 'approved' && !SF.reduce) {
+      const p = 0.5 + 0.5 * Math.sin(t * 0.0015 + s.phase);
+      glow *= 0.65 + 0.55 * p;
+      r *= 1 + 0.14 * p;
+    }
+    const hovered = s.id === SF.hoverId;
+    if (hovered) { alpha = 1; r *= 1.4; glow = Math.max(glow, 0.55); }
+    if (glow > 0) {
+      const gr = r * 7;
+      const g = ctx.createRadialGradient(s.cx, s.cy, 0, s.cx, s.cy, gr);
+      g.addColorStop(0, `rgba(${st.rgb},${(0.32 * glow).toFixed(3)})`);
+      g.addColorStop(0.4, `rgba(${st.rgb},${(0.1 * glow).toFixed(3)})`);
+      g.addColorStop(1, `rgba(${st.rgb},0)`);
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(s.cx, s.cy, gr, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = `rgba(${st.rgb},${alpha})`;
+    ctx.beginPath(); ctx.arc(s.cx, s.cy, r, 0, Math.PI * 2); ctx.fill();
+    if (st.glow > 0) {
+      ctx.fillStyle = `rgba(255,255,255,${(0.55 * alpha).toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(s.cx, s.cy, Math.max(0.6, r * 0.38), 0, Math.PI * 2); ctx.fill();
+    }
+    if (drawerId === s.id) {
+      ctx.strokeStyle = 'rgba(219,229,244,0.5)';
+      ctx.lineWidth = 0.75 / cam.zoom;
+      ctx.beginPath(); ctx.arc(s.cx, s.cy, r + 5 / cam.zoom, 0, Math.PI * 2); ctx.stroke();
+    }
+  }
+}
+
+function sfDrawClusterLabels() {
+  const { ctx, cam, w, h } = SF;
+  ctx.font = '500 9px "SF Mono", ui-monospace, Menlo, monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(132,148,173,0.42)';
+  for (const cl of SF.clusters) {
+    let maxR = 120;
+    for (const s of SF.stars) if (s.cluster === cl) maxR = Math.max(maxR, s.rad + 40);
+    const sx = w / 2 + (cl.x - cam.x) * cam.zoom;
+    const sy = h / 2 + (cl.y - maxR - 34 - cam.y) * cam.zoom;
+    if (sx < -80 || sx > w + 80 || sy < -20 || sy > h + 20) continue;
+    ctx.fillText(cl.platform.toUpperCase().split('').join(' '), sx, sy);
+  }
+}
+
+function sfDrawShooting(t) {
+  const { ctx, w, h } = SF;
+  if (SF.reduce) return;
+  if (!SF.shooting && t > SF.nextShoot) {
+    SF.shooting = {
+      x: w * (0.15 + Math.random() * 0.7),
+      y: h * (0.06 + Math.random() * 0.3),
+      ang: Math.PI * (0.1 + Math.random() * 0.14),
+      t0: t,
+      life: 700 + Math.random() * 400,
+      len: 80 + Math.random() * 70,
+      dist: 320 + Math.random() * 260,
+    };
+  }
+  const s = SF.shooting;
+  if (!s) return;
+  const k = (t - s.t0) / s.life;
+  if (k >= 1) {
+    SF.shooting = null;
+    SF.nextShoot = t + 12000 + Math.random() * 20000;
+    return;
+  }
+  const fade = Math.sin(k * Math.PI);
+  const hx = s.x + Math.cos(s.ang) * s.dist * k;
+  const hy = s.y + Math.sin(s.ang) * s.dist * k;
+  const tx = hx - Math.cos(s.ang) * s.len;
+  const ty = hy - Math.sin(s.ang) * s.len;
+  const g = ctx.createLinearGradient(tx, ty, hx, hy);
+  g.addColorStop(0, 'rgba(200,214,236,0)');
+  g.addColorStop(1, `rgba(200,214,236,${(0.4 * fade).toFixed(3)})`);
+  ctx.strokeStyle = g;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(hx, hy);
+  ctx.stroke();
+}
+
+function sfDrawHover() {
+  const s = SF.stars.find(x => x.id === SF.hoverId);
+  if (!s) return;
+  const { ctx, cam, w, h } = SF;
+  const z = cam.zoom;
+  const sx = w / 2 + (s.cx - cam.x) * z;
+  const sy = h / 2 + (s.cy - cam.y) * z;
+  const r = s.r * z * 1.4;
+  let title = firstLine(s.d.body);
+  if (title.length > 62) title = title.slice(0, 62) + '...';
+  const meta = (s.d.platform + ' · ' + (s.d.pillar || 'no pillar') + ' · ' + s.d.status).toUpperCase();
+  const left = sx > w - 330;
+  const below = sy < 110;
+  const tx = left ? sx - r - 18 : sx + r + 18;
+  const ty = below ? sy + r + 28 : sy - 20;
+  ctx.save();
+  ctx.shadowColor = 'rgba(2,3,8,0.9)';
+  ctx.shadowBlur = 8;
+  ctx.strokeStyle = 'rgba(150,170,205,0.4)';
+  ctx.lineWidth = 0.75;
+  ctx.beginPath();
+  ctx.moveTo(sx + (left ? -r - 2 : r + 2), sy - 2);
+  ctx.lineTo(tx + (left ? 4 : -4), ty + 3);
+  ctx.stroke();
+  ctx.textAlign = left ? 'right' : 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.font = '11px "SF Mono", ui-monospace, Menlo, monospace';
+  ctx.fillStyle = 'rgba(219,229,244,0.96)';
+  ctx.fillText(title, tx, ty);
+  ctx.font = '8.5px "SF Mono", ui-monospace, Menlo, monospace';
+  ctx.fillStyle = 'rgba(132,148,173,0.85)';
+  ctx.fillText(meta, tx, ty + 14);
+  ctx.restore();
+}
+
+function sfFrame(dt, t) {
+  if (!SF.cv || !SF.w || !SF.h || !SF.bgGrad) return;
+  if (!$('#view-starmap').classList.contains('active')) return;
+  const { ctx, dpr, w, h, cam } = SF;
+  if (SF.camAnim) {
+    const a = SF.camAnim;
+    const k = a.dur ? Math.min(1, (t - a.t0) / a.dur) : 1;
+    const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    cam.x = a.from.x + (a.to.x - a.from.x) * e;
+    cam.y = a.from.y + (a.to.y - a.from.y) * e;
+    cam.zoom = a.from.zoom + (a.to.zoom - a.from.zoom) * e;
+    if (k >= 1) SF.camAnim = null;
+  }
+  sfUpdateHover();
+  sfComputePositions(t);
+  const z = cam.zoom;
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = SF.bgGrad;
+  ctx.fillRect(0, 0, w, h);
+  sfDrawBgStars(SF.bgFar, 0.1, t);
+  sfDrawBgStars(SF.bgNear, 0.28, t);
+
+  ctx.setTransform(dpr * z, 0, 0, dpr * z, dpr * (w / 2 - cam.x * z), dpr * (h / 2 - cam.y * z));
+  sfDrawLines();
+  sfDrawStars(t);
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  sfDrawShooting(t);
+  sfDrawClusterLabels();
+  sfDrawHover();
+
+  ctx.globalAlpha = 0.05;
+  ctx.fillStyle = SF.noisePat;
+  ctx.fillRect(0, 0, w, h);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = SF.vigGrad;
+  ctx.fillRect(0, 0, w, h);
+}
+
+function sfRenderLegend() {
+  const counts = {};
+  for (const s of STATUSES) counts[s] = 0;
+  for (const d of state.drafts) counts[d.status] = (counts[d.status] || 0) + 1;
+  $('#sf-legend').innerHTML = STATUSES.map(s => {
+    const st = SF_STYLE[s];
+    const glow = st.glow ? `;box-shadow:0 0 6px rgba(${st.rgb},0.7)` : '';
+    return `<span class="sf-li${counts[s] ? '' : ' zero'}"><i style="background:rgb(${st.rgb})${glow}"></i>${s} ${counts[s]}</span>`;
+  }).join('');
+}
+
+function renderStarMap() {
+  sfBuildStars();
+  sfFitHome();
+  sfRenderLegend();
+  $('#sf-empty').hidden = SF.stars.length > 0;
+}
+
+function sfInit() {
+  SF.wrap = $('#starfield-wrap');
+  SF.cv = $('#starfield');
+  SF.ctx = SF.cv.getContext('2d');
+  SF.mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  SF.reduce = SF.mq.matches;
+  SF.mq.addEventListener('change', () => { SF.reduce = SF.mq.matches; });
+
+  const nz = document.createElement('canvas');
+  nz.width = nz.height = 140;
+  const nctx = nz.getContext('2d');
+  const img = nctx.createImageData(140, 140);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = (Math.random() * 255) | 0;
+    img.data[i] = v; img.data[i + 1] = v; img.data[i + 2] = v; img.data[i + 3] = 255;
+  }
+  nctx.putImageData(img, 0, 0);
+  SF.noisePat = SF.ctx.createPattern(nz, 'repeat');
+
+  new ResizeObserver(() => requestAnimationFrame(sfSize)).observe(SF.wrap);
+
+  SF.cv.addEventListener('pointerdown', (e) => {
+    SF.camAnim = null;
+    SF.pointer.down = true;
+    SF.pointer.dragged = false;
+    SF.pointer.sx = e.clientX; SF.pointer.sy = e.clientY;
+    SF.pointer.camX = SF.cam.x; SF.pointer.camY = SF.cam.y;
+    SF.cv.setPointerCapture(e.pointerId);
+    SF.cv.style.cursor = 'grabbing';
+  });
+  SF.cv.addEventListener('pointermove', (e) => {
+    const rect = SF.cv.getBoundingClientRect();
+    SF.pointer.x = e.clientX - rect.left;
+    SF.pointer.y = e.clientY - rect.top;
+    if (!SF.pointer.down) return;
+    const dx = e.clientX - SF.pointer.sx, dy = e.clientY - SF.pointer.sy;
+    if (!SF.pointer.dragged && Math.hypot(dx, dy) > 4) SF.pointer.dragged = true;
+    if (SF.pointer.dragged) {
+      SF.touched = true;
+      SF.cam.x = SF.pointer.camX - dx / SF.cam.zoom;
+      SF.cam.y = SF.pointer.camY - dy / SF.cam.zoom;
+    }
+  });
+  SF.cv.addEventListener('pointerup', (e) => {
+    SF.cv.style.cursor = 'grab';
+    const wasDrag = SF.pointer.dragged;
+    SF.pointer.down = false;
+    SF.pointer.dragged = false;
+    if (wasDrag) return;
+    const rect = SF.cv.getBoundingClientRect();
+    const hit = sfHit(e.clientX - rect.left, e.clientY - rect.top);
+    if (hit) {
+      SF.touched = true;
+      sfFly({ x: hit.wx, y: hit.wy, zoom: SF.cam.zoom }, 420);
+      openDraft(hit.id);
+    }
+  });
+  SF.cv.addEventListener('pointerleave', () => {
+    SF.pointer.x = -1; SF.pointer.y = -1;
+    SF.hoverId = null;
+  });
+  SF.cv.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    if (!SF.w) return;
+    SF.camAnim = null;
+    SF.touched = true;
+    const rect = SF.cv.getBoundingClientRect();
+    const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+    const k = Math.exp(-e.deltaY * 0.0012);
+    const nz2 = Math.min(2.5, Math.max(0.5, SF.cam.zoom * k));
+    const wx = SF.cam.x + (sx - SF.w / 2) / SF.cam.zoom;
+    const wy = SF.cam.y + (sy - SF.h / 2) / SF.cam.zoom;
+    SF.cam.zoom = nz2;
+    SF.cam.x = wx - (sx - SF.w / 2) / nz2;
+    SF.cam.y = wy - (sy - SF.h / 2) / nz2;
+  }, { passive: false });
+  SF.cv.addEventListener('dblclick', (e) => {
+    const rect = SF.cv.getBoundingClientRect();
+    if (sfHit(e.clientX - rect.left, e.clientY - rect.top)) return;
+    SF.touched = false;
+    sfFitHome();
+    sfFly({ ...SF.camHome }, 480);
+  });
+
+  SF.nextShoot = performance.now() + 8000;
+}
+sfInit();
 
 /* ---------- platform mocks ---------- */
 function threadsMock(d, { media = true } = {}) {

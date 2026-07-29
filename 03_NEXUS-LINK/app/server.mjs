@@ -5,6 +5,10 @@ import http from 'node:http';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { store } from './backend/store.mjs';
+import { policy } from './backend/policy.mjs';
+import { alerts } from './backend/alerts.mjs';
+import './backend/rules.mjs'; // subscribes the detection engine to the policy gate
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -207,6 +211,38 @@ function rebuildWithFrontmatter(parts, fmMutate) {
   const fmLines = fmMutate([...parts.fmLines]);
   const rest = lines.slice(seps[1] + 1);
   return ['---', ...fmLines, '---', ...rest].join('\n');
+}
+
+// ---------- backend spine helpers ----------
+//
+// Every mutation goes through policy.authorize() BEFORE touching the file,
+// and every successful mutation re-indexes the draft into the object store
+// (file = text truth, store = graph truth). Indexing is best-effort: a store
+// hiccup never breaks an endpoint; a policy deny always does (403).
+
+async function indexDraftFromDisk(id) {
+  try {
+    const resolved = resolveDraft(id);
+    if (!resolved) return;
+    const raw = await fs.readFile(resolved, 'utf8');
+    const parts = splitDraft(raw);
+    if (!parts) return;
+    const fm = parseFrontmatter(parts.fmLines);
+    const tail = parseTail(parts.tail);
+    store.indexDraft(id, { ...fm, infographic: tail.infographic, media_needed: tail.media_needed }, parts.body);
+  } catch (err) {
+    console.error('[nexus store] indexDraft failed for', id, err.message);
+  }
+}
+
+async function gated(req, res, action, args) {
+  await indexDraftFromDisk(args.id);
+  const auth = policy.authorize('dashboard', action, args);
+  if (auth.decision !== 'allow') {
+    sendErr(res, 403, auth.reason);
+    return false;
+  }
+  return true;
 }
 
 // ---------- API handlers ----------
@@ -496,20 +532,25 @@ async function serveMedia(res, pathname) {
 async function apiDraftEdit(req, res) {
   const { id, body } = await readBody(req);
   if (typeof body !== 'string' || !body.trim()) return sendErr(res, 400, 'body_required');
+  if (!(await gated(req, res, 'draft.edit', { id }))) return;
   const out = await mutateDraft(id, (parts) => ({
     raw: rebuildWithBody(parts, body),
     draft: { id, chars: body.trim().length },
   }));
   if (out.error) return sendErr(res, out.code, out.error);
+  await indexDraftFromDisk(id);
   sendJson(res, 200, { ok: true, id, chars: out.draft.chars });
 }
 
 async function apiDraftApprove(req, res) {
   const { id } = await readBody(req);
+  if (!(await gated(req, res, 'draft.approve', { id }))) return;
   const out = await mutateDraft(id, (parts) => ({
     raw: rebuildWithFrontmatter(parts, (fm) => fm.map(l => /^status:/.test(l) ? 'status: approved' : l)),
   }));
   if (out.error) return sendErr(res, out.code, out.error);
+  store.relate(id, 'marcel', 'approved-by');
+  await indexDraftFromDisk(id);
   sendJson(res, 200, { ok: true, id, status: 'approved' });
 }
 
@@ -517,6 +558,7 @@ async function apiDraftDisapprove(req, res) {
   const { id, note } = await readBody(req);
   const safeNote = String(note || '').replace(/[\r\n]+/g, ' ').trim();
   if (!safeNote) return sendErr(res, 400, 'note_required');
+  if (!(await gated(req, res, 'draft.disapprove', { id }))) return;
   const out = await mutateDraft(id, (parts) => ({
     raw: rebuildWithFrontmatter(parts, (fm) => {
       const next = fm.map(l => /^status:/.test(l) ? 'status: rejected' : l)
@@ -526,6 +568,8 @@ async function apiDraftDisapprove(req, res) {
     }),
   }));
   if (out.error) return sendErr(res, out.code, out.error);
+  store.unrelate(id, 'marcel', 'approved-by');
+  await indexDraftFromDisk(id);
   sendJson(res, 200, { ok: true, id, status: 'rejected' });
 }
 
@@ -541,6 +585,7 @@ async function apiQueuePosted(req, res) {
   const drafts = await listDrafts();
   const draft = drafts.find(d => d.id === id);
   if (!draft) return sendErr(res, 404, 'draft_not_found');
+  if (!(await gated(req, res, 'post.execute', { id, permalink: permalink.trim() }))) return;
   const out = await mutateDraft(id, (parts) => ({
     raw: rebuildWithFrontmatter(parts, (fm) => fm.map(l => /^status:/.test(l) ? 'status: posted' : l)),
   }));
@@ -548,6 +593,7 @@ async function apiQueuePosted(req, res) {
   const entry = { ts: new Date().toISOString(), platform: draft.platform, file: id, permalink: permalink.trim() };
   await fs.mkdir(CONTENT_ENGINE, { recursive: true });
   await fs.appendFile(LEDGER_PATH, JSON.stringify(entry) + '\n', 'utf8');
+  await indexDraftFromDisk(id);
   sendJson(res, 200, { ok: true, entry });
 }
 
@@ -616,6 +662,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && p === '/api/voice') return await apiVoice(res);
     if (req.method === 'GET' && p === '/api/benchmarks') return await apiBenchmarks(res);
     if (req.method === 'GET' && p === '/api/connections') return await apiConnections(res);
+    if (req.method === 'GET' && p === '/api/alerts') return sendJson(res, 200, alerts.getBanner());
 
     if (p.startsWith('/api/')) return sendErr(res, 404, 'not_found');
     sendErr(res, 404, 'not_found');

@@ -1,0 +1,7 @@
+{
+  "id": "post-attempt-unapproved",
+  "description": "post.execute was denied — someone tried to post a draft that is not approved",
+  "match": { "action": "post.execute", "decision": "deny" },
+  "severity": "high",
+  "score": 40
+}

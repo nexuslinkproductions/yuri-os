@@ -17,6 +17,9 @@ import { createServer } from "node:http";
 import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync, appendFileSync, renameSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { store } from "./backend/store.mjs";
+import { policy } from "./backend/policy.mjs";
+import "./backend/rules.mjs"; // subscribes the detection engine to the policy gate
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const DRAFTS = join(ROOT, "00_COMMAND-CENTER", "Inbox", "content-drafts");
@@ -76,6 +79,21 @@ function setStatus(id, status, extra = {}) {
   return d;
 }
 
+// ── backend spine helpers ───────────────────────────────────────────────────
+// MCP verbs share the dashboard's policy gate (actor "mcp"). The store stays
+// synced from the on-disk draft file: file = text truth, store = graph truth.
+function tailField(tail, key) {
+  return (String(tail || "").match(new RegExp(key + ":\\s*(.+)")) || [])[1] || "";
+}
+
+function indexParsedDraft(d) {
+  try {
+    store.indexDraft(d.id, { ...d.frontmatter, media_needed: tailField(d.tail, "media_needed") }, d.body);
+  } catch (err) {
+    console.error("[nexus store] indexDraft failed for", d.id, err.message);
+  }
+}
+
 // ── the 7 curated verbs ─────────────────────────────────────────────────────
 const verbs = {
   draft: {
@@ -91,9 +109,13 @@ const verbs = {
       required: ["platform", "body"],
     },
     run({ platform, body, pillar = "", source_signal = "social-mcp" }) {
+      const auth = policy.authorize("mcp", "draft.edit", { platform, op: "create" });
+      if (auth.decision !== "allow") return { error: "policy_denied", reason: auth.reason };
       const slug = body.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "draft";
       const id = `${today()}/${platform}-${slug}.md`;
       writeDraft(id, { platform, pillar, status: "draft", source_signal, created: today() }, body, null);
+      const d = readDraft(id);
+      if (d) indexParsedDraft(d);
       return { id, status: "draft" };
     },
   },
@@ -107,7 +129,16 @@ const verbs = {
     },
     run({ id, at }) {
       if (Number.isNaN(Date.parse(at))) return { error: "invalid_timestamp" };
+      const before = readDraft(id);
+      if (!before) return { error: "draft_not_found" };
+      indexParsedDraft(before); // sync graph truth before the gate evaluates it
+      const auth = policy.authorize("mcp", "draft.approve", { id, at });
+      if (auth.decision !== "allow") return { error: "policy_denied", reason: auth.reason };
       const d = setStatus(id, "approved", { scheduled_at: at });
+      if (d) {
+        store.relate(id, "mcp", "approved-by");
+        indexParsedDraft(d);
+      }
       return d ? { id, status: "approved", scheduled_at: at } : { error: "draft_not_found" };
     },
   },
@@ -122,7 +153,9 @@ const verbs = {
     run({ id }) {
       const d = readDraft(id);
       if (!d) return { error: "draft_not_found" };
-      if (d.frontmatter.status !== "approved") {
+      indexParsedDraft(d); // sync graph truth before the gate evaluates it
+      const auth = policy.authorize("mcp", "post.execute", { id });
+      if (auth.decision !== "allow") {
         return { error: "not_approved", status: d.frontmatter.status, note: "post_now requires status: approved. Use schedule() or have Marcel approve in the star map." };
       }
       return {
@@ -184,9 +217,13 @@ const verbs = {
       required: ["platform", "to_url", "body"],
     },
     run({ platform, to_url, body }) {
+      const auth = policy.authorize("mcp", "draft.edit", { platform, op: "reply", to_url });
+      if (auth.decision !== "allow") return { error: "policy_denied", reason: auth.reason };
       const slug = `reply-${Date.now().toString(36)}`;
       const id = `${today()}/${platform}-${slug}.md`;
       writeDraft(id, { platform, pillar: "engagement", status: "draft", source_signal: "social-mcp", created: today(), reply_to: to_url }, body, null);
+      const d = readDraft(id);
+      if (d) indexParsedDraft(d);
       return { id, status: "draft", reply_to: to_url };
     },
   },
