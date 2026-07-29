@@ -49,6 +49,42 @@ the source mesh untouched.
    (live: seed 0.1795 landed 122,499, one face off the 122,500 aim).
 6. **Apply** — bake the modifier into real mesh data, then read the true final `len(mesh.polygons)` and a
    manifold check (non-manifold + boundary edge counts) as evidence.
+7. **Clean up the debris** (`cleanup=True`, on by default) — Degenerate Dissolve + Delete Loose
+   (faces **and** edges **and** verts) via bmesh, then re-count islands. See below; this is not optional.
+
+## Post-collapse cleanup — MANDATORY, not cosmetic
+
+**A collapse decimate leaves zero-area faces and detached slivers. They are not harmless.**
+
+Measured 2026-07-29 on `SIG_P226_TLR-1-1S-1-HL_OWB_RH_MOLD.stl` (FreeCADCmd 1.1, i7-14700K). The decimate
+left a **2-facet zero-area sliver, 0.01 × 0.00 × 0.02 mm**, detached from the body. FreeCAD read the export
+as **2 components**, and `Part.Shell(shape.Faces)` — the exact call behind the Part workbench's
+*Convert to Solid* — behaved like this:
+
+| mesh | facets | components | `Part.Shell(faces)` |
+|---|---|---|---|
+| dirty (sliver present) | 128,982 | 2 | **>600s, killed**, ~900k `<ElementMap> unresolved duplicate element mapping` lines |
+| cleaned | 103,184 | 1 | **118.3s**, valid closed solid |
+
+FreeCAD 1.x topological naming thrashes on degenerate faces. **One zero-area triangle cost a ten-minute
+hang** in the downstream CAM pipeline, and it looked like a face-count problem — it was not. Volume across
+the two decimations moved by 0.0007% (916,436.44 → 916,429.69 mm³), so the face count was never the issue.
+
+The engine now does this automatically after Apply. The manual equivalent, for a mesh decimated outside
+this skill:
+
+```
+Edit Mode -> A (select all)
+Mesh > Clean Up > Degenerate Dissolve   (F9 -> Merge Distance 0.02, units = mm)
+Mesh > Clean Up > Delete Loose          (F9 -> Vertices + Edges + Faces, ALL THREE)
+```
+
+**Faces must be ticked** — an isolated triangle is loose *geometry* but not a loose vert or edge, so the
+default two-box Delete Loose misses it entirely.
+
+`cleanup_debris(obj, merge_distance=None)` is also exported standalone for a mesh that was decimated
+elsewhere. `merge_distance=None` derives `1e-4 × bbox diagonal`, so it is scale-relative and behaves the
+same in a mm or m scene. Implemented in bmesh (no edit-mode ops) so it is headless-safe.
 
 **Face-count readback — depsgraph, never `modifier.face_count`.** The ratio solve reads the post-modifier
 count by evaluating the depsgraph and counting the evaluated mesh's polygons **without applying**
@@ -68,19 +104,24 @@ obj, s = decimate_object("PDP STEEL FRAME SOLID GUN")
 obj, s = decimate_object(name, in_place=True)    # decimate the object's OWN mesh (no copy)
 obj, s = decimate_object(name, lo=118000, hi=122000, target=120000)   # a different band
 obj, s = import_and_decimate(r"C:\Users\rene\Desktop\CAD\...\scan.stl")
+stats  = cleanup_debris(obj)                     # standalone: clean a mesh decimated elsewhere
 
 print(s)   # status (converged / already_in_band / below_band / gave_up), original_faces, final_faces,
-           # in_band (True), final_ratio, iterations, reduction_pct, verts, nonmanifold, boundary, history
+           # in_band (True), final_ratio, iterations, reduction_pct, verts, nonmanifold, boundary, history,
+           # cleanup {faces_removed, loose_faces/edges_deleted, islands_before/after, single_island}
 ```
 
-- `decimate_object(obj_name=None, target=122500, lo=120000, hi=125000, in_place=False, out_name=None, use_symmetry=False, symmetry_axis='X', max_iters=6)` — entry point.
+- `decimate_object(obj_name=None, target=122500, lo=120000, hi=125000, in_place=False, out_name=None, use_symmetry=False, symmetry_axis='X', max_iters=6, cleanup=True, merge_distance=None)` — entry point.
+- `cleanup_debris(obj, merge_distance=None)` — Degenerate Dissolve + Delete Loose (faces/edges/verts) on a
+  mesh datablock, in place. Called automatically after Apply; exported for standalone use.
 - `import_and_decimate(path, in_place=False, **kw)` — import STL then decimate.
 - **Capture the summary from `execute_blender_code`**: blender-mcp does not echo stdout — `json.dump(s, open(r"...\_SYSTEM\state\cgs_decimate_smoke.json","w"))` inside the call, then Read the file (delete it after).
 
 ## Verify (do this on every real run)
 
-Confirm the returned evidence: **`status == "converged"`**, **`in_band == True`**, and `120000 <=
-final_faces <= 125000`. Check `nonmanifold` / `boundary` didn't explode — collapse preserves the input's
+Confirm the returned evidence: **`status == "converged"`**, **`in_band == True`**, `120000 <=
+final_faces <= 125000`, and **`cleanup.single_island == True`** (more than one island means detached
+debris survived — do not export that mesh, it is the FreeCAD-hang shape). Check `nonmanifold` / `boundary` didn't explode — collapse preserves the input's
 topology quality; a few (like the PDP's 3/3) are inherited from the raw scan, a big jump means a bad input
 mesh (seal it with cgs-mold first). Eyeball `reduction_pct` and `iterations` (1 is typical on a clean
 scan). If `status == "below_band"` the mesh was already under budget — nothing to do. If `gave_up`, the
@@ -111,6 +152,33 @@ confirm the silhouette is intact.
 - Depends on **blender-mcp** live on :9876.
 
 ## Session Notes
+
+### 2026-07-29 (v1.1.0, mandatory post-collapse cleanup added)
+- **Trigger:** FreeCAD hung importing a decimated P226 OWB mold. Diagnosed headless with `FreeCADCmd`:
+  the cost was NOT the 129k facets (geometry work totalled ~9s) — it was `Part.Shell(shape.Faces)` at
+  >600s emitting ~900k `<ElementMap> unresolved duplicate element mapping` lines. Root cause: a 2-facet
+  zero-area sliver left by this skill's collapse, which FreeCAD read as a second component. After
+  cleanup the identical call ran in 118s.
+- **Wrong turn worth recording:** the first diagnosis blamed `Part.Shell(faces)` itself and produced a
+  macro built on `makeShapeFromMesh(sew=True)` (383s, valid solid, 3× slower). That probe ran on the
+  DIRTY mesh, so it measured the debris, not the algorithm. René's own manual GUI run — and his macro
+  recording, which shows the Part workbench doing exactly `Part.Solid(Part.Shell(__s__))` — refuted it.
+  **Measure the clean case before blaming the algorithm.**
+- Added `cleanup_debris()` (bmesh: `dissolve_degenerate` + delete loose faces→edges→verts, island
+  recount) and wired it into `decimate_object` after Apply (`cleanup=True` default). `merge_distance`
+  defaults to `1e-4 × bbox diagonal` so it is scale-relative.
+- **Delete Loose needs the FACES box.** An isolated triangle is neither a loose vert nor a loose edge —
+  the default two-box Delete Loose misses it. That box is what actually fixed the mold.
+- Verified headless in Blender 5.1.2 (`--background --factory-startup`), two smokes, both branches:
+  (1) degenerate sliver + loose edge + loose vert on a 3,072-face body → 1 face removed, 6 verts removed,
+  islands 2→1, body 0 non-manifold / 0 boundary, and a re-run changed nothing (idempotent);
+  (2) a healthy DETACHED 20mm triangle that Degenerate Dissolve cannot touch → caught by the loose-faces
+  branch, islands 2→1, count restored exactly. All 11 assertions passed.
+- Face count is NOT the quality lever people assume: 128,980 → 103,184 facets moved the mold's volume by
+  0.0007% (916,436.44 → 916,429.69 mm³) and its area by 0.005%.
+- Tools: Bash (FreeCADCmd + Blender headless), Read/Write/Edit. blender-mcp was NOT available this
+  session (server never exposed tools) — verification went through `blender.exe --background` instead,
+  which is the better test anyway: it never touches René's live scene.
 
 ### 2026-07-04 (v1.0.0, created + live-verified on the PDP gun)
 - Built via the opus-fleet model: 3 parallel Sonnet research lanes (sibling-skill conventions · Blender

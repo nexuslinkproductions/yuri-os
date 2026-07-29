@@ -80,8 +80,91 @@ def _manifold(me):
     bm.free()
     return nm, bd
 
+def _islands(bm):
+    """Number of connected face islands in a bmesh — flood fill over face<->face edge adjacency."""
+    seen, count = set(), 0
+    for f in bm.faces:
+        if f.index in seen:
+            continue
+        count += 1
+        stack = [f]; seen.add(f.index)
+        while stack:
+            cur = stack.pop()
+            for e in cur.edges:
+                for nb in e.link_faces:
+                    if nb.index not in seen:
+                        seen.add(nb.index); stack.append(nb)
+    return count
+
+def cleanup_debris(obj, merge_distance=None):
+    """Remove decimation debris from a mesh IN PLACE: degenerate (zero-area) faces + loose geometry.
+
+    WHY THIS IS MANDATORY AFTER A COLLAPSE (measured 2026-07-29, SIG P226 OWB mold): the decimate left a
+    2-facet zero-area sliver (0.01 x 0.00 x 0.02mm) detached from the body. FreeCAD imported the STL as TWO
+    components, and Part.Shell(shape.Faces) — the exact call the Part workbench's Convert-to-Solid runs —
+    went from ~118s to >600s-and-still-going, emitting ~900k "<ElementMap> unresolved duplicate element
+    mapping" lines (FreeCAD 1.x topological naming choking on the degenerate faces). Removing the sliver
+    made the identical call finish normally. ONE zero-area triangle cost a ten-minute hang.
+
+    Equivalent to Blender's Mesh > Clean Up > Degenerate Dissolve followed by Delete Loose with ALL THREE
+    boxes ticked (Vertices + Edges + Faces). Faces matters: an isolated triangle is only caught by the
+    Faces box. Done via bmesh so it is headless-safe (no edit-mode ops, no viewport).
+
+    merge_distance: None (default) -> 1e-4 x bbox diagonal, i.e. scale-relative, so it behaves the same
+                    whether the scene is in mm or m. Pass a number for an explicit local-unit distance.
+    Returns a stats dict; the mesh is modified in place.
+    """
+    _require_bpy()
+    if bmesh is None:
+        return {"status": "skipped", "reason": "bmesh unavailable"}
+    me = obj.data
+    before_faces, before_verts = len(me.polygons), len(me.vertices)
+
+    if merge_distance is None:
+        d = obj.dimensions
+        merge_distance = 1e-4 * max(1e-9, (d.x ** 2 + d.y ** 2 + d.z ** 2) ** 0.5)
+
+    bm = bmesh.new(); bm.from_mesh(me)
+    bm.faces.ensure_lookup_table(); bm.edges.ensure_lookup_table(); bm.verts.ensure_lookup_table()
+    islands_before = _islands(bm)
+
+    # 1) Degenerate Dissolve — collapse zero-length edges / zero-area faces.
+    bmesh.ops.dissolve_degenerate(bm, dist=merge_distance, edges=bm.edges[:])
+    bm.faces.ensure_lookup_table(); bm.edges.ensure_lookup_table(); bm.verts.ensure_lookup_table()
+
+    # 2) Delete Loose — faces first (a face sharing no edge with any other face), then orphan edges/verts.
+    #    Order matters: deleting loose faces creates the orphan edges/verts that the next passes remove.
+    loose_faces = [f for f in bm.faces if all(len(e.link_faces) <= 1 for e in f.edges)]
+    if loose_faces:
+        bmesh.ops.delete(bm, geom=loose_faces, context='FACES')
+        bm.edges.ensure_lookup_table(); bm.verts.ensure_lookup_table()
+    loose_edges = [e for e in bm.edges if not e.link_faces]
+    if loose_edges:
+        bmesh.ops.delete(bm, geom=loose_edges, context='EDGES')
+        bm.verts.ensure_lookup_table()
+    loose_verts = [v for v in bm.verts if not v.link_edges]
+    if loose_verts:
+        bmesh.ops.delete(bm, geom=loose_verts, context='VERTS')
+
+    bm.faces.ensure_lookup_table()
+    islands_after = _islands(bm)
+    nm = sum(1 for e in bm.edges if not e.is_manifold)
+    bd = sum(1 for e in bm.edges if e.is_boundary)
+    bm.to_mesh(me); bm.free()
+    me.update()
+
+    return {"status": "cleaned", "merge_distance": round(merge_distance, 8),
+            "faces_before": before_faces, "faces_after": len(me.polygons),
+            "faces_removed": before_faces - len(me.polygons),
+            "verts_before": before_verts, "verts_after": len(me.vertices),
+            "loose_faces_deleted": len(loose_faces), "loose_edges_deleted": len(loose_edges),
+            "loose_verts_deleted": len(loose_verts),
+            "islands_before": islands_before, "islands_after": islands_after,
+            "single_island": islands_after == 1, "nonmanifold": nm, "boundary": bd}
+
 def decimate_object(obj_name=None, target=DEFAULT_TARGET, lo=DEFAULT_LO, hi=DEFAULT_HI,
-                    in_place=False, out_name=None, use_symmetry=False, symmetry_axis='X', max_iters=6):
+                    in_place=False, out_name=None, use_symmetry=False, symmetry_axis='X', max_iters=6,
+                    cleanup=True, merge_distance=None):
     """Reduce an already-loaded mesh to the face band [lo, hi] via a solved DECIMATE(collapse). Entry point.
 
     in_place=False (default) -> work a copy `<name>_DECIMATED`, leave the source untouched (decimation is
@@ -141,9 +224,18 @@ def decimate_object(obj_name=None, target=DEFAULT_TARGET, lo=DEFAULT_LO, hi=DEFA
     # ---- apply the (baked) modifier; read the real count -----------------------------------------
     _activate(work)
     bpy.ops.object.modifier_apply(modifier=mod.name)
+
+    # ---- MANDATORY post-collapse cleanup ---------------------------------------------------------
+    # Collapse leaves zero-area faces and detached slivers. One of them cost a >10min FreeCAD hang
+    # (see cleanup_debris). Runs AFTER apply so it operates on the real baked mesh; it removes only
+    # degenerate/loose geometry, so the in-band face count moves by a handful at most.
+    clean = cleanup_debris(work, merge_distance) if cleanup else {"status": "skipped",
+                                                                  "reason": "cleanup=False"}
+
     final = len(work.data.polygons)
     nm, bd = _manifold(work.data)
     return work, {"status": status, "object": work.name, "in_place": bool(in_place),
+                  "cleanup": clean,
                   "original_faces": original, "final_faces": final,
                   "in_band": bool(lo <= final <= hi), "final_ratio": round(ratio, 5),
                   "iterations": it, "reduction_pct": round(100.0 * (1 - final / float(original)), 1),
