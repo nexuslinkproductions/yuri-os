@@ -54,6 +54,12 @@ export async function checkDescriptions({ descriptionsPath = DESCRIPTIONS, bench
   }
 
   for (const [label, desc] of Object.entries(doc.descriptions || {})) {
+    // Per-label shape guard (advisory 2026-07-29): a malformed entry (null, non-object) must be a
+    // recorded violation, never a thrown exception that aborts the gate.
+    if (!desc || typeof desc !== 'object' || Array.isArray(desc)) {
+      violations.push(`${label}: malformed description entry (expected object with template fields, got ${desc === null ? 'null' : typeof desc})`);
+      continue;
+    }
     const full = [desc.purpose, desc.inputs, desc.outputs, desc.failure_behaviour].join(' ').toLowerCase();
     // 1. literal expect path or basename in the description text
     for (const p of expectPaths) {
@@ -90,7 +96,7 @@ export async function checkDescriptions({ descriptionsPath = DESCRIPTIONS, bench
     // 4. RUBRIC (Hermes 2026-07-28, mechanized after three auditors gave three orderings on
     // near-identical text — holistic parity judgement is noisy at the effect scale we are
     // controlling). Every description must hit every rubric item ITS OWN CONTRACT SUPPORTS.
-    // Structural BIGRAMS (juno F4-6/7): bare nouns like 'section' and 'excerpt' match prose
+    // Structural BIGRAMS (audit F4-6/7): bare nouns like 'section' and 'excerpt' match prose
     // ('a section of the report'); require a data-domain construction instead.
     const STRUCTURES = ['json array', 'ranked list', 'text list', 'list of', 'array of', 'file paths', 'matching lines', 'header', 'one section per'];
     if (typeof desc.outputs === 'string' && !STRUCTURES.some((s) => desc.outputs.toLowerCase().includes(s))) {
@@ -98,22 +104,22 @@ export async function checkDescriptions({ descriptionsPath = DESCRIPTIONS, bench
     }
     // Optional-input default: scoped to the INPUTS field. Requires either 'default' FOLLOWED BY
     // A VALUE (default 5), or 'if omitted' followed by a behaviour clause within 40 chars
-    // (juno F-LIVE-2: a bare 'if omitted' trigger phrase passed without any behaviour).
+    // (audit F-LIVE-2: a bare 'if omitted' trigger phrase passed without any behaviour).
     // Optional-input default: scoped to the INPUTS field. 'default' must be followed by a value
     // containing at least one letter or digit — punctuation alone (default. / default ???) is
-    // not a value (juno A1-A4). 'if omitted' must be followed by a verb AND a consequence
-    // token — a bare verb (if omitted runs) is not a behaviour clause (juno B1-B2).
+    // not a value (audit A1-A4). 'if omitted' must be followed by a verb AND a consequence
+    // token — a bare verb (if omitted runs) is not a behaviour clause (audit B1-B2).
     const hasDefaultValue = /\bdefault\b\s*[:\-=]?\s*\S*[a-z0-9]\S*/i.test(desc.inputs || '');
     const hasOmissionBehaviour = /if omitted[\s\S]{0,80}(runs|prints|returns|uses|falls back|errors|exits|prompts|searches|scans|loads|emits|fires|rejects)[\s\S]{2,80}(empty|no list|no matches|status|message|advisory|silence|exit|ok|error|timeout|default|\d)/i.test(desc.inputs || '');
     if (/optional/i.test(desc.inputs || '') && !hasDefaultValue && !hasOmissionBehaviour) {
       violations.push(`${label}: rubric — optional inputs present but no default value or omission behaviour stated in inputs`);
     }
-    // Failure behaviour must name BOTH the status channel AND an observable (juno F4-1: a bare
+    // Failure behaviour must name BOTH the status channel AND an observable (audit F4-1: a bare
     // 'status ERROR' token passed both guards without stating any behaviour).
     const hasChannel = /status (ok|error|timeout)|usage error/i.test(desc.failure_behaviour || '');
     const hasObservable = /empty|no list|no matches|no-match|zero|message|advisory|silence|exit/i.test(desc.failure_behaviour || '');
     if (!hasChannel || !hasObservable) {
-      violations.push(`${label}: rubric — failure behaviour must name the status channel AND an observable (empty output / message text / silence / exit outcome), got: "${desc.failure_behaviour.slice(0, 60)}"`);
+      violations.push(`${label}: rubric — failure behaviour must name the status channel AND an observable (empty output / message text / silence / exit outcome), got: "${String(desc.failure_behaviour || '').slice(0, 60)}"`);
     }
     // 6. IMPLEMENTATION FINGERPRINT (Hermes 2026-07-28, after BM25 passed the n-gram family — a
     // proper-noun algorithm/tool name is a single-token identity a zero-context subject can look
@@ -132,7 +138,7 @@ export async function checkDescriptions({ descriptionsPath = DESCRIPTIONS, bench
   // or docs AND nowhere else identifies the tool — FAIL with the exact phrase. Generic tool
   // vocabulary is excluded so honest functional descriptions do not false-fire.
   const GENERIC = new Set(('full text search ranked ranking file files path paths query question string integer optional required matches matching list results documents entry entries described declared function repository repo relative most relevant first best match header reporting corpus excerpt short with when nothing prints returns exit code usage error operation contents names pattern scope where look literal regex case insensitive maximum shown kept per need want accomplish mechanism mechanisms registered registry graph code structure merges their into answer sections each which produced confidence value scoring above term overlap listed message naming then advisory suggesting new may built runs over document bm25 frequency numeric scores printed reading size array json weighting rare terms common ones zero threshold no report grouped source').split(' '));
-  // 'local' and 'index' REMOVED from GENERIC (juno F5-1): they broke the mandated control phrase
+  // 'local' and 'index' REMOVED from GENERIC (audit F5-1): they broke the mandated control phrase
   // 'fused local index' into a single token, making it invisible to the n-gram extractor. tool_a
   // does not contain either word, so the removal costs no false-positive protection.
   const bindings = doc.binding_harness_side_only || {};
@@ -147,7 +153,7 @@ export async function checkDescriptions({ descriptionsPath = DESCRIPTIONS, bench
     tool_d: '_SYSTEM/Scripts/yuri-search.mjs',
     tool_e: null, // external rg binary; no repo source to fingerprint against
   };
-  // Canonical path normalization (advisory + juno path audit, defense-in-depth): backslashes,
+  // Canonical path normalization (advisory + adversarial path audit, defense-in-depth): backslashes,
   // leading './', trailing dots/whitespace, absolute paths inside the repo root, case. rg's
   // observed output is './'-prefixed or repo-relative; the rest is future-proofing for wrappers.
   const realRootLower = repoRoot.toLowerCase().replace(/\\/g, '/').replace(/\/+$/, '');
@@ -158,13 +164,14 @@ export async function checkDescriptions({ descriptionsPath = DESCRIPTIONS, bench
     if (lower.startsWith(realRootLower + '/')) s = s.slice(realRootLower.length + 1);
     return s.replace(/^\/+/, '').toLowerCase();
   };
-  // SELF-IMMUNITY (juno F-LIVE-1): this checker's own file contains control phrases in its
+  // SELF-IMMUNITY (audit F-LIVE-1): this checker's own file contains control phrases in its
   // comments, which would otherwise count as "other files" and suppress violations. It is never
   // evidence about a description's identity either way.
   const SELF_CANON = canon('_SYSTEM/Scripts/atlas/ablation-descriptions-check.mjs');
   const isAllowlisted = (f) => f === SELF_CANON || f === canon('ablation-descriptions.json') || f.endsWith('/ablation-descriptions.json');
   const { execFileSync } = await import('node:child_process');
   for (const [label, desc] of Object.entries(doc.descriptions || {})) {
+    if (!desc || typeof desc !== 'object' || Array.isArray(desc)) continue; // malformed: recorded in loop 1; the fingerprint scan skips it too (audit crash class 1)
     const ownFile = bindingFiles[label];
     if (ownFile === undefined) { violations.push(`${label}: no backend mapping — fingerprint cannot fail closed`); continue; }
     if (ownFile === null) continue; // documented N/A (external binary)
@@ -246,7 +253,7 @@ async function runSelfTest() {
   const repoDir = path.join(dir, 'repo');
   mkdirSync(path.join(repoDir, 'src'), { recursive: true });
   writeFileSync(path.join(repoDir, 'src', 'tool_b.mjs'), [
-    '// SYNTHETIC identity phrases for the control fixtures. NOTE (juno F-LIVE-1): the',
+    '// SYNTHETIC identity phrases for the control fixtures. NOTE (audit F-LIVE-1): the',
     '// brief-quoted phrase "fused local index" never actually appeared in the real xref-query.mjs —',
     '// it came from wayfinding prose and was repeated uncritically. These phrases are deliberately',
     '// synthetic; the LIVE gate scans every description n-gram and needs no mandated phrase.',
@@ -284,40 +291,73 @@ async function runSelfTest() {
   check('clean fixture PASSes', clean.violations.length === 0, JSON.stringify(clean.violations.slice(0, 3)));
 
   const noStruct = await runOn(fixture((d) => { d.descriptions.tool_a.outputs = 'writes a section of the report to disk'; }));
-  check('prose noun is not a structure (juno F4-6)', noStruct.violations.some((v) => v.includes('data STRUCTURE')), JSON.stringify(noStruct.violations));
+  check('prose noun is not a structure (audit F4-6)', noStruct.violations.some((v) => v.includes('data STRUCTURE')), JSON.stringify(noStruct.violations));
 
   const noDefault = await runOn(fixture((d) => { d.descriptions.tool_b.inputs = 'query (string, optional).'; }));
   check('omitted default in inputs FAILS', noDefault.violations.some((v) => v.includes('no default value or omission behaviour')), JSON.stringify(noDefault.violations));
 
   const defaultInPurpose = await runOn(fixture((d) => { d.descriptions.tool_b.purpose = 'Default operation for everyone.'; d.descriptions.tool_b.inputs = 'query (string, optional).'; }));
-  check('default in PURPOSE does not satisfy the optional guard (juno F4-1)', defaultInPurpose.violations.some((v) => v.includes('no default value or omission behaviour')), JSON.stringify(defaultInPurpose.violations));
+  check('default in PURPOSE does not satisfy the optional guard (audit F4-1)', defaultInPurpose.violations.some((v) => v.includes('no default value or omission behaviour')), JSON.stringify(defaultInPurpose.violations));
 
   const bareOmitted = await runOn(fixture((d) => { d.descriptions.tool_b.inputs = 'query (string, optional; if omitted).'; }));
-  check('bare if-omitted trigger without behaviour FAILS (juno F-LIVE-2)', bareOmitted.violations.some((v) => v.includes('no default value or omission behaviour')), JSON.stringify(bareOmitted.violations));
+  check('bare if-omitted trigger without behaviour FAILS (audit F-LIVE-2)', bareOmitted.violations.some((v) => v.includes('no default value or omission behaviour')), JSON.stringify(bareOmitted.violations));
 
   const punctDefault = await runOn(fixture((d) => { d.descriptions.tool_b.inputs = 'query (string, optional; default ???).'; }));
-  check('punctuation is not a default value (juno A1-A4)', punctDefault.violations.some((v) => v.includes('no default value or omission behaviour')), JSON.stringify(punctDefault.violations));
+  check('punctuation is not a default value (audit A1-A4)', punctDefault.violations.some((v) => v.includes('no default value or omission behaviour')), JSON.stringify(punctDefault.violations));
 
   const bareVerb = await runOn(fixture((d) => { d.descriptions.tool_b.inputs = 'query (string, optional; if omitted returns).'; }));
-  check('bare verb is not an omission behaviour (juno B1-B2)', bareVerb.violations.some((v) => v.includes('no default value or omission behaviour')), JSON.stringify(bareVerb.violations));
+  check('bare verb is not an omission behaviour (audit B1-B2)', bareVerb.violations.some((v) => v.includes('no default value or omission behaviour')), JSON.stringify(bareVerb.violations));
 
   const bm25 = await runOn(fixture((d) => { d.descriptions.tool_d.outputs = 'Ranked list (BM25 term-frequency ranking).'; }));
   check('family 6: BM25 proper noun FAILS (implementation fingerprint)', bm25.violations.some((v) => v.includes('IMPLEMENTATION FINGERPRINT')), JSON.stringify(bm25.violations));
 
   const bareStatus = await runOn(fixture((d) => { d.descriptions.tool_a.failure_behaviour = 'status ERROR.'; }));
-  check('bare status token without observable FAILS (juno F4-1)', bareStatus.violations.some((v) => v.includes('status channel AND an observable')), JSON.stringify(bareStatus.violations));
+  check('bare status token without observable FAILS (audit F4-1)', bareStatus.violations.some((v) => v.includes('status channel AND an observable')), JSON.stringify(bareStatus.violations));
 
   const control = await runOn(fixture((d) => { d.descriptions.tool_b.purpose = 'Searches the fused local index for grounded answers.'; }));
-  check('synthetic identity-control phrase FIRES (juno F5-1 fix; the phrase is deliberately synthetic, never in the real xref-query.mjs)', control.violations.some((v) => v.includes('IDENTITY FINGERPRINT')), JSON.stringify(control.violations.slice(0, 2)));
+  check('synthetic identity-control phrase FIRES (audit F5-1 fix; the phrase is deliberately synthetic, never in the real xref-query.mjs)', control.violations.some((v) => v.includes('IDENTITY FINGERPRINT')), JSON.stringify(control.violations.slice(0, 2)));
 
   const mirror = await runOn(fixture((d) => { d.descriptions.tool_b.purpose = 'A surface that auto-surfaces capability hits for everyone.'; }));
-  check('multi-file registry mirror is correctly NON-unique (juno retraction honored)', !mirror.violations.some((v) => v.includes('auto-surfaces')), JSON.stringify(mirror.violations.slice(0, 3)));
+  check('multi-file registry mirror is correctly NON-unique (auditor retraction honored)', !mirror.violations.some((v) => v.includes('auto-surfaces')), JSON.stringify(mirror.violations.slice(0, 3)));
 
   const empty = await runOn(fixture((d) => { d.descriptions = {}; }));
   check('empty descriptions FAIL CLOSED', empty.violations.length > 0, 'returned no violations');
 
   const nullDesc = await runOn(fixture((d) => { d.descriptions = null; }));
   check('non-object descriptions FAILS with shape violation', nullDesc.violations.some((v) => v.includes('descriptions object missing') || v.includes('required label')), JSON.stringify(nullDesc.violations.slice(0, 2)));
+
+  // Malformed per-label entries (adversarial shape-hardening review 2026-07-29: two crash classes — fingerprint loop and the
+  // rubric .slice — both now guarded; every case must be a recorded violation, never a throw).
+  const nullLabel = await runOn(fixture((d) => { d.descriptions.tool_a = null; }));
+  check('null per-label entry is a violation, never a crash (both loops)', nullLabel.violations.some((v) => v.includes('malformed description entry')), JSON.stringify(nullLabel.violations.slice(0, 2)));
+
+  const emptyLabel = await runOn(fixture((d) => { d.descriptions.tool_a = {}; }));
+  check('empty-object per-label entry fails closed, never crashes', emptyLabel.violations.length > 0, JSON.stringify(emptyLabel.violations.slice(0, 2)));
+
+  const nullFb = await runOn(fixture((d) => { d.descriptions.tool_a.failure_behaviour = null; }));
+  check('null failure_behaviour does not crash the rubric message', nullFb.violations.length > 0, JSON.stringify(nullFb.violations.slice(0, 2)));
+
+  const numFb = await runOn(fixture((d) => { d.descriptions.tool_a.failure_behaviour = 42; }));
+  check('numeric failure_behaviour does not crash the rubric message', numFb.violations.length > 0, JSON.stringify(numFb.violations.slice(0, 2)));
+
+  const nullB = await runOn(fixture((d) => { d.descriptions.tool_b = null; }));
+  check('null fingerprint-target entry does not crash loop 2', nullB.violations.some((v) => v.includes('malformed description entry')), JSON.stringify(nullB.violations.slice(0, 2)));
+
+  // Mixed: a null entry must not abort evaluation of a VALID label — tool_a carries a real
+  // fingerprint (own synthetic source) AND tool_b is null; both violations must appear (advisory:
+  // the previous fixture duplicated nullB and proved nothing about continuation).
+  writeFileSync(path.join(repoDir, 'src', 'tool_a.mjs'), '// quixotic mandible filter for convex lattice pruning\n');
+  const mixedNull = await checkDescriptions({
+    descriptionsPath: fixture((d) => { d.descriptions.tool_a.purpose = 'Applies the quixotic mandible filter for convex lattice pruning.'; d.descriptions.tool_b = null; }),
+    benchmarkPath: miniBench, repoRoot: repoDir,
+    backendMap: { tool_a: 'src/tool_a.mjs', tool_b: 'src/tool_b.mjs', tool_c: null, tool_d: null, tool_e: null },
+  });
+  check('mixed: valid label still fingerprinted past a null sibling',
+    mixedNull.violations.some((v) => v.includes('malformed description entry')) && mixedNull.violations.some((v) => v.includes('IDENTITY FINGERPRINT')),
+    JSON.stringify(mixedNull.violations.slice(0, 3)));
+
+  const allNull = await runOn(fixture((d) => { for (const k of Object.keys(d.descriptions)) d.descriptions[k] = null; }));
+  check('all-null doc: every label malformed, zero crashes', allNull.violations.filter((v) => v.includes('malformed description entry')).length === 5, JSON.stringify(allNull.violations.slice(0, 3)));
 
   // rg error path: a failing rg must produce a violation, never a silent zero-hit (advisory).
   const rgDown = await checkDescriptions({
@@ -345,7 +385,7 @@ async function runSelfTest() {
   });
   check('own-source evidence still fires past self-immunity', selfPlusOwn.violations.some((v) => v.includes('IDENTITY FINGERPRINT')), JSON.stringify(selfPlusOwn.violations.slice(0, 2)));
 
-  // Juno coverage gap (2026-07-28): families 1-3 and the shape checks had NO negative fixtures.
+  // Audit coverage gap (2026-07-28): families 1-3 and the shape checks had NO negative fixtures.
   // The mini benchmark's expect is _SYSTEM/Scripts/xref-query.mjs — a description containing it
   // (or its basename) must fail family 1; a near-paraphrase of q001 must fail family 2.
   const expectLit = await runOn(fixture((d) => { d.descriptions.tool_a.outputs = 'JSON array; see _SYSTEM/Scripts/xref-query.mjs for shape.'; }));
@@ -357,7 +397,7 @@ async function runSelfTest() {
   const paraphrase = await runOn(fixture((d) => { d.descriptions.tool_a.purpose = 'what routes the lane'; }));
   check('family 2: near-paraphrase of a benchmark question FAILS', paraphrase.violations.some((v) => v.includes('near-paraphrase')), JSON.stringify(paraphrase.violations.slice(0, 2)));
 
-  // Shuffled rephrase in the 0.5-0.7 band (juno round 4: the identical-text fixture passes at
+  // Shuffled rephrase in the 0.5-0.7 band (audit round 4: the identical-text fixture passes at
   // any threshold up to 1.0 — this one proves the threshold itself bites).
   const shuffled = await runOn(fixture((d) => { d.descriptions.tool_a.purpose = 'which lane routes what'; }));
   check('family 2: token-shuffled rephrase above threshold FAILS', shuffled.violations.some((v) => v.includes('near-paraphrase')), JSON.stringify(shuffled.violations.slice(0, 2)));
