@@ -7,31 +7,31 @@
       "purpose": "Ranks repository files by relevance to a natural-language question, weighting rare terms over common ones.",
       "inputs": "question (string, required); top (integer, optional, default 5 — maximum results).",
       "outputs": "JSON array of repo-relative file paths, most relevant first. Paths only; no scores.",
-      "failure_behaviour": "Returns an empty array when no file scores above zero."
+      "failure_behaviour": "Status OK with an empty array when no file scores above zero."
     },
     "tool_b": {
-      "purpose": "Searches several local indexes at once — full-text documents, a code-structure graph, and a registry of declared mechanisms — and merges their matches into one answer.",
-      "inputs": "query (string, required — a task or question); top (integer, optional — maximum matches kept per index).",
-      "outputs": "One section per index, each listing matching file paths with a short excerpt showing why it matched.",
-      "failure_behaviour": "Prints empty sections when no index has a match."
+      "purpose": "Searches multiple search sources at once — full-text documents, a code graph, a mechanism registry — into one ranked list.",
+      "inputs": "query (string, required); top (integer, optional, default 5 — maximum hits shown).",
+      "outputs": "A header reporting hit counts, then one ranked list of file paths; a hit shows an excerpt, its source, a confidence value.",
+      "failure_behaviour": "No matches: status OK, only the header prints, counts zero; no list."
     },
     "tool_c": {
       "purpose": "Finds registered mechanisms whose declared function matches a described need.",
-      "inputs": "need (string, required — a description of what you want to accomplish).",
-      "outputs": "Ranked text list of matching entries, best match first: each entry's file path and declared purpose. Ranking is by term overlap between the need and each entry's declared function.",
-      "failure_behaviour": "Prints an empty result when no entry matches."
+      "inputs": "need (string, required — what you want to accomplish).",
+      "outputs": "A ranked list of at most 3 entries, best first: each entry's file path and declared function; scored on phrase and term matches, only scores above 0.5 listed.",
+      "failure_behaviour": "Below threshold: status OK, a no-match message naming the need, then an advisory that one may need building."
     },
     "tool_d": {
       "purpose": "Runs ranked full-text search over a local document corpus.",
-      "inputs": "query (string, required); top (integer, optional — maximum results).",
-      "outputs": "Ranked text list of matching documents, best match first, each with a relevance score and a short excerpt (BM25 term-frequency ranking); a --json flag switches the output to a JSON array.",
-      "failure_behaviour": "Prints no results when no document matches."
+      "inputs": "query (string, required); top (integer, optional, default 5 — maximum results).",
+      "outputs": "A header reporting matches found and corpus size, then a ranked list of matching documents, best match first (BM25 term-frequency ranking), each with a short excerpt; no numeric scores are printed.",
+      "failure_behaviour": "No matches: status OK, the header reads 'no matches' with the corpus size; no list."
     },
     "tool_e": {
       "purpose": "Finds files by literal text content or by file-name pattern.",
-      "inputs": "operation (string, required — \"content\" to search inside files, \"name\" to match file names); pattern (string, required — literal text, regex, or name pattern); scope (path, optional — where to look).",
-      "outputs": "Matching file paths; for content search, the matching lines as well.",
-      "failure_behaviour": "Prints nothing and exits non-zero when there are no matches; rejects an unknown operation with a usage error."
+      "inputs": "operation (string, required — \"contents\" or \"names\"); pattern (string, required — regex); scope (path, optional, default repo root).",
+      "outputs": "Matching file paths; contents mode adds the matching lines.",
+      "failure_behaviour": "No matches: status OK with empty output. Unknown operation: status ERROR with a usage message."
     }
   },
   "binding_harness_side_only": {
