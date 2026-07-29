@@ -10,7 +10,7 @@
 //   self-immunity, rg errors fail closed); (6) implementation fingerprint: proper-noun
 //   algorithm/tool names (BM25 et al.) a zero-context subject could look up out-of-band.
 //   Shape checks fail closed on missing/unexpected labels, non-object descriptions, empty
-//   benchmark. --test runs 25 negative+positive fixtures against a synthetic mini-corpus.
+//   benchmark. --test runs 32 negative+positive fixtures against a synthetic mini-corpus.
 // @use: node _SYSTEM/Scripts/atlas/ablation-descriptions-check.mjs  -> exit 0 clean, 1 violation
 // @exports: checkDescriptions
 
