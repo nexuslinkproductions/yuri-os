@@ -10,7 +10,7 @@ These files sit at the vault root on purpose. Keep them there and use them as th
 
 - Governance: [AGENTS.md](AGENTS.md), [AEONIC_PROTOCOL.md](AEONIC_PROTOCOL.md), [CODEX_PROTOCOL.md](CODEX_PROTOCOL.md), [LOCAL_EXECUTION_POLICY.md](LOCAL_EXECUTION_POLICY.md), [NEURAL_FORGE.md](NEURAL_FORGE.md), [YURI.md](YURI.md)
 - Identity and memory: [identity.md](identity.md), [enki_state.md](enki_state.md), [memory-core.md](memory-core.md), [session_log.md](session_log.md), [session_prompt.md](session_prompt.md), [SOUL.md](SOUL.md), [USER.md](USER.md), [TOOLS.md](TOOLS.md)
-- Doctrine and logs: [CLAUDE.md](CLAUDE.md), [CONCLAVE_COGNITIVE_LOG.md](CONCLAVE_COGNITIVE_LOG.md), [creative_codex.md](creative_codex.md), [DESIGN.md](DESIGN.md), [esoteric_codex.md](esoteric_codex.md), [GEMINI.md](GEMINI.md), [geopolitical_log.md](geopolitical_log.md), [HEARTBEAT.md](HEARTBEAT.md), [language_codex.md](language_codex.md), [nabu.md](nabu.md), [YURI_AUDIT_README.md](YURI_AUDIT_README.md)
+- Doctrine and logs: [CLAUDE.md](CLAUDE.md), [CONCLAVE_COGNITIVE_LOG.md](CONCLAVE_COGNITIVE_LOG.md), [creative_codex.md](creative_codex.md), [DESIGN.md](DESIGN.md), [esoteric_codex.md](esoteric_codex.md), [geopolitical_log.md](geopolitical_log.md), [HEARTBEAT.md](HEARTBEAT.md), [language_codex.md](language_codex.md), [nabu.md](nabu.md), [YURI_AUDIT_README.md](YURI_AUDIT_README.md)
 
 ---
 
