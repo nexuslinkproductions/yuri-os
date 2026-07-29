@@ -13,7 +13,6 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/context/README.md` | Context layer: how task context, wiki, registry, memory, and research are assembled before implementation. |
 | `_SYSTEM/context/context-registry.json` | Machine-readable bounded packet registry used by xref-aware navigation. |
 | `_SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md` | Shared Originator entry point for LLMs to use YURI's math, energy, xref, memory, and llm-compat substrate. |
-| `_SYSTEM/docs/YURI_OS_DISCIPLINED_SELF_IMPROVEMENT_GOAL_2026-05-23.md` | Active `/goal`: disciplined cleanup, memory, navigation, persistent lanes, and cyber companion growth. |
 | `_SYSTEM/docs/YURI_OS_STRUCTURE_CLEANUP_AUDIT_2026-05-23.md` | Current structure cleanup audit and cleanup waves. |
 | `_SYSTEM/docs/YURI_STORAGE_AND_ARTIFACT_REGISTRY_PROTOCOL_2026-05-23.md` | Where new docs/scripts/reports/registries/runtimes should live and how to classify them. |
 | `_SYSTEM/docs/YURI_CODEX_PLUGIN_CONTROL_PLANE_PROTOCOL_2026-05-28.md` | Codex plugin/app connector routing rule: plugins are capability lanes that must traverse YURI context and hook gates. |

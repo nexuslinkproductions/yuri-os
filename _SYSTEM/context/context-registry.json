@@ -27,7 +27,6 @@
         "_SYSTEM/docs/YURI_ORIGINATOR_BRIDGE_2026-06-07.md",
         "_SYSTEM/config/folder-registry.json",
         "_SYSTEM/config/artifact-registry.json",
-        "_SYSTEM/docs/YURI_OS_DISCIPLINED_SELF_IMPROVEMENT_GOAL_2026-05-23.md",
         "_SYSTEM/docs/YURI_STORAGE_AND_ARTIFACT_REGISTRY_PROTOCOL_2026-05-23.md",
         ".agents/README.md",
         "skills/README.md"
@@ -232,9 +231,6 @@
         "_SYSTEM/Scripts/cyber-memory-rollback-proof.mjs",
         "_SYSTEM/Scripts/cyber-proof-cards.mjs",
         "_SYSTEM/Scripts/cyber-pilot-pack.mjs",
-        "_SYSTEM/Scripts/cyber-meeting-pack.mjs",
-        "_SYSTEM/Scripts/cyber-demo-runner.mjs",
-        "_SYSTEM/Scripts/cyber-meeting-release.mjs",
         "_SYSTEM/Scripts/rails.mjs",
         "_SYSTEM/Scripts/secret-leak-scan.mjs"
       ],
