@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Optional: make the radar run itself every morning on a Mac (launchd).
+
+  Fill in the two /PATH/TO placeholders, then load it (commands in the README).
+  It fires DAILY at 7:30am, but the script self-gates to a 2-day minimum — so a
+  daily trigger still gives you a sweep every OTHER morning, and if the Mac was
+  asleep at 7:30 launchd runs it at the next wake. No every-other-day math to do
+  yourself; the plist just pokes the script and the script decides.
+
+  Prefer to run it by hand? Delete this file — you don't need it.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>com.you.signals-radar</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <!-- If you installed the packages into a virtualenv, point this at that
+             venv's python (e.g. /PATH/TO/signals-radar/.venv/bin/python3) — a
+             scheduled run uses THIS python, not your terminal's. -->
+        <string>/usr/bin/python3</string>
+        <string>/PATH/TO/signals-radar/research_signals.py</string>
+    </array>
+
+    <!-- Run from the pack folder so signals/ and the watchlist resolve. -->
+    <key>WorkingDirectory</key><string>/PATH/TO/signals-radar</string>
+
+    <!-- 7:30am local, every day. The 2-day gate lives in the script. -->
+    <key>StartCalendarInterval</key>
+    <dict><key>Hour</key><integer>7</integer><key>Minute</key><integer>30</integer></dict>
+
+    <key>RunAtLoad</key><false/>
+
+    <!-- Logs, so you can see what happened. Optional — delete these two keys to silence. -->
+    <key>StandardOutPath</key><string>/PATH/TO/signals-radar/sweep.log</string>
+    <key>StandardErrorPath</key><string>/PATH/TO/signals-radar/sweep.log</string>
+</dict>
+</plist>

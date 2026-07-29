@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Q-sphere — quantum hypothesis tracker</title>
+<style>
+  :root{ --bg:#04060c; --ink:#eaf1ff; --muted:#7e93ba; --line:#1a2740; --pos:#36d1ff; --neg:#ff4d9d; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:radial-gradient(130% 130% at 50% 30%,#0a1224,#04060c 72%);color:var(--ink);overflow:hidden;
+    font:13px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial}
+  #stage{position:fixed;inset:0}
+  canvas{display:block}
+  #panel{position:fixed;top:0;left:0;width:236px;height:100%;padding:16px 16px 26px;overflow-y:auto;
+    background:linear-gradient(180deg,#0a1020,#05080f);border-right:1px solid var(--line);backdrop-filter:blur(6px)}
+  h1{font-size:15px;margin:0;font-weight:650}
+  .sub{color:var(--pos);font-weight:650;font-size:11.5px;margin-top:2px}
+  .spot{color:var(--muted);font-size:11px;margin-bottom:14px}
+  button{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px;font:inherit;font-weight:600;color:var(--ink);background:#12203a;cursor:pointer;margin-top:7px}
+  button:hover{filter:brightness(1.12)}
+  button.ghost{background:#0c1424}
+  .lbl{color:var(--muted);font-size:11px;letter-spacing:.3px;text-transform:uppercase;margin:16px 0 6px}
+  .read{font-size:11.5px;color:var(--ink);background:#0a1322;border:1px solid var(--line);border-radius:8px;padding:9px;margin-top:6px;font-variant-numeric:tabular-nums}
+  .read .r{display:flex;justify-content:space-between;gap:10px;padding:1px 0}
+  .read .k{color:var(--muted)}
+  .legend{display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--muted)}
+  .legend .d{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:-1px}
+  .hint{color:var(--muted);font-size:10.5px;margin-top:14px;line-height:1.5;opacity:.85}
+  #labels{position:fixed;inset:0;pointer-events:none;z-index:6}
+  .blab{position:absolute;transform:translate(-50%,-50%);font:10px ui-monospace,Menlo,monospace;color:#cfe0ff;
+    text-shadow:0 0 6px #000a;white-space:nowrap}
+  #title{position:fixed;top:14px;left:252px;z-index:8;color:var(--muted);font-size:11px}
+  #title b{color:var(--ink);font-size:13px}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="labels"></div>
+<div id="title"><b>Q-sphere</b> &nbsp;·&nbsp; hypothesis superposition over 3-bit basis &nbsp;·&nbsp; running the real quantum-hypothesis-tracker</div>
+
+<div id="panel">
+  <h1>Q-sphere</h1>
+  <div class="sub">REAL ℝ^N HYPOTHESIS TRACKER</div>
+  <div class="spot">size = |amplitude|² · color = sign-phase</div>
+
+  <div class="lbl">Superposition</div>
+  <button id="reset" class="ghost">Reset to superposition</button>
+
+  <div class="lbl">Measure (collapse)</div>
+  <button id="m0">Measure qubit 0</button>
+  <button id="m2">Measure qubit 2</button>
+  <button id="mdom">Collapse to dominant</button>
+  <div class="read"><div class="r"><span class="k">last p(outcome)</span><span id="pout">—</span></div>
+    <div class="r"><span class="k">coupling rank</span><span id="rank">—</span></div></div>
+
+  <div class="lbl">Order effect (A→B vs B→A)</div>
+  <button id="order">Run order test</button>
+  <div class="read">
+    <div class="r"><span class="k">P(A→B)</span><span id="pab">—</span></div>
+    <div class="r"><span class="k">P(B→A)</span><span id="pba">—</span></div>
+    <div class="r"><span class="k">qq statistic</span><span id="qq">—</span></div>
+  </div>
+
+  <div class="legend"><span><span class="d" style="background:var(--pos)"></span>+ phase</span><span><span class="d" style="background:var(--neg)"></span>− phase</span></div>
+  <div class="hint">Each dot is a basis hypothesis; latitude = Hamming weight (top |000⟩ → bottom |111⟩). Measuring projects + renormalizes the REAL state — the constellation collapses. The order test shows A→B ≠ B→A (non-commuting evidence) while qq≈0 stays invariant. Drag to orbit.</div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.173.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.173.0/examples/jsm/"
+}}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+// ═══════════════════════════════════════════════════════════════════
+// EMBEDDED VERBATIM from quantum-hypothesis-tracker.mjs (quantum-order-effects repo)
+// (pure ℝ^N math, zero deps — inlined so the demo runs the real tracker on file://)
+// ═══════════════════════════════════════════════════════════════════
+function dot(u,v){let s=0;for(let i=0;i<u.length;i++)s+=u[i]*v[i];return s;}
+function norm(v){return Math.sqrt(dot(v,v));}
+function scale(c,v){const o=new Array(v.length);for(let i=0;i<v.length;i++)o[i]=c*v[i];return o;}
+function normalize(v,tol=1e-15){const n=norm(v);if(n<tol)return v.map(()=>0);return scale(1/n,v);}
+function matVec(M,v){const o=new Array(M.length);for(let i=0;i<M.length;i++){let s=0;for(let j=0;j<v.length;j++)s+=M[i][j]*v[j];o[i]=s;}return o;}
+function identity(n){return Array.from({length:n},(_,i)=>{const r=new Array(n).fill(0);r[i]=1;return r;});}
+function stateVector(c){return normalize(c);}
+function projector(v){const n=v.length;return Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>v[i]*v[j]));}
+function diagonalProjector(mask){const n=mask.length;return Array.from({length:n},(_,i)=>{const r=new Array(n).fill(0);r[i]=mask[i];return r;});}
+function measure(P,psi,tol=1e-15){const pj=matVec(P,psi);const prob=dot(pj,pj);const post=prob>tol?scale(1/Math.sqrt(prob),pj):pj.map(()=>0);return{probability:prob,postState:post};}
+function measureSequential(projectors,psi,tol=1e-15){let st=psi,jp=1;for(const P of projectors){const{probability,postState}=measure(P,st,tol);jp*=probability;st=postState;if(jp<tol)break;}return{jointProbability:jp,postState:st};}
+function hypothesisPosteriors(state,hyp,ev=[]){let ps=state;for(const P of ev){const{probability,postState}=measure(P,ps);if(probability<1e-15)return hyp.map(()=>0);ps=postState;}return hyp.map(P_H=>measure(P_H,ps).probability);}
+function qqEquality(state,P_A,P_B){const n=state.length;const I=identity(n);
+  const Q_A=I.map((row,i)=>row.map((v,j)=>v-P_A[i][j]));const Q_B=I.map((row,i)=>row.map((v,j)=>v-P_B[i][j]));
+  const ap=(M,N,v)=>matVec(M,matVec(N,v));const sq=v=>dot(v,v);
+  const p_AyBn=sq(ap(Q_B,P_A,state)),p_AnBy=sq(ap(P_B,Q_A,state)),sAB=p_AyBn+p_AnBy;
+  const p_ByAn=sq(ap(Q_A,P_B,state)),p_BnAy=sq(ap(P_A,Q_B,state)),sBA=p_ByAn+p_BnAy;
+  return{p_AyBn,p_AnBy,sAB,p_ByAn,p_BnAy,sBA,qqStatistic:sAB-sBA};}
+function jacobiSVD(A,m,n,tol=1e-12){const B=A.map(r=>[...r]);const V=identity(n);
+  for(let it=0;it<100;it++){let conv=true;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){
+    let al=0,be=0,ga=0;for(let k=0;k<m;k++){al+=B[k][i]*B[k][i];be+=B[k][j]*B[k][j];ga+=B[k][i]*B[k][j];}
+    if(Math.abs(ga)<=tol*Math.sqrt(al*be))continue;conv=false;
+    const tau=(be-al)/(2*ga);const t=tau>=0?1/(tau+Math.sqrt(1+tau*tau)):-1/(-tau+Math.sqrt(1+tau*tau));
+    const c=1/Math.sqrt(1+t*t),s=t*c;
+    for(let k=0;k<m;k++){const bi=B[k][i],bj=B[k][j];B[k][i]=c*bi-s*bj;B[k][j]=s*bi+c*bj;}
+    for(let k=0;k<n;k++){const vi=V[k][i],vj=V[k][j];V[k][i]=c*vi-s*vj;V[k][j]=s*vi+c*vj;}}
+    if(conv)break;}
+  const sv=new Array(n);for(let j=0;j<n;j++){let s2=0;for(let i=0;i<m;i++)s2+=B[i][j]*B[i][j];sv[j]=Math.sqrt(s2);}
+  sv.sort((a,b)=>b-a);return{rank:sv.filter(s=>s>tol).length,singularValues:sv};}
+function schmidtDecomposition(psi,m,n,tol=1e-10){const A=Array.from({length:m},(_,i)=>psi.slice(i*n,(i+1)*n));return jacobiSVD(A,m,n,tol);}
+// ═══════════════════════════════════════════════════════════════════
+
+const N = 8, QUBITS = 3, R = 42;
+const popcount = k => k.toString(2).split('').filter(c=>c==='1').length;
+const bits = k => '|'+k.toString(2).padStart(QUBITS,'0')+'⟩';
+
+// initial superposition — mixed signs across Hamming weights
+const PSI0 = stateVector([0.55, 0.42, -0.30, 0.48, 0.20, -0.40, 0.26, 0.38]);
+// two non-orthogonal evidence projectors → non-commuting → order effects
+const P_A = projector(stateVector([0.8,0.3,0.2,0.5,0.1,0.2,0.1,0.3]));
+const P_B = projector(stateVector([0.2,0.6,0.5,0.2,0.4,0.3,0.5,0.2]));
+
+// basis-state sphere positions (latitude = Hamming weight)
+const basePos = [];
+{
+  const groups = {};
+  for (let k=0;k<N;k++){ const w=popcount(k); (groups[w]||(groups[w]=[])).push(k); }
+  const maxW = QUBITS;
+  for (const w of Object.keys(groups)){
+    const arr = groups[w]; const theta = Math.PI * (w/maxW);
+    arr.forEach((k,idx)=>{
+      const phi = arr.length===1 ? 0 : (2*Math.PI*idx/arr.length);
+      const r = R*Math.sin(theta);
+      basePos[k] = new THREE.Vector3(r*Math.cos(phi), R*Math.cos(theta), r*Math.sin(phi));
+    });
+  }
+}
+
+// ---- three scene ----
+const stage=document.getElementById('stage');
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(2,devicePixelRatio));
+renderer.setSize(innerWidth,innerHeight);
+stage.appendChild(renderer.domElement);
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x04060c);
+const camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,0.1,2000);
+const CAM0=new THREE.Vector3(70,46,92);
+camera.position.copy(CAM0);
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;controls.dampingFactor=0.08;
+scene.add(new THREE.AmbientLight(0x88a0d0,0.7));
+const dl=new THREE.DirectionalLight(0xffffff,0.6);dl.position.set(60,80,40);scene.add(dl);
+
+// wire sphere + latitude rings
+scene.add(new THREE.Mesh(new THREE.SphereGeometry(R,40,28),
+  new THREE.MeshBasicMaterial({color:0x21406e,wireframe:true,transparent:true,opacity:0.16})));
+for(let w=1;w<QUBITS;w++){
+  const theta=Math.PI*(w/QUBITS), r=R*Math.sin(theta), y=R*Math.cos(theta);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(r,0.12,8,64),
+    new THREE.MeshBasicMaterial({color:0x2b517f,transparent:true,opacity:0.5}));
+  ring.rotation.x=Math.PI/2; ring.position.y=y; scene.add(ring);
+}
+const POS=0x36d1ff, NEG=0xff4d9d;
+const dots=[], spokes=[];
+for(let k=0;k<N;k++){
+  const m=new THREE.Mesh(new THREE.SphereGeometry(1,24,18),
+    new THREE.MeshStandardMaterial({color:POS,emissive:POS,emissiveIntensity:0.8,roughness:0.35}));
+  m.position.copy(basePos[k]); scene.add(m); dots.push(m);
+  const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),basePos[k].clone()]);
+  const l=new THREE.Line(g,new THREE.LineBasicMaterial({color:POS,transparent:true,opacity:0.3}));
+  scene.add(l); spokes.push(l);
+}
+
+// bloom
+const composer=new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene,camera));
+const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.9,0.6,0.2);
+composer.addPass(bloom); composer.addPass(new OutputPass());
+
+// labels
+const labelLayer=document.getElementById('labels');
+const labelEls=[];
+for(let k=0;k<N;k++){const d=document.createElement('div');d.className='blab';labelLayer.appendChild(d);labelEls.push(d);}
+
+// ---- state + render of amplitudes ----
+let psi = PSI0.slice();        // displayed (animated)
+let psiTarget = PSI0.slice();
+function renderAmps(){
+  for(let k=0;k<N;k++){
+    const a=psi[k], p=a*a;
+    const rad=0.5+3.0*Math.sqrt(p);
+    dots[k].scale.setScalar(rad);
+    const col=a>=0?POS:NEG;
+    dots[k].material.color.setHex(col); dots[k].material.emissive.setHex(col);
+    dots[k].material.emissiveIntensity=0.25+1.4*p;
+    dots[k].visible = p>1e-4;
+    spokes[k].material.color.setHex(col);
+    spokes[k].material.opacity=0.06+0.7*Math.sqrt(p);
+    spokes[k].visible = p>1e-4;
+    labelEls[k].textContent = p>0.012 ? `${bits(k)} ${(p*100).toFixed(0)}%` : '';
+  }
+  document.getElementById('rank').textContent = schmidtDecomposition(psi,2,4).rank + (schmidtDecomposition(psi,2,4).rank>1?' (coupled)':' (product)');
+}
+
+const $=id=>document.getElementById(id);
+function setTarget(v){ psiTarget=v.slice(); }
+$('reset').onclick=()=>{ setTarget(PSI0); $('pout').textContent='—'; };
+$('m0').onclick=()=>{ const P=diagonalProjector(Array.from({length:N},(_,i)=>(i&1)?1:0)); const {probability,postState}=measure(P,psi); setTarget(postState); $('pout').textContent='qubit0=1 · '+(probability*100).toFixed(1)+'%'; };
+$('m2').onclick=()=>{ const P=diagonalProjector(Array.from({length:N},(_,i)=>(i&4)?1:0)); const {probability,postState}=measure(P,psi); setTarget(postState); $('pout').textContent='qubit2=1 · '+(probability*100).toFixed(1)+'%'; };
+$('mdom').onclick=()=>{ let dk=0,db=-1; for(let k=0;k<N;k++){if(psi[k]*psi[k]>db){db=psi[k]*psi[k];dk=k;}} const e=new Array(N).fill(0);e[dk]=1; const {probability,postState}=measure(projector(e),psi); setTarget(postState); $('pout').textContent=bits(dk)+' · '+(probability*100).toFixed(1)+'%'; };
+$('order').onclick=()=>{
+  const ab=measureSequential([P_A,P_B],PSI0).jointProbability;
+  const ba=measureSequential([P_B,P_A],PSI0).jointProbability;
+  const qq=qqEquality(PSI0,P_A,P_B).qqStatistic;
+  $('pab').textContent=ab.toFixed(4); $('pba').textContent=ba.toFixed(4); $('qq').textContent=qq.toFixed(4);
+};
+
+renderAmps();
+
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);});
+
+const v=new THREE.Vector3();
+function projectLabels(){
+  for(let k=0;k<N;k++){
+    if(!dots[k].visible){labelEls[k].style.display='none';continue;}
+    v.copy(basePos[k]).project(camera);
+    if(v.z>1){labelEls[k].style.display='none';continue;}
+    labelEls[k].style.display='block';
+    labelEls[k].style.left=((v.x*0.5+0.5)*innerWidth)+'px';
+    labelEls[k].style.top=((-v.y*0.5+0.5)*innerHeight - 14)+'px';
+  }
+}
+function loop(){
+  requestAnimationFrame(loop);
+  // ease displayed amplitudes toward target (collapse animation)
+  let moved=false;
+  for(let k=0;k<N;k++){ const d=psiTarget[k]-psi[k]; if(Math.abs(d)>1e-4){psi[k]+=d*0.18;moved=true;} else psi[k]=psiTarget[k]; }
+  if(moved) renderAmps();
+  controls.update(); projectLabels(); composer.render();
+}
+loop();
+</script>
+</body>
+</html>

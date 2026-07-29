@@ -1,0 +1,33 @@
+{
+  "account": "rowancheung",
+  "captured_at": "2026-07-29T10:55:00",
+  "posts": [
+    {
+      "id": "p1",
+      "text": "Mark Zuckerberg is running Meta's superintelligence lab like a startup.\n\nWhen I interviewed him, he told me the principles on how he built the team:\n\n\"You don't need many hundreds of people. You need 50 to 100 people. It's a group science project who can keep the whole thing in their head at once. Seats on the boat are precious.\"\n\n\"If someone is not pulling their weight on that, it has this huge negative effect in the way that it doesn't have on other parts of the company\"",
+      "url": "https://www.threads.com/@rowancheung",
+      "likes": 122,
+      "replies": 11,
+      "reposts": 9,
+      "posted": "2026-07-28"
+    },
+    {
+      "id": "p2",
+      "text": "His rules for running it:\n- If someone isn't pulling their weight, it has an outsized negative effect, so he personally went out and recruited every top researcher himself\n- No top-down deadlines. \"It's research. You don't know how long the thing is gonna take.\"\n- Keep the org flat. No non-technical management layers, because once someone stops doing the work, \"the knowledge decays.\"",
+      "url": "https://www.threads.com/@rowancheung",
+      "likes": 7,
+      "replies": 1,
+      "reposts": 0,
+      "posted": "2026-07-28"
+    },
+    {
+      "id": "p3",
+      "text": "Zuck just showed me some mind-blowing new tech\n(hint: it's somewhere in this photo)\nBig interview dropping tomorrow!",
+      "url": "https://www.threads.com/@rowancheung",
+      "likes": 1600,
+      "replies": 196,
+      "reposts": 43,
+      "posted": "2025-09-17"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "account": "nexuslinkproductions",
+  "captured_at": "2026-07-29T12:10:00",
+  "method": "DOM permalink harvest + server-rendered Relay JSON extraction (in-page parse of script[type=application/json]) + replies tab read. Verified complete: profile paginates to 2023-12-15 first posts; replies tab does not paginate beyond 5.",
+  "note": "COMPLETE corpus. TWO ERAS — weight 2026 heavily for voice matching. 2023-24 photography-era posts are formal/inspirational marketing voice; 2026 AI-era is the current builder voice.",
+  "bio": "Decoding AI so you don't have to nod along and pretend you get it",
+  "communities": ["ClaudeCode", "AI Threads", "Data Threads", "dataanalytics", "LocalLLM"],
+  "eras": {
+    "photography_2023_2024": "formal, inspirational, hashtag-adjacent, proper punctuation, 🙏🏼🇩🇪 emoji, 'we rise we grind' energy — DEAD VOICE, do not emulate",
+    "ai_builder_2026": "lowercase, dry, number-flex, sarcasm quotes, zero emoji in posts — THE CURRENT VOICE"
+  },
+  "posts": [
+    {"id": "DbQSc4Rj4YT", "posted": "2026-07-27", "likes": 2, "replies": 1, "era": "ai", "text": "@openai this week has been great, had to use up all saved weekly resets before they expired"},
+    {"id": "DbL8mXgk5CG", "posted": "2026-07-25", "likes": 2, "replies": 1, "era": "ai", "text": "Right when Opus 5 releases I hit my limits, reset maybe please @boris_cherny"},
+    {"id": "DbLQ9V8iBhs", "posted": "2026-07-25", "likes": 0, "era": "ai", "text": "Something satisfying about this", "has_media": true},
+    {"id": "DbGtbYEiNUV", "posted": "2026-07-23", "likes": 0, "era": "ai", "text": "Im back!\nDunno what was going on but for a couple weeks threads on this account specifically wouldn't load up at all.\nWill be posting updates soon"},
+    {"id": "june-1", "posted": "2026-06-16", "likes": 13, "replies": 4, "reposts": 5, "era": "ai", "text": "System Architecture of YURI:\n10 Layers / 242 organs (as of now)\nThe all in one that the future of AI use needs.\n- Learning & continuity (5)\n- Self-Improvement (10)\n- Hidden / Meta / Self-referential (16)\n- Governance & Safety (18)\n- Retrieval & Knowledge (26)\n- Token-Efficiency & Session (27)\n- Memory & Subconscious (28)\n- Cognition & Persona (31)\n- Energy & Math (39)\n- Skills & Orchestration (42)", "thread": "1/2"},
+    {"id": "june-2", "posted": "2026-06-16", "likes": 1, "replies": 1, "reposts": 1, "era": "ai", "text": "The bracketed numbers are the amount of dedicated organs per layer, nearly every organ contains up to hundreds of mechanisms that are all in tune with one another like Swiss Clockwork\nYou throw in any AI and it will be able to navigate and use that what is needed for the task at hand. This goes beyond any typical agentic harness that is out on the market, this is true deterministic governance at play that wraps around any LLM and SLM\nSpots opening as of mid next week, invite only", "thread": "2/2"},
+    {"id": "DCWnILKoHiC", "posted": "2024-11-14", "likes": 4, "reposts": 1, "era": "photography", "text": "Surround yourself with those who push you to be better every day. Together, we rise, we grind, and we grow stronger\nDennis James Classic 2024 🇩🇪\nPhotos and videos by @nexuslinkproductions"},
+    {"id": "C04I2OdNmTz", "posted": "2023-12-15", "likes": 1, "replies": 1, "era": "photography", "text": "A little look into some of my work over the past few months"},
+    {"id": "C04H4uFNIEJ", "posted": "2023-12-15", "likes": 3, "replies": 1, "era": "photography", "text": "Hey there\nMy name is Marcel and I'm a 21 year old aspiring Photo- and Videographer living in Basel, Switzerland🇨🇭\nI share a big passion for sports, specifically for Bodybuilding and Fitness which has impacted my life profoundly and I want to capture and share moments during my time that I spend in this field as a Bodybuilding Competitor as well as a spectator.\nI'm looking forward to growing into this field and make this hobby of mine a main part of my life🙏🏼"},
+    {"id": "C04IE05tBBH", "posted": "2023-12-15", "likes": 1, "era": "photography", "text": "Big thank you to my good friend Benjamin._visuals on IG for taking this pic (edited by myself)"}
+  ],
+  "replies": [
+    {"id": "reply-1", "posted": "2026-07-25", "to": "xavier.geerinck", "text": "claude limits have been absolutely horrible. nothing compared to two months ago and its 50% 'increased' now, imagine how it is going to be after"},
+    {"id": "reply-2", "posted": "2026-07-25", "to": "xen", "text": "Experimenting a bit with luna only on xhigh and so far its great"},
+    {"id": "reply-3", "posted": "2026-07-24", "to": "saadkhalidhere", "text": "🔥🔥"},
+    {"id": "reply-4", "posted": "2026-07-24", "to": "wildcardworld", "text": "Sent you a message boet 👍🏻"},
+    {"id": "reply-5", "posted": "2026-07-24", "to": "ariapramesi", "text": "I figured🤣👍🏻"}
+  ],
+  "voice_facts": {
+    "background": "photographer/videographer since 2023 (Basel CH), bodybuilding competitor — visual craft is native to him, infographics should be treated as his home turf",
+    "pivot": "photography → AI systems (2025-26). The visual-to-systems arc is itself a differentiator: he SEES structure before he writes it"
+  }
+}

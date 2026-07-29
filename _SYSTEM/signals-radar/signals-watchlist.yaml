@@ -1,0 +1,86 @@
+# signals-watchlist.yaml — NEXUS LINK radar, tuned to Marcel's niche.
+# Niche: AI agents / Claude Code / local LLMs / agentic governance / "AI decoded
+# for builders". Threads competitor posts come in via the October browser bridge
+# (scrape_threads in research_signals.py) — no credentials stored here.
+
+# ── Threads (via October browser bridge, logged-in session) ──────────────────
+# Handle ONLY, no leading "@". ENGLISH-LANGUAGE accounts only — Marcel does not
+# read CJK; his VPN is set to Japan so feeds show Japanese lettering, and the
+# radar must not pull non-English sources in. Competitors + inspiration
+# accounts in the AI-agents / Claude-Code / LLM space. Edit freely.
+threads_accounts:
+  # verified live via browser
+  - rowancheung         # Rundown AI founder, AI news
+  - claudeai            # official Anthropic Claude account
+  - alexngsx            # Claude Code tooling spotlights
+  - chase.h.ai          # Claude Code guides/creator
+  - prettyshisya        # MCP/agent tooling posts
+  # discovered via Exa niche search 2026-07-29 (active, English)
+  - alphasignal.ai      # AI signal/news, big reach
+  - saboo_shubham_      # context engineering for coding agents
+  - githubprojects      # repo spotlights (CodeGraph etc.)
+  - charliehills        # AI tool builds
+  - vishi_explores      # AI tool discovery
+  - mrstandev           # dev + AI tools
+  - marktechpost        # AI research news (GitNexus etc.)
+  - drcintas            # repo-to-knowledge-graph tools
+  - cocoindex           # data transformation framework for AI
+  - hamzaashergill      # Claude Code context techniques
+  # unverified candidates
+  - mousepox_
+  - ryan.c.lilly
+threads_posts_per_account: 8
+
+# ── X / Twitter ──────────────────────────────────────────────────────────────
+# Off by default (needs own login wiring). Listed accounts activate if wired.
+x_accounts:
+  - AnthropicAI
+  - OpenAI
+  - karpathy
+  - swyx
+
+# ── YouTube ──────────────────────────────────────────────────────────────────
+# @handles, QUOTED. Latest uploads + caption transcripts. Needs yt-dlp.
+youtube_channels:
+  - "@AnthropicAI"
+  - "@AIJasonZ"
+  - "@wesroth"
+  - "@matthew_berman"
+
+# ── Reddit ───────────────────────────────────────────────────────────────────
+subreddits:
+  - ClaudeAI
+  - LocalLLaMA
+  - AI_Agents
+  - singularity
+  - artificial
+  - dataanalytics
+  - SideProject
+
+# ── GitHub Trending filter ───────────────────────────────────────────────────
+github_keywords:
+  - mcp
+  - cli
+  - agent
+  - agentic
+  - automation
+  - workflow
+  - pipeline
+  - llm
+  - slm
+  - claude
+  - anthropic
+  - openai
+  - rag
+  - memory
+  - eval
+  - voice
+  - mlx
+  - local
+  - harness
+  - governance
+
+# ── How much to pull ─────────────────────────────────────────────────────────
+deep_read_top_n: 10           # top GitHub/Reddit items to fetch full text for (free)
+x_posts_per_account: 10       # recent posts per X account (once X is wired)
+youtube_latest_per_channel: 3 # latest uploads to check per channel

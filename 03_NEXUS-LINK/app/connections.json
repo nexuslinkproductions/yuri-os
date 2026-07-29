@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Threads",
+    "status": "live",
+    "status_class": "live",
+    "description": "Posting via browser session. The browser lane consumes the approved queue and marks drafts posted with their permalink.",
+    "path": "@nexuslinkproductions"
+  },
+  {
+    "name": "LinkedIn",
+    "status": "live",
+    "status_class": "live",
+    "description": "Posting via browser session. LinkedIn drafts flow through the same star map review and queue.",
+    "path": "browser session"
+  },
+  {
+    "name": "Email",
+    "status": "pending",
+    "status_class": "pending",
+    "description": "Newsletter and outreach channel. Not wired yet, planned after the posting loop stabilizes."
+  },
+  {
+    "name": "Instagram",
+    "status": "pending",
+    "status_class": "pending",
+    "description": "Visual channel, infographics and carousel renders from the content engine. Not wired yet."
+  },
+  {
+    "name": "Postiz API",
+    "status": "not configured",
+    "status_class": "planned",
+    "description": "Planned direct-posting upgrade. Replaces the browser lane with API posting once credentials and scopes are set up.",
+    "path": "postiz api path, not configured"
+  },
+  {
+    "name": "Trading branch",
+    "status": "far stretch",
+    "status_class": "planned",
+    "description": "MT5 / TradingView integration for the trading engine. Lives on a dedicated branch, not part of the content loop.",
+    "link": "../../TRADING-BRANCH.md"
+  }
+]

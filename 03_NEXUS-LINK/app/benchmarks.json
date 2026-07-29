@@ -1,0 +1,26 @@
+[
+  {
+    "category": "code intelligence",
+    "title": "CodeGraph hits 63,270 stars",
+    "summary": "Pre-indexed code knowledge graph for coding agents. Claims 94% fewer tool calls by turning exploration into lookup.",
+    "metric": "63,270 stars / 94% fewer tool calls claimed"
+  },
+  {
+    "category": "internal gate",
+    "title": "quantum-vs-bayes benchmark: PASS",
+    "summary": "Two-sided falsification gate run against the hypothesis simulator. Order-effects model holds under adversarial falsification.",
+    "metric": "PASS, two-sided falsification gate"
+  },
+  {
+    "category": "trading edge",
+    "title": "trade-edge-audit: 205 factors, 0 survivors",
+    "summary": "Full factor pile rendered through the edge arsenal: multi-horizon scoring plus deflated Sharpe overfit control. Nothing cleared the bar.",
+    "metric": "205 examined / 0 survivors"
+  },
+  {
+    "category": "decision sim",
+    "title": "decision-sim + factor-circuit ordering effect",
+    "summary": "Order-optimal factor-circuit sequencing validated against the sim arsenal. Sequencing, not signal, carries the effect.",
+    "metric": "1,134,061x validated ordering effect"
+  }
+]

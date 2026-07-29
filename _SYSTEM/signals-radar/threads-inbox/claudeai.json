@@ -1,0 +1,51 @@
+{
+  "account": "claudeai",
+  "captured_at": "2026-07-29T11:00:00",
+  "posts": [
+    {
+      "id": "p1",
+      "text": "Introducing Claude Opus 5.\nIt's a thoughtful and proactive model that comes close to the frontier intelligence of Fable 5 at half the price.",
+      "url": "https://www.threads.com/@claudeai",
+      "likes": 1600,
+      "replies": 100,
+      "reposts": 203,
+      "posted": "2026-07-25"
+    },
+    {
+      "id": "p2",
+      "text": "With Sonnet 5, Opus 5, and Fable 5 released, you might be wondering which to use. Here's a guide to help you figure out when to change models, and when to raise the Claude's effort level.",
+      "url": "https://www.threads.com/@claudeai",
+      "likes": 1300,
+      "replies": 60,
+      "reposts": 118,
+      "posted": "2026-07-25"
+    },
+    {
+      "id": "p3",
+      "text": "On several coding and knowledge work evaluations, Opus 5 is the new state-of-the-art:",
+      "url": "https://www.threads.com/@claudeai",
+      "likes": 510,
+      "replies": 13,
+      "reposts": 36,
+      "posted": "2026-07-25"
+    },
+    {
+      "id": "p4",
+      "text": "We're asking and listening to hard questions about AI, and openly working toward their answers. One of the most common is also one of the most complex: how does AI actually work? This is a selection of our work so far.",
+      "url": "https://www.threads.com/@claudeai",
+      "likes": 350,
+      "replies": 8,
+      "reposts": 29,
+      "posted": "2026-07-28"
+    },
+    {
+      "id": "p5",
+      "text": "New in Claude Code: agent view.\nOne list of all your sessions, available today as a research preview.",
+      "url": "https://www.threads.com/@claudeai",
+      "likes": 1800,
+      "replies": 68,
+      "reposts": 125,
+      "posted": "2026-05-11"
+    }
+  ]
+}

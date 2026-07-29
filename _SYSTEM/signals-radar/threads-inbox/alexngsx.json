@@ -1,0 +1,15 @@
+{
+  "account": "alexngsx",
+  "captured_at": "2026-07-29T11:00:00",
+  "posts": [
+    {
+      "id": "p1",
+      "text": "NOBODY IS TALKING ABOUT THIS:\nSomeone built htop for Claude Code sessions.\n\nEvery session. live. token count, context window %, rate limit status, ports. all in one terminal view.\n\nMost people running Claude Code on long tasks find out they hit the limit when the session dies. this shows you 10 minutes before.\n\nIt's called abtop. \"Like htop, but for AI coding agents.\"\n\nOpen source. Free.\n(Link in the comments)",
+      "url": "https://www.threads.com/@alexngsx",
+      "likes": 645,
+      "replies": 16,
+      "reposts": 88,
+      "posted": "2026-04-23"
+    }
+  ]
+}

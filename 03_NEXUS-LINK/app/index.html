@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEXUS LINK · Work Dashboard</title>
+<style>
+  :root {
+    --bg: #05060e;
+    --panel: #0a0f1e;
+    --panel2: #0c1224;
+    --panel3: #0e152c;
+    --line: #1a2740;
+    --line2: #253657;
+    --text: #dbe5f4;
+    --dim: #8494ad;
+    --faint: #57637c;
+    --cyan: #00c8f0;
+    --violet: #9a6bff;
+    --green: #2fd47a;
+    --red: #f0506e;
+    --amber: #e8b44a;
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, sans-serif;
+    --mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-font-smoothing: antialiased; }
+  body {
+    background:
+      radial-gradient(1400px 700px at 75% -15%, rgba(154,107,255,0.05), transparent 60%),
+      radial-gradient(1000px 500px at -10% 110%, rgba(0,200,240,0.03), transparent 55%),
+      var(--bg);
+    color: var(--text);
+    font: 14px/1.55 var(--sans);
+    min-height: 100vh;
+  }
+  ::selection { background: rgba(0,200,240,0.25); }
+  a { color: var(--cyan); text-decoration: none; transition: color 150ms var(--ease); }
+  a:hover { color: #5ee2ff; }
+  button { font-family: inherit; }
+  :focus-visible { outline: 1px solid var(--cyan); outline-offset: 2px; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #1c2a47; border-radius: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  .kicker {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--dim); font-weight: 500;
+  }
+  .kicker.dim { color: var(--faint); letter-spacing: 0.1em; text-transform: none; }
+  .empty {
+    color: var(--faint); font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.1em; padding: 32px 0; text-align: center;
+  }
+
+  /* ---------- shell ---------- */
+  .shell { display: flex; min-height: 100vh; }
+  .rail {
+    width: 216px; flex: 0 0 216px; border-right: 1px solid var(--line);
+    padding: 24px 16px; display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh; background: rgba(5,6,14,0.6);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 24px; border-bottom: 1px solid var(--line); }
+  .mark {
+    width: 36px; height: 36px; flex: 0 0 36px; border-radius: 8px;
+    border: 1px solid var(--line2);
+    background: linear-gradient(135deg, rgba(0,200,240,0.14), rgba(154,107,255,0.14));
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 13px; font-weight: 700; letter-spacing: 0.05em;
+    color: var(--cyan);
+  }
+  .brand .name { font-family: var(--mono); font-size: 11px; letter-spacing: 0.26em; color: var(--text); font-weight: 600; }
+  .brand .sub { font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; color: var(--faint); margin-top: 4px; }
+  .nav { display: flex; flex-direction: column; gap: 2px; padding-top: 16px; }
+  .nav button {
+    display: flex; align-items: center; gap: 10px;
+    background: none; border: 1px solid transparent; color: var(--dim);
+    text-align: left; padding: 9px 10px; border-radius: 6px; cursor: pointer;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    transition: color 150ms var(--ease), background 150ms var(--ease), border-color 150ms var(--ease);
+  }
+  .nav button:hover { color: var(--text); background: rgba(255,255,255,0.02); }
+  .nav button.active { color: var(--cyan); border-color: var(--line); background: var(--panel); }
+  .nav .nnum { color: var(--faint); font-size: 9px; width: 16px; }
+  .nav button.active .nnum { color: var(--cyan); }
+  .nav .nlabel { flex: 1; }
+  .nav .ncount { font-size: 9px; color: var(--faint); }
+  .rail .foot {
+    margin-top: auto; display: flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 9px; color: var(--faint);
+    letter-spacing: 0.14em; padding: 12px 8px 0; border-top: 1px solid var(--line);
+  }
+  .livedot { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); flex: 0 0 6px; }
+  .livedot.live { background: var(--green); animation: pulse 2.4s infinite; }
+  .livedot.err { background: var(--red); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  main { flex: 1; min-width: 0; padding: 40px 48px 80px; }
+  .canvas { max-width: 1520px; margin: 0 auto; }
+  .view { display: none; }
+  .view.active { display: block; animation: fadein 200ms var(--ease); }
+  @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .vhead {
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;
+    margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--line);
+  }
+  .vhead h2 { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; margin-top: 8px; }
+  .vmeta { font-family: var(--mono); font-size: 11px; color: var(--faint); letter-spacing: 0.08em; text-align: right; }
+
+  .panel {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 24px;
+  }
+  .phead {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  /* ---------- shared controls ---------- */
+  .btn {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 10px 16px; border-radius: 6px; cursor: pointer;
+    border: 1px solid var(--line2); background: transparent; color: var(--text);
+    transition: border-color 150ms var(--ease), background 150ms var(--ease), color 150ms var(--ease);
+  }
+  .btn:hover { background: rgba(255,255,255,0.04); }
+  .btn.cyan { border-color: rgba(0,200,240,0.45); color: var(--cyan); }
+  .btn.ok { border-color: rgba(47,212,122,0.45); color: var(--green); }
+  .btn.danger { border-color: rgba(240,80,110,0.45); color: var(--red); }
+  .btn:disabled { opacity: 0.45; cursor: default; }
+  textarea, input[type=text], input[type=url] {
+    width: 100%; background: #070b18; color: var(--text);
+    border: 1px solid var(--line); border-radius: 8px; padding: 12px;
+    font: 13px/1.6 var(--mono); resize: vertical;
+    transition: border-color 150ms var(--ease), box-shadow 150ms var(--ease);
+  }
+  textarea:focus, input[type=text]:focus, input[type=url]:focus {
+    outline: none; border-color: rgba(0,200,240,0.55);
+    box-shadow: 0 0 0 3px rgba(0,200,240,0.08);
+  }
+
+  /* status dots */
+  .sdot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 8px; display: inline-block; }
+  .sdot.draft { background: #5a6a85; }
+  .sdot.approved { background: var(--green); box-shadow: 0 0 8px rgba(47,212,122,0.5); }
+  .sdot.rejected { background: var(--red); box-shadow: 0 0 8px rgba(240,80,110,0.5); }
+  .sdot.posted { background: var(--cyan); box-shadow: 0 0 8px rgba(0,200,240,0.5); }
+  .sdot.ok { background: var(--green); box-shadow: 0 0 6px rgba(47,212,122,0.45); }
+  .sdot.down { background: var(--red); box-shadow: 0 0 6px rgba(240,80,110,0.45); }
+  .stxt.draft { color: var(--dim); }
+  .stxt.approved { color: var(--green); }
+  .stxt.rejected { color: var(--red); }
+  .stxt.posted { color: var(--cyan); }
+
+  /* ---------- radar ---------- */
+  .radar-grid { display: grid; grid-template-columns: minmax(400px, 560px) 1fr; gap: 24px; align-items: start; }
+  .sweep-panel { padding: 24px; }
+  #sweep-box { width: 100%; }
+  canvas#sweep { display: block; margin: 0 auto; }
+  .radar-side { display: flex; flex-direction: column; gap: 24px; }
+  .chan { display: grid; grid-template-columns: 12px 110px 1fr auto; gap: 12px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid rgba(26,39,64,0.6); }
+  .chan:last-child { border-bottom: none; }
+  .chan .cname { font-family: var(--mono); font-size: 12px; color: var(--text); letter-spacing: 0.06em; }
+  .chan .cdetail { font-size: 12px; color: var(--dim); }
+  .chan .ccount { font-family: var(--mono); font-size: 11px; color: var(--cyan); }
+  .trends { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tchip {
+    font-family: var(--mono); font-size: 11px; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px;
+  }
+  .tchip b { color: var(--text); font-weight: 500; }
+  .tchip i { font-style: normal; color: var(--faint); margin-left: 6px; }
+  .sig { display: grid; grid-template-columns: 28px 52px 1fr auto; gap: 12px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid rgba(26,39,64,0.6); }
+  .sig:last-child { border-bottom: none; }
+  .sig .rank { font-family: var(--mono); font-size: 10px; color: var(--faint); }
+  .sig .score { font-family: var(--mono); font-size: 11px; color: var(--cyan); }
+  .sig .title { font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sig .title a { color: var(--text); }
+  .sig .title a:hover { color: var(--cyan); }
+  .sig .src {
+    font-family: var(--mono); font-size: 9px; color: var(--dim);
+    text-transform: uppercase; letter-spacing: 0.12em;
+    border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px;
+  }
+
+  /* ---------- star map ---------- */
+  .voicepanel { margin-bottom: 24px; background: var(--panel2); }
+  .voicepanel .vbody { font-size: 12px; color: var(--dim); white-space: pre-wrap; font-family: var(--mono); line-height: 1.7; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px; align-items: start; }
+  .pcol-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+  .pcol-stats { display: flex; gap: 12px; font-family: var(--mono); font-size: 9px; color: var(--faint); letter-spacing: 0.08em; align-items: center; }
+  .pcol-stats .sdot { width: 6px; height: 6px; flex-basis: 6px; }
+  .nodes { display: flex; flex-direction: column; gap: 8px; }
+  .node {
+    display: flex; gap: 12px; align-items: center; text-align: left; width: 100%;
+    padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px;
+    cursor: pointer; background: var(--panel2); color: var(--text);
+    transition: border-color 150ms var(--ease), transform 150ms var(--ease), box-shadow 150ms var(--ease);
+  }
+  .node:hover { border-color: var(--line2); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.35); }
+  .node .nbody { flex: 1; min-width: 0; }
+  .node .ntitle { display: block; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .node .nmeta { display: block; font-family: var(--mono); font-size: 10px; color: var(--faint); letter-spacing: 0.04em; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .node .nstatus { font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; flex: 0 0 auto; }
+
+  /* ---------- drawer ---------- */
+  .scrim { position: fixed; inset: 0; background: rgba(3,4,10,0.65); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity 200ms var(--ease); z-index: 40; }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed; top: 0; right: 0; height: 100vh; z-index: 50;
+    width: 40vw; min-width: 460px; max-width: 680px;
+    background: var(--panel); border-left: 1px solid var(--line2);
+    transform: translateX(100%); transition: transform 240ms var(--ease);
+    overflow-y: auto; padding: 32px;
+    box-shadow: -24px 0 64px rgba(0,0,0,0.5);
+  }
+  .drawer.open { transform: translateX(0); }
+  .dhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+  .dhead h3 { font-size: 18px; font-weight: 600; margin-top: 8px; word-break: break-all; }
+  .dclose {
+    background: none; border: 1px solid var(--line); border-radius: 6px; color: var(--dim);
+    width: 32px; height: 32px; cursor: pointer; font-size: 14px; flex: 0 0 32px;
+    transition: color 150ms var(--ease), border-color 150ms var(--ease);
+  }
+  .dclose:hover { color: var(--text); border-color: var(--line2); }
+  .metagrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-bottom: 24px; }
+  .metagrid .mk { font-family: var(--mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--faint); }
+  .metagrid .mv { font-family: var(--mono); font-size: 11px; color: var(--text); margin-top: 4px; word-break: break-word; }
+  .revnote {
+    border-left: 2px solid var(--red); background: rgba(240,80,110,0.06);
+    padding: 12px 16px; border-radius: 0 8px 8px 0; margin-bottom: 24px;
+    font-family: var(--mono); font-size: 11px; color: var(--dim); white-space: pre-wrap;
+  }
+  .revnote b { color: var(--red); font-weight: 600; display: block; margin-bottom: 4px; letter-spacing: 0.1em; text-transform: uppercase; font-size: 9px; }
+  .pnotes {
+    border: 1px dashed var(--line2); border-radius: 8px; padding: 16px; margin: 24px 0;
+  }
+  .pnotes pre { font-family: var(--mono); font-size: 11px; color: var(--dim); white-space: pre-wrap; line-height: 1.7; margin-top: 8px; }
+  .dsection { margin-top: 24px; }
+  .dsection > .kicker { display: block; margin-bottom: 8px; }
+  .btnrow { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+  /* platform mocks */
+  .mock { border-radius: 12px; padding: 16px; margin-top: 4px; }
+  .mock.th { background: #07080d; border: 1px solid var(--line2); }
+  .mock.li { background: #ffffff; border: 1px solid #e2e6ec; color: #17181c; }
+  .mhead { display: flex; gap: 12px; align-items: center; }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%; flex: 0 0 40px;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 15px; color: #05060e; font-weight: 700;
+  }
+  .mock.li .avatar { border-radius: 6px; }
+  .mid { min-width: 0; }
+  .mname { font-weight: 700; font-size: 14px; }
+  .mhandle { font-size: 12px; color: var(--dim); }
+  .mock.li .mhandle { color: #616a75; }
+  .mtime { font-size: 11px; color: #8b95a1; margin-top: 2px; }
+  .mbody { margin-top: 12px; font-size: 14px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+  .mmedia { margin-top: 12px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line2); }
+  .mock.li .mmedia { border-color: #e2e6ec; }
+  .mmedia img { display: block; width: 100%; height: auto; }
+  .mactions { margin-top: 14px; padding-top: 12px; display: flex; gap: 24px; color: var(--dim); border-top: 1px solid rgba(26,39,64,0.7); }
+  .mock.li .mactions { border-top: 1px solid #e4e7eb; color: #616a75; }
+  .mactions span { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-family: var(--mono); letter-spacing: 0.04em; }
+  .mactions svg { width: 15px; height: 15px; }
+
+  /* ---------- intelligence ---------- */
+  .igroup { margin-bottom: 32px; }
+  .igroup .panel { margin-bottom: 16px; }
+  .ghead h3 { font-size: 18px; font-weight: 600; margin-top: 8px; }
+  .ghead .gintro { font-size: 12px; color: var(--dim); margin-top: 10px; max-width: 760px; line-height: 1.65; }
+  .srcstrip { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+  .srcchip { font-family: var(--mono); font-size: 10px; color: var(--dim); border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px; letter-spacing: 0.04em; }
+  .srcchip b { color: var(--text); font-weight: 500; }
+  .srcchip i { font-style: normal; color: var(--cyan); margin-left: 6px; }
+
+  .beats { display: grid; grid-template-columns: repeat(auto-fit, minmax(176px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .beat { background: var(--panel2); padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .beat-n { font-family: var(--mono); font-size: 11px; color: var(--cyan); }
+  .beat-name { font-size: 13px; font-weight: 600; line-height: 1.35; }
+  .beat-q { font-family: var(--mono); font-size: 9px; color: var(--faint); letter-spacing: 0.06em; text-transform: uppercase; }
+  .beat-d { font-size: 11px; color: var(--dim); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+
+  .taxrow { padding: 14px 0; border-bottom: 1px solid rgba(26,39,64,0.6); }
+  .taxrow:first-of-type { padding-top: 4px; }
+  .taxrow:last-of-type { border-bottom: none; }
+  .tax-grid { display: grid; grid-template-columns: minmax(220px, 300px) 1fr auto; gap: 20px; align-items: center; }
+  .tax-type { font-size: 13px; font-weight: 600; line-height: 1.4; }
+  .tax-ex { font-size: 11px; color: var(--dim); margin-top: 6px; line-height: 1.5; }
+  .tax-bar { height: 14px; background: var(--panel3); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+  .tax-bar i { display: block; height: 100%; background: linear-gradient(90deg, rgba(0,200,240,0.55), rgba(154,107,255,0.7)); }
+  .tax-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .tax-plays { font-family: var(--mono); font-size: 11px; color: var(--cyan); white-space: nowrap; }
+  .taxnote { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--dim); line-height: 1.6; }
+
+  .rcpt-toggle {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--dim); background: none; border: 1px solid var(--line); border-radius: 4px;
+    padding: 4px 10px; cursor: pointer; white-space: nowrap;
+    transition: color 150ms var(--ease), border-color 150ms var(--ease);
+  }
+  .rcpt-toggle:hover { color: var(--text); border-color: var(--line2); }
+  .rcpt-toggle.open { color: var(--cyan); border-color: rgba(0,200,240,0.45); }
+  .rcpts { margin: 12px 0 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel2); padding: 4px 16px; }
+  .rcpt { display: grid; grid-template-columns: 96px 84px 108px 1fr auto; gap: 16px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid rgba(26,39,64,0.6); }
+  .rcpt:last-child { border-bottom: none; }
+  .rcpt .rp { font-family: var(--mono); font-size: 10px; color: var(--dim); }
+  .rcpt .rp.cy { color: var(--cyan); font-size: 11px; }
+  .rcpt .rcap { color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+  .rcpt .rlink { font-family: var(--mono); font-size: 10px; }
+  .rcpt.acc { grid-template-columns: 140px 70px 1fr; }
+  .rcpt.acc .rcap { white-space: normal; }
+  .rcpt .rmove { display: block; margin-top: 2px; color: var(--dim); }
+
+  .moves { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+  .move { border: 1px solid var(--line); border-radius: 8px; padding: 16px; background: var(--panel2); }
+  .move-n { font-family: var(--mono); font-size: 10px; color: var(--cyan); }
+  .move-t { font-size: 13px; font-weight: 600; margin-top: 6px; line-height: 1.45; }
+  .move-b { font-size: 12px; color: var(--dim); margin-top: 8px; line-height: 1.65; }
+
+  .refuse { border-color: rgba(240,80,110,0.25); background: linear-gradient(rgba(240,80,110,0.03), rgba(240,80,110,0.03)), var(--panel); }
+  .refchips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .refchip { font-family: var(--mono); font-size: 10px; color: var(--red); border: 1px solid rgba(240,80,110,0.35); border-radius: 4px; padding: 4px 10px; letter-spacing: 0.06em; }
+  .refnote { font-size: 12px; color: var(--dim); margin-top: 14px; line-height: 1.6; max-width: 760px; }
+
+  .xmethod { font-family: var(--mono); font-size: 10px; color: var(--faint); margin-top: 12px; line-height: 1.7; }
+  .xhl { border-left: 2px solid var(--violet); background: rgba(154,107,255,0.05); padding: 12px 16px; border-radius: 0 8px 8px 0; margin-top: 16px; max-width: 900px; }
+  .xhl p { font-size: 13px; color: var(--text); margin-top: 6px; line-height: 1.6; }
+  .accts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+
+  .xpat { display: grid; grid-template-columns: 36px 1fr auto; gap: 16px; padding: 13px 0; border-bottom: 1px solid rgba(26,39,64,0.6); align-items: start; }
+  .xpat:first-of-type { padding-top: 4px; }
+  .xpat:last-of-type { border-bottom: none; }
+  .xpat-n { font-family: var(--mono); font-size: 11px; color: var(--violet); padding-top: 2px; }
+  .xpat-name { font-size: 13px; font-weight: 600; }
+  .xpat-body { font-size: 12px; color: var(--dim); margin-top: 4px; line-height: 1.6; max-width: 860px; }
+
+  /* ---------- queue ---------- */
+  .qlist { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+  .qitem { display: grid; grid-template-columns: 48px 1fr; gap: 20px; align-items: start; }
+  .qnum { font-family: var(--mono); font-size: 22px; color: var(--violet); text-align: right; padding-top: 2px; font-weight: 300; }
+  .qmeta { display: flex; gap: 16px; align-items: baseline; margin-bottom: 12px; flex-wrap: wrap; }
+  .qmeta .pill { font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); border: 1px solid var(--line); border-radius: 4px; padding: 3px 8px; }
+  .qactions { display: flex; gap: 8px; margin-top: 16px; align-items: center; flex-wrap: wrap; }
+  .postform { display: flex; gap: 8px; flex: 1; min-width: 280px; }
+  .postform input { flex: 1; }
+  .ledger .lrow {
+    display: grid; grid-template-columns: 150px 90px 1fr auto; gap: 16px; align-items: baseline;
+    padding: 10px 0; border-bottom: 1px solid rgba(26,39,64,0.6);
+    font-family: var(--mono); font-size: 11px;
+  }
+  .ledger .lrow:last-child { border-bottom: none; }
+  .ledger .lts { color: var(--faint); }
+  .ledger .lpl { color: var(--violet); text-transform: uppercase; font-size: 9px; letter-spacing: 0.14em; }
+  .ledger .lfile { color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ---------- benchmarks ---------- */
+  .brow { display: grid; grid-template-columns: 160px 1fr; gap: 24px; padding: 20px 0; border-bottom: 1px solid rgba(26,39,64,0.6); }
+  .brow:first-child { padding-top: 0; }
+  .brow:last-child { border-bottom: none; padding-bottom: 0; }
+  .brow .bcat { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cyan); padding-top: 4px; }
+  .brow h4 { font-size: 16px; font-weight: 600; }
+  .brow p { color: var(--dim); font-size: 13px; margin-top: 4px; max-width: 720px; }
+  .brow .bmetric { font-family: var(--mono); font-size: 11px; color: var(--violet); margin-top: 8px; letter-spacing: 0.04em; }
+
+  /* ---------- connections ---------- */
+  .conn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .conn { display: flex; flex-direction: column; gap: 12px; }
+  .conn .cname { font-size: 15px; font-weight: 600; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .badge {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    border-radius: 4px; padding: 3px 10px; border: 1px solid var(--line2); color: var(--dim);
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .badge.live { color: var(--green); border-color: rgba(47,212,122,0.4); }
+  .badge.pending { color: var(--amber); border-color: rgba(232,180,74,0.4); }
+  .badge.planned { color: var(--violet); border-color: rgba(154,107,255,0.4); }
+  .conn .cdesc { color: var(--dim); font-size: 13px; line-height: 1.6; }
+  .conn .cpath { font-family: var(--mono); font-size: 11px; color: var(--cyan); word-break: break-all; margin-top: auto; }
+
+  @media (max-width: 1280px) {
+    .radar-grid { grid-template-columns: 1fr; }
+    .drawer { width: 60vw; }
+    .tax-grid { grid-template-columns: 1fr; gap: 10px; }
+    .tax-right { flex-direction: row; align-items: baseline; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="rail">
+    <div class="brand">
+      <div class="mark">NL</div>
+      <div>
+        <div class="name">NEXUS LINK</div>
+        <div class="sub">WORK DASHBOARD</div>
+      </div>
+    </div>
+    <div class="nav" id="nav">
+      <button data-view="radar" class="active"><span class="nnum">01</span><span class="nlabel">Radar</span></button>
+      <button data-view="starmap"><span class="nnum">02</span><span class="nlabel">Star Map</span><span class="ncount" id="nc-drafts"></span></button>
+      <button data-view="intel"><span class="nnum">03</span><span class="nlabel">Intelligence</span><span class="ncount" id="nc-intel"></span></button>
+      <button data-view="queue"><span class="nnum">04</span><span class="nlabel">Queue</span><span class="ncount" id="nc-queue"></span></button>
+      <button data-view="benchmarks"><span class="nnum">05</span><span class="nlabel">Benchmarks</span></button>
+      <button data-view="connections"><span class="nnum">06</span><span class="nlabel">Connections</span></button>
+    </div>
+    <div class="foot"><span class="livedot" id="livedot"></span><span id="pollstat">connecting</span></div>
+  </nav>
+
+  <main>
+    <div class="canvas">
+
+      <section class="view active" id="view-radar">
+        <header class="vhead">
+          <div>
+            <div class="kicker">signals intake</div>
+            <h2>Radar</h2>
+          </div>
+          <div class="vmeta" id="radar-date"></div>
+        </header>
+        <div class="radar-grid">
+          <div class="panel sweep-panel">
+            <div class="phead"><span class="kicker">sweep, latest run</span><span class="kicker dim" id="sweep-count"></span></div>
+            <div id="sweep-box"><canvas id="sweep"></canvas></div>
+          </div>
+          <div class="radar-side">
+            <div class="panel">
+              <div class="phead"><span class="kicker">channel health</span></div>
+              <div id="chips"></div>
+            </div>
+            <div class="panel">
+              <div class="phead"><span class="kicker">trend keywords</span></div>
+              <div class="trends" id="trends"></div>
+            </div>
+            <div class="panel">
+              <div class="phead"><span class="kicker">top signals</span><span class="kicker dim">by signal score</span></div>
+              <div id="siglist"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-starmap">
+        <header class="vhead">
+          <div>
+            <div class="kicker">content pipeline</div>
+            <h2>Star Map</h2>
+          </div>
+          <div class="vmeta">click a node to review, edit, approve</div>
+        </header>
+        <div class="panel voicepanel">
+          <div class="phead"><span class="kicker">voice reference, verified posts corpus</span></div>
+          <div class="vbody" id="voicebody">loading</div>
+        </div>
+        <div class="cols" id="starmap-cols"></div>
+      </section>
+
+      <section class="view" id="view-intel">
+        <header class="vhead">
+          <div>
+            <div class="kicker">digested competitor intelligence</div>
+            <h2>Intelligence</h2>
+          </div>
+          <div class="vmeta">patterns first, posts demoted to receipts</div>
+        </header>
+        <div id="intel"></div>
+      </section>
+
+      <section class="view" id="view-queue">
+        <header class="vhead">
+          <div>
+            <div class="kicker">ready to ship</div>
+            <h2>Queue</h2>
+          </div>
+          <div class="vmeta" id="queue-meta"></div>
+        </header>
+        <div class="qlist" id="queue-list"></div>
+        <div class="panel ledger">
+          <div class="phead"><span class="kicker">posted ledger</span><span class="kicker dim" id="ledger-count"></span></div>
+          <div id="ledger"></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-benchmarks">
+        <header class="vhead">
+          <div>
+            <div class="kicker">reference numbers</div>
+            <h2>Benchmarks</h2>
+          </div>
+          <div class="vmeta">seeded from benchmarks.json</div>
+        </header>
+        <div class="panel"><div id="news"></div></div>
+      </section>
+
+      <section class="view" id="view-connections">
+        <header class="vhead">
+          <div>
+            <div class="kicker">channel wiring</div>
+            <h2>Connections</h2>
+          </div>
+          <div class="vmeta">editable in connections.json</div>
+        </header>
+        <div class="conn-grid" id="conns"></div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer"></aside>
+
+<script type="module">
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtN = (n) => (n === null || n === undefined || isNaN(Number(n))) ? null : Number(n).toLocaleString('en-US');
+
+async function fetchJson(url, opts) {
+  const r = await fetch(url, { cache: 'no-store', ...opts });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || ('http_' + r.status));
+  return data;
+}
+async function post(url, body) {
+  return fetchJson(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+}
+
+const state = {
+  radar: null, drafts: [], queue: [], ledger: [], voice: null,
+  creators: null, synthesis: null, benchmarks: [], connections: [],
+  drawer: null,        // { type: 'draft', id }
+  postFormId: null,    // draft id with open mark-posted form
+  lastCopyAt: 0,
+  receiptsOpen: new Set(), // drill-down ids kept open across poll re-renders
+};
+
+/* ---------- icons (inline svg, no emoji) ---------- */
+const svgWrap = (inner) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+const ICONS = {
+  heart: svgWrap('<path d="M12 20.3c-5.4-3.2-8.7-6.5-8.7-10.3a4.7 4.7 0 0 1 4.7-4.7c1.7 0 3.1.8 4 2.1a4.96 4.96 0 0 1 4-2.1 4.7 4.7 0 0 1 4.7 4.7c0 3.8-3.3 7.1-8.7 10.3z"/>'),
+  like: svgWrap('<path d="M7 10.5v10H3.5v-10z"/><path d="M7 10.5l4.2-7c1.5 0 2.5 1 2.3 2.5l-.5 3h6.3a2 2 0 0 1 2 2.4l-1.2 6.5a2 2 0 0 1-2 1.6H7"/>'),
+  comment: svgWrap('<path d="M20 4H4v12.5h5.2L12 20l2.8-3.5H20z"/>'),
+  repost: svgWrap('<path d="M7 3.5L3.5 7 7 10.5"/><path d="M3.5 7H16a4 4 0 0 1 4 4v2.5"/><path d="M17 20.5L20.5 17 17 13.5"/><path d="M20.5 17H8a4 4 0 0 1-4-4v-2.5"/>'),
+  share: svgWrap('<path d="M20.5 3.5L10.8 13.2"/><path d="M20.5 3.5l-6.8 17-2.9-7.3-7.3-2.9z"/>'),
+};
+
+/* ---------- nav ---------- */
+document.querySelectorAll('#nav button[data-view]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#nav button[data-view]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('section.view').forEach(s => s.classList.remove('active'));
+    $('#view-' + btn.dataset.view).classList.add('active');
+  });
+});
+
+/* ---------- media helper ---------- */
+function mediaUrl(mediaNeeded) {
+  if (!mediaNeeded || !/^\s*READY/i.test(mediaNeeded)) return null;
+  const m = mediaNeeded.match(/media\/([\w.-]+\.(?:png|jpe?g))/i);
+  return m ? '/media/' + m[1] : null;
+}
+
+/* ---------- radar canvas ---------- */
+const sweepCv = $('#sweep');
+const sctx = sweepCv.getContext('2d');
+let beamAngle = -Math.PI / 2;
+const blipGlow = new Map();
+let sweepPx = 0;
+
+function sizeSweep() {
+  const box = $('#sweep-box');
+  const dpr = window.devicePixelRatio || 1;
+  const w = Math.max(280, Math.floor(box.clientWidth));
+  if (w === sweepPx) return;
+  sweepPx = w;
+  sweepCv.width = w * dpr;
+  sweepCv.height = w * dpr;
+  sweepCv.style.width = w + 'px';
+  sweepCv.style.height = w + 'px';
+}
+new ResizeObserver(() => requestAnimationFrame(sizeSweep)).observe($('#sweep-box'));
+sizeSweep();
+
+function channelAngles(channels) {
+  const names = Object.keys(channels || {});
+  const map = {};
+  names.forEach((n, i) => { map[n] = (i / Math.max(names.length, 1)) * Math.PI * 2; });
+  return map;
+}
+
+function drawSweep(dt) {
+  if (!sweepPx) return;
+  const dpr = window.devicePixelRatio || 1;
+  const S = sweepCv.width;
+  const cx = S / 2, cy = S / 2;
+  const R = S / 2 - 46 * dpr;
+  sctx.clearRect(0, 0, S, S);
+
+  // faint center glow
+  const cg = sctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+  cg.addColorStop(0, 'rgba(0,200,240,0.045)');
+  cg.addColorStop(0.55, 'rgba(0,200,240,0.012)');
+  cg.addColorStop(1, 'rgba(0,0,0,0)');
+  sctx.fillStyle = cg;
+  sctx.fillRect(0, 0, S, S);
+
+  // rings, thin hairlines
+  sctx.lineWidth = dpr * 0.75;
+  for (let i = 1; i <= 4; i++) {
+    sctx.strokeStyle = i === 4 ? '#223252' : '#182743';
+    sctx.beginPath();
+    sctx.arc(cx, cy, (R / 4) * i, 0, Math.PI * 2);
+    sctx.stroke();
+  }
+
+  // degree ticks on the outer ring
+  sctx.strokeStyle = '#223252';
+  sctx.lineWidth = dpr * 0.75;
+  for (let deg = 0; deg < 360; deg += 15) {
+    const a = (deg * Math.PI) / 180;
+    const len = deg % 45 === 0 ? 7 * dpr : 3.5 * dpr;
+    sctx.beginPath();
+    sctx.moveTo(cx + Math.cos(a) * (R - len), cy + Math.sin(a) * (R - len));
+    sctx.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R);
+    sctx.stroke();
+  }
+
+  // crosshair, very quiet
+  sctx.strokeStyle = 'rgba(26,39,64,0.55)';
+  sctx.beginPath();
+  sctx.moveTo(cx - R, cy); sctx.lineTo(cx + R, cy);
+  sctx.moveTo(cx, cy - R); sctx.lineTo(cx, cy + R);
+  sctx.stroke();
+
+  const radar = state.radar;
+  const items = radar && radar.items ? radar.items : [];
+  const angles = radar ? channelAngles(radar.channels) : {};
+  const maxSig = Math.max(1, ...items.map(it => it.signal || 0));
+
+  // beam: soft trailing wedge plus a crisp leading edge
+  beamAngle = (beamAngle + dt * 0.00085) % (Math.PI * 2);
+  for (let k = 26; k >= 1; k--) {
+    const a = beamAngle - k * 0.016;
+    sctx.strokeStyle = `rgba(0,200,240,${(0.028 * (1 - k / 27)).toFixed(4)})`;
+    sctx.lineWidth = 2.2 * dpr;
+    sctx.beginPath();
+    sctx.moveTo(cx, cy);
+    sctx.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R);
+    sctx.stroke();
+  }
+  const grad = sctx.createLinearGradient(cx, cy, cx + Math.cos(beamAngle) * R, cy + Math.sin(beamAngle) * R);
+  grad.addColorStop(0, 'rgba(0,200,240,0.02)');
+  grad.addColorStop(0.75, 'rgba(0,200,240,0.35)');
+  grad.addColorStop(1, 'rgba(0,200,240,0.85)');
+  sctx.strokeStyle = grad;
+  sctx.lineWidth = 1.4 * dpr;
+  sctx.beginPath();
+  sctx.moveTo(cx, cy);
+  sctx.lineTo(cx + Math.cos(beamAngle) * R, cy + Math.sin(beamAngle) * R);
+  sctx.stroke();
+
+  // center point
+  sctx.fillStyle = 'rgba(0,200,240,0.9)';
+  sctx.beginPath(); sctx.arc(cx, cy, 2 * dpr, 0, Math.PI * 2); sctx.fill();
+
+  // channel labels around the rim
+  sctx.font = `${9 * dpr}px "SF Mono", Menlo, monospace`;
+  sctx.fillStyle = '#57637c';
+  sctx.textAlign = 'center';
+  sctx.textBaseline = 'middle';
+  for (const [name, ang] of Object.entries(angles)) {
+    const lx = cx + Math.cos(ang) * (R + 24 * dpr);
+    const ly = cy + Math.sin(ang) * (R + 24 * dpr);
+    sctx.fillText(name.toUpperCase(), lx, ly);
+  }
+
+  // blips: crisp 3px dots, glow only on beam pass
+  items.forEach((it, i) => {
+    const base = angles[it.channel] ?? 0;
+    let h = 0;
+    for (const ch of String(it.title || '')) h = (h * 31 + ch.charCodeAt(0)) % 997;
+    const ang = base + ((h % 100) / 100 - 0.5) * 0.5;
+    const rad = R * (0.18 + 0.74 * ((it.signal || 0) / maxSig));
+    const x = cx + Math.cos(ang) * rad, y = cy + Math.sin(ang) * rad;
+    const d = Math.abs(((beamAngle - ang) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI);
+    if (d < 0.1) blipGlow.set(i, 1);
+    let g = blipGlow.get(i) || 0;
+    if (g > 0.02) { g *= 0.96; blipGlow.set(i, g); } else { blipGlow.delete(i); g = 0; }
+    if (g > 0.02) {
+      sctx.shadowColor = '#00c8f0';
+      sctx.shadowBlur = 12 * dpr * g;
+      sctx.fillStyle = `rgba(0,200,240,${0.45 + 0.55 * g})`;
+      sctx.beginPath();
+      sctx.arc(x, y, (1.5 + 1.6 * g) * dpr, 0, Math.PI * 2);
+      sctx.fill();
+      sctx.shadowBlur = 0;
+    } else {
+      sctx.fillStyle = 'rgba(154,107,255,0.7)';
+      sctx.beginPath();
+      sctx.arc(x, y, 1.5 * dpr, 0, Math.PI * 2);
+      sctx.fill();
+    }
+  });
+}
+
+let lastT = performance.now();
+function animLoop(t) {
+  drawSweep(t - lastT);
+  lastT = t;
+  requestAnimationFrame(animLoop);
+}
+requestAnimationFrame(animLoop);
+
+/* ---------- radar panel ---------- */
+function renderRadar() {
+  const r = state.radar;
+  if (!r) return;
+  $('#radar-date').textContent = r.date
+    ? 'sweep ' + r.date + (r.generated_at ? ' · generated ' + String(r.generated_at).replace('T', ' ').slice(0, 19) : '')
+    : 'no sweeps yet';
+  const n = (r.items || []).length;
+  $('#sweep-count').textContent = n ? n + ' signals tracked' : '';
+  $('#chips').innerHTML = Object.entries(r.channels || {}).map(([name, ch]) =>
+    `<div class="chan"><span class="sdot ${ch.status === 'ok' ? 'ok' : 'down'}"></span><span class="cname">${esc(name)}</span><span class="cdetail">${esc(ch.detail)}</span><span class="ccount">${esc(ch.count)}</span></div>`
+  ).join('') || '<div class="empty">no channel data</div>';
+  $('#trends').innerHTML = (r.trends || []).map(t =>
+    `<span class="tchip"><b>${esc(t.word)}</b><i>x${t.count}</i></span>`
+  ).join('') || '<div class="empty">no trend data</div>';
+  $('#siglist').innerHTML = (r.items || []).map((it, i) =>
+    `<div class="sig"><span class="rank">${String(i + 1).padStart(2, '0')}</span><span class="score">${esc(it.signal)}</span><span class="title"><a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a></span><span class="src">${esc(it.channel)}</span></div>`
+  ).join('') || '<div class="empty">no items in sweep</div>';
+}
+
+/* ---------- star map ---------- */
+const PLATFORM_ORDER = ['threads', 'linkedin'];
+const STATUSES = ['draft', 'approved', 'rejected', 'posted'];
+
+function firstLine(body) {
+  const line = String(body || '').split('\n').find(l => l.trim());
+  return line ? (line.length > 96 ? line.slice(0, 96) + '...' : line) : '(empty draft)';
+}
+
+function renderStarMap() {
+  const byPlat = {};
+  for (const d of state.drafts) (byPlat[d.platform] || (byPlat[d.platform] = [])).push(d);
+  const plats = [...PLATFORM_ORDER, ...Object.keys(byPlat).filter(p => !PLATFORM_ORDER.includes(p))].filter(p => byPlat[p]);
+  $('#starmap-cols').innerHTML = plats.map(plat => {
+    const list = byPlat[plat];
+    const counts = STATUSES.map(s => [s, list.filter(d => d.status === s).length]).filter(([, n]) => n > 0);
+    return `<div class="panel pcol">
+      <div class="pcol-head">
+        <span class="kicker">${esc(plat)}</span>
+        <span class="pcol-stats">${counts.map(([s, n]) => `<span class="sdot ${s}"></span>${n} ${s}`).join('')}</span>
+      </div>
+      <div class="nodes" data-plat="${esc(plat)}">
+        ${list.map(d => `
+          <button class="node" data-id="${esc(d.id)}">
+            <span class="sdot ${esc(d.status)}"></span>
+            <span class="nbody">
+              <span class="ntitle">${esc(firstLine(d.body))}</span>
+              <span class="nmeta">${esc(d.date)} · ${esc(d.pillar || 'no pillar')} · ${d.chars} chars</span>
+            </span>
+            <span class="nstatus stxt ${esc(d.status)}">${esc(d.status)}</span>
+          </button>`).join('')}
+      </div>
+    </div>`;
+  }).join('') || '<div class="panel"><div class="empty">no drafts in the inbox</div></div>';
+}
+$('#starmap-cols').addEventListener('click', (e) => {
+  const node = e.target.closest('.node');
+  if (node) openDraft(node.dataset.id);
+});
+
+/* ---------- platform mocks ---------- */
+function threadsMock(d, { media = true } = {}) {
+  const murl = media ? mediaUrl(d.media_needed) : null;
+  return `<div class="mock th">
+    <div class="mhead">
+      <div class="avatar">M</div>
+      <div class="mid"><div class="mname">Marcel Spatz</div><div class="mhandle">nexuslinkproductions</div></div>
+    </div>
+    <div class="mbody">${esc(d.body)}</div>
+    ${murl ? `<div class="mmedia"><img src="${esc(murl)}" alt="draft media"></div>` : ''}
+    <div class="mactions"><span>${ICONS.heart}</span><span>${ICONS.comment}</span><span>${ICONS.repost}</span><span>${ICONS.share}</span></div>
+  </div>`;
+}
+function linkedinMock(d, { media = true } = {}) {
+  const murl = media ? mediaUrl(d.media_needed) : null;
+  return `<div class="mock li">
+    <div class="mhead">
+      <div class="avatar">M</div>
+      <div class="mid"><div class="mname">Marcel Spatz</div><div class="mhandle">Founder, NEXUS LINK · AI systems for real work</div><div class="mtime">1w · visible to connections</div></div>
+    </div>
+    <div class="mbody">${esc(d.body)}</div>
+    ${murl ? `<div class="mmedia"><img src="${esc(murl)}" alt="draft media"></div>` : ''}
+    <div class="mactions"><span>${ICONS.like} Like</span><span>${ICONS.comment} Comment</span><span>${ICONS.repost} Repost</span><span>${ICONS.share} Send</span></div>
+  </div>`;
+}
+function platformMock(d, opts) {
+  return d.platform === 'linkedin' ? linkedinMock(d, opts) : threadsMock(d, opts);
+}
+
+/* ---------- drawer: draft review ---------- */
+function openDrawerShell() {
+  $('#scrim').classList.add('open');
+  $('#drawer').classList.add('open');
+}
+function closeDrawer() {
+  state.drawer = null;
+  $('#scrim').classList.remove('open');
+  $('#drawer').classList.remove('open');
+  renderStarMap();
+  renderIntel();
+  renderQueue();
+}
+$('#scrim').addEventListener('click', closeDrawer);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && state.drawer) closeDrawer(); });
+
+function openDraft(id) {
+  const d = state.drafts.find(x => x.id === id);
+  if (!d) return;
+  state.drawer = { type: 'draft', id };
+  renderDraftDrawer(d);
+  openDrawerShell();
+}
+
+function renderDraftDrawer(d) {
+  const drawer = $('#drawer');
+  const lines = Math.min(18, Math.max(7, String(d.body).split('\n').length + 2));
+  drawer.innerHTML = `
+    <div class="dhead">
+      <div>
+        <div class="kicker">${esc(d.platform)} · <span class="stxt ${esc(d.status)}">${esc(d.status)}</span></div>
+        <h3>${esc(d.file)}</h3>
+      </div>
+      <button class="dclose" id="dclose" aria-label="close">x</button>
+    </div>
+    <div class="metagrid">
+      <div><div class="mk">date</div><div class="mv">${esc(d.date)}</div></div>
+      <div><div class="mk">pillar</div><div class="mv">${esc(d.pillar || 'none')}</div></div>
+      <div><div class="mk">source signal</div><div class="mv">${esc(d.source_signal || 'none')}</div></div>
+      <div><div class="mk">length</div><div class="mv">${d.chars} chars</div></div>
+    </div>
+    ${d.review_note ? `<div class="revnote"><b>review note</b>${esc(d.review_note)}</div>` : ''}
+    <div class="dsection"><span class="kicker">platform preview</span>${platformMock(d)}</div>
+    <div class="pnotes"><span class="kicker">production notes</span><pre>infographic:
+${esc(d.infographic || 'none')}
+
+media_needed:
+${esc(d.media_needed || 'none')}</pre></div>
+    <div class="dsection">
+      <span class="kicker">edit body</span>
+      <textarea id="editbody" rows="${lines}">${esc(d.body)}</textarea>
+      <div class="btnrow"><button class="btn cyan" id="bsave">Save edit</button></div>
+    </div>
+    <div class="dsection">
+      <span class="kicker">disapprove with edits</span>
+      <input type="text" id="rejectnote" placeholder="what needs to change" value="${esc(d.review_note || '')}">
+      <div class="btnrow"><button class="btn danger" id="breject">Disapprove</button></div>
+    </div>
+    <div class="dsection">
+      <span class="kicker">ship it</span>
+      <div class="btnrow"><button class="btn ok" id="bapprove">Approve</button></div>
+    </div>
+  `;
+  $('#dclose').addEventListener('click', closeDrawer);
+  $('#bsave').addEventListener('click', async () => {
+    const btn = $('#bsave');
+    btn.disabled = true;
+    try {
+      await post('/api/drafts/edit', { id: d.id, body: $('#editbody').value });
+      await refreshDrafts();
+      const fresh = state.drafts.find(x => x.id === d.id);
+      if (fresh && state.drawer) renderDraftDrawer(fresh); else closeDrawer();
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = 'Error: ' + e.message;
+    }
+  });
+  $('#bapprove').addEventListener('click', async () => {
+    $('#bapprove').disabled = true;
+    await post('/api/drafts/approve', { id: d.id });
+    await refreshDrafts();
+    closeDrawer();
+  });
+  $('#breject').addEventListener('click', async () => {
+    const note = $('#rejectnote').value.trim();
+    if (!note) { $('#rejectnote').focus(); return; }
+    $('#breject').disabled = true;
+    await post('/api/drafts/disapprove', { id: d.id, note });
+    await refreshDrafts();
+    closeDrawer();
+  });
+}
+
+/* ---------- intelligence (digested patterns, posts only as receipts) ---------- */
+function snippet(s, n) {
+  const t = String(s || '').trim();
+  return t.length > n ? t.slice(0, n) + '...' : t;
+}
+function shortIg(url) {
+  const p = String(url || '').split('/').filter(Boolean);
+  return p.slice(-2).join('/');
+}
+
+function rcptToggle(id, count) {
+  const open = state.receiptsOpen.has(id);
+  return `<button class="rcpt-toggle ${open ? 'open' : ''}" data-toggle="${esc(id)}" data-count="${count}">${open ? 'hide' : 'see'} receipts · ${count}</button>`;
+}
+function rcptPanel(id, inner) {
+  return `<div class="rcpts" id="rcpt-${esc(id)}" ${state.receiptsOpen.has(id) ? '' : 'hidden'}>${inner}</div>`;
+}
+
+function renderJleeGroup(j, c) {
+  const maxPlays = Math.max(1, ...j.taxonomy.map(t => t.playsValue || 0));
+  const src = c && c.creator ? `
+    <div class="srcstrip">
+      <span class="srcchip"><b>${esc(c.name || c.creator)}</b><i>@${esc(c.creator)}</i></span>
+      <span class="srcchip">${esc(fmtN(c.followers) ?? '0')} followers</span>
+      <span class="srcchip">${c.posts.length} posts catalogued</span>
+      <span class="srcchip">scraped ${esc(c.scraped_at || 'unknown')}</span>
+      <span class="srcchip">${esc(c.positioning || '')}</span>
+    </div>` : '';
+  return `<div class="igroup">
+    <div class="panel ghead">
+      <div class="phead" style="margin-bottom:0"><span class="kicker">source playbook · instagram</span><span class="kicker dim">parsed live from SYNTHESIS.md</span></div>
+      <h3>${esc(j.title)}</h3>
+      <p class="gintro">${esc(j.intro)}</p>
+      ${src}
+    </div>
+
+    <div class="panel">
+      <div class="phead"><span class="kicker">script skeleton</span><span class="kicker dim">${esc(j.skeletonTitle)}</span></div>
+      <div class="beats">
+        ${j.skeleton.map(b => `
+          <div class="beat">
+            <div class="beat-n">${String(b.n).padStart(2, '0')}</div>
+            <div class="beat-name">${esc(b.name)}</div>
+            ${b.qualifier ? `<div class="beat-q">${esc(b.qualifier)}</div>` : ''}
+            <div class="beat-d" title="${esc(b.description)}">${esc(b.description)}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="phead"><span class="kicker">hook taxonomy</span><span class="kicker dim">${esc(j.taxonomyTitle)}</span></div>
+      ${j.taxonomy.map((t, i) => {
+        const id = 'tax-' + i;
+        const pct = t.playsValue ? Math.max(3, Math.round((t.playsValue / maxPlays) * 100)) : 3;
+        return `<div class="taxrow">
+          <div class="tax-grid">
+            <div>
+              <div class="tax-type">${esc(t.type)}</div>
+              <div class="tax-ex">${esc(t.example)}</div>
+            </div>
+            <div class="tax-bar"><i style="width:${pct}%"></i></div>
+            <div class="tax-right">
+              <span class="tax-plays">${esc(t.plays)}</span>
+              ${t.receipts.length ? rcptToggle(id, t.receipts.length) : ''}
+            </div>
+          </div>
+          ${t.receipts.length ? rcptPanel(id, t.receipts.map(p => `
+            <div class="rcpt">
+              <span class="rp cy">${p.plays != null ? esc(fmtN(p.plays)) : 'untracked'}</span>
+              <span class="rp">${esc(fmtN(p.likes) ?? 'n/a')} likes</span>
+              <span class="rp">${esc(fmtN(p.comments) ?? 'n/a')} comments</span>
+              <span class="rcap">${esc(snippet(p.caption, 100))}</span>
+              <a class="rlink" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(shortIg(p.url))}</a>
+            </div>`).join('')) : ''}
+        </div>`;
+      }).join('')}
+      ${j.taxonomyNote ? `<div class="taxnote">${esc(j.taxonomyNote)}</div>` : ''}
+    </div>
+
+    <div class="panel">
+      <div class="phead"><span class="kicker">transferable moves</span><span class="kicker dim">${esc(j.movesTitle)}</span></div>
+      <div class="moves">
+        ${j.moves.map(mv => `
+          <div class="move">
+            <div class="move-n">${String(mv.n).padStart(2, '0')}</div>
+            <div class="move-t">${esc(mv.title)}</div>
+            <div class="move-b">${esc(mv.body)}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="panel refuse">
+      <div class="phead"><span class="kicker">refused patterns</span><span class="kicker dim">${esc(j.refusalsTitle)}</span></div>
+      <div class="refchips">${j.refusals.items.map(it => `<span class="refchip">${esc(it)}</span>`).join('')}</div>
+      ${j.refusals.note ? `<p class="refnote">${esc(j.refusals.note)}</p>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderXGroup(x) {
+  return `<div class="igroup">
+    <div class="panel ghead">
+      <div class="phead" style="margin-bottom:0"><span class="kicker">second synthesis · x authority tier</span><span class="kicker dim">parsed live from X-SYNTHESIS.md</span></div>
+      <h3>${esc(x.title)}</h3>
+      <div class="xmethod">${esc(x.method)}</div>
+      ${x.headline ? `<div class="xhl"><span class="kicker">headline finding</span><p>${esc(x.headline)}</p></div>` : ''}
+      <div class="accts srcstrip">
+        ${x.accounts.map(a => `<span class="srcchip"><b>${esc(a.name)}</b><i>${esc(a.followers)}</i></span>`).join('')}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="phead"><span class="kicker">cross-tier patterns, the reusable set</span><span class="kicker dim">evidence: per-account table</span></div>
+      ${x.patterns.map((p, i) => {
+        const id = 'xp-' + i;
+        return `<div class="xpat">
+          <span class="xpat-n">${String(p.n).padStart(2, '0')}</span>
+          <div>
+            <div class="xpat-name">${esc(p.name)}</div>
+            <div class="xpat-body">${esc(p.body)}</div>
+          </div>
+          ${p.receipts.length ? rcptToggle(id, p.receipts.length) : ''}
+        </div>
+        ${p.receipts.length ? rcptPanel(id, p.receipts.map(r => `
+          <div class="rcpt acc">
+            <span class="rp cy">${esc(r.account)}</span>
+            <span class="rp">${esc(r.followers)}</span>
+            <span class="rcap">${esc(r.epithet)}${r.move ? `<span class="rmove">move: ${esc(r.move)}</span>` : ''}</span>
+          </div>`).join('')) : ''}`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function renderIntel() {
+  const el = $('#intel');
+  const s = state.synthesis;
+  if (!s || ((!s.jlee || !s.jlee.present) && (!s.x || !s.x.present))) {
+    el.innerHTML = '<div class="panel"><div class="empty">no synthesis files found</div></div>';
+    return;
+  }
+  el.innerHTML =
+    (s.jlee && s.jlee.present ? renderJleeGroup(s.jlee, state.creators) : '') +
+    (s.x && s.x.present ? renderXGroup(s.x) : '');
+}
+$('#intel').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-toggle]');
+  if (!b) return;
+  const id = b.dataset.toggle;
+  const panel = document.getElementById('rcpt-' + id);
+  if (!panel) return;
+  const open = panel.hidden;
+  panel.hidden = !open;
+  if (open) state.receiptsOpen.add(id); else state.receiptsOpen.delete(id);
+  b.classList.toggle('open', open);
+  b.textContent = (open ? 'hide' : 'see') + ' receipts · ' + b.dataset.count;
+});
+
+/* ---------- voice ---------- */
+function renderVoice() {
+  const v = state.voice;
+  if (!v) { $('#voicebody').textContent = 'no voice corpus found'; return; }
+  const era = v.eras && v.eras.ai_builder_2026 ? v.eras.ai_builder_2026 : '';
+  const samples = (v.posts || []).slice(0, 2).map(p => '" ' + p.text + '"').join('\n');
+  $('#voicebody').textContent =
+    (v.bio ? v.bio + '\n\n' : '') +
+    (era ? 'current era: ' + era + '\n\n' : '') +
+    (samples ? 'recent verified posts:\n' + samples : '');
+}
+
+/* ---------- queue ---------- */
+function renderQueue() {
+  const postedByFile = new Map(state.ledger.map(e => [e.file, e]));
+  const el = $('#queue-list');
+  $('#queue-meta').textContent = state.queue.length
+    ? state.queue.length + ' approved, oldest first'
+    : 'approve drafts in the star map';
+  if (!state.queue.length) {
+    el.innerHTML = '<div class="panel"><div class="empty">queue empty</div></div>';
+  } else {
+    el.innerHTML = state.queue.map((d, i) => {
+      const led = postedByFile.get(d.id);
+      const formOpen = state.postFormId === d.id;
+      return `<div class="panel qitem">
+        <div class="qnum">${String(i + 1).padStart(2, '0')}</div>
+        <div>
+          <div class="qmeta">
+            <span class="pill">${esc(d.platform)}</span>
+            <span class="pill">${esc(d.pillar || 'no pillar')}</span>
+            <span class="kicker dim">${d.chars} chars · ${esc(d.date)}${led ? ' · posted' : ''}</span>
+          </div>
+          ${platformMock(d)}
+          ${led ? `<div style="font-family:var(--mono);font-size:11px;margin-top:12px;word-break:break-all"><a href="${esc(led.permalink)}" target="_blank" rel="noopener">${esc(led.permalink)}</a></div>` : ''}
+          <div class="qactions">
+            <button class="btn" data-copy="${esc(d.id)}">Copy text</button>
+            ${!led && !formOpen ? `<button class="btn cyan" data-postform="${esc(d.id)}">Mark posted</button>` : ''}
+            ${formOpen ? `<div class="postform"><input type="url" id="plink-${CSS.escape(d.id)}" placeholder="https:// permalink of the published post"><button class="btn ok" data-confirm="${esc(d.id)}">Confirm</button><button class="btn" data-cancel>Cancel</button></div>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  $('#ledger-count').textContent = state.ledger.length ? state.ledger.length + ' entries' : '';
+  $('#ledger').innerHTML = state.ledger.slice().reverse().map(e =>
+    `<div class="lrow"><span class="lts">${esc(String(e.ts).replace('T', ' ').slice(0, 16))}</span><span class="lpl">${esc(e.platform)}</span><span class="lfile">${esc(e.file)}</span><a href="${esc(e.permalink)}" target="_blank" rel="noopener">permalink</a></div>`
+  ).join('') || '<div class="empty">nothing posted yet</div>';
+}
+$('#queue-list').addEventListener('click', async (e) => {
+  const copyBtn = e.target.closest('[data-copy]');
+  const formBtn = e.target.closest('[data-postform]');
+  const confirmBtn = e.target.closest('[data-confirm]');
+  const cancelBtn = e.target.closest('[data-cancel]');
+  if (copyBtn) {
+    const d = state.queue.find(x => x.id === copyBtn.dataset.copy);
+    if (d) {
+      state.lastCopyAt = Date.now();
+      try { await navigator.clipboard.writeText(d.body); copyBtn.textContent = 'Copied'; }
+      catch { copyBtn.textContent = 'Copy failed'; }
+      setTimeout(() => { copyBtn.textContent = 'Copy text'; }, 1600);
+    }
+    return;
+  }
+  if (formBtn) { state.postFormId = formBtn.dataset.postform; renderQueue(); return; }
+  if (cancelBtn) { state.postFormId = null; renderQueue(); return; }
+  if (confirmBtn) {
+    const id = confirmBtn.dataset.confirm;
+    const input = document.getElementById('plink-' + CSS.escape(id));
+    const permalink = input ? input.value.trim() : '';
+    if (!permalink) { input && input.focus(); return; }
+    confirmBtn.disabled = true;
+    try {
+      await post('/api/queue/posted', { id, permalink });
+      state.postFormId = null;
+      await refreshAll();
+    } catch (err) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Error: ' + err.message;
+    }
+  }
+});
+
+/* ---------- benchmarks ---------- */
+function renderBenchmarks() {
+  $('#news').innerHTML = (state.benchmarks || []).map(b => `
+    <div class="brow">
+      <div class="bcat">${esc(b.category)}</div>
+      <div>
+        <h4>${esc(b.title)}</h4>
+        <p>${esc(b.summary)}</p>
+        ${b.metric ? `<div class="bmetric">${esc(b.metric)}</div>` : ''}
+      </div>
+    </div>`).join('') || '<div class="empty">no benchmarks seeded</div>';
+}
+
+/* ---------- connections ---------- */
+function renderConnections() {
+  $('#conns').innerHTML = (state.connections || []).map(c => `
+    <div class="panel conn">
+      <div class="cname">${esc(c.name)}<span class="badge ${esc(c.status_class)}">${esc(c.status)}</span></div>
+      <div class="cdesc">${esc(c.description)}</div>
+      ${c.link ? `<div class="cpath"><a href="${esc(c.link)}">${esc(c.link)}</a></div>` : (c.path ? `<div class="cpath">${esc(c.path)}</div>` : '')}
+    </div>`).join('') || '<div class="empty">no connections configured</div>';
+}
+
+/* ---------- nav counts ---------- */
+function renderNavCounts() {
+  $('#nc-drafts').textContent = state.drafts.length || '';
+  $('#nc-queue').textContent = state.queue.length || '';
+  const s = state.synthesis;
+  const patterns = s
+    ? ((s.jlee && s.jlee.present ? s.jlee.taxonomy.length + s.jlee.moves.length : 0) +
+       (s.x && s.x.present ? s.x.patterns.length : 0))
+    : 0;
+  $('#nc-intel').textContent = patterns || '';
+}
+
+/* ---------- polling ---------- */
+function userBusy() {
+  if (state.drawer) return true;
+  const ae = document.activeElement;
+  return ae && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT');
+}
+
+async function refreshDrafts() {
+  const data = await fetchJson('/api/drafts');
+  state.drafts = data.drafts || [];
+}
+
+async function refreshAll() {
+  const [radar, drafts, queue, ledger, voice, bench, conns, creators, synthesis] = await Promise.all([
+    fetchJson('/api/radar'), fetchJson('/api/drafts'), fetchJson('/api/queue'),
+    fetchJson('/api/ledger'), fetchJson('/api/voice'), fetchJson('/api/benchmarks'),
+    fetchJson('/api/connections'), fetchJson('/api/creators'), fetchJson('/api/synthesis'),
+  ]);
+  state.radar = radar;
+  state.drafts = drafts.drafts || [];
+  state.queue = queue.queue || [];
+  state.ledger = ledger.entries || [];
+  state.voice = voice.voice;
+  state.benchmarks = bench.items || [];
+  state.connections = conns.connections || [];
+  state.creators = creators;
+  state.synthesis = synthesis;
+}
+
+async function tick() {
+  try {
+    await refreshAll();
+    renderRadar();
+    renderNavCounts();
+    if (!state.drawer) {
+      renderStarMap();
+      renderIntel();
+    }
+    if (!userBusy() && !state.postFormId && Date.now() - state.lastCopyAt > 2500) renderQueue();
+    renderVoice();
+    renderBenchmarks();
+    renderConnections();
+    $('#livedot').className = 'livedot live';
+    $('#pollstat').textContent = 'live · 5s poll';
+  } catch (e) {
+    $('#livedot').className = 'livedot err';
+    $('#pollstat').textContent = 'poll error: ' + e.message;
+  }
+}
+tick();
+setInterval(tick, 5000);
+</script>
+</body>
+</html>

@@ -19,6 +19,10 @@
         "-c",
         "exec node \"$(git rev-parse --show-toplevel)/_SYSTEM/Scripts/october-mcp-stdio-bridge.mjs\""
       ]
+    },
+    "nexus-social": {
+      "type": "http",
+      "url": "http://127.0.0.1:8787/mcp"
     }
   }
 }

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS LINK — Content Engine + Runtime Recon · Visual Plan · 2026-07-29</title>
+<style>
+  :root{
+    --void:#05060e; --panel:#0a0f1e; --panel2:#0d1425; --line:#1a2740;
+    --text:#d7e3f4; --dim:#7d8fa9; --faint:#4a5a72;
+    --cyan:#00c8f0; --green:#2fd67b; --amber:#f0b429; --violet:#9a6bff;
+    --red:#ff5d6c; --mono:'SF Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--void);color:var(--text);font:15px/1.65 -apple-system,'Inter',sans-serif;padding:0 0 120px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+  header{padding:64px 0 32px;border-bottom:1px solid var(--line);margin-bottom:44px;
+    background:radial-gradient(ellipse 900px 320px at 20% -10%,rgba(154,107,255,.09),transparent),
+               radial-gradient(ellipse 700px 260px at 85% -10%,rgba(0,200,240,.07),transparent)}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.28em;color:var(--violet);text-transform:uppercase;margin-bottom:14px}
+  h1{font-size:34px;font-weight:700;letter-spacing:-.02em;margin-bottom:12px}
+  h1 em{color:var(--cyan);font-style:normal}
+  .sub{color:var(--dim);max-width:880px;font-size:16px}
+  .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+  .chip{font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:5px 12px;border-radius:20px;border:1px solid var(--line);color:var(--dim)}
+  .chip.ok{border-color:rgba(47,214,123,.4);color:var(--green)}
+  .chip.warn{border-color:rgba(240,180,41,.4);color:var(--amber)}
+  .chip.cy{border-color:rgba(0,200,240,.4);color:var(--cyan)}
+  .chip.vi{border-color:rgba(154,107,255,.4);color:var(--violet)}
+  section{margin-bottom:60px}
+  h2{font-size:13px;font-family:var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--cyan);
+     border-left:3px solid var(--cyan);padding-left:14px;margin-bottom:10px}
+  h2 .n{color:var(--faint)}
+  .lead{color:var(--dim);margin-bottom:24px;max-width:920px}
+  .lead b{color:var(--text)}
+  h3{font-size:16px;margin:26px 0 12px}
+  p{margin-bottom:12px;color:var(--dim);max-width:920px}
+  p b{color:var(--text)}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+  .card p{font-size:13.5px;max-width:none;margin:0 0 8px}
+  .card p:last-child{margin:0}
+  .card h4{font-size:14px;margin-bottom:8px;color:var(--text)}
+  .card.ok{border-color:rgba(47,214,123,.35)}
+  .card.warn{border-color:rgba(240,180,41,.35)}
+  .card.cy{border-color:rgba(0,200,240,.45);box-shadow:0 0 24px rgba(0,200,240,.08)}
+  .card.vi{border-color:rgba(154,107,255,.45);box-shadow:0 0 24px rgba(154,107,255,.08)}
+  .tag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+  .stat{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--cyan);line-height:1.1}
+  .stat.vi{color:var(--violet)} .stat.gr{color:var(--green)} .stat.am{color:var(--amber)} .stat.rd{color:var(--red)}
+  .stat-label{font-size:12px;color:var(--dim);margin-top:6px}
+  code{font-family:var(--mono);font-size:12.5px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--cyan)}
+  .path{font-family:var(--mono);font-size:12px;color:var(--dim)}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+  th{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  td{padding:9px 10px;border-bottom:1px solid rgba(26,39,64,.5);color:var(--dim);vertical-align:top}
+  td b{color:var(--text)}
+  .hero-quote{font-size:22px;line-height:1.5;color:var(--text);max-width:860px;margin:18px 0;font-weight:600;letter-spacing:-.01em}
+  .hero-quote em{color:var(--violet);font-style:normal}
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:18px 0}
+  .flow .node{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:12.5px;text-align:center;flex:1;min-width:120px}
+  .flow .node b{display:block;font-size:13px;margin-bottom:4px}
+  .flow .node .tag{display:block;margin-top:4px}
+  .flow .arrow{display:flex;align-items:center;color:var(--faint);font-family:var(--mono);padding:0 8px;font-size:16px}
+  .node.human{border-color:rgba(240,180,41,.55);box-shadow:0 0 18px rgba(240,180,41,.12)}
+  .node.gate{border-color:rgba(47,214,123,.45)}
+  .rule{border-left:3px solid var(--red);background:var(--panel);border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:10px}
+  .rule b{color:var(--red);font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;display:block;margin-bottom:4px}
+  .rule p{font-size:13.5px;margin:0;max-width:none}
+  .week{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .week h4{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--violet);margin-bottom:8px}
+  .week p{font-size:13px;margin:0 0 6px}
+  ul.tight{margin:6px 0 12px 20px;color:var(--dim);font-size:13.5px}
+  ul.tight li{margin-bottom:5px}
+  ul.tight li b{color:var(--text)}
+  .footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);color:var(--faint);font-family:var(--mono);font-size:11px;letter-spacing:.1em}
+  @media(max-width:900px){.g2,.g3,.g4{grid-template-columns:1fr}.flow{flex-direction:column}.flow .arrow{justify-content:center;transform:rotate(90deg)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="kicker">NEXUS LINK · Recon + Synthesis · 2026-07-29</div>
+    <h1>The Content Engine, the Spinoff Ladder,<br>and the Systems that are <em>Built to Say NO</em></h1>
+    <p class="sub">Recon across 300 cyber skills, the verified quantum/sim machinery, your live Threads voice, Lilly's content strategy, and the Signals Radar — synthesized into one plan: grow in public with proof instead of claims, and let the pipeline do the heavy lifting while every post stays draft-only until you approve it.</p>
+    <div class="chips">
+      <span class="chip ok">radar live · 5 channels · 56 signals first sweep</span>
+      <span class="chip ok">threads bridge verified · 5 accounts captured</span>
+      <span class="chip cy">3 sample drafts ready for review</span>
+      <span class="chip vi">2 spinoff repos staged + sanitized</span>
+      <span class="chip warn">everything draft-only · you approve</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <h2><span class="n">01 ·</span> The Big Idea — Built to Say NO</h2>
+  <p class="lead">Every AI account on the feed is overclaiming. Caps-lock hooks, "nobody is talking about this", engagement bait. The gap nobody occupies: <b>shipping systems whose headline feature is their own falsification harness.</b></p>
+  <p class="hero-quote">"I build AI systems that are <em>allowed to say no</em>."</p>
+  <p>You already own the proof, and it ran green this week: a quantum signal engine that examined <b>205 candidate factors and honestly kept 0</b>. A cognition sim that must beat classical Bayes on real order-effect data <em>and</em> must not win on control data — or it fails its own benchmark. A decision engine that tells you exactly what evidence would flip its answer. That is Lilly's "control layer above inference" story made tangible in public, inspectable code — marketing YURI's philosophy without leaking a single line of YURI.</p>
+  <div class="grid g3">
+    <div class="card vi"><h4>The honesty gate as brand</h4><p>Every public repo ships with the test that could kill its own claim. In a slop-saturated feed, <b>verifiable refusal is the differentiator</b>.</p></div>
+    <div class="card cy"><h4>The meta-demo</h4><p>The content pipeline itself is content: "my personal AI OS scans the feed, drafts in my voice, I approve." Shown, not told — the control layer demonstrated in public.</p></div>
+    <div class="card ok"><h4>The René anchor</h4><p>AI-operated Blender pipeline → production mold files → paid Swiss invoice. Physical-world proof of work, shared without exposing the client's craft.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">02 ·</span> Recon — 300 Cyber Skills → the Runtime's Missing Organs</h2>
+  <p class="lead">The <code>cyber-*</code> library (Apache-2.0, already YURI-headed) is mostly offensive tradecraft — but <b>~25 skills form four clusters that are exactly what a folder-architecture needs to become a runtime</b>: eval gates, telemetry watch, typed memory, and release verification.</p>
+  <div class="grid g2">
+    <div class="card cy">
+      <h4>Cluster 1 — Agent eval &amp; red-team <span class="tag">→ the runtime's CI gate</span></h4>
+      <p><b>garak</b> probe taxonomy + hit-rate reports · <b>promptfoo</b> OWASP agentic presets with non-zero-exit build failure · <b>PyRIT</b> scorer-in-the-loop with persisted transcripts (your Evidence Contract, executable) · <b>tool-invocation policy</b> = the Mutation Contract as running code · <b>mcp-scan</b> hash-pinning = verify skills before load.</p>
+    </div>
+    <div class="card cy">
+      <h4>Cluster 2 — Telemetry &amp; anomaly watch <span class="tag">→ lane monitoring</span></h4>
+      <p><b>Sigma</b> detection-as-code → lane-behavior rules ("committed outside pathspec") · <b>risk-based alerting</b> math → fleet notifications that don't cry wolf · <b>beaconing frequency analysis</b> (CV &lt; 0.20) → stuck/looping lane detection · <b>IsolationForest</b> baseline-deviation → lane telemetry anomaly scoring.</p>
+    </div>
+    <div class="card vi">
+      <h4>Cluster 3 — Typed memory &amp; evidence <span class="tag">→ Track A upgrade</span></h4>
+      <p><b>STIX 2.1</b> typed, confidence-scored, relationship-linked objects with TLP-style disclosure markings · <b>OpenCTI connector architecture</b> (import/enrichment/stream) → provenance enrichment pipelines for the memory ledger.</p>
+    </div>
+    <div class="card ok">
+      <h4>Cluster 4 — Release verification <span class="tag">→ the spinoff gate</span></h4>
+      <p><b>SLSA/Sigstore</b> identity-pinned provenance · <b>SBOM store-and-rescan</b> (Syft/Grype) · <b>TruffleHog</b> verified-secret scanning at commit time. Nothing leaves the machine without passing this cluster.</p>
+    </div>
+  </div>
+  <p style="margin-top:14px">Notable absence: <b>no MLX anywhere</b> in the 300 skills — all local-model content is PyTorch/HF. Your MLX voice stack is the only MLX in the building. That gap is an opportunity (see §07).</p>
+</section>
+
+<section>
+  <h2><span class="n">03 ·</span> The Quantum/Sim Inventory — Verified Runnable, Not Doctrine</h2>
+  <p class="lead">Every number below was produced by <b>actually running the engines</b> during recon — tests executed, benchmarks verdicted, live in this worktree.</p>
+  <div class="grid g4">
+    <div class="card"><div class="stat gr">PASS</div><div class="stat-label">quantum-vs-bayes falsification benchmark — real-data win + no-control-win honesty gate</div></div>
+    <div class="card"><div class="stat">1,134,061×</div><div class="stat-label">validated best/worst ordering effect — non-commuting signal sequencing</div></div>
+    <div class="card"><div class="stat rd">205 → 0</div><div class="stat-label">candidate factors examined → survivors after the edge audit. Built to say no.</div></div>
+    <div class="card"><div class="stat vi">0-dep</div><div class="stat-label">zero npm dependencies across the tracker, decision-sim, and benchmark suites</div></div>
+  </div>
+  <table>
+    <tr><th>Engine</th><th>What it does</th><th>Status</th><th>Spinoff</th></tr>
+    <tr><td><b>quantum-hypothesis-tracker</b></td><td>Projectors, sequential measurement, qq-equality, Schmidt decomposition (hand-rolled Jacobi SVD)</td><td>tests green, benchmark PASS</td><td><b>quantum-order-effects</b></td></tr>
+    <tr><td><b>decision-sim + eval-processing + izanagi-bridge</b></td><td>CVaR robust scoring, minimax regret, PGD flip-witness ("what evidence flips this decision"), corner-law vertex guard</td><td>tests green</td><td><b>robust-decision-sim</b></td></tr>
+    <tr><td><b>factor-circuit + trade-edge-audit</b></td><td>Non-commuting factor sequencing + deflated-Sharpe/BH-FDR/maker-fee falsification battery</td><td>11/0 · 12/0 live</td><td><b>quantum-signal-sequencer</b></td></tr>
+    <tr><td><b>qsphere.html</b></td><td>Interactive 3-bit Q-sphere running the real engine inline — collapse it, then watch P(A→B) ≠ P(B→A)</td><td>file://-safe today</td><td><b>qsphere-demo</b></td></tr>
+    <tr><td><b>openprocess-pool</b></td><td>Open-mass ranking — stale-but-open work rises back into attention via hazard decay</td><td>20/0 tests</td><td><b>open-mass</b></td></tr>
+    <tr><td><b>formula-foundry + bakeoff</b></td><td>Dimensional typing over formula cards + staged promotion ledger</td><td>23 cards live</td><td><b>formula-foundry</b></td></tr>
+    <tr><td><b>yuri-energy</b></td><td>Lyapunov-style ΔU gate — state transitions that raise system energy get vetoed</td><td>real surface demo</td><td><b>energy-gate</b></td></tr>
+  </table>
+</section>
+
+<section>
+  <h2><span class="n">04 ·</span> The Content Engine — Architecture</h2>
+  <p class="lead">Live now. Radar sweeps the niche, the browser bridge captures competitor posts through your logged-in session, drafts land in your inbox in your voice — <b>and nothing posts until you say so</b>.</p>
+  <div class="flow">
+    <div class="node"><b>Signals Radar</b>GitHub · Reddit · YouTube · MCP<span class="tag">_SYSTEM/signals-radar</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>Threads Bridge</b>competitor captures via logged-in browser<span class="tag">threads-inbox/*.json</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>Context Pack</b>top signals + top posts, ranked<span class="tag">context-pack.mjs</span></div>
+    <div class="arrow">→</div>
+    <div class="node gate"><b>Voice Constitution</b>CONTENT-VOICE.md hard rules<span class="tag">draft gate</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>Drafts Inbox</b>markdown, platform + pillar tagged<span class="tag">content-drafts/</span></div>
+    <div class="arrow">→</div>
+    <div class="node human"><b>MARCEL</b>edit · approve · reject<span class="tag">the only publisher</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>Browser Posting</b>approved posts only<span class="tag">+ content-ledger.jsonl</span></div>
+  </div>
+  <h3>Hard rules (enforced before you ever see a draft)</h3>
+  <div class="grid g2">
+    <div class="rule"><b>Draft-only</b><p>No auto-posting, ever — Threads, LinkedIn, replies. Your dad is on LinkedIn; assume everything is read by someone who knows you.</p></div>
+    <div class="rule"><b>English only</b><p>VPN egress is Japan, feeds show Japanese lettering — filtered at capture. You don't read CJK, so the radar doesn't collect it and drafts never contain it.</p></div>
+    <div class="rule"><b>No YURI leak</b><p>Philosophy and sanitized spinoff code only. No paths, no organ internals, no MURE topology, no skill names in public.</p></div>
+    <div class="rule"><b>Anti-slop + earned numbers</b><p>Banned-phrase list enforced. Every metric must be real and reproducible — the brand is proof, not vibes.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">05 ·</span> Voice &amp; Platform Strategy</h2>
+  <p class="lead">Distilled from your live posts, Lilly's strategy system, and the competitor scan — codified in <code>02_RESOURCES/GUIDES/CONTENT-VOICE.md</code>.</p>
+  <div class="grid g2">
+    <div class="card cy">
+      <h4>Threads — the language lab · 4–6 posts/week</h4>
+      <p>Your verified rhythm: short, lowercase-leaning, dry builder humor ("Right when Opus 5 releases I hit my limits, reset maybe please") — then without warning a number-flex ("10 Layers / 242 organs… Swiss Clockwork"). <b>~60% human noise / 40% signal. The contrast is the brand — don't sterilize it.</b></p>
+    </div>
+    <div class="card vi">
+      <h4>LinkedIn — the serious room · 2 posts/week</h4>
+      <p>Same brain, cleaner clothes. Concrete scene → mechanism in plain language → one proof point → soft close. 150–300 words, 0–3 hashtags, <b>every post paired with a clean infographic spec</b> (dark, one accent, ≤25 words on graphic).</p>
+    </div>
+  </div>
+  <h3>Competitor patterns — adapt the structure, keep your voice</h3>
+  <table>
+    <tr><th>Account</th><th>Their pattern</th><th>Our adaptation</th></tr>
+    <tr><td><b>rowancheung</b> · 213K</td><td>Access quotes, numbered thread parts</td><td>Quote your own engines' outputs as the interview subject</td></tr>
+    <tr><td><b>claudeai</b> · 342K</td><td>Release notes as plain sentences, model-choice guides</td><td>"Which organ handles this" — teaching through use-cases</td></tr>
+    <tr><td><b>alexngsx</b> · 645-likes post</td><td>Caps hook + tool spotlight + "Open source. Free."</td><td>Drop the gimmick — <b>the number is the hook</b>: "1,134,061× ordering effect. Nobody talks about sequence."</td></tr>
+    <tr><td><b>prettyshisya</b></td><td>Problem-first line + spec bullets</td><td>Same skeleton, honest stat instead of caps</td></tr>
+  </table>
+  <p>Winning formula: <b>honest stat hook → one plain sentence → where to inspect it → understated close.</b></p>
+  <div class="card warn" style="margin-top:14px">
+    <h4>The René / holster-mold case study — flagship social proof, handled with care</h4>
+    <p>The star is the orchestration, never the craft: scan → gated pipeline → production STL → paid invoice. René's workflow, pricing, and geometry decisions stay private. LinkedIn angle: "AI operated a 3D toolchain end-to-end and a manufacturer shipped the result." Threads angle: "week I became a Blender operator without learning Blender." Three drafts using this are already in your inbox.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">06 ·</span> 30-Day Posting Plan (mapped to Lilly's arc)</h2>
+  <div class="grid g4">
+    <div class="week"><h4>Week 1 · Category &amp; work-risk</h4>
+      <p><b>Threads:</b> "205 factors. 0 survived." honesty-gate post (drafted)</p>
+      <p><b>Threads:</b> token-limit humor + reset-culture observation</p>
+      <p><b>LinkedIn:</b> René case study + pipeline infographic (drafted)</p>
+      <p><b>Threads:</b> "the model is not the workflow" principle</p></div>
+    <div class="week"><h4>Week 2 · Mechanism &amp; trust</h4>
+      <p><b>Threads:</b> 1,134,061× ordering effect — "nobody talks about sequence"</p>
+      <p><b>LinkedIn:</b> "AI trust needs receipts" + gates infographic</p>
+      <p><b>Threads:</b> qsphere demo clip — collapse a qubit, watch order matter</p>
+      <p><b>Threads:</b> build-log: radar scanned 56 signals before breakfast</p></div>
+    <div class="week"><h4>Week 3 · Proof &amp; pilot</h4>
+      <p><b>LinkedIn:</b> spinoff repo launch #1 — quantum-order-effects</p>
+      <p><b>Threads:</b> repo launch casual + "the test that could kill it"</p>
+      <p><b>Threads:</b> René build-log follow-up (drafted)</p>
+      <p><b>LinkedIn:</b> "a good pilot finds friction early" + pilot criteria</p></div>
+    <div class="week"><h4>Week 4 · OSS &amp; conversion</h4>
+      <p><b>Threads:</b> qsphere-demo repo drop — interactive, file://-safe</p>
+      <p><b>LinkedIn:</b> "open source as inspection, not hype" + repo map</p>
+      <p><b>Threads:</b> what the radar taught me about this niche's feed</p>
+      <p><b>Threads:</b> understated invite: "spots opening, invite only"</p></div>
+  </div>
+  <p style="margin-top:14px">Cadence: Threads 4–6/week, LinkedIn 2/week — exactly Lilly's platform roles. Every item above starts as a draft in your inbox; you approve, edit, or kill each one.</p>
+</section>
+
+<section>
+  <h2><span class="n">07 ·</span> The Spinoff Ladder — Little Repos, Big Signal</h2>
+  <p class="lead">Sanitized, zero-leak public repos extracted from the verified machinery. Staged under <code>_SYSTEM/spinoffs/</code>, scrubbed of every YURI reference, verified to run standalone before anything leaves the machine.</p>
+  <table>
+    <tr><th>#</th><th>Repo</th><th>The hook</th><th>Status</th></tr>
+    <tr><td>1</td><td><b>quantum-order-effects</b></td><td>Zero-dep quantum cognition + a falsification benchmark designed so the model can fail. Almost nobody ships the honesty gate.</td><td>staged + tests green</td></tr>
+    <tr><td>2</td><td><b>qsphere-demo</b></td><td>Interactive Q-sphere running the real engine — double-click, collapse a qubit, watch order change the outcome. The visual that makes posts spread.</td><td>staged</td></tr>
+    <tr><td>3</td><td><b>robust-decision-sim</b></td><td>"What evidence would flip this decision?" — flip-witness + CVaR + corner-law guard in one zero-dep file.</td><td>queued</td></tr>
+    <tr><td>4</td><td><b>quantum-signal-sequencer</b></td><td>205 factors in, 0 survivors out. The strongest story; needs the most sanitizing.</td><td>queued</td></tr>
+    <tr><td>5</td><td><b>formula-foundry</b> · <b>open-mass</b></td><td>Dimensional typing for formulas · hazard-decay backlog resurfacing. Weekend repos.</td><td>queued</td></tr>
+    <tr><td>6</td><td><b>mlx-quantum-sim</b></td><td><b>The unclaimed angle:</b> port the tracker to MLX on Apple silicon. No MLX sim code exists anywhere in your stack — nothing to leak, genuinely first.</td><td>novel build, follow-up</td></tr>
+  </table>
+  <p>Release gate (Cluster 4 from §02): TruffleHog scan → SBOM → signed provenance → publish. The gate itself is a post.</p>
+</section>
+
+<section>
+  <h2><span class="n">08 ·</span> What's Live Right Now</h2>
+  <div class="grid g2">
+    <div class="card ok">
+      <h4>Built and verified today</h4>
+      <p class="path">_SYSTEM/signals-radar/ — 5 channels OK, 56 signals, first sweep written<br>
+      _SYSTEM/signals-radar/threads-inbox/ — browser bridge contract + 5 accounts captured<br>
+      02_RESOURCES/GUIDES/CONTENT-VOICE.md — the voice constitution<br>
+      skills/content-engine/SKILL.md — the pipeline skill<br>
+      _SYSTEM/content-engine/context-pack.mjs — ranked drafting context<br>
+      00_COMMAND-CENTER/Inbox/content-drafts/2026-07-29/ — 3 drafts awaiting your review</p>
+    </div>
+    <div class="card cy">
+      <h4>Your moves</h4>
+      <p>1. Read the 3 drafts in today's folder — edit in place, set <code>status: approved</code> on any you'd post.</p>
+      <p>2. Tell me which spinoff repo to finalize first (recommendation: <b>quantum-order-effects</b>).</p>
+      <p>3. Say "run the radar" any morning — the sweep + fresh competitor captures + new drafts is one command.</p>
+      <p>4. When you're ready to grow the watchlist: edit <code>signals-watchlist.yaml</code> — it's plain YAML.</p>
+    </div>
+  </div>
+</section>
+
+<div class="footer">
+  NEXUS LINK · content engine visual plan · 2026-07-29 · draft-only pipeline — nothing posts without Marcel's approval · built to say no
+</div>
+
+</div>
+</body>
+</html>
