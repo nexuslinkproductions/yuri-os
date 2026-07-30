@@ -241,6 +241,23 @@ Rechnungsdatum (Umstellung auf Zahlungseingang = offener Owner-Entscheid, würde
 
 ## Session Notes
 
+### 2026-07-30 (round 17: SW-Endlos-„loading"-Hang + Fetch-Timeout-Härtung; alle 7 Belege-Jahre live)
+- René: „Strg-F5 auf #years tut nichts." Live-Diagnose (claude-in-chrome): `document.readyState` blieb
+  **"loading"**, `body` leer — die Seite lud NIE fertig; JS-Kontext lief aber (javascript_tool ok, screenshot
+  time-out). Assets vom Server einzeln in ~40 ms 200 → Server gesund. Ursache: der **network-first Shell-Fetch
+  im SW hatte KEIN Timeout** → eine STOCKENDE Verbindung (Server nimmt an, antwortet nie; trat unter Last auf:
+  FileZilla-Upload + meine Fetch-Proben) hängt einen parser-blockierenden `<head>`-Script-Request für immer.
+- **Sofort-Fix (im Browser):** SW deregistrieren + CacheStorage leeren + Reload → Seite lädt sofort (readyState
+  complete, 7 Belege-ZIP-Buttons rendern, SW re-registriert). Reusable Recovery bei „Seite hängt": DevTools →
+  Application → Service Workers → Unregister + Clear storage → Reload (oder JS: getRegistrations→unregister +
+  caches.keys→delete).
+- **Root-Fix (commit `0a10a56`, v32):** `fetchTimeout(req, 6000)` um den network-first Shell-Fetch — nach 6 s
+  Cache-Fallback statt Endlos-Hang. Statics/API unverändert. <!-- @anchor: v1 | failure: cgs-books-sw-networkfirst-nohang-2026-07-30 | regression: fetchTimeout in sw.js; readyState-complete live-check -->
+- **Belege-Archiv KOMPLETT:** alle 7 Jahre 2019–2025 als `<JJJJ>.zip` in `storage/year_belege/` (2019-2023 +
+  2024/2025 per FileZilla-SFTP direkt abgelegt). years-API `belege_zip=true` für alle, Downloads verifiziert
+  (2024=139.7 MB, 2025=183.1 MB, HTTP 200 application/zip). „Belege-ZIP (x MB)"-Button je Jahr live. → 10-Jahres-
+  Retention erfüllt; ZIPs off-site sichern, dann milchbüechli kündbar.
+
 ### 2026-07-30 (round 16: Upload-Limit-Diagnose (nginx) + Chunk-Upload + FileZilla-Direktablage)
 - Follow-up zu R15: 2024 (140 MB) + 2025 (183 MB) Belege-ZIP-Uploads warfen „Ungültige Serverantwort".
 - **Ursache (live bewiesen):** nginx `client_max_body_size` (~128 MB Plesk-Default) lehnt Uploads mit HTML-413
