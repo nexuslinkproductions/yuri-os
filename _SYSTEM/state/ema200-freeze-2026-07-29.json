@@ -1,0 +1,105 @@
+{
+  "schema": "ema200-freeze/v2",
+  "id": "ema200-reversal-2026-07-29",
+  "asOfClose": "2026-07-29",
+  "frozenAt": "2026-07-30T04:25:00+02:00",
+  "universe": 23,
+  "provenance": {
+    "reconstructed": true,
+    "reconstructedAt": "2026-07-30",
+    "reconstructedFrom": [
+      "EMA200Analyse_v3_20260730_nachFOMC.pdf (delivered artifact, ranking table section 3)",
+      "EMA200Analyse_20260729_PreOpen.pdf (delivered artifact, v1 ranking table + earnings column)",
+      "antwort.pdf (delivered artifact, freeze rules + rule-v2 changelog)"
+    ],
+    "reason": "The original _SYSTEM/state/ema200-freeze-2026-07-29.json was written in an ephemeral session container and never committed; it is unreachable from this branch. Numbers below are transcribed from the delivered PDFs, which are the only surviving record of the frozen forecast.",
+    "integrity": "Entry/stop/target/probability/CRV/EV values are transcribed verbatim from the v3 table. No value was recomputed, re-derived, or adjusted during reconstruction. Where the PDFs do not state something, the field is marked reconstructed:true rather than filled in.",
+    "risk": "Transcription from a PDF text layer can introduce digit errors. Any evaluation run should be treated as advisory until at least a sample of the entries is checked against the delivered PDF by the owner."
+  },
+  "rules": {
+    "REVERSAL_CONFIRMED": {
+      "verbatim": true,
+      "source": "antwort.pdf",
+      "definition": "Close on the review date is above BOTH the 2026-07-29 close AND the then-current EMA200 on that same date.",
+      "note": "Deliberately strict. A title sitting sideways above the level does not count — a reversal requires an upward move."
+    },
+    "ENTRY_TRIGGER_V2": {
+      "verbatim": true,
+      "source": "antwort.pdf (rule v2 changelog, fixed before outcome data existed)",
+      "definition": "A daily bar in the review window must contain the entry level inside its [low, high] range before stop and target logic applies.",
+      "notTriggered": "If no bar contains the entry, the setup is NOT_TRIGGERED and carries no R. A setup that is never reached cannot be a winner.",
+      "defect": "Rule v1 lacked this check. Back-dated onto a real 5-day window it reported 16 winners of 23, including COHR with a target 47% above the traded price and WDC 'winning' 26% above its own entry."
+    },
+    "TRADE_OUTCOME": {
+      "verbatim": false,
+      "reconstructed": true,
+      "reconstructionNote": "antwort.pdf states three measures but only spells out REVERSAL_CONFIRMED verbatim. This definition is this session's reconstruction of the second measure, written before outcome data exists, and is flagged as such rather than presented as the original wording.",
+      "definition": "On triggered setups only: R-multiple from entry, stop and target. Bar-level first-touch precedence; when a single bar touches both stop and target, the stop counts (conservative, no intrabar path assumption).",
+      "open": "A setup still open at the review date is marked OPEN and scored at mark-to-market R, reported separately from closed R."
+    },
+    "CALIBRATION": {
+      "verbatim": false,
+      "reconstructed": true,
+      "reconstructionNote": "Third measure, reconstructed on the same basis as TRADE_OUTCOME.",
+      "definition": "Brier score of the stated P(reversal) against the binary REVERSAL_CONFIRMED outcome, plus Spearman rank correlation between predicted rank and realized outcome rank.",
+      "sink": "_SYSTEM/Scripts/prediction-ledger.mjs (existing capability — recordPrediction/recordOutcome/calibrationReport)"
+    }
+  },
+  "reviewDates": [
+    {
+      "date": "2026-08-06",
+      "kind": "interim",
+      "weight": "weak",
+      "caveat": "Seven days tests a narrower claim than the model makes. The report states a horizon of roughly four weeks. A bad 7-day result does not refute the model; a good one does not confirm it."
+    },
+    {
+      "date": "2026-08-26",
+      "kind": "primary",
+      "weight": "primary",
+      "caveat": "Approximately the four-week horizon the model actually claims. NVDA reports on this date after the close, so its 2026-08-26 close is still pre-report."
+    }
+  ],
+  "statisticalLimits": {
+    "verbatim": true,
+    "source": "antwort.pdf",
+    "correlation": "23 strongly correlated titles in one macro regime — the effective independent sample is closer to 3 to 5. This is weak evidence in both directions.",
+    "earningsCohort": "Titles reporting inside the window have their outcome tested by the event, not by the EMA200 signal. The evaluator separates this cohort.",
+    "thinBaseRates": "Hit rates with n below 10 are thin evidence. SNDK has n=0 (2025 spin-off) — its 46% is a coin, not a measurement."
+  },
+  "modelNotes": {
+    "regimeDiscount": -7,
+    "regimeDiscountNote": "Raised from -6 in v2 because the FOMC outcome was more hawkish than priced (9:3 hold with three dissents for a HIKE).",
+    "bearishCandlePenalty": -4,
+    "bullishCandleBonus": 4,
+    "candleNote": "13 of 23 titles printed a Marubozu down candle with the close on the day's low on 2026-07-29 — continuation, not exhaustion. Only CHRW (bullish engulfing) and DVN (neutral candle, bullish RSI divergence at 0.55x volume) printed the opposite.",
+    "netAdjustmentCap": 30,
+    "dampingFactor": 0.72,
+    "resultBand": [8, 78],
+    "txtNote": "TXT is presumed a typo for TXN in an otherwise pure semiconductor list. Both were computed and both are included."
+  },
+  "entries": [
+    { "rank": 1,  "ticker": "WMB",  "p": 0.73, "deltaV2": 4,   "deltaRank": 2,   "baseRate": 0.65, "n": 12, "status": "LIVE",  "side": "above", "close": 70.13,   "dist": 0.012,  "entry": 69.33,   "stop": 65.97,   "stopPct": -0.048, "target": 73.60,   "crv": 1.27, "ev": 0.0319,  "earnings": "2026-08-03", "earningsConfidence": "stated" },
+    { "rank": 2,  "ticker": "CHRW", "p": 0.67, "deltaV2": 7,   "deltaRank": 5,   "baseRate": 0.54, "n": 16, "status": "LIVE",  "side": "above", "close": 173.75,  "dist": 0.028,  "entry": 169.06,  "stop": 157.81,  "stopPct": -0.067, "target": 187.33,  "crv": 1.62, "ev": 0.0504,  "earnings": null,         "earningsConfidence": "reported-2026-07-29" },
+    { "rank": 3,  "ticker": "NVDA", "p": 0.64, "deltaV2": -11, "deltaRank": -1,  "baseRate": 0.57, "n": 6,  "status": "LIVE",  "side": "below", "close": 190.01,  "dist": -0.007, "entry": 191.40,  "stop": 179.20,  "stopPct": -0.064, "target": 203.90,  "crv": 1.02, "ev": 0.0189,  "earnings": "2026-08-26", "earningsConfidence": "stated" },
+    { "rank": 4,  "ticker": "TSM",  "p": 0.64, "deltaV2": 8,   "deltaRank": 6,   "baseRate": 0.50, "n": 8,  "status": "LIVE",  "side": "above", "close": 374.67,  "dist": 0.039,  "entry": 360.66,  "stop": 332.45,  "stopPct": -0.078, "target": 415.79,  "crv": 1.95, "ev": 0.0697,  "earnings": "2026-10-15", "earningsConfidence": "estimated" },
+    { "rank": 5,  "ticker": "MRVL", "p": 0.59, "deltaV2": 2,   "deltaRank": 3,   "baseRate": 0.60, "n": 12, "status": "NAH",   "side": "above", "close": 163.40,  "dist": 0.056,  "entry": 154.78,  "stop": 124.83,  "stopPct": -0.194, "target": 217.01,  "crv": 2.08, "ev": 0.1579,  "earnings": "2026-08-20", "earningsConfidence": "stated" },
+    { "rank": 6,  "ticker": "DVN",  "p": 0.59, "deltaV2": -7,  "deltaRank": -2,  "baseRate": 0.60, "n": 12, "status": "NAH",   "side": "above", "close": 44.46,   "dist": 0.049,  "entry": 42.40,   "stop": 39.80,   "stopPct": -0.061, "target": 44.07,   "crv": 0.64, "ev": -0.0019, "earnings": "2026-08-04", "earningsConfidence": "stated" },
+    { "rank": 7,  "ticker": "FLEX", "p": 0.58, "deltaV2": 2,   "deltaRank": 2,   "baseRate": 0.59, "n": 9,  "status": "NAH",   "side": "above", "close": 103.02,  "dist": 0.068,  "entry": 96.48,   "stop": 81.45,   "stopPct": -0.156, "target": 128.83,  "crv": 2.15, "ev": 0.1290,  "earnings": null,         "earningsConfidence": "reported-pre-freeze-ambiguous" },
+    { "rank": 8,  "ticker": "LRCX", "p": 0.58, "deltaV2": 17,  "deltaRank": 11,  "baseRate": 0.47, "n": 7,  "status": "LIVE",  "side": "above", "close": 252.35,  "dist": 0.004,  "entry": 251.28,  "stop": 213.10,  "stopPct": -0.152, "target": 322.51,  "crv": 1.87, "ev": 0.1006,  "earnings": null,         "earningsConfidence": "reported-2026-07-29" },
+    { "rank": 9,  "ticker": "CRDO", "p": 0.55, "deltaV2": 10,  "deltaRank": 6,   "baseRate": 0.53, "n": 9,  "status": "LIVE",  "side": "above", "close": 177.45,  "dist": 0.034,  "entry": 171.67,  "stop": 136.62,  "stopPct": -0.204, "target": 221.34,  "crv": 1.42, "ev": 0.0673,  "earnings": "2026-09-09", "earningsConfidence": "estimated" },
+    { "rank": 10, "ticker": "SMH",  "p": 0.53, "deltaV2": -1,  "deltaRank": 1,   "baseRate": 0.57, "n": 6,  "status": "NAH",   "side": "above", "close": 504.22,  "dist": 0.075,  "entry": 468.92,  "stop": 426.14,  "stopPct": -0.091, "target": 573.16,  "crv": 2.44, "ev": 0.0749,  "earnings": null,         "earningsConfidence": "etf-follows-nvda" },
+    { "rank": 11, "ticker": "WDC",  "p": 0.47, "deltaV2": -6,  "deltaRank": 1,   "baseRate": 0.59, "n": 9,  "status": "FERN",  "side": "above", "close": 462.04,  "dist": 0.261,  "entry": 366.35,  "stop": 286.80,  "stopPct": -0.217, "target": 528.46,  "crv": 2.04, "ev": 0.0929,  "earnings": "2026-08-05", "earningsConfidence": "stated" },
+    { "rank": 12, "ticker": "SNDK", "p": 0.46, "deltaV2": 4,   "deltaRank": 5,   "baseRate": null, "n": 0,  "status": "LIVE",  "side": "above", "close": 1015.89, "dist": 0.021,  "entry": 995.40,  "stop": 704.80,  "stopPct": -0.292, "target": 1568.68, "crv": 1.97, "ev": 0.1073,  "earnings": "2026-08-05", "earningsConfidence": "stated" },
+    { "rank": 13, "ticker": "AKAM", "p": 0.45, "deltaV2": -17, "deltaRank": -8,  "baseRate": 0.53, "n": 7,  "status": "LIVE",  "side": "below", "close": 107.41,  "dist": -0.020, "entry": 109.57,  "stop": 100.13,  "stopPct": -0.086, "target": 122.53,  "crv": 1.37, "ev": 0.0058,  "earnings": "2026-08-06", "earningsConfidence": "stated" },
+    { "rank": 14, "ticker": "PWR",  "p": 0.45, "deltaV2": -32, "deltaRank": -13, "baseRate": 0.63, "n": 8,  "status": "LIVE",  "side": "below", "close": 561.14,  "dist": -0.026, "entry": 575.92,  "stop": 531.06,  "stopPct": -0.078, "target": 660.87,  "crv": 1.89, "ev": 0.0235,  "earnings": "2026-07-30", "earningsConfidence": "stated" },
+    { "rank": 15, "ticker": "ALAB", "p": 0.41, "deltaV2": 5,   "deltaRank": 7,   "baseRate": 0.50, "n": 4,  "status": "NAH",   "side": "above", "close": 249.74,  "dist": 0.079,  "entry": 231.49,  "stop": 178.32,  "stopPct": -0.230, "target": 325.33,  "crv": 1.76, "ev": 0.0307,  "earnings": "2026-08-04", "earningsConfidence": "stated-v3-conflicts-v1-2026-08-07" },
+    { "rank": 16, "ticker": "INTC", "p": 0.41, "deltaV2": -5,  "deltaRank": -2,  "baseRate": 0.54, "n": 5,  "status": "FERN",  "side": "above", "close": 81.88,   "dist": 0.092,  "entry": 74.99,   "stop": 62.06,   "stopPct": -0.172, "target": 104.99,  "crv": 2.32, "ev": 0.0623,  "earnings": "2026-10-22", "earningsConfidence": "estimated" },
+    { "rank": 17, "ticker": "TXN",  "p": 0.41, "deltaV2": -1,  "deltaRank": 1,   "baseRate": 0.44, "n": 17, "status": "FERN",  "side": "above", "close": 271.30,  "dist": 0.112,  "entry": 243.89,  "stop": 222.81,  "stopPct": -0.086, "target": 288.57,  "crv": 2.12, "ev": 0.0241,  "earnings": "2026-10-27", "earningsConfidence": "stated" },
+    { "rank": 18, "ticker": "ARM",  "p": 0.38, "deltaV2": 0,   "deltaRank": 2,   "baseRate": 0.50, "n": 6,  "status": "NAH",   "side": "above", "close": 224.89,  "dist": 0.041,  "entry": 215.98,  "stop": 176.92,  "stopPct": -0.181, "target": 291.07,  "crv": 1.92, "ev": 0.0200,  "earnings": null,         "earningsConfidence": "reported-2026-07-29" },
+    { "rank": 19, "ticker": "COHR", "p": 0.38, "deltaV2": -5,  "deltaRank": -3,  "baseRate": 0.60, "n": 7,  "status": "FERN",  "side": "below", "close": 222.05,  "dist": -0.166, "entry": 266.16,  "stop": 219.58,  "stopPct": -0.175, "target": 326.18,  "crv": 1.29, "ev": -0.0228, "earnings": "2026-08-12", "earningsConfidence": "stated" },
+    { "rank": 20, "ticker": "VRT",  "p": 0.36, "deltaV2": -24, "deltaRank": -14, "baseRate": 0.57, "n": 6,  "status": "FERN",  "side": "below", "close": 223.04,  "dist": -0.123, "entry": 254.42,  "stop": 219.87,  "stopPct": -0.136, "target": 302.74,  "crv": 1.40, "ev": -0.0186, "earnings": null,         "earningsConfidence": "reported-2026-07-29" },
+    { "rank": 21, "ticker": "TXT",  "p": 0.35, "deltaV2": -3,  "deltaRank": null, "baseRate": 0.43, "n": 13, "status": "LIVE",  "side": "below", "close": 85.65,   "dist": -0.039, "entry": 89.15,   "stop": 84.26,   "stopPct": -0.055, "target": 96.60,   "crv": 1.52, "ev": -0.0064, "earnings": null,         "earningsConfidence": "reported-2026-07-28" },
+    { "rank": 22, "ticker": "GLW",  "p": 0.33, "deltaV2": 0,   "deltaRank": 1,   "baseRate": 0.55, "n": 14, "status": "FERN",  "side": "below", "close": 124.05,  "dist": -0.127, "entry": 142.09,  "stop": 113.93,  "stopPct": -0.198, "target": 174.63,  "crv": 1.16, "ev": -0.0572, "earnings": "2026-10-28", "earningsConfidence": "estimated-end-october" },
+    { "rank": 23, "ticker": "CIEN", "p": 0.32, "deltaV2": -20, "deltaRank": -10, "baseRate": 0.50, "n": 14, "status": "FERN",  "side": "below", "close": 330.37,  "dist": -0.092, "entry": 363.73,  "stop": 316.00,  "stopPct": -0.131, "target": 441.49,  "crv": 1.63, "ev": -0.0208, "earnings": "2026-09-03", "earningsConfidence": "estimated" }
+  ]
+}
