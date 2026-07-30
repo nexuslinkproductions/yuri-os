@@ -207,8 +207,8 @@ So a push is *usually* live in ~15s but can miss; verify the server (cache-buste
 and if stuck, re-push a trivial commit rather than assuming it deployed. **Migrations 005–007 CONFIRMED APPLIED by René**
 (306 TWINT sales tagged `twint_ecom`); **totals verified byte-identical before/after** (income 299'892.18 /
 expense 204'713.48 / profit 95'178.70) — the 007 `amount_input` reconstruction changed only the hidden
-Rechnungsbetrag, never `amount_total`. SW is at **v15** — needs TWO reloads / PWA reopen to pick up (new SW
-serves fresh assets only on the 2nd load). STILL PENDING RENÉ: Jahresabschluss → „2019–2025 übernehmen"
+Rechnungsbetrag, never `amount_total`. SW is at **v28** (commit `ef75848`, round 14); shell is **network-first since v18** so deploys land on the
+FIRST online reload (the old „two reloads" claim is obsolete — see round 8). STILL PENDING RENÉ: Jahresabschluss → „2019–2025 übernehmen"
 (historical-years seed — not yet clicked). Open: **2026 keeps growing on milchbüechli** — re-pull on the actual cutover day
 before cancelling; **cancel milchbüechli** once that's across; **receipt (Belege) bulk import** still to do
 (ZIPs were generated on milchbüechli for all years). VAT stays off until registration (~Jan 2027 — configure
@@ -240,6 +240,15 @@ Rechnungsdatum (Umstellung auf Zahlungseingang = offener Owner-Entscheid, würde
 008 seedet „René Spatz" — falls leer, unter Einstellungen → Firma setzen.
 
 ## Session Notes
+
+### 2026-07-30 (round 14: rohe ISO-Daten in Listen → dd/mm/yyyy)
+- Commit `ef75848` (cgs-books), **deployed + server-verified (v28)**. René: „Date format is wrong!" (Screenshot:
+  Buchungsliste zeigte `2026-05-11`). Drei rohe `x-text`-Datumsbindungen auf `fmtDate()` umgestellt:
+  Buchungen-Sub-Zeile (`e.entry_date`, Z.135), Wiederkehrend „nächste Fälligkeit" (`r.next_due_date`, Z.175),
+  Geschäftsjahre Start/Ende (`y.start_date`/`y.end_date`, Z.427). Alle anderen Datumsanzeigen liefen bereits
+  über `fmtDate` (AUSSTEHEND/FÄLLIG/ZAHLUNGSEINGANG/Kontoauszug). Nur HTML + sw-Bump (v27→v28); kein PHP/JS-Logik.
+- **Merke:** neue Datumsanzeige im Frontend IMMER `fmtDate(iso)` (→ dd/mm/yyyy) wrappen; `entry_date` u.a. kommen
+  als ISO `YYYY-MM-DD` aus der API. Verifiziert server-seitig (cache-busted fetch: v28 + `fmtDate(e.entry_date)`).
 
 ### 2026-07-22 (round 13: Jahresabschluss-Vorschau für das offene Jahr)
 - Commit `50c0147` (cgs-books), **deployed + live-verified (v26)**. Reine additive Funktion.
