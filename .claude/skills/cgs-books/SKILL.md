@@ -241,6 +241,25 @@ Rechnungsdatum (Umstellung auf Zahlungseingang = offener Owner-Entscheid, würde
 
 ## Session Notes
 
+### 2026-07-30 (round 15: Belege-ZIP je Geschäftsjahr — Whole-Year-Archiv hochladen/herunterladen)
+- Commit `1388094` (cgs-books), **deployed + server-verified (v29)**. René: die 2019–2025-Belege fehlten
+  in cgs-books (nur 2026 war pro Beleg importiert; die Altjahre hatten nur den PDF-Report). Er wollte KEINEN
+  Pro-Beleg-Import, sondern je Jahr einen **„BELEGE ZIP"-Button nach „Öffnen"** = das aus milchbüechli
+  heruntergeladene Jahres-ZIP als Ganzes archivieren + abrufen.
+- Gebaut (years_controller): `year_belege_dir()` (`storage/year_belege/`, ausserhalb Webroot), `year_belege_path()`
+  (nur `^\d{4}$`, kein Traversal), `ctrl_year_belege_upload` (POST, ZIP, finfo-Mime, ≤256 MB, `move_uploaded_file`
+  → `<JJJJ>.zip`, überschreibt), `ctrl_year_belege_download` (GET stream, attachment). `year_row_to_api` liefert
+  `belege_zip`/`belege_zip_mb` (reines `is_file`/`filesize` — KEIN DB-Feld/Migration). Routen `year-belege` +
+  `year-belege-upload`. Frontend: pro Jahr „Belege-ZIP hochladen"/„ZIP ersetzen" (hidden input + `pickYearBelege`/
+  `uploadYearBelege`) und „Belege-ZIP (x MB)" Download (`downloadYearBelege`).
+- **Live-Limit erneut bestätigt: upload_max_filesize/post_max_size = 256 MB** (Leer-POST-Probe). milchbüechli-
+  Jahres-ZIPs ~146 MB → passen. Speicher: 7×~146 MB ≈ 1 GB auf dem hosttech-Shared-Host (Kontingent im Auge behalten).
+- **Unterschied zum bestehenden Pro-Beleg-Importer** (`receipt-zip-import`, 2026): dieser hier zerlegt NICHT,
+  macht Belege NICHT pro Buchung klickbar — er legt nur das ganze Jahres-ZIP ab und gibt es zurück (Archiv/Retention).
+  Beide Wege existieren jetzt parallel. Verifiziert: v29, Button im HTML, years-API-Flag, Upload-Route erreichbar (413-Limit-Report).
+- **RENÉ TODO:** je Jahr 2019–2025 in milchbüechli (Jahresabschluss) „Belege ZIP herunterladen" → in cgs-books
+  „Belege-ZIP hochladen". Deckt die 10-Jahres-Retention (OR 958f) ab → danach milchbüechli kündbar.
+
 ### 2026-07-30 (round 14: rohe ISO-Daten in Listen → dd/mm/yyyy)
 - Commit `ef75848` (cgs-books), **deployed + server-verified (v28)**. René: „Date format is wrong!" (Screenshot:
   Buchungsliste zeigte `2026-05-11`). Drei rohe `x-text`-Datumsbindungen auf `fmtDate()` umgestellt:
