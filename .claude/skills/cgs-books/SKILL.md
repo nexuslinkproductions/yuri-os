@@ -241,6 +241,27 @@ Rechnungsdatum (Umstellung auf Zahlungseingang = offener Owner-Entscheid, würde
 
 ## Session Notes
 
+### 2026-07-30 (round 16: Upload-Limit-Diagnose (nginx) + Chunk-Upload + FileZilla-Direktablage)
+- Follow-up zu R15: 2024 (140 MB) + 2025 (183 MB) Belege-ZIP-Uploads warfen „Ungültige Serverantwort".
+- **Ursache (live bewiesen):** nginx `client_max_body_size` (~128 MB Plesk-Default) lehnt Uploads mit HTML-413
+  **vor PHP** ab (0.1 s, `<html>…413…nginx`), obwohl PHP post_max_size/upload_max_filesize = **256M**. 2019-2023
+  (≤98 MB) gingen, 2024/2025 nicht. **hosttech-Plesk exponiert das „Zusätzliche nginx-Direktiven"-Feld NICHT**
+  (Apache-&-nginx-Seite hat nur Proxymodus/Static/Caching) → client_max_body_size ist NICHT self-serviceable.
+  Fixes: (a) hosttech-Ticket „client_max_body_size 300m für books.custom-gear.ch" (René hat gesendet); (b) Chunk-Upload; (c) FileZilla.
+- **Chunk-Upload gebaut** (commit `01dec12`, v31): `year-belege-chunk` (POST) — Browser zerlegt Dateien >80 MB in
+  <80-MB-Chunks (`file.slice`), jeder Request unter dem nginx-Cap; Server schreibt `_tmp/<J>_<uid>_<part>.part`,
+  fügt beim letzten Chunk streamend zusammen (`stream_copy_to_stream`), prüft via `ZipArchive::open`, legt als
+  `<JJJJ>.zip` ab, räumt Teile auf. `uploadYearBelege` chunkt automatisch >80 MB, sonst Einzel-POST. api.js meldet
+  einen 413 jetzt als Klartext („über dem Server-Upload-Limit") statt „Ungültige Serverantwort" (commit `a555e4b`).
+- **FileZilla = der beste Weg (KEY-FUND):** sein SFTP erreicht **`/cgs-books/storage/year_belege/`** direkt (kein
+  Chroot davor). Datei als `<JJJJ>.zip` reinlegen → `year_row_to_api` (`is_file`) erkennt sie sofort, `year-belege`
+  streamt sie. **KEIN nginx-Limit, kein Split, kein Chunk.** Verifiziert: 2019-2023 per SFTP abgelegt (0640,
+  owner custom_gear → PHP liest), years-API `belege_zip=true` für alle fünf, Download 2019 = HTTP 200 zip 47 MB.
+  **RENÉ TODO:** `2024.zip` + `2025.zip` (ganze Original-ZIPs) per FileZilla in denselben Ordner → fertig.
+- **Zwei getrennte Belege-Wege bestehen jetzt:** (1) per-Jahr-Archiv (year_belege, ganzes ZIP, FileZilla/Chunk/
+  Einzel-Upload → „Belege-ZIP"-Download je Jahr); (2) per-Buchung klickbar (`receipt-zip-import`, zerlegt, 📎 je
+  Buchung — dafür die <98-MB-Split-Parts hochladen). Beide unabhängig.
+
 ### 2026-07-30 (round 15: Belege-ZIP je Geschäftsjahr — Whole-Year-Archiv hochladen/herunterladen)
 - Commit `1388094` (cgs-books), **deployed + server-verified (v29)**. René: die 2019–2025-Belege fehlten
   in cgs-books (nur 2026 war pro Beleg importiert; die Altjahre hatten nur den PDF-Report). Er wollte KEINEN
