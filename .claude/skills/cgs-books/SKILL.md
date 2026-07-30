@@ -241,6 +241,27 @@ Rechnungsdatum (Umstellung auf Zahlungseingang = offener Owner-Entscheid, würde
 
 ## Session Notes
 
+### 2026-07-30 (round 18: mehrere Belege pro Buchung in einem Rutsch)
+- Commit `162b861` (cgs-books), **deployed + server-verified (v33)**. René: pro Buchung 2 Dokumente
+  hochladen (USD-Rechnung + CHF-Überweisungsbeleg bei Fremdwährungs-Einkauf); Idee: 2 Dateien →
+  automatisch zu 1 PDF kombinieren.
+- **KEY-FUND:** das Datenmodell konnte MEHRERE Belege pro Buchung schon immer — `receipts` ist N:1 zu
+  `entries` (kein Unique je entry_id), `entryReceipts` ist ein Array, `ctrl_entry_get` gibt alle zurück, jeder
+  als eigener 📎-Link + löschbar. Nur der Datei-Picker lud **eine** Datei (`files[0]`). Fix: `<input multiple>`
+  + `uploadReceipt` loopt **sequenziell** über alle Dateien (sequenziell, nicht parallel — teilt sich sonst
+  Session/CSRF). `capture="environment"` entfernt (kollidiert mit `multiple`; Foto geht weiter über den
+  Datei-Picker). KEIN Cap — 2/3/N möglich. Reine Frontend-Runde (index.html + app.js + sw-Bump), kein PHP.
+- **Auto-Merge 2 PDF → 1 PDF: bewusst NICHT gebaut (nicht machbar auf diesem Stack).** `pdf.php` ist ein
+  hand-gerollter zero-dep **Writer** — baut PDFs von Grund auf, kann bestehende PDF-Seiten NICHT parsen/
+  importieren. Echtes PDF-Merge braucht eine Library (FPDI/pdftk/Ghostscript); Host ist PHP-only, kein
+  Composer, keine CLI-Binaries. Zwei getrennte klickbare Belege an derselben Buchung erfüllen dasselbe Ziel
+  ohne Risiko eines zerschossenen gescannten Belegs. (Bilder→PDF wäre machbar, PDF→PDF nicht — Rechnungen
+  sind aber meist PDF, also kein Teilbau.) <!-- @anchor: none | reason: stack-constraint, no PDF-parse lib on shared host -->
+- Verifiziert server-seitig (cache-busted fetch: v33 live, `index.html` hat `type=file … multiple`,
+  `app.js` hat `for (const file of files)`). Tools: Read/Edit, Bash (`node --check`, git), claude-in-chrome
+  (Asset-Probe). Residual: multi-select am echten Formular nicht klickgetestet (nur Markers verifiziert) —
+  reiner UI-Loop über den bestehenden, bewährten Einzel-Upload, Risiko minimal.
+
 ### 2026-07-30 (round 17: SW-Endlos-„loading"-Hang + Fetch-Timeout-Härtung; alle 7 Belege-Jahre live)
 - René: „Strg-F5 auf #years tut nichts." Live-Diagnose (claude-in-chrome): `document.readyState` blieb
   **"loading"**, `body` leer — die Seite lud NIE fertig; JS-Kontext lief aber (javascript_tool ok, screenshot
