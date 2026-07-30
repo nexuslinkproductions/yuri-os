@@ -1,0 +1,156 @@
+{
+  "schema": "yuri.prose-claim-extractor.v1",
+  "updatedMs": 1785439769281,
+  "claims": [
+    {
+      "id": "ema200-review:verified",
+      "target": "ema200-review",
+      "claimType": "verified",
+      "claimedStatus": "runtime_tested",
+      "contentHash": "4b5fd06037496b4a",
+      "evidence": [],
+      "_source": {
+        "filePath": "/home/user/yuri-os/_SYSTEM/Scripts/ema200-review.mjs",
+        "statement": "// verified 2026-07-30.",
+        "matchedVerb": "verified",
+        "subjectInferred": true
+      },
+      "_seenMs": 1785439739710
+    },
+    {
+      "id": "declares:verified",
+      "target": "declares",
+      "claimType": "verified",
+      "claimedStatus": "runtime_tested",
+      "contentHash": "36dd87aabf61bc6d",
+      "evidence": [],
+      "_source": {
+        "filePath": "/home/user/yuri-os/_SYSTEM/Scripts/ema200-review.mjs",
+        "statement": "// declares a source and verified:true.",
+        "matchedVerb": "verified",
+        "subjectInferred": false
+      },
+      "_seenMs": 1785439692906
+    },
+    {
+      "id": "set:verified",
+      "target": "set",
+      "claimType": "verified",
+      "claimedStatus": "runtime_tested",
+      "contentHash": "6a46fdacc645ccb6",
+      "evidence": [],
+      "_source": {
+        "filePath": "/home/user/yuri-os/_SYSTEM/Scripts/ema200-review.mjs",
+        "statement": "Set verified:true only when the numbers come from a real OHLCV source.',",
+        "matchedVerb": "verified",
+        "subjectInferred": false
+      },
+      "_seenMs": 1785439692906
+    },
+    {
+      "id": "lpush-provisorisch-quotes:verified",
+      "target": "lpush-provisorisch-quotes",
+      "claimType": "verified",
+      "claimedStatus": "runtime_tested",
+      "contentHash": "4a04e3ceb9e8d899",
+      "evidence": [],
+      "_source": {
+        "filePath": "/home/user/yuri-os/_SYSTEM/Scripts/ema200-review.mjs",
+        "statement": "L.push('PROVISORISCH: quotes.verified ist nicht true.",
+        "matchedVerb": "verified",
+        "subjectInferred": false
+      },
+      "_seenMs": 1785439692906
+    },
+    {
+      "id": "const-authoritative-quotes:verified",
+      "target": "const-authoritative-quotes",
+      "claimType": "verified",
+      "claimedStatus": "runtime_tested",
+      "contentHash": "390601ada3bbd193",
+      "evidence": [],
+      "_source": {
+        "filePath": "/home/user/yuri-os/_SYSTEM/Scripts/ema200-review.mjs",
+        "statement": "const authoritative = quotes.verified === true && typeof quotes.source === 'string' && quotes.source.length > 0;",
+        "matchedVerb": "verified",
+        "subjectInferred": false
+      },
+      "_seenMs": 1785439692906
+    },
+    {
+      "id": "consoleerror-nema200-review-write-verweigert:verified",
+      "target": "consoleerror-nema200-review-write-verweigert",
+      "claimType": "verified",
+      "claimedStatus": "runtime_tested",
+      "contentHash": "99f1f16ff16c9335",
+      "evidence": [],
+      "_source": {
+        "filePath": "/home/user/yuri-os/_SYSTEM/Scripts/ema200-review.mjs",
+        "statement": "console.error('\\nEMA200-REVIEW: --write verweigert — quotes.verified !== true oder quotes.source leer.');",
+        "matchedVerb": "verified",
+        "subjectInferred": false
+      },
+      "_seenMs": 1785439692906
+    },
+    {
+      "id": "const-q-asof-2026-08-06:verified",
+      "target": "const-q-asof-2026-08-06",
+      "claimType": "verified",
+      "claimedStatus": "runtime_tested",
+      "contentHash": "579665ee4d148f83",
+      "evidence": [],
+      "_source": {
+        "filePath": "/home/user/yuri-os/_SYSTEM/Scripts/ema200-review.test.mjs",
+        "statement": "const q = { asOf: '2026-08-06', source: 'guessed', verified: false, tickers: {} };",
+        "matchedVerb": "verified",
+        "subjectInferred": false
+      },
+      "_seenMs": 1785439739710
+    },
+    {
+      "id": "const-rv-review-freeze:verified",
+      "target": "const-rv-review-freeze",
+      "claimType": "verified",
+      "claimedStatus": "runtime_tested",
+      "contentHash": "2b7dbd0136ba8084",
+      "evidence": [],
+      "_source": {
+        "filePath": "/home/user/yuri-os/_SYSTEM/Scripts/ema200-review.test.mjs",
+        "statement": "const rv = review(freeze, { source: '', verified: false, tickers: {} }, '2026-08-06');",
+        "matchedVerb": "verified",
+        "subjectInferred": false
+      },
+      "_seenMs": 1785439739710
+    },
+    {
+      "id": "assertequal-t:verified",
+      "target": "assertequal-t",
+      "claimType": "verified",
+      "claimedStatus": "runtime_tested",
+      "contentHash": "bc73589161527880",
+      "evidence": [],
+      "_source": {
+        "filePath": "/home/user/yuri-os/_SYSTEM/Scripts/ema200-review.test.mjs",
+        "statement": "assert.equal(t.verified, false, 'a template must never claim verification');",
+        "matchedVerb": "verified",
+        "subjectInferred": false
+      },
+      "_seenMs": 1785439739710
+    },
+    {
+      "id": "offline:verified",
+      "target": "offline",
+      "claimType": "verified",
+      "claimedStatus": "runtime_tested",
+      "contentHash": "f93015b8bddf02c1",
+      "evidence": [],
+      "_source": {
+        "filePath": "/home/user/yuri-os/_SYSTEM/Scripts/ema200-review.mjs",
+        "statement": "Offline by contract; refuses to write a verdict unless the quotes artifact declares a named source and verified:true",
+        "matchedVerb": "verified",
+        "subjectInferred": false
+      },
+      "_seenMs": 1785439769281
+    }
+  ]
+}
