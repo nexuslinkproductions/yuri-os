@@ -384,15 +384,16 @@ function resolveCollisionLegacyPath(repoRoot, legacyPath) {
   if (/[\0\r\n\\]/.test(legacyPath)) {
     fail('PATH_TRAVERSAL', `collision legacyPath contains unsafe characters: ${JSON.stringify(legacyPath)}`);
   }
-  const parts = legacyPath.split('/').filter(Boolean);
-  if (parts.some((part) => part === '.' || part === '..')) {
-    fail('PATH_TRAVERSAL', `collision legacyPath contains traversal: ${legacyPath}`);
+  const absolute = path.posix.isAbsolute(legacyPath);
+  const parts = legacyPath.split('/');
+  if (parts.some((part, index) => (!part && !(absolute && index === 0)) || part === '.' || part === '..')) {
+    fail('PATH_TRAVERSAL', `collision legacyPath contains empty or traversal segments: ${legacyPath}`);
   }
   // Machine-global ledger entries stay absolute; repository-local entries are
   // normalized repository-relative (e.g. .codex/skills/...) and resolve against
   // the ACTIVE repoRoot so isolated worktrees see their own path, never a
   // hard-coded canonical checkout path.
-  if (path.posix.isAbsolute(legacyPath)) return legacyPath;
+  if (absolute) return legacyPath;
   return absolutePath(repoRoot, legacyPath);
 }
 
@@ -420,26 +421,30 @@ function discoverLegacyConflicts(repoRoot, index, projectedIds) {
   }
   const { value: registry } = parseJsonSource(repoRoot, COLLISION_REGISTRY_PATH, index);
   if (registry.schemaVersion !== 1 || !Array.isArray(registry.collisions)) fail('INVALID_COLLISION_REGISTRY', 'collision registry schema is invalid');
-  const conflicts = registry.collisions
-    .filter((entry) => projectedIds.has(entry.adapterId))
-    .map((entry) => {
-      assertSafeId(entry.adapterId);
-      if (typeof entry.requiredEnabled !== 'boolean' || typeof entry.legacyPath !== 'string') {
-        fail('INVALID_COLLISION_REGISTRY', `invalid collision entry for ${entry.adapterId}`);
-      }
-      return {
-        id: entry.adapterId,
-        legacyPath: entry.legacyPath,
-        state: entry.state,
-        requiredEnabled: entry.requiredEnabled,
-        registryResolution: registry.resolution,
-        runtimeProofRequired: registry.rules?.runtimeProof ?? null,
-      };
-    });
+  const validatedCollisions = registry.collisions.map((entry) => {
+    assertSafeId(entry.adapterId);
+    if (typeof entry.requiredEnabled !== 'boolean' || typeof entry.legacyPath !== 'string') {
+      fail('INVALID_COLLISION_REGISTRY', `invalid collision entry for ${entry.adapterId}`);
+    }
+    const ledger = {
+      id: entry.adapterId,
+      legacyPath: entry.legacyPath,
+      state: entry.state,
+      requiredEnabled: entry.requiredEnabled,
+      registryResolution: registry.resolution,
+      runtimeProofRequired: registry.rules?.runtimeProof ?? null,
+    };
+    return {
+      ledger,
+      resolvedLegacyPath: resolveCollisionLegacyPath(repoRoot, entry.legacyPath),
+    };
+  });
+  const selectedCollisions = validatedCollisions.filter(({ ledger }) => projectedIds.has(ledger.id));
+  const conflicts = selectedCollisions.map(({ ledger }) => ledger);
   // Coverage compares the RESOLVED effective path against local candidates; the
   // ledger itself keeps the raw registry value so the projection-manifest
   // collision ledger stays byte-for-byte comparable (yuri-codex-skill-activation.mjs).
-  const covered = new Set(conflicts.map((entry) => `${entry.id}\0${resolveCollisionLegacyPath(repoRoot, entry.legacyPath)}`));
+  const covered = new Set(selectedCollisions.map(({ ledger, resolvedLegacyPath }) => `${ledger.id}\0${resolvedLegacyPath}`));
   const uncovered = [];
   for (const sourcePath of [...candidates].sort()) {
     const id = sourcePath.split('/').at(-2);
