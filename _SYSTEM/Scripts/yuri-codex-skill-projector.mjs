@@ -421,26 +421,30 @@ function discoverLegacyConflicts(repoRoot, index, projectedIds) {
   }
   const { value: registry } = parseJsonSource(repoRoot, COLLISION_REGISTRY_PATH, index);
   if (registry.schemaVersion !== 1 || !Array.isArray(registry.collisions)) fail('INVALID_COLLISION_REGISTRY', 'collision registry schema is invalid');
-  const conflicts = registry.collisions
-    .filter((entry) => projectedIds.has(entry.adapterId))
-    .map((entry) => {
-      assertSafeId(entry.adapterId);
-      if (typeof entry.requiredEnabled !== 'boolean' || typeof entry.legacyPath !== 'string') {
-        fail('INVALID_COLLISION_REGISTRY', `invalid collision entry for ${entry.adapterId}`);
-      }
-      return {
-        id: entry.adapterId,
-        legacyPath: entry.legacyPath,
-        state: entry.state,
-        requiredEnabled: entry.requiredEnabled,
-        registryResolution: registry.resolution,
-        runtimeProofRequired: registry.rules?.runtimeProof ?? null,
-      };
-    });
+  const validatedCollisions = registry.collisions.map((entry) => {
+    assertSafeId(entry.adapterId);
+    if (typeof entry.requiredEnabled !== 'boolean' || typeof entry.legacyPath !== 'string') {
+      fail('INVALID_COLLISION_REGISTRY', `invalid collision entry for ${entry.adapterId}`);
+    }
+    const ledger = {
+      id: entry.adapterId,
+      legacyPath: entry.legacyPath,
+      state: entry.state,
+      requiredEnabled: entry.requiredEnabled,
+      registryResolution: registry.resolution,
+      runtimeProofRequired: registry.rules?.runtimeProof ?? null,
+    };
+    return {
+      ledger,
+      resolvedLegacyPath: resolveCollisionLegacyPath(repoRoot, entry.legacyPath),
+    };
+  });
+  const selectedCollisions = validatedCollisions.filter(({ ledger }) => projectedIds.has(ledger.id));
+  const conflicts = selectedCollisions.map(({ ledger }) => ledger);
   // Coverage compares the RESOLVED effective path against local candidates; the
   // ledger itself keeps the raw registry value so the projection-manifest
   // collision ledger stays byte-for-byte comparable (yuri-codex-skill-activation.mjs).
-  const covered = new Set(conflicts.map((entry) => `${entry.id}\0${resolveCollisionLegacyPath(repoRoot, entry.legacyPath)}`));
+  const covered = new Set(selectedCollisions.map(({ ledger, resolvedLegacyPath }) => `${ledger.id}\0${resolvedLegacyPath}`));
   const uncovered = [];
   for (const sourcePath of [...candidates].sort()) {
     const id = sourcePath.split('/').at(-2);

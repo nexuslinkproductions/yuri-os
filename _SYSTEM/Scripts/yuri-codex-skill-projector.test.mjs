@@ -495,6 +495,19 @@ test('traversal or malformed collision legacyPath entries fail closed', () => {
       `expected INVALID_COLLISION_REGISTRY for ${JSON.stringify(legacyPath)}`,
     );
   }
+  const unprojectedRegistry = JSON.parse(readFileSync(registryPath, 'utf8'));
+  unprojectedRegistry.collisions = [{
+    adapterId: 'ghost',
+    legacyPath: 'a//b/SKILL.md',
+    state: 'current',
+    requiredEnabled: true,
+  }];
+  writeJson(root, '_SYSTEM/config/codex-skill-collision-registry.json', unprojectedRegistry);
+  assert.throws(
+    () => buildProjectionPlan(root, SMALL_COUNTS),
+    (error) => error?.code === 'PATH_TRAVERSAL',
+    'malformed paths must fail closed before an unprojected adapter is filtered from the ledger',
+  );
 });
 
 
