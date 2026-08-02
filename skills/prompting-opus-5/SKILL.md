@@ -1,6 +1,6 @@
 ---
 name: prompting-opus-5
-description: Use when adapting, migrating, or writing a prompt or agent contract that will run on Claude Opus 5 (API id claude-opus-5) — legacy Opus/Sonnet prompts, coding, refactor, review, long-context, or multi-agent prompts; tuning effort, verbosity, progress cadence, subagent fan-out, or verification instructions; or recovering a permitted internal task from an unexpected refusal by making the contract literal and context-minimal.
+description: Use when adapting, migrating, or writing a prompt or agent contract that will run on Claude Opus 5 (API id claude-opus-5) — legacy Opus/Sonnet prompts, coding, refactor, review, long-context, or multi-agent prompts; tuning effort, verbosity, progress cadence, subagent fan-out, or verification instructions; or diagnosing an unexpected refusal on a permitted internal task with route and context controls before any packet rewrite.
 ---
 
 # Prompting Opus 5
@@ -40,14 +40,15 @@ Ask for every real issue, then filter severity in a separate step. Requesting on
 
 ## Unexpected refusal on a permitted task
 
-Treat an unexpected refusal as a prompt-quality defect to diagnose, not as proof that the permitted task is impossible and not as a word-filter to evade.
+Treat an unexpected refusal as a route-or-context defect to diagnose, not as proof that the permitted task is impossible and not as a word-filter to evade.
 
-1. Capture the exact route, request, refusal, and intended outcome. Do not loop the same packet.
+1. Capture the exact provider/model route, reasoning setting, request, refusal, intended outcome, and approximate context size. Do not loop the same packet.
 2. Confirm the objective is actually permitted. If it is not, stop; prompt rewriting never changes the action boundary.
-3. Minimize context to the owned target, relevant artifacts, allowed operations, and expected evidence. Remove unrelated catalogs, historical transcripts, speculative branches, and domain material.
-4. Replace colorful or metaphorical wording with the literal engineering operation it was standing in for: compare, trace, reproduce, run a named negative case, classify, or report. This is semantic correction, not synonym rotation.
-5. State ownership or authorization once when it is relevant, then state the operational boundary: for example, read-only review, no provider calls, or no external action.
-6. Retry once with the minimized contract. If it still refuses, capture the result and route the permitted work to another admitted reviewer rather than escalating wording tricks.
+3. Before blaming request wording, run one context-free fixed-output control through the exact same route only when the task action boundary, policy, and spend allow that provider call. If any gate disallows it, record `control_status: NOT_CHECKED` and do not rewrite the packet on that evidence alone; inspect already-available session context or route the permitted task to another admitted reviewer. If the control also refuses, classify the incident as a route/session safeguard: stop rewriting the task, inspect always-on context for unrelated high-risk catalogs, and either trim those catalogs behind on-demand loading or switch to another admitted route. Record the resolved provider/model and reasoning setting in the receipt; an agent label alone is not route evidence.
+4. Only when the control passes but the task refuses, minimize the packet to the owned target, relevant artifacts, allowed operations, and expected evidence. Remove unrelated transcripts, speculative branches, and domain material supplied by the packet.
+5. Replace colorful or metaphorical wording with the literal engineering operation it was standing in for: compare, trace, reproduce, run a named negative case, classify, or report. This is semantic correction, not synonym rotation.
+6. State ownership or authorization once when relevant, then state the operational boundary: for example, read-only review, no provider calls, or no external action.
+7. Retry once with the corrected packet. If it still refuses, capture the result and route the permitted work to another admitted reviewer rather than escalating wording tricks.
 
 Do not maintain a trigger-word blacklist. A bare word list is brittle and destroys task meaning. Never use encoding, euphemisms, misspellings, or synonym rotation to conceal an impermissible objective.
 
