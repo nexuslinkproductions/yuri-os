@@ -3,8 +3,8 @@
   "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
   "canonical": {
     "indexPath": "skills/skill-index.json",
-    "indexSha256": "e3d8ed01846c6ca9454bfd1308736dde1ad9f5061fe66c2f06eca86d4dde520e",
-    "count": 169
+    "indexSha256": "24475805a9193b8e4626fa9c03a2897144731ea653a0e265104dceb67e0e79e2",
+    "count": 171
   },
   "cyber": {
     "manifestPath": "_SYSTEM/config/cyber-skill-registry.json",
@@ -65,8 +65,8 @@
   },
   "projection": {
     "root": ".agents/skills",
-    "count": 508,
-    "aggregateSha256": "4a3cf225001d94a132bcb9b3badbc35ffc1919d1d7767e7f770f9e523e807b77",
+    "count": 510,
+    "aggregateSha256": "2f301ab32e16897bb731ac116cd3f33e1edb97334e8e7f410d5d920cc77df9cc",
     "nativeInvocation": {
       "sidecarRelativePath": "agents/openai.yaml",
       "provenance": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
@@ -77,7 +77,7 @@
         ]
       },
       "explicitOnly": {
-        "count": 507
+        "count": 509
       }
     }
   },
@@ -13161,6 +13161,62 @@
         "provenance": {
           "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
           "governedSkillId": "prompt-engineering",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "prompting-kimi-k3",
+      "sourcePath": "skills/prompting-kimi-k3/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "98497a39e27ee7cbdd685bc344cf73c2658b6065eeaee56da6251806e70e8a5b",
+      "sourceFrontmatterSha256": "8edaf14d993ad72da63792e9157acd9b9e4e9e1f501188d3c470e40962fe397b",
+      "adapterFrontmatterSha256": "c64cfe4d2f2f1fd3970fb051efb340fe7edf40187a7d7f1e557eaa1c4dfcd2e9",
+      "adapterSha256": "a9c8222b1f4ef034a1a5f899d8c643edb2eaff538c3a729e06140077bafed868",
+      "materialization": "worktree",
+      "gitBlobOid": "926f0fc9930d6fa9942174003c2768b586f823fc",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": null,
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/prompting-kimi-k3/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "prompting-kimi-k3",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "prompting-opus-5",
+      "sourcePath": "skills/prompting-opus-5/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "7c4ecb42ea9dae382ff1bd17a40f3884579651e8dbbb32d039c218640b3a4783",
+      "sourceFrontmatterSha256": "3e20fbc2ba60527d2c9cd499d6a7bb5133226944ad64a7dba8fe15a45d66ee87",
+      "adapterFrontmatterSha256": "6ceb722c029b5438b73006056babb43193ea5cd82e56afc2aa55fa087ff82409",
+      "adapterSha256": "152ee86641b7a8075e731e3443eea11551838486a002e9e594dea041484db1da",
+      "materialization": "worktree",
+      "gitBlobOid": "5a051d2afe8075d8179c193b4a707b54ebeb547c",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": null,
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/prompting-opus-5/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "prompting-opus-5",
           "policyClass": "explicit-only"
         }
       }
