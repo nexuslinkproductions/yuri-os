@@ -472,6 +472,10 @@ _SYSTEM/Scripts/alpha-factor-library/data/databento/
 .codex/config.toml
 .codex/hooks.json
 .opencode/plugins/october-bus.js
+.cursor/mcp.json
+.cursor/cli.json
+.gemini/settings.json
+.grok/config.toml
 
 # Atlas — generated navigation artifacts (~2.4 MB, regenerated every loop iteration)
 # Deliberately NOT tracked, unlike _SYSTEM/state/arch-graph-metrics.json: the atlas
