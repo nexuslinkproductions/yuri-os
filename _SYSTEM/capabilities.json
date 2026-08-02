@@ -4450,8 +4450,16 @@
       "does": "Deterministic cross-surface structural centrality + id-bridge (canonical-id) - fills graph.impact_centrality.",
       "use": "Reach for this before building any importance/impact/centrality ranking over the graph.",
       "exports": [
-        "navigateCentrality",
-        "aggregateProcessCentrality"
+        "loadUnifiedGraph",
+        "nodeDegree",
+        "computeDependencyCentrality",
+        "computeImpactCentrality",
+        "resolveAnchors",
+        "aggregateProcessCentrality",
+        "navigateEnvelope",
+        "buildChangeTrace",
+        "CHANGE_TRACE_DEFAULT_MAX_TARGETS",
+        "CHANGE_TRACE_STATUS"
       ],
       "mechanism": "_SYSTEM/Scripts/yuri-navigate.mjs"
     },
