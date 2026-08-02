@@ -474,3 +474,25 @@ _SYSTEM/Scripts/alpha-factor-library/data/databento/
 # to history per experiment. Rebuild with:
 #   node _SYSTEM/Scripts/atlas/atlas-identity.mjs && atlas-edges.mjs && atlas-build.mjs
 _SYSTEM/state/atlas/
+
+# Class C — ungoverned runtime residue (no source generator + acceptance test).
+# Session/worker-scoped scratch, caches, telemetry, and handoffs — regenerated at
+# runtime, must never enter source PRs. Governed projections (e.g.
+# _SYSTEM/state/mure-omp-projection.json via mure-fleet-validate) stay tracked and
+# are intentionally NOT listed here.
+.claude/session-env/
+_SYSTEM/state/nano/
+_SYSTEM/state/mcs-test/
+_SYSTEM/state/gh-raw-cache/
+_SYSTEM/state/whatsapp-cache/
+_SYSTEM/state/cloud-slots/
+_SYSTEM/state/fleet-handoffs/
+_SYSTEM/state/claim-extractor/
+# Root-level _SYSTEM/state runtime residue: process stdout/stderr, error
+# archives, and per-run report/worker-last outputs. None tracked in
+# origin/main; regenerated at runtime.
+_SYSTEM/state/*.out
+_SYSTEM/state/*.err
+_SYSTEM/state/*.err.gz
+_SYSTEM/state/energy-outcome-report.txt
+_SYSTEM/state/worker-last-*.txt
