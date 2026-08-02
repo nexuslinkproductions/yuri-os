@@ -17,7 +17,7 @@ export const PROJECTION_ROOT = '.agents/skills';
 export const PROJECTOR_ID = '_SYSTEM/Scripts/yuri-codex-skill-projector.mjs';
 
 const DEFAULT_FS_OPS = { existsSync, lstatSync };
-const EXPECTED_GOVERNED_COUNTS = Object.freeze({ canonical: 127, armed: 300, labgated: 39, total: 466, implicit: 1, explicitOnly: 465 });
+const EXPECTED_GOVERNED_COUNTS = Object.freeze({ canonical: 169, armed: 300, labgated: 39, total: 508, implicit: 1, explicitOnly: 507 });
 const EXPECTED_IMPLICIT_IDS = Object.freeze(['activate-yuri-skills']);
 const EXPECTED_COLLISION_IDS = Object.freeze(['browser-harness', 'hatch-pet', 'humanizer', 'imagegen', 'openai-docs', 'plugin-creator', 'skill-creator', 'skill-installer']);
 const EXPECTED_COLLISION_RULES = 14;
@@ -106,13 +106,29 @@ function uniqueIds(values, label) {
   return result;
 }
 
-function safeAbsoluteSkillPath(value, label) {
-  if (typeof value !== 'string' || !path.isAbsolute(value) || /[\0\r\n]/.test(value) || !value.endsWith('/SKILL.md')) {
+function resolveRepositoryRelativeSkillPath(value, label, repoRoot) {
+  if (repoRoot === null) fail(`invalid ${label}: ${JSON.stringify(value)}`);
+  const root = path.resolve(repoRoot);
+  const parts = value.split('/');
+  if (parts.some((part) => !part || part === '.' || part === '..')) {
     fail(`invalid ${label}: ${JSON.stringify(value)}`);
   }
-  const resolved = path.resolve(value);
-  if (resolved !== value) fail(`${label} must already be normalized: ${value}`);
-  if (value.split(path.sep).includes('.agents')) fail(`${label} must never target .agents: ${value}`);
+  const absolute = path.resolve(root, ...parts);
+  if (!pathWithin(root, absolute)) fail(`invalid ${label}: ${JSON.stringify(value)}`);
+  return absolute;
+}
+
+function safeAbsoluteSkillPath(value, label, repoRoot = null) {
+  if (typeof value !== 'string' || /[\0\r\n\\]/.test(value) || !value.endsWith('/SKILL.md')) {
+    fail(`invalid ${label}: ${JSON.stringify(value)}`);
+  }
+  // Machine-global entries stay absolute; repository-local entries are
+  // normalized repository-relative (.codex/...) and resolve against the
+  // ACTIVE repoRoot so isolated worktrees see their own path.
+  const absolute = path.isAbsolute(value) ? value : resolveRepositoryRelativeSkillPath(value, label, repoRoot);
+  const resolved = path.resolve(absolute);
+  if (resolved !== absolute) fail(`${label} must already be normalized: ${value}`);
+  if (absolute.split(path.sep).includes('.agents')) fail(`${label} must never target .agents: ${value}`);
   return resolved;
 }
 
@@ -256,7 +272,7 @@ export function validateNativeCollisions(repoRoot, policy, collisions, { fsOps =
   for (const collision of collisions.collisions) {
     assertSafeId(collision.adapterId, 'collision adapter id');
     if (!Object.hasOwn(capabilities, collision.adapterId)) fail(`collision capability is not declared by policy: ${collision.adapterId}`);
-    const absolute = safeAbsoluteSkillPath(collision.legacyPath, `collision path for ${collision.adapterId}`);
+    const absolute = safeAbsoluteSkillPath(collision.legacyPath, `collision path for ${collision.adapterId}`, root);
     if (typeof collision.requiredEnabled !== 'boolean') fail(`collision state must be boolean for ${collision.adapterId}`);
     const matchedRoots = [...roots].filter(([, approvedRoot]) => pathWithin(approvedRoot, absolute));
     if (matchedRoots.length !== 1) fail(`collision path is outside the single approved native skill root: ${absolute}`);

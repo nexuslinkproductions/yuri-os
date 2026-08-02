@@ -423,6 +423,72 @@ test('path traversal and non-canonical cyber registry names fail closed', () => 
   );
 });
 
+test('repo-relative collision entries resolve against the ACTIVE repoRoot, never a hard-coded canonical path', () => {
+  const { root } = normalFixture();
+  write(root, '.codex/skills/alpha/SKILL.md', skill('alpha', 'Native collision fixture.', 'NATIVE_ALPHA'));
+  const registryPath = path.join(root, '_SYSTEM/config/codex-skill-collision-registry.json');
+  const registry = JSON.parse(readFileSync(registryPath, 'utf8'));
+  registry.collisions = [{
+    adapterId: 'alpha',
+    legacyPath: '.codex/skills/alpha/SKILL.md',
+    state: 'current',
+    requiredEnabled: true,
+  }];
+  writeJson(root, '_SYSTEM/config/codex-skill-collision-registry.json', registry);
+  const plan = buildProjectionPlan(root, SMALL_COUNTS);
+  assert.deepEqual(plan.unresolvedLegacyConflicts, [], 'relative entry must cover the local candidate');
+  const entry = plan.legacyConflicts.find((conflict) => conflict.id === 'alpha');
+  assert.ok(entry, 'alpha collision must appear in the ledger');
+  assert.equal(entry.legacyPath, '.codex/skills/alpha/SKILL.md', 'ledger must keep the raw registry-relative value for the byte-for-byte manifest ledger contract');
+  const manifest = typeof plan.manifest === 'string' ? JSON.parse(plan.manifest) : plan.manifest;
+  const ledgerEntry = manifest.externalNativeCollisionLedger?.find((ledger) => ledger.id === 'alpha');
+  assert.equal(ledgerEntry?.legacyPath, '.codex/skills/alpha/SKILL.md', 'projection-manifest collision ledger must carry the raw relative value');
+});
+
+test('machine-global absolute collision entries are preserved verbatim', () => {
+  const { root } = normalFixture();
+  const registryPath = path.join(root, '_SYSTEM/config/codex-skill-collision-registry.json');
+  const registry = JSON.parse(readFileSync(registryPath, 'utf8'));
+  registry.collisions = [{
+    adapterId: 'alpha',
+    legacyPath: '/Users/marcelspatz/.codex/skills/.system/alpha/SKILL.md',
+    state: 'current',
+    requiredEnabled: true,
+  }];
+  writeJson(root, '_SYSTEM/config/codex-skill-collision-registry.json', registry);
+  const plan = buildProjectionPlan(root, SMALL_COUNTS);
+  const entry = plan.legacyConflicts.find((conflict) => conflict.id === 'alpha');
+  assert.ok(entry, 'alpha collision must appear in the ledger');
+  assert.equal(entry.legacyPath, '/Users/marcelspatz/.codex/skills/.system/alpha/SKILL.md', 'machine-global path must stay absolute');
+  assert.equal(plan.unresolvedLegacyConflicts.length, 0);
+});
+
+test('traversal or malformed collision legacyPath entries fail closed', () => {
+  const { root } = normalFixture();
+  const registryPath = path.join(root, '_SYSTEM/config/codex-skill-collision-registry.json');
+  const badPaths = ['../escape/SKILL.md', 'a/../../escape/SKILL.md', '.codex/../escape/SKILL.md', '/Users/marcelspatz/../.codex/x/SKILL.md'];
+  for (const legacyPath of badPaths) {
+    const registry = JSON.parse(readFileSync(registryPath, 'utf8'));
+    registry.collisions = [{ adapterId: 'alpha', legacyPath, state: 'current', requiredEnabled: true }];
+    writeJson(root, '_SYSTEM/config/codex-skill-collision-registry.json', registry);
+    assert.throws(
+      () => buildProjectionPlan(root, SMALL_COUNTS),
+      (error) => error?.code === 'PATH_TRAVERSAL',
+      `expected PATH_TRAVERSAL for ${JSON.stringify(legacyPath)}`,
+    );
+  }
+  for (const legacyPath of [42, '']) {
+    const registry = JSON.parse(readFileSync(registryPath, 'utf8'));
+    registry.collisions = [{ adapterId: 'alpha', legacyPath, state: 'current', requiredEnabled: true }];
+    writeJson(root, '_SYSTEM/config/codex-skill-collision-registry.json', registry);
+    assert.throws(
+      () => buildProjectionPlan(root, SMALL_COUNTS),
+      (error) => error?.code === 'INVALID_COLLISION_REGISTRY',
+      `expected INVALID_COLLISION_REGISTRY for ${JSON.stringify(legacyPath)}`,
+    );
+  }
+});
+
 
 // ===== Phase-B lab-gate banner reachability + pointer-purity suite =====
 // Authoritative source for the canonical constant: projector.mjs:35 (exported).

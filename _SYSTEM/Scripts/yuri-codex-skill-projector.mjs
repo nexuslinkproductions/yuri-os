@@ -377,6 +377,25 @@ function validateCyberManifest(manifest, expectedArmedCount, expectedGatedCount)
   }
 }
 
+function resolveCollisionLegacyPath(repoRoot, legacyPath) {
+  if (typeof legacyPath !== 'string' || legacyPath.length === 0) {
+    fail('INVALID_COLLISION_REGISTRY', `collision legacyPath must be a non-empty string: ${JSON.stringify(legacyPath)}`);
+  }
+  if (/[\0\r\n\\]/.test(legacyPath)) {
+    fail('PATH_TRAVERSAL', `collision legacyPath contains unsafe characters: ${JSON.stringify(legacyPath)}`);
+  }
+  const parts = legacyPath.split('/').filter(Boolean);
+  if (parts.some((part) => part === '.' || part === '..')) {
+    fail('PATH_TRAVERSAL', `collision legacyPath contains traversal: ${legacyPath}`);
+  }
+  // Machine-global ledger entries stay absolute; repository-local entries are
+  // normalized repository-relative (e.g. .codex/skills/...) and resolve against
+  // the ACTIVE repoRoot so isolated worktrees see their own path, never a
+  // hard-coded canonical checkout path.
+  if (path.posix.isAbsolute(legacyPath)) return legacyPath;
+  return absolutePath(repoRoot, legacyPath);
+}
+
 function discoverLegacyConflicts(repoRoot, index, projectedIds) {
   const candidates = new Set();
   for (const sourcePath of index.keys()) {
@@ -405,7 +424,7 @@ function discoverLegacyConflicts(repoRoot, index, projectedIds) {
     .filter((entry) => projectedIds.has(entry.adapterId))
     .map((entry) => {
       assertSafeId(entry.adapterId);
-      if (typeof entry.requiredEnabled !== 'boolean' || typeof entry.legacyPath !== 'string' || !path.isAbsolute(entry.legacyPath)) {
+      if (typeof entry.requiredEnabled !== 'boolean' || typeof entry.legacyPath !== 'string') {
         fail('INVALID_COLLISION_REGISTRY', `invalid collision entry for ${entry.adapterId}`);
       }
       return {
@@ -417,7 +436,10 @@ function discoverLegacyConflicts(repoRoot, index, projectedIds) {
         runtimeProofRequired: registry.rules?.runtimeProof ?? null,
       };
     });
-  const covered = new Set(conflicts.map((entry) => `${entry.id}\0${path.resolve(entry.legacyPath)}`));
+  // Coverage compares the RESOLVED effective path against local candidates; the
+  // ledger itself keeps the raw registry value so the projection-manifest
+  // collision ledger stays byte-for-byte comparable (yuri-codex-skill-activation.mjs).
+  const covered = new Set(conflicts.map((entry) => `${entry.id}\0${resolveCollisionLegacyPath(repoRoot, entry.legacyPath)}`));
   const uncovered = [];
   for (const sourcePath of [...candidates].sort()) {
     const id = sourcePath.split('/').at(-2);

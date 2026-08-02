@@ -9,7 +9,7 @@ description: "[QUARANTINED STALE DOCTRINE; model auto-selection prohibited; Refe
 
 Authoritative source: `skills/fleet-economy/SKILL.md`
 
-Authoritative source SHA-256: `b1a7eba67535491810aeae7b60639d8c74edfe7075fa5e1cb174eea418c93536`
+Authoritative source SHA-256: `e96e06b288bbec61745d50c4699c0da8808738b741078631eb4bba2ce6e083e0`
 
 Source class: `canonical`
 

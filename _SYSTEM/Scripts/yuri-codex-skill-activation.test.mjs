@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, lstatSync, readFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
@@ -66,13 +66,13 @@ function promptItems(plan, extraLines = []) {
   }];
 }
 
-test('plan emits only the 14 native collision states while 466 governed sidecars remain authoritative', () => {
+test('plan emits only the 14 native collision states while 508 governed sidecars remain authoritative', () => {
   const plan = buildActivationPlan(REPO_ROOT);
   assert.deepEqual(plan.counts, {
-    governed: 466,
+    governed: 508,
     implicitGoverned: 1,
-    explicitOnlyGoverned: 465,
-    canonical: 127,
+    explicitOnlyGoverned: 507,
+    canonical: 169,
     armed: 300,
     labgated: 39,
     adapterRules: 0,
@@ -133,7 +133,7 @@ test('collision validation rejects drift, escapes, .agents injection, duplicate 
   assert.throws(() => validateNativeCollisions(REPO_ROOT, policy, adapterInjected), /must never target \.agents/i);
 
   const dualEnabled = structuredClone(collisions);
-  dualEnabled.collisions.find((entry) => entry.adapterId === 'imagegen' && entry.legacyPath.startsWith(REPO_ROOT)).requiredEnabled = true;
+  dualEnabled.collisions.find((entry) => entry.adapterId === 'imagegen' && entry.legacyPath.startsWith('.codex/')).requiredEnabled = true;
   assert.throws(() => validateNativeCollisions(REPO_ROOT, policy, dualEnabled), /exactly 1 enabled/i);
 
   const duplicatePath = structuredClone(collisions);
@@ -151,6 +151,84 @@ test('collision validation rejects drift, escapes, .agents injection, duplicate 
     },
   };
   assert.throws(() => validateNativeCollisions(REPO_ROOT, policy, collisions, { fsOps }), /symlink component/i);
+});
+
+function within(root, candidate) {
+  const relative = path.relative(root, candidate);
+  return relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative));
+}
+
+test('repo-relative collision entries resolve against a temporary active repoRoot; global entries stay absolute', () => {
+  const policy = loadJson('_SYSTEM/config/codex-native-skill-activation.json');
+  const collisions = loadJson('_SYSTEM/config/codex-skill-collision-registry.json');
+  const tmpRoot = mkdtempSync('/private/tmp/yuri-collision-portable-');
+  try {
+    const repositoryRoot = path.resolve(tmpRoot, '.codex/skills');
+    const enabledRelative = 'humanizer/SKILL.md';
+    mkdirSync(path.join(repositoryRoot, path.dirname(enabledRelative)), { recursive: true });
+    writeFileSync(path.join(repositoryRoot, enabledRelative), '# portable fixture\n', 'utf8');
+    const portablePolicy = structuredClone(policy);
+    portablePolicy.nativeCollisionPolicy.approvedRoots = [
+      { id: 'global', path: path.resolve(process.env.HOME, '.codex/skills') },
+      { id: 'repository', path: repositoryRoot },
+    ];
+    const rules = validateNativeCollisions(tmpRoot, portablePolicy, collisions);
+    const repositoryRules = rules.filter((rule) => rule.rootId === 'repository');
+    const globalRules = rules.filter((rule) => rule.rootId === 'global');
+    assert.equal(repositoryRules.length, 8, 'all repo-local entries must resolve under the temporary repository root');
+    assert.equal(globalRules.length, 6, 'all machine-global entries must stay under the global root');
+    for (const rule of repositoryRules) {
+      assert.ok(within(repositoryRoot, rule.path), `repository rule must resolve under the ACTIVE temporary repoRoot: ${rule.path}`);
+      assert.ok(rule.path.startsWith(`${repositoryRoot}${path.sep}`), `repository rule must live under the temporary root: ${rule.path}`);
+    }
+    for (const rule of globalRules) assert.ok(within(path.resolve(process.env.HOME, '.codex/skills'), rule.path), `global rule must stay under the machine-global root: ${rule.path}`);
+    const enabled = new Map(rules.filter((rule) => rule.enabled).map((rule) => [rule.id, rule.path]));
+    assert.equal(enabled.get('imagegen'), path.resolve(process.env.HOME, '.codex/skills/.system/imagegen/SKILL.md'), 'machine-global absolute entries must remain unchanged');
+    assert.equal(enabled.get('humanizer'), path.join(repositoryRoot, enabledRelative), 'repo-relative entries must resolve against the active repoRoot');
+  } finally {
+    rmSync(tmpRoot, { recursive: true, force: true });
+  }
+});
+
+test('repository-relative collision paths fail closed on traversal, malformed values, and non-strings', () => {
+  const policy = loadJson('_SYSTEM/config/codex-native-skill-activation.json');
+  const collisions = loadJson('_SYSTEM/config/codex-skill-collision-registry.json');
+  const badPaths = ['../escape/SKILL.md', '.codex/../escape/SKILL.md', 'a/../../escape/SKILL.md', '.codex/./skills/x/SKILL.md', 'a\\b/SKILL.md', 'a//b/SKILL.md', '/SKILL.md', 'not-a-skill-path'];
+  for (const legacyPath of badPaths) {
+    const clone = structuredClone(collisions);
+    clone.collisions[6].legacyPath = legacyPath;
+    clone.collisions[6].requiredEnabled = false;
+    assert.throws(
+      () => validateNativeCollisions(REPO_ROOT, policy, clone),
+      /invalid collision path|outside the single approved/i,
+      `expected fail-closed for ${JSON.stringify(legacyPath)}`,
+    );
+  }
+  const nonString = structuredClone(collisions);
+  nonString.collisions[6].legacyPath = 42;
+  nonString.collisions[6].requiredEnabled = false;
+  assert.throws(() => validateNativeCollisions(REPO_ROOT, policy, nonString), /invalid collision path/i);
+});
+
+test('traversal in repo-relative legacyPath is rejected BEFORE resolution even when naive resolution would land inside an approved root', () => {
+  const policy = loadJson('_SYSTEM/config/codex-native-skill-activation.json');
+  const collisions = loadJson('_SYSTEM/config/codex-skill-collision-registry.json');
+  const probeRoot = path.join(process.env.HOME, 'yuri-collision-probe-root');
+  // Naive path.resolve(probeRoot, '../.codex/skills/...') lands inside the machine-global
+  // approved root, so only pre-resolution segment rejection can stop it.
+  const probePolicy = structuredClone(policy);
+  probePolicy.nativeCollisionPolicy.approvedRoots = [
+    { id: 'global', path: path.resolve(process.env.HOME, '.codex/skills') },
+    { id: 'repository', path: path.resolve(probeRoot, '.codex/skills') },
+  ];
+  const clone = structuredClone(collisions);
+  clone.collisions[6].legacyPath = '../.codex/skills/.system/imagegen/SKILL.md';
+  clone.collisions[6].requiredEnabled = false;
+  assert.throws(
+    () => validateNativeCollisions(probeRoot, probePolicy, clone),
+    /invalid collision path/i,
+    'traversal must be rejected by segment validation, not by post-resolution root membership',
+  );
 });
 
 test('governed sidecar drift and forged write plans fail closed', () => {
@@ -179,7 +257,7 @@ test('fresh-prompt acceptance requires exact preferred paths, one implicit gover
   const accepted = validatePromptReport(report, plan);
   assert.equal(accepted.ok, true);
   assert.equal(accepted.implicitGoverned, 1);
-  assert.equal(accepted.explicitOnlyGoverned, 465);
+  assert.equal(accepted.explicitOnlyGoverned, 507);
   assert.equal(report.truncatedDescriptions.length, 0);
 
   const explicitPath = path.resolve(REPO_ROOT, '.agents/skills/ad-creative/SKILL.md');
