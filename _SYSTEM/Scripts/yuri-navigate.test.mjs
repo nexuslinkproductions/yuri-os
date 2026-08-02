@@ -2,9 +2,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import {
   loadUnifiedGraph, nodeDegree, computeDependencyCentrality, computeImpactCentrality,
   resolveAnchors, aggregateProcessCentrality, navigateEnvelope,
+  buildChangeTrace, CHANGE_TRACE_DEFAULT_MAX_TARGETS, CHANGE_TRACE_STATUS,
 } from './yuri-navigate.mjs';
 
 let pass = 0, fail = 0;
@@ -105,6 +107,51 @@ ok(openProcId.dependency_centrality === 0 && openProcId.unresolvedAnchors.length
 const env = navigateEnvelope({ nodeId: 'energy-fn' }, { graph: g });
 ok(env.op === 'navigate' && env.verification.advisory_only === true && env.completeness.structuralLegAvailable === false,
   'navigateEnvelope docks the advisory contract with completeness reporting');
+// ---- TEST 9: CHANGE-TRACE (needs-verification envelope) ----
+const traceA = buildChangeTrace(g, { behavior: 'edit energy-fn', anchors: ['energy-fn'] }, { checks: ['committed-state', 'negative-check'] });
+const traceB = buildChangeTrace(g, { behavior: 'edit energy-fn', anchors: ['energy-fn'] }, { checks: ['committed-state', 'negative-check'] });
+ok(JSON.stringify(traceA) === JSON.stringify(traceB), 'change-trace byte-identical across two runs');
+ok(traceA.op === 'change-trace' && traceA.status === CHANGE_TRACE_STATUS && CHANGE_TRACE_STATUS === 'needs-verification', 'envelope op=change-trace status=needs-verification');
+ok(traceA.verification.unverified === true && traceA.verification.advisory_only === true && traceA.verification.local_truth_claim === false, 'verification unverified advisory contract');
+ok(traceA.verification.proof.includes('structural-impact-only') && traceA.verification.proof.includes('negative check') && traceA.verification.proof.includes('committed-state'), 'UNVERIFIED proof states structural-impact-only + committed-state + negative-check requirements');
+ok(traceA.behavior === 'edit energy-fn', 'behavior carried verbatim');
+ok(Array.isArray(traceA.affectedTargets) && traceA.affectedTargets.length <= CHANGE_TRACE_DEFAULT_MAX_TARGETS, `default maxTargets=${CHANGE_TRACE_DEFAULT_MAX_TARGETS} bounds affectedTargets`);
+ok(traceA.targetCount === traceA.affectedTargets.length, 'targetCount matches affectedTargets');
+ok(traceA.aggregate.dependency_centrality >= 0 && traceA.aggregate.impact_centrality >= 0 && traceA.aggregate.grounded === true, 'aggregate centrality numeric + grounded');
+ok(Array.isArray(traceA.blockers), 'blockers array present');
+ok(traceA.blockers.some((b) => b.code === 'FINE_GRAINED_LEG_UNAVAILABLE'), 'fine-grained leg blocker present (structuralLegAvailable=false)');
+ok(!traceA.blockers.some((b) => b.code === 'MISSING_CHECKS'), 'checks supplied => no MISSING_CHECKS blocker');
+ok(traceA.affectedTargets.every((t) => t.nodeId && 'score' in t && 'edgeKind' in t && 'filePath' in t && 'provenance' in t), 'affectedTargets shape: nodeId,score,edgeKind,filePath,provenance');
+const small = buildChangeTrace(g, { behavior: 'b', anchors: ['math-kernel'] }, { maxTargets: 3, checks: ['committed-state'] });
+ok(small.affectedTargets.length <= 3 && small.affectedTargets.length > 0, 'maxTargets=3 bounds affectedTargets (nonzero)');
+const dual = buildChangeTrace(g, { behavior: 'b', anchors: ['math-kernel', 'energy-fn'] }, { checks: ['x'] });
+const dualIds = dual.affectedTargets.map((t) => t.nodeId);
+ok(new Set(dualIds).size === dualIds.length, 'dedupe: no duplicate nodeIds across anchor unions');
+const blocked = buildChangeTrace(g, { behavior: 'b', anchors: ['energy-fn', 'this::does::not::exist'] }, {});
+ok(blocked.blockers.some((b) => b.code === 'UNRESOLVED_ANCHORS' && b.anchors.includes('this::does::not::exist')), 'UNRESOLVED_ANCHORS blocker lists the anchor');
+ok(blocked.blockers.some((b) => b.code === 'MISSING_CHECKS'), 'empty checks => MISSING_CHECKS blocker');
+let threw = 0;
+for (const bad of [
+  () => buildChangeTrace(g, { behavior: '  ', anchors: ['energy-fn'] }),
+  () => buildChangeTrace(g, { behavior: 'b', anchors: [] }),
+  () => buildChangeTrace(g, { behavior: 'b', anchors: ['energy-fn'] }, { maxTargets: 0 }),
+  () => buildChangeTrace(g, { behavior: 'b', anchors: ['energy-fn'] }, { maxTargets: -1 }),
+  () => buildChangeTrace(g, { behavior: 'b', anchors: ['energy-fn'] }, { maxTargets: 2.5 }),
+  () => buildChangeTrace(g, { behavior: 'b', anchors: ['energy-fn'] }, { maxTargets: '3' }),
+]) { try { bad(); } catch (e) { if (e?.code === 'CHANGE_TRACE_INVALID_INPUT') threw++; } }
+ok(threw === 6, 'six invalid-input cases throw CHANGE_TRACE_INVALID_INPUT');
+const navPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'yuri-navigate.mjs');
+const cliBad = spawnSync(process.execPath, [navPath, '--behavior', 'b'], { encoding: 'utf8' });
+ok(cliBad.status === 1 && /--anchors is required/.test(cliBad.stderr), 'CLI rejects --behavior without --anchors (exit 1 + message)');
+const cliMax = spawnSync(process.execPath, [navPath, '--behavior', 'b', '--anchors', 'energy-fn', '--max-targets', '0'], { encoding: 'utf8' });
+ok(cliMax.status === 1 && /positive integer/.test(cliMax.stderr), 'CLI rejects --max-targets 0 (exit 1 + message)');
+const cliOk = spawnSync(process.execPath, [navPath, '--behavior', 'b', '--anchors', 'energy-fn', '--check', 'committed-state', '--max-targets', '5'], { encoding: 'utf8' });
+if (cliOk.status !== 0) {
+  ok(false, `CLI trace mode failed: status ${cliOk.status}, stderr ${JSON.stringify(cliOk.stderr)}`);
+} else {
+  const cliEnv = JSON.parse(cliOk.stdout);
+  ok(cliEnv.op === 'change-trace' && cliEnv.status === 'needs-verification' && cliEnv.affectedTargets.length <= 5 && cliEnv.checks.includes('committed-state'), 'CLI trace mode emits needs-verification envelope bounded by --max-targets with checks carried');
+}
 
 // ---- TEST 9: NUL-DELIMITER HYGIENE (textual escape in source, NUL preserved at runtime) ----
 const navSource = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'yuri-navigate.mjs'));

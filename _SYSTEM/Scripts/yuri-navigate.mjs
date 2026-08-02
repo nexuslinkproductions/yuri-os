@@ -3,7 +3,7 @@
 // @serves: centrality | importance | impact | dependency centrality | what matters most | structural rank | cross surface id bridge
 // @does: Deterministic cross-surface structural centrality + id-bridge (canonical-id) - fills graph.impact_centrality.
 // @use: Reach for this before building any importance/impact/centrality ranking over the graph.
-// @exports: navigateCentrality, aggregateProcessCentrality
+// @exports: loadUnifiedGraph, nodeDegree, computeDependencyCentrality, computeImpactCentrality, resolveAnchors, aggregateProcessCentrality, navigateEnvelope, buildChangeTrace, CHANGE_TRACE_DEFAULT_MAX_TARGETS, CHANGE_TRACE_STATUS
 /**
  * yuri-navigate.mjs — deterministic cross-surface structural navigation + centrality.
  *
@@ -277,6 +277,84 @@ export function resolveAnchors(graph, anchors) {
   return { resolved, unresolvedCount: resolved.filter((r) => r.kind === 'unresolved').length };
 }
 
+// ------------------------------------------------------------------------------------------------
+// change-trace: needs-verification envelope over anchor resolution + dual centrality
+// (structural-impact-only; reuses resolveAnchors / aggregateProcessCentrality /
+// computeImpactCentrality; never claims behavior or test results)
+// ------------------------------------------------------------------------------------------------
+export const CHANGE_TRACE_DEFAULT_MAX_TARGETS = 20;
+export const CHANGE_TRACE_STATUS = 'needs-verification';
+
+function changeTraceInvalid(message) {
+  const error = new TypeError(message);
+  error.code = 'CHANGE_TRACE_INVALID_INPUT';
+  return error;
+}
+
+export function buildChangeTrace(graph, input, opts = {}) {
+  const behavior = typeof input?.behavior === 'string' ? input.behavior.trim() : '';
+  if (!behavior) throw changeTraceInvalid('buildChangeTrace requires a nonempty behavior string');
+  const rawAnchors = Array.isArray(input?.anchors) ? input.anchors.map((a) => String(a ?? '').trim()).filter(Boolean) : [];
+  if (!rawAnchors.length) throw changeTraceInvalid('buildChangeTrace requires at least one nonempty anchor');
+  if (opts.maxTargets !== undefined && (!Number.isInteger(opts.maxTargets) || opts.maxTargets <= 0)) {
+    throw changeTraceInvalid(`maxTargets must be a positive integer when supplied, got ${JSON.stringify(opts.maxTargets)}`);
+  }
+  const maxTargets = opts.maxTargets === undefined ? CHANGE_TRACE_DEFAULT_MAX_TARGETS : opts.maxTargets;
+  const checks = Array.isArray(opts.checks) ? opts.checks.map((c) => String(c ?? '').trim()).filter(Boolean) : [];
+
+  const { resolved, unresolvedCount } = resolveAnchors(graph, rawAnchors);
+  const nodes = [...new Set(resolved.filter((r) => r.nodeId).map((r) => r.nodeId))].sort((a, b) => a.localeCompare(b));
+  const unresolvedAnchors = resolved.filter((r) => r.kind === 'unresolved').map((r) => r.anchor);
+
+  const aggregate = aggregateProcessCentrality(graph, rawAnchors, opts);
+
+  const best = new Map(); // targetNodeId -> { score, edgeKind, filePath, provenance, via }
+  let anyTruncated = false;
+  for (const id of nodes) {
+    const impact = computeImpactCentrality(graph, id, opts);
+    anyTruncated = anyTruncated || Boolean(impact.truncated);
+    for (const t of impact.impactRankedTargets) {
+      const prior = best.get(t.nodeId);
+      if (!prior || t.score > prior.score) {
+        best.set(t.nodeId, { nodeId: t.nodeId, filePath: t.filePath, score: t.score, edgeKind: t.edgeKind, provenance: t.provenance, via: id });
+      }
+    }
+  }
+  const ranked = [...best.values()].sort((a, b) => b.score - a.score || a.nodeId.localeCompare(b.nodeId));
+  const affectedTargets = ranked.slice(0, maxTargets);
+  const truncated = anyTruncated || ranked.length > maxTargets;
+
+  const blockers = [];
+  if (unresolvedAnchors.length) blockers.push({ code: 'UNRESOLVED_ANCHORS', anchors: unresolvedAnchors });
+  if (!checks.length) blockers.push({ code: 'MISSING_CHECKS', required: 'at least one proof obligation (e.g. committed-state, negative-check) must be supplied before a behavior claim may be verified' });
+  if (!graph.structuralLegAvailable) blockers.push({ code: 'FINE_GRAINED_LEG_UNAVAILABLE', reason: graph.staleness?.reason ?? 'gitnexus fine-grained leg unavailable' });
+
+  return {
+    op: 'change-trace',
+    status: CHANGE_TRACE_STATUS,
+    behavior,
+    anchors: { requested: rawAnchors, resolvedNodes: nodes, unresolved: unresolvedAnchors, unresolvedCount },
+    aggregate: {
+      dependency_centrality: aggregate.dependency_centrality,
+      impact_centrality: aggregate.impact_centrality,
+      aggregate: opts.aggregate ?? 'max',
+      grounded: aggregate.provenance.grounded,
+    },
+    affectedTargets,
+    targetCount: affectedTargets.length,
+    truncated,
+    checks,
+    blockers,
+    verification: {
+      unverified: true,
+      proof: 'structural-impact-only: no behavior or test result executed; requires committed-state confirmation and a negative check before any behavior claim',
+      advisory_only: true,
+      local_truth_claim: false,
+    },
+    provenance: { surface: 'structural', edgeKindsUsed: graph.edgeKindsUsed, staleness: graph.staleness },
+  };
+}
+
 export function aggregateProcessCentrality(graph, anchors, opts = {}) {
   const aggregate = opts.aggregate === 'sum' ? 'sum' : 'max';
   const { resolved, unresolvedCount } = resolveAnchors(graph, anchors);
@@ -358,7 +436,17 @@ function runCli(argv) {
   const json = flag('--json');
   const dryRun = flag('--dry-run');
   const includeWrites = !flag('--no-writes');
-  const positional = args.find((a) => !a.startsWith('--') && args[args.indexOf(a) - 1] !== '--anchors' && args[args.indexOf(a) - 1] !== '--metric');
+  const behavior = val('--behavior', null);
+  const maxTargetsRaw = val('--max-targets', null);
+  const checks = [];
+  for (let i = 0; i < args.length; i++) if (args[i] === '--check' && args[i + 1]) checks.push(args[i + 1]);
+  const singleValueFlags = new Set(['--anchors', '--metric', '--behavior', '--max-targets', '--check']);
+  const positional = args.find((a) => !a.startsWith('--') && !singleValueFlags.has(args[args.indexOf(a) - 1]));
+  const usage = () => {
+    process.stderr.write('usage: yuri-navigate <nodeId | --anchors a,b,c> [--metric dependency|impact|both] [--ppr] [--no-writes] [--json] [--dry-run]\n');
+    process.stderr.write('       yuri-navigate --behavior "<text>" --anchors a,b,c [--check <obligation> ...] [--max-targets N]\n');
+    process.exitCode = 1;
+  };
 
   const graph = loadUnifiedGraph({ includeWrites });
   if (dryRun) {
@@ -366,6 +454,29 @@ function runCli(argv) {
     process.stdout.write(JSON.stringify(out, null, json ? 2 : 0) + '\n');
     return;
   }
+
+  const traceMode = behavior !== null || maxTargetsRaw !== null || checks.length > 0;
+  if (traceMode) {
+    if (behavior === null) { process.stderr.write('error: --behavior is required for change-trace mode\n'); usage(); return; }
+    if (anchorsArg === null) { process.stderr.write('error: --anchors is required with --behavior\n'); usage(); return; }
+    let maxTargets;
+    if (maxTargetsRaw !== null) {
+      maxTargets = Number(maxTargetsRaw);
+      if (!Number.isInteger(maxTargets) || maxTargets <= 0) {
+        process.stderr.write(`error: --max-targets must be a positive integer, got ${JSON.stringify(maxTargetsRaw)}\n`);
+        usage(); return;
+      }
+    }
+    try {
+      const env = buildChangeTrace(graph, { behavior, anchors: anchorsArg.split(',').map((s) => s.trim()).filter(Boolean) }, { maxTargets, checks });
+      process.stdout.write(JSON.stringify(env, null, json ? 2 : 0) + '\n');
+    } catch (error) {
+      process.stderr.write(`error: ${error.message}\n`);
+      process.exitCode = 1;
+    }
+    return;
+  }
+
   let env;
   if (anchorsArg) {
     env = navigateEnvelope({ anchors: anchorsArg.split(',').map((s) => s.trim()).filter(Boolean) }, { graph, metric });
@@ -373,8 +484,7 @@ function runCli(argv) {
     env = navigateEnvelope({ nodeId: positional }, { graph, metric });
     if (ppr && env.result.impact) env.result.impact = computeImpactCentrality(graph, positional, { metric: 'ppr' });
   } else {
-    process.stderr.write('usage: yuri-navigate <nodeId | --anchors a,b,c> [--metric dependency|impact|both] [--ppr] [--no-writes] [--json] [--dry-run]\n');
-    process.exitCode = 1;
+    usage();
     return;
   }
   process.stdout.write(JSON.stringify(env, null, json ? 2 : 0) + '\n');
