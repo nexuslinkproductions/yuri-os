@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: detecting-attacks-on-scada-systems | description: 'This skill covers detecting cyber attacks targeting Supervisory Control |   and Data Acquisition (SCADA) systems including man-in-the-middle attacks on industrial |   protocols, unauthorized command injection into PLCs, HMI compromise, historian data |   manipulation, and denial-of-service against control system communications. It leverages |   OT-specific intrusion detection systems, industrial protocol anomaly detection, |   and process "
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

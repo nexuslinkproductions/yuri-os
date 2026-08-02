@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: securing-api-gateway-with-aws-waf | description: 'Securing API Gateway endpoints with AWS WAF by configuring managed rule |   groups for OWASP Top 10 protection, creating custom rate limiting rules, implementing |   bot control, setting up IP reputation filtering, and monitoring WAF metrics for |   security effectiveness. |  |   ' | domain: cybersecurity | subdomain: cloud-security | tags: | - cloud-security | - aws | - waf | - api-gateway | - rate-limiting | - bot-protection | - owasp | v"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

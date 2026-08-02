@@ -1,6 +1,7 @@
 ---
 name: cyber-detecting-broken-object-property-level-authorization
 description: "Detect and test for OWASP API3:2023 Broken Object Property Level Authorization vulnerabilities including excessive data exposure and mass assignment attacks."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detect and test for OWASP API3:2023 Broken Object Property Level A
 
 Authoritative source: `.claude/skills/cyber-detecting-broken-object-property-level-authorization/SKILL.md`
 
-Authoritative source SHA-256: `ae7732b51c55c64fb330d62ab0644aa5061edd42096d202123cb33ec43b30a33`
+Authoritative source SHA-256: `498f8d148321a017d94ef592a9ac8a36a9f94ebc3bc4dd21a426d26205c78766`
 
 Source class: `cyber-armed`
 

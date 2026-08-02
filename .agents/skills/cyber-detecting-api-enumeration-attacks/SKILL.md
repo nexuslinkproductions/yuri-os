@@ -1,6 +1,7 @@
 ---
 name: cyber-detecting-api-enumeration-attacks
 description: "Detect and prevent API enumeration attacks including BOLA and IDOR exploitation by monitoring sequential identifier access patterns and authorization failures."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detect and prevent API enumeration attacks including BOLA and IDOR
 
 Authoritative source: `.claude/skills/cyber-detecting-api-enumeration-attacks/SKILL.md`
 
-Authoritative source SHA-256: `c61771951e44e8c5af83ab94a57f3b8cbd3d6e6951523c51d602cd39fda9c076`
+Authoritative source SHA-256: `f504be579cfbd0ead96ff99c4fe2ecebd8f4135b3401516cf418739aa049eaa4`
 
 Source class: `cyber-armed`
 

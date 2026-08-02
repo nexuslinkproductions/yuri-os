@@ -1,6 +1,7 @@
 ---
 name: cyber-implementing-aws-macie-for-data-classification
 description: "Implement Amazon Macie to automatically discover, classify, and protect sensitive data in S3 buckets using machine learning and pattern matching for PII, financial data, and credentials detection."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Implement Amazon Macie to automatically discover, classify, and pr
 
 Authoritative source: `.claude/skills/cyber-implementing-aws-macie-for-data-classification/SKILL.md`
 
-Authoritative source SHA-256: `148bfcf76452924c2864066ab763f72c05f19a2c83b739b5e85489b65c132f06`
+Authoritative source SHA-256: `9cf4ea9b699dfedb0429d19a8bdc640b5ea71faf36ff0389f6a5d30ff0b44f08`
 
 Source class: `cyber-armed`
 

@@ -203,7 +203,9 @@ export function normalizeAdapterFrontmatter(frontmatter, governedId, {
       ? `[CONSULT-ONLY; not operational or dispatch authority; ${safeStatusReason}] `
       : '';
   const compactDescription = Array.from(`${statusPrefix}${riskPrefix}${description.replace(/[\0\r\n]+/g, ' ').replace(/\s+/g, ' ').trim()}`).slice(0, 1024).join('');
-  return `---\nname: ${governedId}\ndescription: ${JSON.stringify(compactDescription)}\n---`;
+  const hidden = scalarField(frontmatter, 'hide') === 'true';
+  const hideLine = hidden ? '\nhide: true' : '';
+  return `---\nname: ${governedId}\ndescription: ${JSON.stringify(compactDescription)}${hideLine}\n---`;
 }
 
 function normalizeCollisionId(value) {
@@ -357,6 +359,7 @@ function buildSource({
     provenanceSource: tracked ? 'index' : 'worktree-prospective',
     sourceMatchesGitIndex: tracked ? true : null,
     labgatedBannerDrift: sourceClass === 'labgated' && !desiredContent.includes(LABGATED_BANNER),
+    hidden: scalarField(frontmatter, 'hide') === 'true',
   };
 }
 
@@ -482,6 +485,7 @@ function projectionManifest({ skillIndexRaw, cyberManifestRaw, sources, legacyCo
     gitBlobOid: source.gitBlobOid,
     gitMode: source.gitMode,
     tracked: source.tracked,
+    hidden: source.hidden === true,
     durability: source.durability,
     provenanceSource: source.provenanceSource,
     sourceMatchesGitIndex: source.sourceMatchesGitIndex,

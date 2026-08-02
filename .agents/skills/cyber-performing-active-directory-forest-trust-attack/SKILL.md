@@ -1,6 +1,7 @@
 ---
 name: cyber-performing-active-directory-forest-trust-attack
 description: "Enumerate and audit Active Directory forest trust relationships using impacket for SID filtering analysis, trust key extraction, cross-forest SID history abuse detection, and inter-realm Kerberos ticket assessment."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Enumerate and audit Active Directory forest trust relationships us
 
 Authoritative source: `.claude/skills/cyber-performing-active-directory-forest-trust-attack/SKILL.md`
 
-Authoritative source SHA-256: `a808484fac1c9408877f0840b1e7ea09cca7139f1c19cd8d985fbf6c90f0575a`
+Authoritative source SHA-256: `fcace2351ae8f8b4231a757c0794aae3e628e48383236b22c8211af55a6d70d0`
 
 Source class: `cyber-armed`
 

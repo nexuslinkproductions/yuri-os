@@ -1,6 +1,7 @@
 ---
 name: cyber-hardening-docker-containers-for-production
 description: "Hardening Docker containers for production involves applying security best practices aligned with CIS Docker Benchmark v1.8.0 to minimize attack surface, prevent privilege escalation, and enforce leas"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Hardening Docker containers for production involves applying secur
 
 Authoritative source: `.claude/skills/cyber-hardening-docker-containers-for-production/SKILL.md`
 
-Authoritative source SHA-256: `790f5f9a2fdb88e4f54f6f14f0e8ae109ed03700e1a20925818ec8baeb82c032`
+Authoritative source SHA-256: `44fd11605b10189783762c6fccec6e67618a042cd2b2ab3f6dcb4eaf795ea8d4`
 
 Source class: `cyber-armed`
 

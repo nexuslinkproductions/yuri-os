@@ -1,6 +1,7 @@
 ---
 name: cyber-scanning-docker-images-with-trivy
 description: "Trivy is a comprehensive open-source vulnerability scanner by Aqua Security that detects vulnerabilities in OS packages, language-specific dependencies, misconfigurations, secrets, and license violati"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Trivy is a comprehensive open-source vulnerability scanner by Aqua
 
 Authoritative source: `.claude/skills/cyber-scanning-docker-images-with-trivy/SKILL.md`
 
-Authoritative source SHA-256: `d7e57a3eb013591faa49a767b07aa0caa8159e601417390a6c7a5120abcdfe2a`
+Authoritative source SHA-256: `a121f80b5a14723cc7db31656d53e285cfa95e1df9d13509bab19a796ea527b7`
 
 Source class: `cyber-armed`
 

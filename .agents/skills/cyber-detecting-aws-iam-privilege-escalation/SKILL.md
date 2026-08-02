@@ -1,6 +1,7 @@
 ---
 name: cyber-detecting-aws-iam-privilege-escalation
 description: "Detect AWS IAM privilege escalation paths using boto3 and Cloudsplaining policy analysis to identify overly permissive policies, dangerous permission combinations, and least-privilege violations"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detect AWS IAM privilege escalation paths using boto3 and Cloudspl
 
 Authoritative source: `.claude/skills/cyber-detecting-aws-iam-privilege-escalation/SKILL.md`
 
-Authoritative source SHA-256: `03d99b21447c0b61adffe30113a4982d9eb4b058836f5a33cb480790df16aa4a`
+Authoritative source SHA-256: `4b8d77fe9806e97530df79c61adb17eb4053543938b080d0f2eec2960985e481`
 
 Source class: `cyber-armed`
 

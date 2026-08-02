@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: auditing-kubernetes-rbac-privilege-escalation | description: Find over-permissive RBAC roles and service-account token abuse paths in Kubernetes using kubectl auth can-i, rbac-police, kubectl-who-can, and rakkess during authorized cluster security reviews. | domain: cybersecurity | subdomain: container-security | tags: | - kubernetes | - rbac | - privilege-escalation | - service-account | - least-privilege | - kubectl | - access-control | - attack-paths | version: '1.0' | author: mahipal |"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

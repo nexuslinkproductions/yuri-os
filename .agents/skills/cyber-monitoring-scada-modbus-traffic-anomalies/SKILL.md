@@ -1,6 +1,7 @@
 ---
 name: cyber-monitoring-scada-modbus-traffic-anomalies
 description: "Monitors Modbus TCP traffic on SCADA and ICS networks to detect anomalous function code usage, unauthorized register writes, and suspicious communication patterns. The analyst uses deep packet inspection with pymodbus, Scapy, and Zeek to baseline normal PLC/RTU communication behavior, then applies statistical and rule-based anomaly detection to identify reconnaissance, parameter manipulation, and"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Monitors Modbus TCP traffic on SCADA and ICS networks to detect an
 
 Authoritative source: `.claude/skills/cyber-monitoring-scada-modbus-traffic-anomalies/SKILL.md`
 
-Authoritative source SHA-256: `6d653c17b092dfe74b73a5708437b555bdf14db86cbf6e3448c2fd82716fad8e`
+Authoritative source SHA-256: `8dd47b34bd277e29049302f7c7470b2bfab22eab354274566e48fdff6e853c6f`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-configuring-hsm-for-key-storage
 description: "Hardware Security Modules (HSMs) are tamper-resistant physical devices that safeguard cryptographic keys and perform cryptographic operations in a hardened environment. Keys stored in an HSM never lea"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Hardware Security Modules (HSMs) are tamper-resistant physical dev
 
 Authoritative source: `.claude/skills/cyber-configuring-hsm-for-key-storage/SKILL.md`
 
-Authoritative source SHA-256: `b0a18abcdf425eb77c6cb256c2cf9f67dd5b123a0eeb1cbfeb6817d9b1b70b4e`
+Authoritative source SHA-256: `45b6cac9107656ddc180e4ba6164e637e3127870abf2379de9c2ec4632df62e0`
 
 Source class: `cyber-armed`
 

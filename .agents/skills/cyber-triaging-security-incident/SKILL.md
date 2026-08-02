@@ -1,6 +1,7 @@
 ---
 name: cyber-triaging-security-incident
 description: "Performs initial triage of security incidents to determine severity, scope, and required response actions using the NIST SP 800-61r3 and SANS PICERL frameworks. Classifies incidents by type, assigns priority based on business impact, and routes to appropriate response teams. Activates for requests involving incident triage, security alert classification, severity assessment, incident prioritizatio"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Performs initial triage of security incidents to determine severit
 
 Authoritative source: `.claude/skills/cyber-triaging-security-incident/SKILL.md`
 
-Authoritative source SHA-256: `0cfaae919cdc40b999256a48620164918a68b31c56fc4a95015513a6aa33db11`
+Authoritative source SHA-256: `e9b807d2b774117d46b882520da58ae4f48fb9e61739116ab5ab79b9179e9a05`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-implementing-aws-iam-permission-boundaries
 description: "Configure IAM permission boundaries in AWS to delegate role creation to developers while enforcing maximum privilege limits set by the security team."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Configure IAM permission boundaries in AWS to delegate role creati
 
 Authoritative source: `.claude/skills/cyber-implementing-aws-iam-permission-boundaries/SKILL.md`
 
-Authoritative source SHA-256: `8b0e77d3bd40140f2eddb9697d20fc69e049aa8818ba45aa72779a56cdac96a1`
+Authoritative source SHA-256: `805a400592e9168f4fa7ad50a9185d125da568d63bf20d61d83ccd294bc891b6`
 
 Source class: `cyber-armed`
 

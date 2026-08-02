@@ -1,6 +1,7 @@
 ---
 name: cyber-migrating-to-post-quantum-cryptography
 description: "Inventory cryptography, deploy hybrid X25519 and ML-KEM, and prioritize harvest-now-decrypt-later data."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Inventory cryptography, deploy hybrid X25519 and ML-KEM, and prior
 
 Authoritative source: `.claude/skills/cyber-migrating-to-post-quantum-cryptography/SKILL.md`
 
-Authoritative source SHA-256: `0d88d77236d61e9f3bfc19856178658e5ad821b985a8c641eb6cb5fc686f332a`
+Authoritative source SHA-256: `c7cef3669ec4be172f8eaa48c5e724a7fc6ee76d4c7b4ceb38b2501441e4b132`
 
 Source class: `cyber-armed`
 

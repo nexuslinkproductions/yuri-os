@@ -1,6 +1,7 @@
 ---
 name: cyber-scanning-iac-and-images-with-trivy
 description: "Scan container images, IaC, and SBOMs for vulnerabilities and misconfigurations in CI/CD with Trivy."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Scan container images, IaC, and SBOMs for vulnerabilities and misc
 
 Authoritative source: `.claude/skills/cyber-scanning-iac-and-images-with-trivy/SKILL.md`
 
-Authoritative source SHA-256: `0d68aa20ca36deb751e33f91af9fc4dabdf5529472afa1b94a9d2956255f3e71`
+Authoritative source SHA-256: `15558afbadf8898c43cbee5a42b546d8583fb415d0268341962416b7af3d2424`
 
 Source class: `cyber-armed`
 

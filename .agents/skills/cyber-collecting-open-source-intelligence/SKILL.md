@@ -1,6 +1,7 @@
 ---
 name: cyber-collecting-open-source-intelligence
 description: "Collects and synthesizes open-source intelligence (OSINT) about threat actors, malicious infrastructure, and attack campaigns using publicly available data sources, passive reconnaissance tools, and dark web monitoring. Use when investigating external threat actor infrastructure, performing pre-engagement reconnaissance for authorized red team assessments, or enriching CTI reports with publicly av"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Collects and synthesizes open-source intelligence (OSINT) about th
 
 Authoritative source: `.claude/skills/cyber-collecting-open-source-intelligence/SKILL.md`
 
-Authoritative source SHA-256: `e91e6917475107fef7f44e1c6b2bb04b5bb2066db4c9e5d48f8ee02fa981f9cf`
+Authoritative source SHA-256: `b66a79ea9b9f833321fb2c882ec6f4c762b9134eb7891d85aa41396ba1752e56`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-conducting-social-engineering-penetration-test
 description: "Design and execute a social engineering penetration test including phishing, vishing, smishing, and physical pretexting campaigns to measure human security resilience and identify training gaps."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Design and execute a social engineering penetration test including
 
 Authoritative source: `.claude/skills/cyber-conducting-social-engineering-penetration-test/SKILL.md`
 
-Authoritative source SHA-256: `e7e330ac4ba03c93f6a43ff8e2f3ad17fa46ecac22b036e82d992f26279bb183`
+Authoritative source SHA-256: `5b04496c8033dad445ee0b84831e5f061463dbdb6445615c2d0180de15781fa5`
 
 Source class: `cyber-armed`
 

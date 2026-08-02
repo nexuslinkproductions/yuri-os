@@ -1,6 +1,7 @@
 ---
 name: cyber-building-identity-governance-lifecycle-process
 description: "Builds comprehensive identity governance and lifecycle management processes including joiner-mover-leaver automation, role mining, access request workflows, periodic recertification, and orphaned account remediation using IGA platforms. Activates for requests involving identity lifecycle management, JML processes, role-based access provisioning, or identity governance program design."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Builds comprehensive identity governance and lifecycle management 
 
 Authoritative source: `.claude/skills/cyber-building-identity-governance-lifecycle-process/SKILL.md`
 
-Authoritative source SHA-256: `002b6a7a1d7fc917fa9a605a84086815b688dde9fd6c1bb7f7bab90d6afa7433`
+Authoritative source SHA-256: `0938e6f241400ab533e8335542304be655ebcdd4390c51fb207fe35f28ac3097`
 
 Source class: `cyber-armed`
 

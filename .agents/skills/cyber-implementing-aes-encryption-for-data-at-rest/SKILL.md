@@ -1,6 +1,7 @@
 ---
 name: cyber-implementing-aes-encryption-for-data-at-rest
 description: "AES (Advanced Encryption Standard) is a symmetric block cipher standardized by NIST (FIPS 197) used to protect classified and sensitive data. This skill covers implementing AES-256 encryption in GCM m"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "AES (Advanced Encryption Standard) is a symmetric block cipher sta
 
 Authoritative source: `.claude/skills/cyber-implementing-aes-encryption-for-data-at-rest/SKILL.md`
 
-Authoritative source SHA-256: `1b5276b36c2fa1a64a23f2fd1be37e0af5146f0b7c1f33916f7b3c5036ae08c9`
+Authoritative source SHA-256: `5c606c5ad151dd0ed78b0b36cb8ead9e246840f569c3b1c5e542e9bd1ad90639`
 
 Source class: `cyber-armed`
 

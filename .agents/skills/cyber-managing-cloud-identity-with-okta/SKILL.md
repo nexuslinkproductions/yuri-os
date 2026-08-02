@@ -1,6 +1,7 @@
 ---
 name: cyber-managing-cloud-identity-with-okta
 description: "This skill covers implementing Okta as a centralized identity provider for cloud environments, configuring SSO integration with AWS, Azure, and GCP, deploying phishing- resistant MFA with Okta FastPass, managing lifecycle automation for user provisioning and deprovisioning, and enforcing adaptive access policies based on device posture and risk signals."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "This skill covers implementing Okta as a centralized identity prov
 
 Authoritative source: `.claude/skills/cyber-managing-cloud-identity-with-okta/SKILL.md`
 
-Authoritative source SHA-256: `d31e7c6e3d89f6557840d368b667232d888a556f1a4d180f84f884abb832b96b`
+Authoritative source SHA-256: `ac5ca23ca3b4ec249e326f8e605f4f8b463755d55029ed140bb9cba1969fb875`
 
 Source class: `cyber-armed`
 

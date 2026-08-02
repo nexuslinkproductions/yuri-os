@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: performing-active-directory-forest-trust-attack | description: Enumerate and audit Active Directory forest trust relationships using |   impacket for SID filtering analysis, trust key extraction, cross-forest SID history |   abuse detection, and inter-realm Kerberos ticket assessment. | domain: cybersecurity | subdomain: red-team | tags: | - active-directory | - forest-trust | - impacket | - SID-filtering | - kerberos | - red-team | - trust-enumeration | version: '1.0' | author: mahipal | "
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

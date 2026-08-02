@@ -1,6 +1,7 @@
 ---
 name: cyber-building-phishing-reporting-button-workflow
 description: "Implement a phishing report button in email clients with automated triage workflow that analyzes user-reported suspicious emails and provides feedback to reporters."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Implement a phishing report button in email clients with automated
 
 Authoritative source: `.claude/skills/cyber-building-phishing-reporting-button-workflow/SKILL.md`
 
-Authoritative source SHA-256: `dda543eda27fac084589cce000f6cf0676814f9b606a60cd6ed4474349dfb425`
+Authoritative source SHA-256: `682d6154662485b7240409206c173dba82730120fe670bfd0dbd7c9a0097cbec`
 
 Source class: `cyber-armed`
 

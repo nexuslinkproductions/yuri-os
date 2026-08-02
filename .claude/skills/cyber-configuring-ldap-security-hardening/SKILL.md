@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: configuring-ldap-security-hardening | description: Harden LDAP directory services against common attacks including credential |   harvesting, LDAP injection, anonymous binding, and channel binding bypass. Covers |   LDAPS enforcement, channel binding, LDAP si | domain: cybersecurity | subdomain: identity-access-management | tags: | - iam | - identity | - access-control | - ldap | - directory-services | - hardening | version: '1.0' | author: mahipal | license: Apache-2.0 | nist_csf: | - PR."
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

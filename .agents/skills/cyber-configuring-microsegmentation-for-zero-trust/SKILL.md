@@ -1,6 +1,7 @@
 ---
 name: cyber-configuring-microsegmentation-for-zero-trust
 description: "Configure microsegmentation policies to enforce least-privilege workload-to-workload access using tools like VMware NSX, Illumio, and Calico, preventing lateral movement in zero trust architectures."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Configure microsegmentation policies to enforce least-privilege wo
 
 Authoritative source: `.claude/skills/cyber-configuring-microsegmentation-for-zero-trust/SKILL.md`
 
-Authoritative source SHA-256: `f5efdd20a8cf5e8b26044af1fd150ad1f889a5afb1b0ef930ba0f58d6dddabc0`
+Authoritative source SHA-256: `6b1a94f8c74c3fcb42282c5aac7a6971fcb926f83f25a15162c21c5394fe4ea9`
 
 Source class: `cyber-armed`
 

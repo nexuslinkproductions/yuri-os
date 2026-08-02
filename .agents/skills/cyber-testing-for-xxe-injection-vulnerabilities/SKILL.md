@@ -1,6 +1,7 @@
 ---
 name: cyber-testing-for-xxe-injection-vulnerabilities
 description: "Discovering and exploiting XML External Entity injection vulnerabilities to read server files, perform SSRF, and exfiltrate data during authorized penetration tests."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Discovering and exploiting XML External Entity injection vulnerabi
 
 Authoritative source: `.claude/skills/cyber-testing-for-xxe-injection-vulnerabilities/SKILL.md`
 
-Authoritative source SHA-256: `daca6c08f5c41668fc129882bfb6456edcf7d00519c56393f3742ffc94a5d1c1`
+Authoritative source SHA-256: `7517f32864888bdeb5602adf331c069a1b004bb6b4a5725210f82570502556a7`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-building-ioc-defanging-and-sharing-pipeline
 description: "Build an automated pipeline to defang indicators of compromise (URLs, IPs, domains, emails) for safe sharing and distribute them in STIX format through TAXII feeds and threat intelligence platforms."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Build an automated pipeline to defang indicators of compromise (UR
 
 Authoritative source: `.claude/skills/cyber-building-ioc-defanging-and-sharing-pipeline/SKILL.md`
 
-Authoritative source SHA-256: `4b632309269157facd4f96616cbad4178df4f53e31e2eb0acdd77f33ef10c22d`
+Authoritative source SHA-256: `3d18ba9de982194b88037b249ebff0f46ad9a53b5c939a45233b182168554a2b`
 
 Source class: `cyber-armed`
 

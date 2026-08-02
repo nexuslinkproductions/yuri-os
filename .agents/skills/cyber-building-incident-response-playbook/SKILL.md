@@ -1,6 +1,7 @@
 ---
 name: cyber-building-incident-response-playbook
 description: "Designs and documents structured incident response playbooks that define step-by-step procedures for specific incident types aligned with NIST SP 800-61r3 and SANS PICERL frameworks. Covers playbook structure, decision trees, escalation criteria, RACI matrices, and integration with SOAR platforms. Activates for requests involving IR playbook creation, incident response procedure documentation, res"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Designs and documents structured incident response playbooks that 
 
 Authoritative source: `.claude/skills/cyber-building-incident-response-playbook/SKILL.md`
 
-Authoritative source SHA-256: `e20aba069e4ec7a77e30ca60e664c57036277e8b5de336d3422f3ad645ff2d79`
+Authoritative source SHA-256: `6b9891e46d90335ef3cfbf9cd369a0fd35f9dae37ecb53cae9d3a97d3b173343`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-scanning-network-with-nmap-advanced
 description: "Performs advanced network reconnaissance using Nmap''s scripting engine, timing controls, evasion techniques, and output parsing to discover hosts, enumerate services, detect vulnerabilities, and fingerprint operating systems across authorized target networks."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Performs advanced network reconnaissance using Nmap''s scripting e
 
 Authoritative source: `.claude/skills/cyber-scanning-network-with-nmap-advanced/SKILL.md`
 
-Authoritative source SHA-256: `6deaa8705eb379854c61452ed66791771f84b7c69b589e557645683502e6af3d`
+Authoritative source SHA-256: `07d33c3c5b3bb85e3d47b6795ef3be600710898cbc0182a2ee345b5247326d72`
 
 Source class: `cyber-armed`
 

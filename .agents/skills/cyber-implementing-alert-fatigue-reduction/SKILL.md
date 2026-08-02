@@ -1,6 +1,7 @@
 ---
 name: cyber-implementing-alert-fatigue-reduction
 description: "Implements strategies to reduce SOC alert fatigue by tuning detection rules, consolidating duplicate alerts, implementing risk-based alerting, and measuring alert quality metrics to maintain analyst effectiveness and prevent critical alert dismissal. Use when SOC teams face overwhelming alert volumes, high false positive rates, or declining analyst performance."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Implements strategies to reduce SOC alert fatigue by tuning detect
 
 Authoritative source: `.claude/skills/cyber-implementing-alert-fatigue-reduction/SKILL.md`
 
-Authoritative source SHA-256: `cd2a6b00986d63e1f52479ac113ef98bd9ac70c2d29ef6a311b9f2055cdc6489`
+Authoritative source SHA-256: `3fa81c355b820693b731f1a0424244be2b690ade886857596db84fd4618eb4ae`
 
 Source class: `cyber-armed`
 

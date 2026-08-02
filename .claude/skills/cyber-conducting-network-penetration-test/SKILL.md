@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: conducting-network-penetration-test | description: 'Conducts comprehensive network penetration tests against authorized |   target environments by performing host discovery, port scanning, service enumeration, |   vulnerability identification, and controlled exploitation to assess the security |   posture of network infrastructure. The tester follows PTES methodology from reconnaissance |   through post-exploitation and reporting. Activates for requests involving network |   pentest, infra"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

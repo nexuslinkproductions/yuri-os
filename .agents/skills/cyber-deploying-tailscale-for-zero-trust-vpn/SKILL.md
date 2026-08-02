@@ -1,6 +1,7 @@
 ---
 name: cyber-deploying-tailscale-for-zero-trust-vpn
 description: "Deploy and configure Tailscale as a WireGuard-based zero trust mesh VPN with identity-aware access controls, ACLs, and exit nodes for secure peer-to-peer connectivity."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Deploy and configure Tailscale as a WireGuard-based zero trust mes
 
 Authoritative source: `.claude/skills/cyber-deploying-tailscale-for-zero-trust-vpn/SKILL.md`
 
-Authoritative source SHA-256: `3e83292a529bcbfe6be4e1946cbf0e2fd654365fa1e2c4eb46bdf196a713c26f`
+Authoritative source SHA-256: `80639a9564193dc632fb3e13f2b77d36c4e9d30c9006bdb4d715f8d9371ea363`
 
 Source class: `cyber-armed`
 

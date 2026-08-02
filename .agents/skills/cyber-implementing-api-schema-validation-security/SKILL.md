@@ -1,6 +1,7 @@
 ---
 name: cyber-implementing-api-schema-validation-security
 description: "Implement API schema validation using OpenAPI specifications and JSON Schema to enforce input/output contracts and prevent injection, data exposure, and mass assignment attacks."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Implement API schema validation using OpenAPI specifications and J
 
 Authoritative source: `.claude/skills/cyber-implementing-api-schema-validation-security/SKILL.md`
 
-Authoritative source SHA-256: `6002ac6008d162e6b38a83d3d91a1547321fe308050e35fa9fb3828c9915f691`
+Authoritative source SHA-256: `9dbd9e54a0b0a615f4d82e26f5b0ee60a58fbe6225e0dd0662522656e6e2a58d`
 
 Source class: `cyber-armed`
 

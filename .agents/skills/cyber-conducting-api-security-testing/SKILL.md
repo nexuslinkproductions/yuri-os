@@ -1,6 +1,7 @@
 ---
 name: cyber-conducting-api-security-testing
 description: "Conducts security testing of REST, GraphQL, and gRPC APIs to identify vulnerabilities in authentication, authorization, rate limiting, input validation, and business logic. The tester uses the OWASP API Security Top 10 as the testing framework, combining Burp Suite interception with Postman collections and custom scripts to test endpoint security at every privilege level. Activates for requests in"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Conducts security testing of REST, GraphQL, and gRPC APIs to ident
 
 Authoritative source: `.claude/skills/cyber-conducting-api-security-testing/SKILL.md`
 
-Authoritative source SHA-256: `3455e7d9364b64e3fb6d92c7d4f4a732d878b4b05da486648e7a2e8b8ffd978c`
+Authoritative source SHA-256: `04792935f10cb40262ca69bea451e84b1c3bb3d9dbe7ae70c78121f731b13950`
 
 Source class: `cyber-armed`
 

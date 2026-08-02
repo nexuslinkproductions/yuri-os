@@ -1,6 +1,7 @@
 ---
 name: cyber-hardening-docker-daemon-configuration
 description: "Harden the Docker daemon by configuring daemon.json with user namespace remapping, TLS authentication, rootless mode, and CIS benchmark controls."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Harden the Docker daemon by configuring daemon.json with user name
 
 Authoritative source: `.claude/skills/cyber-hardening-docker-daemon-configuration/SKILL.md`
 
-Authoritative source SHA-256: `20da06a882d9910b0650ef8f74cbcc01e64bd5c8f3bda5195f6370b53743cd83`
+Authoritative source SHA-256: `e0277e8e9fd87ffbd93962cc572c6afb9ead7163d9828986da97ecd45804e31f`
 
 Source class: `cyber-armed`
 

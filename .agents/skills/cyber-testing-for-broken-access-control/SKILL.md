@@ -1,6 +1,7 @@
 ---
 name: cyber-testing-for-broken-access-control
 description: "Systematically testing web applications for broken access control vulnerabilities including privilege escalation, missing function-level checks, and insecure direct object references."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Systematically testing web applications for broken access control 
 
 Authoritative source: `.claude/skills/cyber-testing-for-broken-access-control/SKILL.md`
 
-Authoritative source SHA-256: `3a2b9c6dae42be7bd61750dc51c011e814b6bf7e24dfe52fc63cebf4b776dabc`
+Authoritative source SHA-256: `8f59fad022d438a9347c30d8bac61e6473126124f683ffdb624944b6eddd82e7`
 
 Source class: `cyber-armed`
 

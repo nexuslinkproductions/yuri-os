@@ -1,6 +1,7 @@
 ---
 name: cyber-auditing-terraform-infrastructure-for-security
 description: "Auditing Terraform infrastructure-as-code for security misconfigurations using Checkov, tfsec, Terrascan, and OPA/Rego policies to detect overly permissive IAM policies, public resource exposure, missing encryption, and insecure defaults before cloud deployment."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Auditing Terraform infrastructure-as-code for security misconfigur
 
 Authoritative source: `.claude/skills/cyber-auditing-terraform-infrastructure-for-security/SKILL.md`
 
-Authoritative source SHA-256: `76f44c2c939df5f05b230cb4e89d2343e2bc2d170181b0f1104ee0f46d9377d5`
+Authoritative source SHA-256: `85af1596347b60f388040ef49380f96a81ea9a7ecae2058c442396541044e189`
 
 Source class: `cyber-armed`
 

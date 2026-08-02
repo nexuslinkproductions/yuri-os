@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: analyzing-cloud-storage-access-patterns | description: Detect abnormal access patterns in AWS S3, GCS, and Azure Blob Storage |   by analyzing CloudTrail Data Events, GCS audit logs, and Azure Storage Analytics. |   Identifies after-hours bulk downloads, access from new IP addresses, unusual API |   calls (GetObject spikes), and potential data exfiltration using statistical baselines |   and time-series anomaly detection. | domain: cybersecurity | subdomain: cloud-security | tags: | - clou"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

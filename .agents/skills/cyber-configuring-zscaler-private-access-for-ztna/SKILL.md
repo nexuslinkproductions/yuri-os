@@ -1,6 +1,7 @@
 ---
 name: cyber-configuring-zscaler-private-access-for-ztna
 description: "Configuring Zscaler Private Access (ZPA) to replace traditional VPN with zero trust network access by deploying App Connectors, defining application segments, configuring access policies based on user identity and device posture, and integrating with IdPs."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Configuring Zscaler Private Access (ZPA) to replace traditional VP
 
 Authoritative source: `.claude/skills/cyber-configuring-zscaler-private-access-for-ztna/SKILL.md`
 
-Authoritative source SHA-256: `f9dfb8d1ec6b9099a37f60a71e57081f1281c509faa294e5837a7ec04af1547c`
+Authoritative source SHA-256: `33ada11c7feaf867493626fc5351ea1dbb191e3877d4eac9e86c62189c63eb18`
 
 Source class: `cyber-armed`
 

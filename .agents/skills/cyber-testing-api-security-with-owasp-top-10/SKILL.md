@@ -1,6 +1,7 @@
 ---
 name: cyber-testing-api-security-with-owasp-top-10
 description: "Systematically assessing REST and GraphQL API endpoints against the OWASP API Security Top 10 risks using automated and manual testing techniques."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Systematically assessing REST and GraphQL API endpoints against th
 
 Authoritative source: `.claude/skills/cyber-testing-api-security-with-owasp-top-10/SKILL.md`
 
-Authoritative source SHA-256: `dcd304e5c874292257c22f62c4e10cad9df68cb1af177c823f5806af0a7aa656`
+Authoritative source SHA-256: `2d772fb89f0a23b6433022a7e5bce0adea2da70222680d667870a3815e38b7d9`
 
 Source class: `cyber-armed`
 

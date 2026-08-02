@@ -1,6 +1,7 @@
 ---
 name: cyber-acquiring-disk-image-with-dd-and-dcfldd
 description: "Create forensically sound bit-for-bit disk images using dd and dcfldd while preserving evidence integrity through hash verification."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Create forensically sound bit-for-bit disk images using dd and dcf
 
 Authoritative source: `.claude/skills/cyber-acquiring-disk-image-with-dd-and-dcfldd/SKILL.md`
 
-Authoritative source SHA-256: `05da1d36a7d83c9454f7ceb468a3390641fa9807596dda068c3e44ff72ca1ca3`
+Authoritative source SHA-256: `c3c137e71a53af35b073f7793073741364647e9ffefe553b1a5ac7112a267650`
 
 Source class: `cyber-armed`
 

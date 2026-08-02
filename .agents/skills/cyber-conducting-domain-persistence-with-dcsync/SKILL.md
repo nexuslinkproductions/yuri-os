@@ -1,6 +1,7 @@
 ---
 name: cyber-conducting-domain-persistence-with-dcsync
 description: "Perform DCSync attacks to replicate Active Directory credentials and establish domain persistence by extracting KRBTGT, Domain Admin, and service account hashes for Golden Ticket creation."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Perform DCSync attacks to replicate Active Directory credentials a
 
 Authoritative source: `.claude/skills/cyber-conducting-domain-persistence-with-dcsync/SKILL.md`
 
-Authoritative source SHA-256: `2239b91d09f3666974324ae5a105ba654c037c956b59cd600c01b7a11e001e46`
+Authoritative source SHA-256: `b7a42372654b1dbe1d27843a9997b54f462960030d2fb7912d3207a7f91eaed6`
 
 Source class: `cyber-armed`
 

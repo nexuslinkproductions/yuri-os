@@ -1,6 +1,7 @@
 ---
 name: cyber-operating-havoc-c2
 description: "Deploy a Havoc team server with Yaotl profiles, generate evasive Demon agents with indirect syscalls and sleep obfuscation, and run post-exploitation and pivoting for adversary emulation."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Deploy a Havoc team server with Yaotl profiles, generate evasive D
 
 Authoritative source: `.claude/skills/cyber-operating-havoc-c2/SKILL.md`
 
-Authoritative source SHA-256: `998be5c6f5fcf3cc635ce107edaad6f5c5acdce4a6751f0d07f3ec0bbddff7c6`
+Authoritative source SHA-256: `9440f3bb81576df7326a16bfdf7a763ba6dd1f461cbd2585ba85503854684b76`
 
 Source class: `cyber-armed`
 

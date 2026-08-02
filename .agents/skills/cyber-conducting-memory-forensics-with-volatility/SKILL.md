@@ -1,6 +1,7 @@
 ---
 name: cyber-conducting-memory-forensics-with-volatility
 description: "Performs memory forensics analysis using Volatility 3 to extract evidence of malware execution, process injection, network connections, and credential theft from RAM dumps captured during incident response. Covers memory acquisition, process analysis, DLL inspection, and malware detection. Activates for requests involving memory forensics, RAM analysis, Volatility framework, memory dump investigat"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Performs memory forensics analysis using Volatility 3 to extract e
 
 Authoritative source: `.claude/skills/cyber-conducting-memory-forensics-with-volatility/SKILL.md`
 
-Authoritative source SHA-256: `050357e2a9837da1beed19445f7858c6c833da359fbbbba6ea53f4b45be8c287`
+Authoritative source SHA-256: `55380081bc901c4152923dc0fdb8a4036f6469b07d137102cc958670712c5a9d`
 
 Source class: `cyber-armed`
 

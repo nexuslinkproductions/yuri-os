@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-for-dns-tunneling-with-zeek
 description: "Detect DNS tunneling and data exfiltration by analyzing Zeek dns.log for high-entropy subdomain queries, excessive query volume, long query lengths, and unusual DNS record types indicating covert channel communication."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detect DNS tunneling and data exfiltration by analyzing Zeek dns.l
 
 Authoritative source: `.claude/skills/cyber-hunting-for-dns-tunneling-with-zeek/SKILL.md`
 
-Authoritative source SHA-256: `e46f45d6b76694f9e16e32f36e9d1d75ed84fc9f88cebc72b1654c7110651d26`
+Authoritative source SHA-256: `81038f97e325d618996dd2763ebe4dceb5d20f7bf77e953a605b4c13d7c40e5f`
 
 Source class: `cyber-armed`
 

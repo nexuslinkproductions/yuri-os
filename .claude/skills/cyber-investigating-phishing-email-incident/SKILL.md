@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: investigating-phishing-email-incident | description: 'Investigates phishing email incidents from initial user report through |   header analysis, URL/attachment detonation, impacted user identification, and containment |   actions using SOC tools like Splunk, Microsoft Defender, and sandbox analysis platforms. |   Use when a reported phishing email requires full incident investigation to determine |   scope and impact. |  |   ' | domain: cybersecurity | subdomain: soc-operations | tags: | "
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

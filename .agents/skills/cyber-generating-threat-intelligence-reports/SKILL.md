@@ -1,6 +1,7 @@
 ---
 name: cyber-generating-threat-intelligence-reports
 description: "Generates structured cyber threat intelligence reports at strategic, operational, and tactical levels tailored to specific audiences including executives, security operations teams, and technical analysts. Use when producing finished intelligence products from raw collection data, creating sector threat briefings, or delivering post-incident intelligence assessments. Activates for requests involvi"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Generates structured cyber threat intelligence reports at strategi
 
 Authoritative source: `.claude/skills/cyber-generating-threat-intelligence-reports/SKILL.md`
 
-Authoritative source SHA-256: `6828f7e0ef9ab680bb8983f96c53f84f6c77101ae83fef5d52c64326d8f365c1`
+Authoritative source SHA-256: `a4437d618027de5d02ab5ffd9ef3feda23ebc6fcb43c944d0f0296567c309863`
 
 Source class: `cyber-armed`
 

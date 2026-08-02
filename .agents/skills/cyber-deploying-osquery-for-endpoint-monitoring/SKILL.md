@@ -1,6 +1,7 @@
 ---
 name: cyber-deploying-osquery-for-endpoint-monitoring
 description: "Deploys and configures osquery for real-time endpoint monitoring using SQL-based queries to inspect running processes, open ports, installed software, and system configuration. Use when building visibility into endpoint state, threat hunting across fleet, or implementing compliance monitoring. Activates for requests involving osquery deployment, endpoint visibility, fleet management, or SQL-based"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Deploys and configures osquery for real-time endpoint monitoring u
 
 Authoritative source: `.claude/skills/cyber-deploying-osquery-for-endpoint-monitoring/SKILL.md`
 
-Authoritative source SHA-256: `4b2985bfc31355a19367a4d212f3c26124ac4997e3fd25d565f8911a9dc1443a`
+Authoritative source SHA-256: `08f61cc04373a101254533dfc24fc7ff7fb5f55b286f5a541df4e06bd20e3a5c`
 
 Source class: `cyber-armed`
 

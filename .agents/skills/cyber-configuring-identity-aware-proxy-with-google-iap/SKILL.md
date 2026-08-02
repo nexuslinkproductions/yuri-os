@@ -1,6 +1,7 @@
 ---
 name: cyber-configuring-identity-aware-proxy-with-google-iap
 description: "Configuring Google Cloud Identity-Aware Proxy (IAP) to enforce per-request identity verification for Compute Engine, App Engine, Cloud Run, and GKE services using access levels, context-aware policies, and programmatic access with service accounts."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Configuring Google Cloud Identity-Aware Proxy (IAP) to enforce per
 
 Authoritative source: `.claude/skills/cyber-configuring-identity-aware-proxy-with-google-iap/SKILL.md`
 
-Authoritative source SHA-256: `4c9aceee68fa869925c7b947af87b3daf4fa4e950fd71317af160aeb5169a479`
+Authoritative source SHA-256: `4458b831a534625e1bfa196b07e7b69212f0066d32f97b76ef0dd40eb6fce8eb`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-prioritizing-vulnerabilities-with-cvss-scoring
 description: "The Common Vulnerability Scoring System (CVSS) is the industry standard framework maintained by FIRST (Forum of Incident Response and Security Teams) for assessing vulnerability severity. CVSS v4.0 (r"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "The Common Vulnerability Scoring System (CVSS) is the industry sta
 
 Authoritative source: `.claude/skills/cyber-prioritizing-vulnerabilities-with-cvss-scoring/SKILL.md`
 
-Authoritative source SHA-256: `87552b7bbf09e03d20e51781888290967d5d0433c3eb345978dbf72dbd68a759`
+Authoritative source SHA-256: `2b5d80b9d6bbc9999237ec0e861fe04364ca9cd0b3b6355c985227fccba26adf`
 
 Source class: `cyber-armed`
 

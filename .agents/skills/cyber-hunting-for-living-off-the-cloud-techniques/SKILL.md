@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-for-living-off-the-cloud-techniques
 description: "Hunt for adversary abuse of legitimate cloud services for C2, data staging, and exfiltration including abuse of Azure, AWS, GCP services, and SaaS platforms."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Hunt for adversary abuse of legitimate cloud services for C2, data
 
 Authoritative source: `.claude/skills/cyber-hunting-for-living-off-the-cloud-techniques/SKILL.md`
 
-Authoritative source SHA-256: `328be2622f151ad270b5ae9d33788caba380e66668176c327b87cb3bf7459bc5`
+Authoritative source SHA-256: `4d47135e147019632039a710ca49f3336b2f400bde77b700a8c66b690f31b89a`
 
 Source class: `cyber-armed`
 

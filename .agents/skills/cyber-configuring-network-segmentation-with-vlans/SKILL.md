@@ -1,6 +1,7 @@
 ---
 name: cyber-configuring-network-segmentation-with-vlans
 description: "Designs and implements VLAN-based network segmentation on managed switches to isolate network zones, enforce access control between segments, and reduce the attack surface by limiting lateral movement paths in enterprise network environments."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Designs and implements VLAN-based network segmentation on managed 
 
 Authoritative source: `.claude/skills/cyber-configuring-network-segmentation-with-vlans/SKILL.md`
 
-Authoritative source SHA-256: `5ee8f30ab0e2a218f12a38835a4545f3085c7210a25ac75249ceb3121a89a43e`
+Authoritative source SHA-256: `340059d749c90a8fdf972ef3895d94fa3764eb7d0ead41a8426b99aad3c94700`
 
 Source class: `cyber-armed`
 

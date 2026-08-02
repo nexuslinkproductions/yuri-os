@@ -1,6 +1,7 @@
 ---
 name: cyber-mapping-attack-paths-with-bloodhound-ce
 description: "Collect Active Directory data with SharpHound and Entra ID data with AzureHound, ingest into BloodHound Community Edition, and analyze on-prem, cloud, and hybrid attack paths with built-in queries and custom Cypher."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Collect Active Directory data with SharpHound and Entra ID data wi
 
 Authoritative source: `.claude/skills/cyber-mapping-attack-paths-with-bloodhound-ce/SKILL.md`
 
-Authoritative source SHA-256: `a0176a0e9583a717260c0d559d36d311ce9306164c511ec688d0851b26733de0`
+Authoritative source SHA-256: `0db4a5ac5055729a442abfb507844525e2762637850b436777f5ee233cc8d7f9`
 
 Source class: `cyber-armed`
 

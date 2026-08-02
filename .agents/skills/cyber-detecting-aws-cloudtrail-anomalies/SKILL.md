@@ -1,6 +1,7 @@
 ---
 name: cyber-detecting-aws-cloudtrail-anomalies
 description: "Detect unusual API call patterns in AWS CloudTrail logs using boto3, statistical baselining, and behavioral analysis to identify credential compromise, privilege escalation, and unauthorized resource access."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detect unusual API call patterns in AWS CloudTrail logs using boto
 
 Authoritative source: `.claude/skills/cyber-detecting-aws-cloudtrail-anomalies/SKILL.md`
 
-Authoritative source SHA-256: `68e782cbb0c8ebfaa149beed27ac6bb9bef32990fbb314c1d4699c174e7c8cc7`
+Authoritative source SHA-256: `211919431e1545369a9850894bc4cb0c5fdd7c1057fe6857a6bab014a0a560c7`
 
 Source class: `cyber-armed`
 

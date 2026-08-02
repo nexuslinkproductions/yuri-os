@@ -1,6 +1,7 @@
 ---
 name: cyber-conducting-man-in-the-middle-attack-simulation
 description: "Simulates man-in-the-middle attacks using Ettercap, mitmproxy, and Bettercap in authorized environments to intercept, analyze, and modify network traffic for testing encryption enforcement, certificate validation, and detection capabilities."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Simulates man-in-the-middle attacks using Ettercap, mitmproxy, and
 
 Authoritative source: `.claude/skills/cyber-conducting-man-in-the-middle-attack-simulation/SKILL.md`
 
-Authoritative source SHA-256: `6c4639f0cf378932a70cae5e6a13b46395d9b911b181057a0b0d925d468da91e`
+Authoritative source SHA-256: `a55bd5698bad7454e4f781bab67e234843796b4646b7cf81ea8fec31c3d11cb6`
 
 Source class: `cyber-armed`
 

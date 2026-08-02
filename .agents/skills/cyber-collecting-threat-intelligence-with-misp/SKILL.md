@@ -1,6 +1,7 @@
 ---
 name: cyber-collecting-threat-intelligence-with-misp
 description: "MISP (Malware Information Sharing Platform) is an open-source threat intelligence platform for gathering, sharing, storing, and correlating Indicators of Compromise (IOCs) of targeted attacks, threat"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "MISP (Malware Information Sharing Platform) is an open-source thre
 
 Authoritative source: `.claude/skills/cyber-collecting-threat-intelligence-with-misp/SKILL.md`
 
-Authoritative source SHA-256: `a5a2a45b6d4843b3277ae28a53130fae6a8cc17a71840f711fcde40828906c8c`
+Authoritative source SHA-256: `efd06c679b66e1f5b9b7bb32896321063fb2166e7e58b6d58bb66eb7535e5959`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-credential-stuffing-attacks
 description: "Detects credential stuffing attacks by analyzing authentication logs for login velocity anomalies, ASN diversity, password spray patterns, and geographic distribution of failed logins. Uses statistical analysis on Splunk or raw log data. Use when investigating account takeover campaigns or building detection rules for auth abuse."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detects credential stuffing attacks by analyzing authentication lo
 
 Authoritative source: `.claude/skills/cyber-hunting-credential-stuffing-attacks/SKILL.md`
 
-Authoritative source SHA-256: `fd12f7b574457af90b26220f95129b838bcfaeed6a29286920df93f0ab127734`
+Authoritative source SHA-256: `f421a6f38674a852d142054d45b30769695532656f57ff64e1efb2213173ebe4`
 
 Source class: `cyber-armed`
 

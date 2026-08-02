@@ -1,6 +1,7 @@
 ---
 name: cyber-configuring-certificate-authority-with-openssl
 description: "A Certificate Authority (CA) is the trust anchor in a PKI hierarchy, responsible for issuing, signing, and revoking digital certificates. This skill covers building a two-tier CA hierarchy (Root CA +"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "A Certificate Authority (CA) is the trust anchor in a PKI hierarch
 
 Authoritative source: `.claude/skills/cyber-configuring-certificate-authority-with-openssl/SKILL.md`
 
-Authoritative source SHA-256: `76cf63cc96f1578850137a9da1e78df75274ad9bea40818154147e7370dcb7a3`
+Authoritative source SHA-256: `f8e2070dd3bc3619f1b7b4faa98dec599a9483c22070cff342a191309265c1f2`
 
 Source class: `cyber-armed`
 

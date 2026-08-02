@@ -1,6 +1,7 @@
 ---
 name: cyber-building-patch-tuesday-response-process
 description: "Establish a structured operational process to triage, test, and deploy Microsoft Patch Tuesday security updates within risk-based remediation SLAs."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Establish a structured operational process to triage, test, and de
 
 Authoritative source: `.claude/skills/cyber-building-patch-tuesday-response-process/SKILL.md`
 
-Authoritative source SHA-256: `27e0a408cae8c021894fbe35aa59ba5a46ef849d4677825d09ef215c1272b6d0`
+Authoritative source SHA-256: `7c2ace4735df79191ce7ffc6f647170789516ae5c535639102c083684c7858d2`
 
 Source class: `cyber-armed`
 

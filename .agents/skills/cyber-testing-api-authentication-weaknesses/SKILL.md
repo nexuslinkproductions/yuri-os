@@ -1,6 +1,7 @@
 ---
 name: cyber-testing-api-authentication-weaknesses
 description: "Tests API authentication mechanisms for weaknesses including broken token validation, missing authentication on endpoints, weak password policies, credential stuffing susceptibility, token leakage in URLs or logs, and session management flaws. The tester evaluates JWT implementation, API key handling, OAuth flows, and session token entropy to identify authentication bypasses. Maps to OWASP API2:20"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Tests API authentication mechanisms for weaknesses including broke
 
 Authoritative source: `.claude/skills/cyber-testing-api-authentication-weaknesses/SKILL.md`
 
-Authoritative source SHA-256: `f0e7e7dc5149e309e146be60db4c21938457dfa1a6e025f7c7f46de9a6dc27e8`
+Authoritative source SHA-256: `739cba896371943f139bba8c83cc7a4fbbe8308d1bb7fa1cc585b17d0aab90ad`
 
 Source class: `cyber-armed`
 

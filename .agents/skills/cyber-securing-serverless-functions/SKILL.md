@@ -1,6 +1,7 @@
 ---
 name: cyber-securing-serverless-functions
 description: "This skill covers security hardening for serverless compute platforms including AWS Lambda, Azure Functions, and Google Cloud Functions. It addresses least privilege IAM roles, dependency vulnerability scanning, secrets management integration, input validation, function URL authentication, and runtime monitoring to protect against injection attacks, credential theft, and supply chain compromises."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "This skill covers security hardening for serverless compute platfo
 
 Authoritative source: `.claude/skills/cyber-securing-serverless-functions/SKILL.md`
 
-Authoritative source SHA-256: `3e6a2987e57ff6e8756a35e378b9eea4438b14945c55bfd088fee442681ae059`
+Authoritative source SHA-256: `49d0973b07c551aa4a10c8ea2ceaf3e6d6255145aea9fe7415a836e3a16be5e2`
 
 Source class: `cyber-armed`
 

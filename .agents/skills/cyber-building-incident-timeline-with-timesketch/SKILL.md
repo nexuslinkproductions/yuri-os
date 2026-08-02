@@ -1,6 +1,7 @@
 ---
 name: cyber-building-incident-timeline-with-timesketch
 description: "Build collaborative forensic incident timelines using Timesketch to ingest, normalize, and analyze multi-source event data for attack chain reconstruction and investigation documentation."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Build collaborative forensic incident timelines using Timesketch t
 
 Authoritative source: `.claude/skills/cyber-building-incident-timeline-with-timesketch/SKILL.md`
 
-Authoritative source SHA-256: `596eba3ba1b5adfce39e59c0b3daaa2e5082bc5bc81a7725580cbc3ffc6008d2`
+Authoritative source SHA-256: `65f02f63ed507b6f660dc97eef9a42cb92d5faac65d596833165ecae20a57f9e`
 
 Source class: `cyber-armed`
 

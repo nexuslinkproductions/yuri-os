@@ -1,6 +1,7 @@
 ---
 name: cyber-implementing-attack-surface-management
 description: "Implements external attack surface management (EASM) using Shodan, Censys, and ProjectDiscovery tools (subfinder, httpx, nuclei) for asset discovery, subdomain enumeration, service fingerprinting, and exposure scoring. Includes a weighted risk scoring algorithm based on OWASP attack surface analysis methodology and the Relative Attack Surface Quotient (RSQ). Use when building continuous ASM progra"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Implements external attack surface management (EASM) using Shodan,
 
 Authoritative source: `.claude/skills/cyber-implementing-attack-surface-management/SKILL.md`
 
-Authoritative source SHA-256: `f74dd25967090139be622a2a02b32b7470c29b55216b66405ce039ec72c9379a`
+Authoritative source SHA-256: `5ef4234da8c3ab6b23c3ecbaffb071cf47e3edefc5fbf8a77ad506fa97974f80`
 
 Source class: `cyber-armed`
 

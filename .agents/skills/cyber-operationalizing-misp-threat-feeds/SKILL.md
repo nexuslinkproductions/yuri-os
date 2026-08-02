@@ -1,6 +1,7 @@
 ---
 name: cyber-operationalizing-misp-threat-feeds
 description: "Run MISP, curate feeds, and auto-generate detections for Wazuh, Sigma, and Suricata."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Run MISP, curate feeds, and auto-generate detections for Wazuh, Si
 
 Authoritative source: `.claude/skills/cyber-operationalizing-misp-threat-feeds/SKILL.md`
 
-Authoritative source SHA-256: `2b96390a4dcb8837b6e4036211646d1de8334af9ac622fc3a0d6229f8b11df97`
+Authoritative source SHA-256: `90ce28407ecd3a63b6f11a7896d652fcc8e04f6f0f157fe7dab322c4adb45d6d`
 
 Source class: `cyber-armed`
 

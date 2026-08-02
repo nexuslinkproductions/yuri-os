@@ -1,6 +1,7 @@
 ---
 name: cyber-assessing-vector-and-embedding-weaknesses
 description: "Test vector stores for embedding inversion, cross-tenant leakage, and poisoning."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Test vector stores for embedding inversion, cross-tenant leakage, 
 
 Authoritative source: `.claude/skills/cyber-assessing-vector-and-embedding-weaknesses/SKILL.md`
 
-Authoritative source SHA-256: `4e829b3df0226bc441966632464f386c36b8458f0547bf5dd2ed655c2a2c9c2e`
+Authoritative source SHA-256: `09973546d7465c0b498b332a97d4d1ee77de46008b7d1adb666a7e8c3e4da810`
 
 Source class: `cyber-armed`
 

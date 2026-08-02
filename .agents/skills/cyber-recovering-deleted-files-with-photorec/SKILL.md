@@ -1,6 +1,7 @@
 ---
 name: cyber-recovering-deleted-files-with-photorec
 description: "Recover deleted files from disk images and storage media using PhotoRec's file signature-based carving engine regardless of file system damage."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Recover deleted files from disk images and storage media using Pho
 
 Authoritative source: `.claude/skills/cyber-recovering-deleted-files-with-photorec/SKILL.md`
 
-Authoritative source SHA-256: `372d5d102463c658f854504538b5e27513c8e4f009137022d7581c8d0a3c643e`
+Authoritative source SHA-256: `27a7eba3d9f097a8e058ce3ab62018f193eb4fd3313fa419d6b512b13f1752df`
 
 Source class: `cyber-armed`
 

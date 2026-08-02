@@ -1,6 +1,7 @@
 ---
 name: cyber-analyzing-email-headers-for-phishing-investigation
 description: "Parse and analyze email headers to trace the origin of phishing emails, verify sender authenticity, and identify spoofing through SPF, DKIM, and DMARC validation."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Parse and analyze email headers to trace the origin of phishing em
 
 Authoritative source: `.claude/skills/cyber-analyzing-email-headers-for-phishing-investigation/SKILL.md`
 
-Authoritative source SHA-256: `0598403898f153b5b65bf4a91b5cb1ff326dada7e12b136dfc0ed17def1f8fe9`
+Authoritative source SHA-256: `28d8c5c2f2ed5838c6caaa7108146b051cec2d7876af337dc980bfbbb39af474`
 
 Source class: `cyber-armed`
 

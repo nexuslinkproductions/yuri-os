@@ -1,6 +1,7 @@
 ---
 name: cyber-implementing-attack-path-analysis-with-xm-cyber
 description: "Deploy XM Cyber's continuous exposure management platform to map attack paths, identify choke points, and prioritize the 2% of exposures that threaten critical assets."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Deploy XM Cyber's continuous exposure management platform to map a
 
 Authoritative source: `.claude/skills/cyber-implementing-attack-path-analysis-with-xm-cyber/SKILL.md`
 
-Authoritative source SHA-256: `992abd5ce94779497d4b8602e16a5421ddea6e714dbb5d1fe03cb0f4b9865744`
+Authoritative source SHA-256: `f4453aef1098e1f4f73edb0f2fec6f1fdf1915c623854107b5a224ae389a946c`
 
 Source class: `cyber-armed`
 

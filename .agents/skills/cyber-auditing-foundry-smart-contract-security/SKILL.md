@@ -1,6 +1,7 @@
 ---
 name: cyber-auditing-foundry-smart-contract-security
 description: ">- Pre-deployment security audit of Solidity smart contracts in a Foundry project. Combines static analysis (Slither, Aderyn), symbolic execution (Mythril), and property-based testing (forge fuzz + invariant tests with handlers) to catch reentrancy, access-control, oracle/price manipulation, and arithmetic bugs BEFORE deploying to an EVM chain. Also enforces key hygiene (no plaintext private keys,"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: ">- Pre-deployment security audit of Solidity smart contracts in a 
 
 Authoritative source: `.claude/skills/cyber-auditing-foundry-smart-contract-security/SKILL.md`
 
-Authoritative source SHA-256: `85ce40542158db8118c91053b8b18b7fac4ef975eebcf788a40860569e025df2`
+Authoritative source SHA-256: `50de0432e600b1c4f762f0165334cb93d19093f76f2ea7eab1281c49988fec8e`
 
 Source class: `cyber-armed`
 

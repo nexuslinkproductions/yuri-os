@@ -1,6 +1,7 @@
 ---
 name: cyber-designing-adversary-engagement-with-mitre-engage
 description: ">- Plan, run, and measure an adversary engagement operation using the MITRE Engage framework so that deployed deception is driven by strategy instead of deployed ad hoc. Covers the Engage Matrix (Prepare, Expose, Affect, Elicit, Understand), the 10-Step Operational Process, mapping engagement Activities to the ATT&CK techniques they expose, and defining measurable Goals and Operational Objectives."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: ">- Plan, run, and measure an adversary engagement operation using 
 
 Authoritative source: `.claude/skills/cyber-designing-adversary-engagement-with-mitre-engage/SKILL.md`
 
-Authoritative source SHA-256: `eb334cd918b023bf30ed75eb5866106ce4470f0527ac6955d8710e654e5c2c68`
+Authoritative source SHA-256: `17993bb4bc8525efdce9fca9b0d3c9230809644065fea5359d7fa3a9914d7871`
 
 Source class: `cyber-armed`
 

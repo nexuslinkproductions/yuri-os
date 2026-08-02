@@ -1,6 +1,7 @@
 ---
 name: cyber-executing-red-team-engagement-planning
 description: "Red team engagement planning is the foundational phase that defines scope, objectives, rules of engagement (ROE), threat model selection, and operational timelines before any offensive testing begins."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Red team engagement planning is the foundational phase that define
 
 Authoritative source: `.claude/skills/cyber-executing-red-team-engagement-planning/SKILL.md`
 
-Authoritative source SHA-256: `8466324cd2792902b82c887e3af16e4fd939ec7d3f3ef9d379c2de186048cd3d`
+Authoritative source SHA-256: `480fe656e2a2c655a36cc404337a4d7df205386988e41e5d7f9a151388221f99`
 
 Source class: `cyber-armed`
 

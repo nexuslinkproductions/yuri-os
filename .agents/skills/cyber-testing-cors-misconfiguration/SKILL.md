@@ -1,6 +1,7 @@
 ---
 name: cyber-testing-cors-misconfiguration
 description: "Identifying and exploiting Cross-Origin Resource Sharing misconfigurations that allow unauthorized cross-domain data access and credential theft during security assessments."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Identifying and exploiting Cross-Origin Resource Sharing misconfig
 
 Authoritative source: `.claude/skills/cyber-testing-cors-misconfiguration/SKILL.md`
 
-Authoritative source SHA-256: `79152fd8ff4cce97431aeb71d9b10395dee7fd2e3fc324b9326751e10fae9e39`
+Authoritative source SHA-256: `113466db617121a7cfed69725ac252fa073f2605f51f30751ebaf2a00dbe301c`
 
 Source class: `cyber-armed`
 

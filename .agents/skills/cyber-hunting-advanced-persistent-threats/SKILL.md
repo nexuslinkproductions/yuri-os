@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-advanced-persistent-threats
 description: "Proactively hunts for Advanced Persistent Threat (APT) activity within enterprise environments using hypothesis-driven searches across endpoint telemetry, network logs, and memory artifacts. Use when conducting scheduled threat hunting cycles, investigating anomalous behavior flagged by UEBA, or validating that known APT TTPs are not present in the environment. Activates for requests involving MIT"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Proactively hunts for Advanced Persistent Threat (APT) activity wi
 
 Authoritative source: `.claude/skills/cyber-hunting-advanced-persistent-threats/SKILL.md`
 
-Authoritative source SHA-256: `3bf7c47b94ad03fdb05f98144e8cd68d2ddb35e4b679d797ca54d876dd059478`
+Authoritative source SHA-256: `3f777fd0dfcc6775f6d75aee360a63a2105ff92649259f182b7d1dbe82760275`
 
 Source class: `cyber-armed`
 

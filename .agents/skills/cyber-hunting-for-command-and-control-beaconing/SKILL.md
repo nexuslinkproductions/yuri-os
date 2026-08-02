@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-for-command-and-control-beaconing
 description: "Detect C2 beaconing patterns in network traffic using frequency analysis, jitter detection, and domain reputation to identify compromised endpoints communicating with adversary infrastructure."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detect C2 beaconing patterns in network traffic using frequency an
 
 Authoritative source: `.claude/skills/cyber-hunting-for-command-and-control-beaconing/SKILL.md`
 
-Authoritative source SHA-256: `86f43cdcfb06baa751a4824a46ebbf8f46b5ce6d6bf37dc27bed04cc518d1497`
+Authoritative source SHA-256: `203f5f7a7f301be7fa6f646f00b2f9ca3892087cc3a564a63beabf4d827fefe0`
 
 Source class: `cyber-armed`
 

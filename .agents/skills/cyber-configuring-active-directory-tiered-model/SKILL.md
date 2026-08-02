@@ -1,6 +1,7 @@
 ---
 name: cyber-configuring-active-directory-tiered-model
 description: "Implement Microsoft's Enhanced Security Admin Environment (ESAE) tiered administration model for Active Directory. Covers Tier 0/1/2 separation, privileged access workstations (PAWs), administrative f"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Implement Microsoft's Enhanced Security Admin Environment (ESAE) t
 
 Authoritative source: `.claude/skills/cyber-configuring-active-directory-tiered-model/SKILL.md`
 
-Authoritative source SHA-256: `b67db8fd5fcd03b6c788f14aac38bc4e7c4cf7af5be6e89475a4175130265f3a`
+Authoritative source SHA-256: `c1137b80e3da9336972298d491a56eb6da7399976262b9bd2aa203f5b7c281fe`
 
 Source class: `cyber-armed`
 

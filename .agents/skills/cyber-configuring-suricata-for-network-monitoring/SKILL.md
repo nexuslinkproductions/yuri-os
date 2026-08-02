@@ -1,6 +1,7 @@
 ---
 name: cyber-configuring-suricata-for-network-monitoring
 description: "Deploys and configures Suricata IDS/IPS with Emerging Threats rulesets, EVE JSON logging, and custom rules for real-time network traffic inspection, threat detection, and integration with SIEM platforms for centralized security monitoring."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Deploys and configures Suricata IDS/IPS with Emerging Threats rule
 
 Authoritative source: `.claude/skills/cyber-configuring-suricata-for-network-monitoring/SKILL.md`
 
-Authoritative source SHA-256: `9d1c4b5a62fd8eb44a2c1994d661c2650acc50100bb4d9c8f419935fe6ba8b50`
+Authoritative source SHA-256: `58a494f7278a4926b55d8b76d6e7a48e248c1a7a4d6a50ba162c09cf8d5a43f9`
 
 Source class: `cyber-armed`
 

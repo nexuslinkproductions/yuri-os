@@ -1,6 +1,7 @@
 ---
 name: cyber-building-ioc-enrichment-pipeline-with-opencti
 description: "OpenCTI is an open-source platform for managing cyber threat intelligence knowledge, built on STIX 2.1 as its native data model. This skill covers building an automated IOC enrichment pipeline using O"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "OpenCTI is an open-source platform for managing cyber threat intel
 
 Authoritative source: `.claude/skills/cyber-building-ioc-enrichment-pipeline-with-opencti/SKILL.md`
 
-Authoritative source SHA-256: `2012cd7da608a51708718448e5139aed90c4cf6fc45009a3f6d1a1d51900ac15`
+Authoritative source SHA-256: `c162726ef48c2caad28013eeb749c4a9a52e992888f78bd91e6b7e02c4b11856`
 
 Source class: `cyber-armed`
 

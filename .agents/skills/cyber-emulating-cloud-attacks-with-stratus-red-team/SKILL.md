@@ -1,6 +1,7 @@
 ---
 name: cyber-emulating-cloud-attacks-with-stratus-red-team
 description: "Detonate granular AWS, Azure, GCP, and Kubernetes attack techniques to validate detections with Stratus Red Team."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detonate granular AWS, Azure, GCP, and Kubernetes attack technique
 
 Authoritative source: `.claude/skills/cyber-emulating-cloud-attacks-with-stratus-red-team/SKILL.md`
 
-Authoritative source SHA-256: `5acf859c517b8647c165b4fbcb59544dfbeb1051c2648ad283dcc25ada68e37a`
+Authoritative source SHA-256: `0fda86c993fcfe228eac46b7c2da3e75db7b12faf230cf5d4a2b1c4cc79bb6be`
 
 Source class: `cyber-armed`
 

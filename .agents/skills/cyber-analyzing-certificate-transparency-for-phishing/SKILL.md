@@ -1,6 +1,7 @@
 ---
 name: cyber-analyzing-certificate-transparency-for-phishing
 description: "Monitor Certificate Transparency logs using crt.sh and Certstream to detect phishing domains, lookalike certificates, and unauthorized certificate issuance targeting your organization."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Monitor Certificate Transparency logs using crt.sh and Certstream 
 
 Authoritative source: `.claude/skills/cyber-analyzing-certificate-transparency-for-phishing/SKILL.md`
 
-Authoritative source SHA-256: `dd96a9a406343515176e981ed6c0b120a99c87c854f3a179d58efb74e9530218`
+Authoritative source SHA-256: `e222e9259badac1fdfe4581c754371c43a9417f3552521e3699582419d230fce`
 
 Source class: `cyber-armed`
 

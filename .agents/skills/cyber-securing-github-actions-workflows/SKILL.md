@@ -1,6 +1,7 @@
 ---
 name: cyber-securing-github-actions-workflows
 description: "This skill covers hardening GitHub Actions workflows against supply chain attacks, credential theft, and privilege escalation. It addresses pinning actions to SHA digests, minimizing GITHUB_TOKEN permissions, protecting secrets from exfiltration, preventing script injection in workflow expressions, and implementing required reviewers for workflow changes."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "This skill covers hardening GitHub Actions workflows against suppl
 
 Authoritative source: `.claude/skills/cyber-securing-github-actions-workflows/SKILL.md`
 
-Authoritative source SHA-256: `6c0029ec2eb2897ec390dd21684a70da13b9829017d5e011a5e0fef1816ce41e`
+Authoritative source SHA-256: `3ce735bcf423b65158a9e19ac8c14a04c2c0520d8e5be19a34d15e79816b74d2`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-detecting-attacks-on-historian-servers
 description: "Detect cyber attacks targeting OT historian servers (OSIsoft PI, Ignition, Wonderware) that sit at the IT/OT boundary and serve as pivot points for lateral movement between enterprise and control networks, including data manipulation, unauthorized queries, and exploitation of historian-specific vulnerabilities."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detect cyber attacks targeting OT historian servers (OSIsoft PI, I
 
 Authoritative source: `.claude/skills/cyber-detecting-attacks-on-historian-servers/SKILL.md`
 
-Authoritative source SHA-256: `45d730dc16b6360c8975210e2f7e278012cef9ebd7e605899174935fc3b94cb2`
+Authoritative source SHA-256: `3deea6f90ff0019bc54451c696a6520216703591ae69620524f1bf97fd10a448`
 
 Source class: `cyber-armed`
 

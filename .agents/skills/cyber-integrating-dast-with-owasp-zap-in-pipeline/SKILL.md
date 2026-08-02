@@ -1,6 +1,7 @@
 ---
 name: cyber-integrating-dast-with-owasp-zap-in-pipeline
 description: "This skill covers integrating OWASP ZAP (Zed Attack Proxy) for Dynamic Application Security Testing in CI/CD pipelines. It addresses configuring baseline, full, and API scans against running applications, interpreting ZAP findings, tuning scan policies, and establishing DAST quality gates in GitHub Actions and GitLab CI."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "This skill covers integrating OWASP ZAP (Zed Attack Proxy) for Dyn
 
 Authoritative source: `.claude/skills/cyber-integrating-dast-with-owasp-zap-in-pipeline/SKILL.md`
 
-Authoritative source SHA-256: `db42b3c652f65b71dcb02b382d3a471aa216ad5b7c8c724a777e7f07b4004a8a`
+Authoritative source SHA-256: `c0d7c97445de517db2d77078a1ce751e2934e20b0231f3eaff8e92d8e1139bdd`
 
 Source class: `cyber-armed`
 

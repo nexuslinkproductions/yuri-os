@@ -1,6 +1,7 @@
 ---
 name: cyber-verifying-build-provenance-with-slsa-sigstore
 description: "Verify signed artifacts and SLSA build provenance with Sigstore cosign and slsa-verifier, enforce keyless OIDC identity, and apply SLSA Build levels to harden the software supply chain."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Verify signed artifacts and SLSA build provenance with Sigstore co
 
 Authoritative source: `.claude/skills/cyber-verifying-build-provenance-with-slsa-sigstore/SKILL.md`
 
-Authoritative source SHA-256: `c164a87a35a6149de5ed0731625709b70b19ce9ed55c42edd9f86e25674cdcb3`
+Authoritative source SHA-256: `482d072d78e4cf6339f9b3f4dde94660790a62d8e94a610842e53db26140a03d`
 
 Source class: `cyber-armed`
 

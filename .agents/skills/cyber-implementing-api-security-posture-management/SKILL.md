@@ -1,6 +1,7 @@
 ---
 name: cyber-implementing-api-security-posture-management
 description: "Implement API Security Posture Management to continuously discover, classify, and score APIs based on risk while enforcing security policies across the API lifecycle."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Implement API Security Posture Management to continuously discover
 
 Authoritative source: `.claude/skills/cyber-implementing-api-security-posture-management/SKILL.md`
 
-Authoritative source SHA-256: `29678a23ccd4bebbd46b1b2a88633da52aec91787e7a6ea4bf176684c2c99963`
+Authoritative source SHA-256: `20d8098159e095f38dc515a516b28223480024ff4e24e68a596f3bafb971715c`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-collecting-volatile-evidence-from-compromised-host
 description: "Collect volatile forensic evidence from a compromised system following order of volatility, preserving memory, network connections, processes, and system state before they are lost."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Collect volatile forensic evidence from a compromised system follo
 
 Authoritative source: `.claude/skills/cyber-collecting-volatile-evidence-from-compromised-host/SKILL.md`
 
-Authoritative source SHA-256: `4fc36dc17692e810b79bcdac099e15d1bced0f8020b35d205a455264c8c6f347`
+Authoritative source SHA-256: `98ea2e5abf1bb689e68494581821a8c99f44ee619248c32460f1ddb4c128c6a6`
 
 Source class: `cyber-armed`
 

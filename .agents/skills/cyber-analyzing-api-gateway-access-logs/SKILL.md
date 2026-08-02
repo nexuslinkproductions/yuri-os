@@ -1,6 +1,7 @@
 ---
 name: cyber-analyzing-api-gateway-access-logs
 description: "Parses API Gateway access logs (AWS API Gateway, Kong, Nginx) to detect BOLA/IDOR attacks, rate limit bypass, credential scanning, and injection attempts. Uses pandas for statistical analysis of request patterns and anomaly detection. Use when investigating API abuse or building API-specific threat detection rules."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Parses API Gateway access logs (AWS API Gateway, Kong, Nginx) to d
 
 Authoritative source: `.claude/skills/cyber-analyzing-api-gateway-access-logs/SKILL.md`
 
-Authoritative source SHA-256: `b43b7aa1790896c2b1c699de64f81400c73f9f447ab5fff4802a1fcdba2e2b8b`
+Authoritative source SHA-256: `add6f1ebb3557621a73917cf24e4e9dc5a862011e65031c4650394af2d839ed5`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-reverse-engineering-ransomware-encryption-routine
 description: "Reverse engineer ransomware encryption routines to identify cryptographic algorithms, key generation flaws, and potential decryption opportunities using static and dynamic analysis."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Reverse engineer ransomware encryption routines to identify crypto
 
 Authoritative source: `.claude/skills/cyber-reverse-engineering-ransomware-encryption-routine/SKILL.md`
 
-Authoritative source SHA-256: `3fef9adf9a9da422b9d1d9947f055f3cb275521772eff8809f93e36886e55095`
+Authoritative source SHA-256: `a86c4173c93df2a71819fb5f537f925e9e2b5f23fc7b4be53a8c0e0c63ecdeb3`
 
 Source class: `cyber-armed`
 

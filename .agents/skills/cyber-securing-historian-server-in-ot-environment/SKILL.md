@@ -1,6 +1,7 @@
 ---
 name: cyber-securing-historian-server-in-ot-environment
 description: "This skill covers hardening and securing process historian servers (OSIsoft PI, Honeywell PHD, GE Proficy, AVEVA Historian) in OT environments. It addresses network placement across Purdue levels, access control for historian interfaces, data replication through DMZ using data diodes or PI-to-PI connectors, SQL injection prevention in historian queries, and integrity protection of process data use"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "This skill covers hardening and securing process historian servers
 
 Authoritative source: `.claude/skills/cyber-securing-historian-server-in-ot-environment/SKILL.md`
 
-Authoritative source SHA-256: `862f40d0cded556d50a353ade0feb66488044c11d632e3f1f75e7c7eb6a32eb8`
+Authoritative source SHA-256: `bed5ed0891a7f804940b98b05a7c32975bf80d465900ca25774c87bbc69dd139`
 
 Source class: `cyber-armed`
 

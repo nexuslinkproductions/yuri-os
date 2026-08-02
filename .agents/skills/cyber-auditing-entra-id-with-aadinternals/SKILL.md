@@ -1,6 +1,7 @@
 ---
 name: cyber-auditing-entra-id-with-aadinternals
 description: "Run Microsoft Entra ID tenant reconnaissance, token acquisition and manipulation, and federation backdoor testing with the AADInternals PowerShell toolkit to validate identity-attack resilience."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Run Microsoft Entra ID tenant reconnaissance, token acquisition an
 
 Authoritative source: `.claude/skills/cyber-auditing-entra-id-with-aadinternals/SKILL.md`
 
-Authoritative source SHA-256: `0ea28d79840fb015e560fc7a138b2bbd20c51dab36e284cc244575affdf98cbe`
+Authoritative source SHA-256: `fae7a24aebab4977e506f16e4acb7d5744f87efbca865b7aa43f5835890e2261`
 
 Source class: `cyber-armed`
 

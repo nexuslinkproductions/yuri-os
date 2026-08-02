@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-for-living-off-the-land-binaries
 description: "Proactively hunt for adversary abuse of legitimate system binaries (LOLBins) to execute malicious payloads while evading detection."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Proactively hunt for adversary abuse of legitimate system binaries
 
 Authoritative source: `.claude/skills/cyber-hunting-for-living-off-the-land-binaries/SKILL.md`
 
-Authoritative source SHA-256: `3d3b93f5c00d826ae3da53f8e04b9fe9fadfd8e5a52e558e29b8b099c13a68e3`
+Authoritative source SHA-256: `9cf6812540e3db56429d1fae5f7adb567b8e69877fd0a79ef64d53c0113b810c`
 
 Source class: `cyber-armed`
 

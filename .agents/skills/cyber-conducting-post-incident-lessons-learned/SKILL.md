@@ -1,6 +1,7 @@
 ---
 name: cyber-conducting-post-incident-lessons-learned
 description: "Facilitate structured post-incident reviews to identify root causes, document what worked and failed, and produce actionable recommendations to improve future incident response."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Facilitate structured post-incident reviews to identify root cause
 
 Authoritative source: `.claude/skills/cyber-conducting-post-incident-lessons-learned/SKILL.md`
 
-Authoritative source SHA-256: `54df9492642af1ccd8da2e9e38e97a8792544c865d3302b7a4b01b8a88266265`
+Authoritative source SHA-256: `719557cb09953b7d0dd89e31d7e1918b8d0ac2a8ddf06e529458db810d49917c`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-performing-api-fuzzing-with-restler
 description: "Uses Microsoft RESTler to perform stateful REST API fuzzing by automatically generating and executing test sequences that exercise API endpoints, discover producer-consumer dependencies between requests, and find security and reliability bugs. The tester compiles an OpenAPI specification into a RESTler fuzzing grammar, configures authentication, runs test/fuzz-lean/fuzz modes, and analyzes results"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Uses Microsoft RESTler to perform stateful REST API fuzzing by aut
 
 Authoritative source: `.claude/skills/cyber-performing-api-fuzzing-with-restler/SKILL.md`
 
-Authoritative source SHA-256: `7c262a257bc03acdc7203946f77c0fa53d0fd0001d003733f1a1ab43e4989c2e`
+Authoritative source SHA-256: `4e881d38dc0445585b1a8825a8bf942dc3a012a0b5f1f4cc6b19413e61a4c486`
 
 Source class: `cyber-armed`
 

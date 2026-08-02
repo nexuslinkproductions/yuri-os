@@ -1,6 +1,7 @@
 ---
 name: cyber-securing-remote-access-to-ot-environment
 description: "This skill covers implementing secure remote access to OT/ICS environments for operators, engineers, and vendors while preventing unauthorized access that could compromise industrial operations. It addresses jump server architecture, multi-factor authentication, session recording, privileged access management, vendor remote access controls, and compliance with IEC 62443 and NERC CIP-005 remote acc"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "This skill covers implementing secure remote access to OT/ICS envi
 
 Authoritative source: `.claude/skills/cyber-securing-remote-access-to-ot-environment/SKILL.md`
 
-Authoritative source SHA-256: `4c26e3ef84e8d3a5a46beb9688e9c925caa1153db7a942562264e26f224fa1de`
+Authoritative source SHA-256: `d9978a7859be861ecb586dd3cdb82cf0f286756da08b2aa06941af7371906356`
 
 Source class: `cyber-armed`
 

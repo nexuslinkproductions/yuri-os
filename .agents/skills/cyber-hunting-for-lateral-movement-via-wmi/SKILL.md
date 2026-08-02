@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-for-lateral-movement-via-wmi
 description: "Detect WMI-based lateral movement by analyzing Windows Event ID 4688 process creation and Sysmon Event ID 1 for WmiPrvSE.exe child process patterns, remote process execution, and WMI event subscription persistence."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detect WMI-based lateral movement by analyzing Windows Event ID 46
 
 Authoritative source: `.claude/skills/cyber-hunting-for-lateral-movement-via-wmi/SKILL.md`
 
-Authoritative source SHA-256: `ec6882382ac896a62d3a8dfb3ba54d920e990007a53e36eef4a57b02cc8e5e2b`
+Authoritative source SHA-256: `ff8672cc24efe94241fff07fdde13837c9e1588bcd240713027be962be4541b5`
 
 Source class: `cyber-armed`
 

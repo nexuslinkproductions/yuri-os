@@ -1,6 +1,7 @@
 ---
 name: cyber-reverse-engineering-ios-app-with-frida
 description: "Reverse engineers iOS applications using Frida dynamic instrumentation to understand internal logic, extract encryption keys, bypass security controls, and discover hidden functionality without source code access. Use when performing authorized iOS penetration testing, analyzing proprietary protocols, understanding obfuscated logic, or extracting runtime secrets from iOS binaries. Activates for re"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Reverse engineers iOS applications using Frida dynamic instrumenta
 
 Authoritative source: `.claude/skills/cyber-reverse-engineering-ios-app-with-frida/SKILL.md`
 
-Authoritative source SHA-256: `081996de4ccbe2d7d2d218a109c92d5828a04de19c12954d5a35cb6825d520ca`
+Authoritative source SHA-256: `7000d8f21c786dfbf58f106fd7b4df7830dfc8ca6dbd41c6c75be9601eedf847`
 
 Source class: `cyber-armed`
 

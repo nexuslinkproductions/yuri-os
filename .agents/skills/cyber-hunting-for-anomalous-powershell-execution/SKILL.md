@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-for-anomalous-powershell-execution
 description: "Hunt for malicious PowerShell activity by analyzing Script Block Logging (Event 4104), Module Logging (Event 4103), and process creation events. The analyst parses Windows Event Log EVTX files to detect obfuscated commands, AMSI bypass attempts, encoded payloads, credential dumping keywords, and suspicious download cradles. Activates for requests involving PowerShell threat hunting, script block a"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Hunt for malicious PowerShell activity by analyzing Script Block L
 
 Authoritative source: `.claude/skills/cyber-hunting-for-anomalous-powershell-execution/SKILL.md`
 
-Authoritative source SHA-256: `f93e8301436157f28d1e0e64baebcad782846c91abfd9343f2b9d7b1699f1b71`
+Authoritative source SHA-256: `27164258a94047affff91e6c970256ce5df7cf3d4b0d07d55e3f438445d4f12e`
 
 Source class: `cyber-armed`
 

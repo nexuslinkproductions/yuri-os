@@ -1,6 +1,7 @@
 ---
 name: cyber-configuring-pfsense-firewall-rules
 description: "Configures pfSense firewall rules, NAT policies, VPN tunnels, and traffic shaping to enforce network segmentation, control traffic flow, and protect internal network zones in enterprise and small-to-medium business environments."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Configures pfSense firewall rules, NAT policies, VPN tunnels, and 
 
 Authoritative source: `.claude/skills/cyber-configuring-pfsense-firewall-rules/SKILL.md`
 
-Authoritative source SHA-256: `d413277365f26853198667996c8fd0a26c870595841d7de47e388364b6d7fd65`
+Authoritative source SHA-256: `a0073e07b9fbad3125ba5b9c2ba1062a208bf929f64e0ff143dd4ae96b90d550`
 
 Source class: `cyber-armed`
 

@@ -619,3 +619,43 @@ test('skill-recall --show on a labgated source returns the canonical source proj
   const adapter = readFileSync(path.join(root, '.agents/skills/cyber-dual-lab/SKILL.md'), 'utf8');
   assert.ok(adapter.includes('Discovery does not authorize execution'), 'adapter (model-visible surface) must carry the non-authorization wording');
 });
+
+test('hide:true source frontmatter propagates to the adapter and projection manifest for cyber skills, and canonical stays visible', () => {
+  const { root } = normalFixture();
+  const integrityPath = path.join(root, '_SYSTEM/skill-hash-registry.json');
+  const integrity = JSON.parse(readFileSync(integrityPath, 'utf8'));
+  // Add hide:true to the armed + labgated cyber sources; leave canonical alpha visible.
+  const hideTargets = [
+    { id: 'cyber-network-audit', rel: '.claude/skills/cyber-network-audit/SKILL.md' },
+    { id: 'cyber-dual-lab', rel: '.claude/skills-labgated/cyber-dual-lab/SKILL.md' },
+  ];
+  for (const { id, rel } of hideTargets) {
+    const src = readFileSync(path.join(root, rel), 'utf8');
+    const end = src.indexOf('\n---', 3);
+    const hidden = `${src.slice(0, end)}\nhide: true${src.slice(end)}`;
+    write(root, rel, hidden);
+    integrity[id].hash = stableHash(hidden);
+    integrity[id].source_path = rel;
+  }
+  writeJson(root, '_SYSTEM/skill-hash-registry.json', integrity);
+  git(root, ['add', '--update',
+    '.claude/skills/cyber-network-audit/SKILL.md',
+    '.claude/skills-labgated/cyber-dual-lab/SKILL.md',
+    '_SYSTEM/skill-hash-registry.json',
+  ]);
+  const synced = syncProjection(root, SMALL_COUNTS);
+  assert.equal(synced.ok, true, 'sync must succeed with hide:true sources');
+  // Adapter frontmatter: cyber sources carry hide:true; canonical alpha does not.
+  for (const { id } of hideTargets) {
+    const adapter = readFileSync(path.join(root, '.agents/skills', id, 'SKILL.md'), 'utf8');
+    assert.ok(/^hide: true$/m.test(adapter), `${id} adapter frontmatter must carry hide: true`);
+  }
+  const alphaAdapter = readFileSync(path.join(root, '.agents/skills/alpha/SKILL.md'), 'utf8');
+  assert.equal(/^hide: true$/m.test(alphaAdapter), false, 'canonical alpha adapter must NOT be hidden');
+  // Projection manifest: hidden flag matches source class; no non-cyber leak.
+  const manifest = JSON.parse(readFileSync(path.join(root, '.agents/skills/.yuri-projection.json'), 'utf8'));
+  const byId = Object.fromEntries(manifest.skills.map((s) => [s.id, s]));
+  assert.equal(byId['cyber-network-audit'].hidden, true, 'armed cyber manifest entry must be hidden');
+  assert.equal(byId['cyber-dual-lab'].hidden, true, 'labgated cyber manifest entry must be hidden');
+  assert.equal(byId['alpha'].hidden, false, 'canonical alpha manifest entry must not be hidden');
+});

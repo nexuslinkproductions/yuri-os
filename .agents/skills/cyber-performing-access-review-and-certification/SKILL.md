@@ -1,6 +1,7 @@
 ---
 name: cyber-performing-access-review-and-certification
 description: "Conduct systematic access reviews and certifications to ensure users have appropriate access rights aligned with their roles. This skill covers review campaign design, reviewer selection, risk-based p"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Conduct systematic access reviews and certifications to ensure use
 
 Authoritative source: `.claude/skills/cyber-performing-access-review-and-certification/SKILL.md`
 
-Authoritative source SHA-256: `3fb315087a46b137135e53d2983e3cf326bac1a5c524c559a22bc8e8062eb9f3`
+Authoritative source SHA-256: `12a51ae13d4b601b05bc1ed235b7c83024d93c4add4cd1f91f2696416fff54bd`
 
 Source class: `cyber-armed`
 

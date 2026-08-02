@@ -1,6 +1,7 @@
 ---
 name: cyber-auditing-azure-active-directory-configuration
 description: "Auditing Microsoft Entra ID (Azure Active Directory) configuration to identify risky authentication policies, overly permissive role assignments, stale accounts, conditional access gaps, and guest user risks using AzureAD PowerShell, Microsoft Graph API, and ScoutSuite."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Auditing Microsoft Entra ID (Azure Active Directory) configuration
 
 Authoritative source: `.claude/skills/cyber-auditing-azure-active-directory-configuration/SKILL.md`
 
-Authoritative source SHA-256: `7e0ec1073ac7bb034174c043ad913bb5f1b5150d45a5666f0787b2c63505b0ef`
+Authoritative source SHA-256: `c777ff54b162f641118b4b7e046696fb2ba913c9fea13f3ffced1b6e3ea99a5e`
 
 Source class: `cyber-armed`
 

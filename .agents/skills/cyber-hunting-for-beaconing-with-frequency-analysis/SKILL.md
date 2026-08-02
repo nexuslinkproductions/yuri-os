@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-for-beaconing-with-frequency-analysis
 description: "Identify command-and-control beaconing patterns in network traffic by applying statistical frequency analysis, jitter calculation, and coefficient of variation scoring to detect periodic callbacks from compromised endpoints."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Identify command-and-control beaconing patterns in network traffic
 
 Authoritative source: `.claude/skills/cyber-hunting-for-beaconing-with-frequency-analysis/SKILL.md`
 
-Authoritative source SHA-256: `7b173856799a1cfdb27e58d689dcb84af32965bb197b10053c514a8525195eca`
+Authoritative source SHA-256: `1a0f9227aba236d5c3abc68dec762f84bf5fd8a3d3d2b62dbb9308c5d52fac96`
 
 Source class: `cyber-armed`
 

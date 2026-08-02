@@ -1,6 +1,7 @@
 ---
 name: cyber-testing-for-open-redirect-vulnerabilities
 description: "Identify and test open redirect vulnerabilities in web applications by analyzing URL redirection parameters, bypass techniques, and exploitation chains for phishing and token theft."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Identify and test open redirect vulnerabilities in web application
 
 Authoritative source: `.claude/skills/cyber-testing-for-open-redirect-vulnerabilities/SKILL.md`
 
-Authoritative source SHA-256: `01d1f30fe79de37b7c9c70634ff721efc142c07ad4090d10510d2ea427c151fa`
+Authoritative source SHA-256: `c76203309eea2e3b11bf07daa2b492b606aa68fcaa5900e58cf1ab31f4d31d26`
 
 Source class: `cyber-armed`
 

@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: hunting-for-living-off-the-land-binaries | description: Proactively hunt for adversary abuse of legitimate system binaries (LOLBins) |   to execute malicious payloads while evading detection. | domain: cybersecurity | subdomain: threat-hunting | tags: | - threat-hunting | - mitre-attack | - lolbins | - edr | - siem | - proactive-detection | - defense-evasion | version: '1.0' | author: mahipal | license: Apache-2.0 | d3fend_techniques: | - Executable Denylisting | - Execution Isolation | - "
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

@@ -1,6 +1,7 @@
 ---
 name: cyber-performing-asset-criticality-scoring-for-vulns
 description: "Develop and apply a multi-factor asset criticality scoring model to weight vulnerability prioritization based on business impact, data sensitivity, and operational importance."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Develop and apply a multi-factor asset criticality scoring model t
 
 Authoritative source: `.claude/skills/cyber-performing-asset-criticality-scoring-for-vulns/SKILL.md`
 
-Authoritative source SHA-256: `ab0b5571f25c897337d701d3135fd6e20aac92043c87e750c6f769b2e5b20154`
+Authoritative source SHA-256: `ef4cecb2e2faecfa42d730738ae97b2a82f81cd0a0432aad4d0dc35b45cdfdda`
 
 Source class: `cyber-armed`
 

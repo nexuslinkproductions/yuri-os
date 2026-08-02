@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: continuous-llm-red-teaming-with-promptfoo | description: Wire Promptfoo and DeepTeam into CI/CD for automated regression red-teaming of LLM apps against OWASP LLM Top 10 and OWASP Agentic presets, failing the build when jailbreak or injection vulnerabilities regress. | domain: cybersecurity | subdomain: ai-security | tags: | - ai-security | - llm-red-teaming | - promptfoo | - deepteam | - ci-cd | - owasp-llm-top10 | - jailbreak | - regression-testing | version: '1.0' | author: mahipal | li"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

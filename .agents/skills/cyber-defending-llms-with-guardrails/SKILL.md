@@ -1,6 +1,7 @@
 ---
 name: cyber-defending-llms-with-guardrails
 description: "Deploy Llama Guard, NeMo Guardrails, and LLM Guard input/output scanners as runtime defenses."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Deploy Llama Guard, NeMo Guardrails, and LLM Guard input/output sc
 
 Authoritative source: `.claude/skills/cyber-defending-llms-with-guardrails/SKILL.md`
 
-Authoritative source SHA-256: `72751ee4c61f9e2cc60b70a4d1792ac72aea225c966b7e7d533e8d4b751358b5`
+Authoritative source SHA-256: `76e5336438643c29cc1c07588da607415e36813aea36bb9b301ffe164e47ac1e`
 
 Source class: `cyber-armed`
 

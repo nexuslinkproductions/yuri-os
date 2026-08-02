@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: true
 origin_frontmatter: "name: abusing-dpapi-for-credential-access | description: Extract DPAPI-protected secrets such as credentials and browser data offline and online. | domain: cybersecurity | subdomain: red-teaming | tags: | - red-team | - credential-access | - dpapi | - sharpdpapi | - post-exploitation | - active-directory | - windows | - mimikatz | version: '1.0' | author: mahipal | license: Apache-2.0 | nist_csf: | - DE.CM-01 | mitre_attack: | - T1555.004"
+hide: true
 ---
 
 > AUTHORIZED-LAB ONLY. Offensive/dual-use capability. Use exclusively against systems you own or have explicit written authorization to test. This skill is gated out of the default discovery path; activation requires an explicit authorized-engagement flag.

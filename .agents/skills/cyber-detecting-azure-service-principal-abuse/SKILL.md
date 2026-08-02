@@ -1,6 +1,7 @@
 ---
 name: cyber-detecting-azure-service-principal-abuse
 description: "Detect and investigate Azure service principal abuse including privilege escalation, credential compromise, admin consent bypass, and unauthorized enumeration in Microsoft Entra ID environments."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detect and investigate Azure service principal abuse including pri
 
 Authoritative source: `.claude/skills/cyber-detecting-azure-service-principal-abuse/SKILL.md`
 
-Authoritative source SHA-256: `ccceb9e6e7b83ec8dcbe9d423de32cfc5cfc157d031cd72466516287aa42b644`
+Authoritative source SHA-256: `53b115157d58fb2c792fd698f80652314a86740b56fb67c5e35800ca5e271d65`
 
 Source class: `cyber-armed`
 

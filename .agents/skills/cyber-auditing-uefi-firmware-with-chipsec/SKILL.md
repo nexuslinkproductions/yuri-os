@@ -1,6 +1,7 @@
 ---
 name: cyber-auditing-uefi-firmware-with-chipsec
 description: "Use Intel CHIPSEC to assess platform firmware configuration, SPI flash write protection, BIOS lock, SMM/SMRR, and Secure Boot variable state, dump SPI flash, and triage UEFI variables for firmware-level threats."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Use Intel CHIPSEC to assess platform firmware configuration, SPI f
 
 Authoritative source: `.claude/skills/cyber-auditing-uefi-firmware-with-chipsec/SKILL.md`
 
-Authoritative source SHA-256: `b642e3163ff30406ab8cca23df95dd1f97b843479d364a6d85229820ed08416f`
+Authoritative source SHA-256: `448456172e190f2993053ef8633667a8c7110e3c0db6c6dab928996d95de38cf`
 
 Source class: `cyber-armed`
 

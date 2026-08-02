@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: true
 origin_frontmatter: "name: abusing-shadow-credentials-for-privesc | description: Take over Active Directory user and computer accounts by writing alternate certificate keys to msDS-KeyCredentialLink (Shadow Credentials) with pyWhisker, Whisker, and Certipy, then authenticate via PKINIT. | domain: cybersecurity | subdomain: red-teaming | tags: | - red-team | - active-directory | - shadow-credentials | - pywhisker | - certipy | - pkinit | - key-credential-link | - privilege-escalation | version: '1.0' | author: mahipa"
+hide: true
 ---
 
 > AUTHORIZED-LAB ONLY. Offensive/dual-use capability. Use exclusively against systems you own or have explicit written authorization to test. This skill is gated out of the default discovery path; activation requires an explicit authorized-engagement flag.

@@ -1,6 +1,7 @@
 ---
 name: cyber-deploying-software-defined-perimeter
 description: "Deploy a Software-Defined Perimeter using the CSA v2.0 specification with Single Packet Authorization, mutual TLS, and SDP controller/gateway configuration to enforce zero trust network access."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Deploy a Software-Defined Perimeter using the CSA v2.0 specificati
 
 Authoritative source: `.claude/skills/cyber-deploying-software-defined-perimeter/SKILL.md`
 
-Authoritative source SHA-256: `fcce121164e7c151abedfa24964a579b10c9866bef579a7d6107785a034c0d33`
+Authoritative source SHA-256: `db1a7d1a6c7e5626a36f5837928f07d9ab38d49b0e283b3357955076e8b6bb96`
 
 Source class: `cyber-armed`
 

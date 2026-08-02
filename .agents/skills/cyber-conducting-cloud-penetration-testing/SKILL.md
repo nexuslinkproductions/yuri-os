@@ -1,6 +1,7 @@
 ---
 name: cyber-conducting-cloud-penetration-testing
 description: "This skill outlines methodologies for performing authorized penetration testing against AWS, Azure, and GCP cloud environments. It covers understanding the shared responsibility model for testing scope, leveraging cloud-specific attack tools like Pacu and ScoutSuite, exploiting IAM misconfigurations, testing for SSRF to cloud metadata services, and reporting findings aligned to MITRE ATT&CK Cloud"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "This skill outlines methodologies for performing authorized penetr
 
 Authoritative source: `.claude/skills/cyber-conducting-cloud-penetration-testing/SKILL.md`
 
-Authoritative source SHA-256: `666f1c8ca17a7ddb2c7860ac88de6638ea8924d3ad456bdb5e729ba6535e648f`
+Authoritative source SHA-256: `11f6bb31eac54b40d1f1a201dd20f48706c3ee212fc86538d86680ab81c88266`
 
 Source class: `cyber-armed`
 

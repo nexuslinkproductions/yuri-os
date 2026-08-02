@@ -1,6 +1,7 @@
 ---
 name: cyber-building-identity-federation-with-saml-azure-ad
 description: "Establish SAML 2.0 identity federation between on-premises Active Directory and Azure AD (Microsoft Entra ID) for seamless cross-domain authentication and SSO to cloud applications."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Establish SAML 2.0 identity federation between on-premises Active 
 
 Authoritative source: `.claude/skills/cyber-building-identity-federation-with-saml-azure-ad/SKILL.md`
 
-Authoritative source SHA-256: `e4ff90894a6e186618d22e34eca6d7d75f2b5e3169b4a7f94e9204ba4936bf22`
+Authoritative source SHA-256: `c772594e21f893f03aaea99266ca1fff9552e7e55d37b0bf3cf2e97e80eb6da9`
 
 Source class: `cyber-armed`
 

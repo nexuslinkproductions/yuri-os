@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: scanning-kubernetes-manifests-with-kubesec | description: Perform security risk analysis on Kubernetes resource manifests using |   Kubesec to identify misconfigurations, privilege escalation risks, and deviations |   from security best practices. | domain: cybersecurity | subdomain: container-security | tags: | - kubesec | - kubernetes | - manifest-scanning | - security-scanning | - devsecops | - misconfiguration | - static-analysis | - ci-cd | version: '1.0' | author: mahipal | license: "
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

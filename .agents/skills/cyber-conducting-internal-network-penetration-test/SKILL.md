@@ -1,6 +1,7 @@
 ---
 name: cyber-conducting-internal-network-penetration-test
 description: "Execute an internal network penetration test simulating an insider threat or post-breach attacker to identify lateral movement paths, privilege escalation vectors, and sensitive data exposure within the corporate network."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Execute an internal network penetration test simulating an insider
 
 Authoritative source: `.claude/skills/cyber-conducting-internal-network-penetration-test/SKILL.md`
 
-Authoritative source SHA-256: `97547d6659001fe6b701d71b45b293e83f7b8a2c9daaaac782d41913f8ee80e9`
+Authoritative source SHA-256: `6ede5b191204a4bcf7db18871a233cccfca92cfb0559c819f627ef1007cbb185`
 
 Source class: `cyber-armed`
 

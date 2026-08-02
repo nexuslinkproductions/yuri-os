@@ -77,6 +77,7 @@ function buildSkill(entry, srcMd, gated) {
     `source: ${REPO}`,
     'license: Apache-2.0',
     gated ? 'authorized_lab: true' : 'authorized_lab: false',
+    'hide: true',
     `origin_frontmatter: ${JSON.stringify((rawFm || '').replace(/\n/g, ' | ').slice(0, 500))}`,
     '---',
   ].join('\n');

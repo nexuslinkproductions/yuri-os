@@ -1,6 +1,7 @@
 ---
 name: cyber-detecting-business-email-compromise
 description: "Business Email Compromise (BEC) is a sophisticated fraud scheme where attackers impersonate executives, vendors, or trusted partners to trick employees into transferring funds, sharing sensitive data,"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Business Email Compromise (BEC) is a sophisticated fraud scheme wh
 
 Authoritative source: `.claude/skills/cyber-detecting-business-email-compromise/SKILL.md`
 
-Authoritative source SHA-256: `78ef63168d1833b2a268198ac849f79754da3e93f49cfa4f3765bc321ad23864`
+Authoritative source SHA-256: `dc015321ec821a6282f2735fd79e43adab5bde324b0e215c083e047912e0ee4e`
 
 Source class: `cyber-armed`
 

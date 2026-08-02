@@ -1,6 +1,7 @@
 ---
 name: cyber-scanning-kubernetes-manifests-with-kubesec
 description: "Perform security risk analysis on Kubernetes resource manifests using Kubesec to identify misconfigurations, privilege escalation risks, and deviations from security best practices."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Perform security risk analysis on Kubernetes resource manifests us
 
 Authoritative source: `.claude/skills/cyber-scanning-kubernetes-manifests-with-kubesec/SKILL.md`
 
-Authoritative source SHA-256: `d87af77be3e70309385eb043c7dee5c98198ec8716448a65bf95955f9f852a31`
+Authoritative source SHA-256: `019b9007d8ee11514190ce2aa7cc05fb641609e598518d3966a58941c1f1b4a6`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-generating-and-analyzing-sboms
 description: "Produce and ingest CycloneDX and SPDX SBOMs and correlate them to vulnerability intelligence."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Produce and ingest CycloneDX and SPDX SBOMs and correlate them to 
 
 Authoritative source: `.claude/skills/cyber-generating-and-analyzing-sboms/SKILL.md`
 
-Authoritative source SHA-256: `e64ec16ba13afd178df3b75a2be1f913483f917de10de16db0947f9a16e5daee`
+Authoritative source SHA-256: `c24223efd074593c3e7fe7ab3872568393ca030c6b5dda77d6d06ee14e353a0a`
 
 Source class: `cyber-armed`
 

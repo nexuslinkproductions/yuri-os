@@ -1,6 +1,7 @@
 ---
 name: cyber-auditing-kubernetes-rbac-privilege-escalation
 description: "Find over-permissive RBAC roles and service-account token abuse paths in Kubernetes using kubectl auth can-i, rbac-police, kubectl-who-can, and rakkess during authorized cluster security reviews."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Find over-permissive RBAC roles and service-account token abuse pa
 
 Authoritative source: `.claude/skills/cyber-auditing-kubernetes-rbac-privilege-escalation/SKILL.md`
 
-Authoritative source SHA-256: `a763f0fb22776266fa15d8dc92796605538bed331b91afba650a88af4cc9f24f`
+Authoritative source SHA-256: `91dc74138dc4434a09c510e426cb4d8fcdba8d7467da7f9bd7054cca0a9ba472`
 
 Source class: `cyber-armed`
 

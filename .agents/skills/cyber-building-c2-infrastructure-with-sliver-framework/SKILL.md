@@ -1,6 +1,7 @@
 ---
 name: cyber-building-c2-infrastructure-with-sliver-framework
 description: "Build and configure a resilient command-and-control infrastructure using BishopFox's Sliver C2 framework with redirectors, HTTPS listeners, and multi-operator support for authorized red team engagements."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Build and configure a resilient command-and-control infrastructure
 
 Authoritative source: `.claude/skills/cyber-building-c2-infrastructure-with-sliver-framework/SKILL.md`
 
-Authoritative source SHA-256: `bf8c89b687585ffa63d6edb2cbd3098e28c3d5877c2dac3c432aaf7b2061873d`
+Authoritative source SHA-256: `7b5a8d051efe2a627c408c35885187241167d2163f60f5e464003bc17d54fc2f`
 
 Source class: `cyber-armed`
 
