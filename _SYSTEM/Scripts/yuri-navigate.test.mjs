@@ -106,5 +106,12 @@ const env = navigateEnvelope({ nodeId: 'energy-fn' }, { graph: g });
 ok(env.op === 'navigate' && env.verification.advisory_only === true && env.completeness.structuralLegAvailable === false,
   'navigateEnvelope docks the advisory contract with completeness reporting');
 
+// ---- TEST 9: NUL-DELIMITER HYGIENE (textual escape in source, NUL preserved at runtime) ----
+const navSource = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'yuri-navigate.mjs'));
+ok(!navSource.includes(0), 'no literal NUL bytes remain in yuri-navigate.mjs source');
+const gNul = loadUnifiedGraph();
+const nulKeys = [...gNul.edgeKindOf.keys()];
+ok(nulKeys.length > 0 && nulKeys.every((k) => k.includes('\x00')), 'runtime edgeKindOf keys still carry the NUL delimiter (\\u0000 escape preserves semantics)');
+
 console.log(`\nyuri-navigate.test: ${pass} passed, ${fail} failed`);
 process.exitCode = fail === 0 ? 0 : 1;
