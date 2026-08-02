@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-07-19",
+  "updated": "2026-08-02",
   "purpose": "Non-secret path-level reconciliation for duplicate native Codex skill roots. Generated agents/openai.yaml sidecars are the sole invocation authority for all governed YURI adapters; this registry never targets .agents/skills and no skill body is deleted.",
   "resolution": "native-collision-only-exact-path-state",
   "rules": {
@@ -9,7 +9,8 @@
     "reconciliationScope": "native-collision-only",
     "governedAdapterWrites": 0,
     "projectConfigIsNotRuntimeProof": true,
-    "runtimeProof": "codex-debug-prompt-input-bounded-full-description-receipt"
+    "runtimeProof": "codex-debug-prompt-input-bounded-full-description-receipt",
+    "portablePathConvention": "repo-local entries are repository-relative (.codex/...) and resolve against the active repoRoot; machine-global entries remain absolute"
   },
   "collisions": [
     {
@@ -50,49 +51,49 @@
     },
     {
       "adapterId": "imagegen",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/.system/imagegen/SKILL.md",
+      "legacyPath": ".codex/skills/.system/imagegen/SKILL.md",
       "state": "disabled-repository-alternate",
       "requiredEnabled": false
     },
     {
       "adapterId": "openai-docs",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/.system/openai-docs/SKILL.md",
+      "legacyPath": ".codex/skills/.system/openai-docs/SKILL.md",
       "state": "disabled-repository-alternate",
       "requiredEnabled": false
     },
     {
       "adapterId": "plugin-creator",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/.system/plugin-creator/SKILL.md",
+      "legacyPath": ".codex/skills/.system/plugin-creator/SKILL.md",
       "state": "disabled-repository-alternate",
       "requiredEnabled": false
     },
     {
       "adapterId": "skill-creator",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/.system/skill-creator/SKILL.md",
+      "legacyPath": ".codex/skills/.system/skill-creator/SKILL.md",
       "state": "disabled-repository-alternate",
       "requiredEnabled": false
     },
     {
       "adapterId": "skill-installer",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/.system/skill-installer/SKILL.md",
+      "legacyPath": ".codex/skills/.system/skill-installer/SKILL.md",
       "state": "disabled-repository-alternate",
       "requiredEnabled": false
     },
     {
       "adapterId": "humanizer",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/humanizer/SKILL.md",
+      "legacyPath": ".codex/skills/humanizer/SKILL.md",
       "state": "current",
       "requiredEnabled": true
     },
     {
       "adapterId": "hatch-pet",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/hatch-pet/SKILL.md",
+      "legacyPath": ".codex/skills/hatch-pet/SKILL.md",
       "state": "latent-full-checkout",
       "requiredEnabled": false
     },
     {
       "adapterId": "browser-harness",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/browser-harness/SKILL.md",
+      "legacyPath": ".codex/skills/browser-harness/SKILL.md",
       "state": "latent-broken-symlink",
       "requiredEnabled": false
     }
