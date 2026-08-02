@@ -3,8 +3,8 @@
   "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
   "canonical": {
     "indexPath": "skills/skill-index.json",
-    "indexSha256": "c2fb88bea622ec4ed18831682ab031b5095e016137e651efeee5036f03e4761c",
-    "count": 127
+    "indexSha256": "e3d8ed01846c6ca9454bfd1308736dde1ad9f5061fe66c2f06eca86d4dde520e",
+    "count": 169
   },
   "cyber": {
     "manifestPath": "_SYSTEM/config/cyber-skill-registry.json",
@@ -65,8 +65,8 @@
   },
   "projection": {
     "root": ".agents/skills",
-    "count": 466,
-    "aggregateSha256": "cf54c7ff9b0884cec9bdf62c8e489c55dcae4fed36d76cd6d9c9e9ae6af76312",
+    "count": 508,
+    "aggregateSha256": "c003b01be5fd019d38bac308278d6b76237c75daa589eb2e0b9a61ec1fa5a90b",
     "nativeInvocation": {
       "sidecarRelativePath": "agents/openai.yaml",
       "provenance": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
@@ -77,7 +77,7 @@
         ]
       },
       "explicitOnly": {
-        "count": 465
+        "count": 507
       }
     }
   },
@@ -132,7 +132,7 @@
     },
     {
       "id": "imagegen",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/.system/imagegen/SKILL.md",
+      "legacyPath": ".codex/skills/.system/imagegen/SKILL.md",
       "state": "disabled-repository-alternate",
       "requiredEnabled": false,
       "registryResolution": "native-collision-only-exact-path-state",
@@ -140,7 +140,7 @@
     },
     {
       "id": "openai-docs",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/.system/openai-docs/SKILL.md",
+      "legacyPath": ".codex/skills/.system/openai-docs/SKILL.md",
       "state": "disabled-repository-alternate",
       "requiredEnabled": false,
       "registryResolution": "native-collision-only-exact-path-state",
@@ -148,7 +148,7 @@
     },
     {
       "id": "plugin-creator",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/.system/plugin-creator/SKILL.md",
+      "legacyPath": ".codex/skills/.system/plugin-creator/SKILL.md",
       "state": "disabled-repository-alternate",
       "requiredEnabled": false,
       "registryResolution": "native-collision-only-exact-path-state",
@@ -156,7 +156,7 @@
     },
     {
       "id": "skill-creator",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/.system/skill-creator/SKILL.md",
+      "legacyPath": ".codex/skills/.system/skill-creator/SKILL.md",
       "state": "disabled-repository-alternate",
       "requiredEnabled": false,
       "registryResolution": "native-collision-only-exact-path-state",
@@ -164,7 +164,7 @@
     },
     {
       "id": "skill-installer",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/.system/skill-installer/SKILL.md",
+      "legacyPath": ".codex/skills/.system/skill-installer/SKILL.md",
       "state": "disabled-repository-alternate",
       "requiredEnabled": false,
       "registryResolution": "native-collision-only-exact-path-state",
@@ -172,7 +172,7 @@
     },
     {
       "id": "humanizer",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/humanizer/SKILL.md",
+      "legacyPath": ".codex/skills/humanizer/SKILL.md",
       "state": "current",
       "requiredEnabled": true,
       "registryResolution": "native-collision-only-exact-path-state",
@@ -180,7 +180,7 @@
     },
     {
       "id": "hatch-pet",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/hatch-pet/SKILL.md",
+      "legacyPath": ".codex/skills/hatch-pet/SKILL.md",
       "state": "latent-full-checkout",
       "requiredEnabled": false,
       "registryResolution": "native-collision-only-exact-path-state",
@@ -188,7 +188,7 @@
     },
     {
       "id": "browser-harness",
-      "legacyPath": "/Users/marcelspatz/YURI-OS-MUSUBI/.codex/skills/browser-harness/SKILL.md",
+      "legacyPath": ".codex/skills/browser-harness/SKILL.md",
       "state": "latent-broken-symlink",
       "requiredEnabled": false,
       "registryResolution": "native-collision-only-exact-path-state",
@@ -612,6 +612,34 @@
         "provenance": {
           "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
           "governedSkillId": "cgs-mold",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "cheap-tier-recon-dispatch",
+      "sourcePath": "skills/cheap-tier-recon-dispatch/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "83ae539ea521ef32ab8f2639fff53056aa049452f9e247cb601c86b02de364ef",
+      "sourceFrontmatterSha256": "996d1227d899119ee13624814b25bf92f89a4119d42489923340b807ecf9c557",
+      "adapterFrontmatterSha256": "996d1227d899119ee13624814b25bf92f89a4119d42489923340b807ecf9c557",
+      "adapterSha256": "9ff114b19288bce0a8deb38657b014eb0d6f54a928b05d4400122ac5a7dfe805",
+      "materialization": "worktree",
+      "gitBlobOid": "b5ffaf0fe0903d34b2346c32928295af8a91a351",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/cheap-tier-recon-dispatch/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "cheap-tier-recon-dispatch",
           "policyClass": "explicit-only"
         }
       }
@@ -10450,6 +10478,34 @@
       }
     },
     {
+      "id": "design-dna",
+      "sourcePath": "skills/design-dna/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "c04472d2cced644f48485f630cb48e2f496624c65b9f0e5f28aec9af153c7fbf",
+      "sourceFrontmatterSha256": "f131b4ec15b30348d97ecaf4185602b7930a3971b384ebefe16c925748924dca",
+      "adapterFrontmatterSha256": "d785c266f764c889fd89c088cac8bec95d0865e0141bf06ed3bf347b4d80396d",
+      "adapterSha256": "df93b6c5aa5fdfa96761ce91afc4b61d83454261ad632828b77eadace1cadd9c",
+      "materialization": "worktree",
+      "gitBlobOid": "3445a9609f5db1bd11371e2b1d0dff7233eb88a0",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/design-dna/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "design-dna",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
       "id": "design-source-pack",
       "sourcePath": "skills/design-source-pack/SKILL.md",
       "sourceClass": "canonical",
@@ -10730,6 +10786,34 @@
       }
     },
     {
+      "id": "fleet-model-economy",
+      "sourcePath": "skills/fleet-model-economy/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "06c0c01959893ce7b12ed4e4e212a3cc3c5bb1c8369cf47a05c8b8e76e0d4541",
+      "sourceFrontmatterSha256": "d9caba3813305f506015833bde6225c0f2210893e2e0ad14823d9f10d7b1658d",
+      "adapterFrontmatterSha256": "d9caba3813305f506015833bde6225c0f2210893e2e0ad14823d9f10d7b1658d",
+      "adapterSha256": "e0f10071871e8e0d03b1de0856c3e8d21d5c37053fbd78ca5be83d872a597b3d",
+      "materialization": "worktree",
+      "gitBlobOid": "da45fe04898aaaf3cee0b505502bd5b3e8a41fdf",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/fleet-model-economy/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "fleet-model-economy",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
       "id": "frontend-design",
       "sourcePath": "skills/frontend-design/SKILL.md",
       "sourceClass": "canonical",
@@ -10781,6 +10865,482 @@
         "provenance": {
           "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
           "governedSkillId": "geass-lock",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-canvas-generative",
+      "sourcePath": "skills/genjutsu-canvas-generative/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "f1e6ea381ac0b6ae9f8dbffb5acb5a50d204aeebfc17e7962a84f52ce4778ac8",
+      "sourceFrontmatterSha256": "be89953b91202e96b7edcfea4657834354967bbdbc6551ae7be4d597452e533b",
+      "adapterFrontmatterSha256": "be89953b91202e96b7edcfea4657834354967bbdbc6551ae7be4d597452e533b",
+      "adapterSha256": "cd7398611ee55aa53ba7730dee93155141cadd1c91bd8ad1e178a336ad0c3326",
+      "materialization": "worktree",
+      "gitBlobOid": "84e21e030dcbed7f4203200c0624bc76d0b6fec4",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-canvas-generative/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-canvas-generative",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-cast",
+      "sourcePath": "skills/genjutsu-cast/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "069f04584c268198ce62139733b3b25c62f482c2f39752dcce1f4f999fde4652",
+      "sourceFrontmatterSha256": "83fff30e6d2a323f5102b24c7b6866a3f507f4c0b140df26c56cb8a370c6ebfe",
+      "adapterFrontmatterSha256": "ece301efb388737f59462bd13f264a5bfd4a6ea4db6f371ad62589e00812d89f",
+      "adapterSha256": "c42c7b11e5ef67832e14520013a6055263fbbb8253646f6667a38783500ec6f3",
+      "materialization": "worktree",
+      "gitBlobOid": "9d56dde5cba27d7ffceac601b389ed31c8fff5a8",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-cast/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-cast",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-compose-graphics",
+      "sourcePath": "skills/genjutsu-compose-graphics/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "900d8bd660056e40851aab825a4c14b1798821dae7353b14849fa55c76456252",
+      "sourceFrontmatterSha256": "1c10840f9986da608f95930b27c4353c7480544004745f6b79a59a86c7089d15",
+      "adapterFrontmatterSha256": "1c10840f9986da608f95930b27c4353c7480544004745f6b79a59a86c7089d15",
+      "adapterSha256": "1915211dd339fd2ec5d6aba4ae149ff5076869db204e175642a186751e7c910a",
+      "materialization": "worktree",
+      "gitBlobOid": "abdca914dd9d791b7e4581218d327bee3553cbd0",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-compose-graphics/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-compose-graphics",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-compose-motion",
+      "sourcePath": "skills/genjutsu-compose-motion/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "319e7a9ee08235ec331a13eb2890a3dfa00168ea9df420ffd96d8b4daed31b2a",
+      "sourceFrontmatterSha256": "428cfdf821b6a7ecbdcb940ae8da2eabb3cec144e3c09445515db320b0d669a7",
+      "adapterFrontmatterSha256": "428cfdf821b6a7ecbdcb940ae8da2eabb3cec144e3c09445515db320b0d669a7",
+      "adapterSha256": "356ae6fea23fa7c154452445a9377212e5dba662498f23c24fb0c1c7954a34e9",
+      "materialization": "worktree",
+      "gitBlobOid": "ea26cb7d4d0b95597d78b6e708e47b3b7f0a4530",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-compose-motion/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-compose-motion",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-compose-multiplatform",
+      "sourcePath": "skills/genjutsu-compose-multiplatform/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "e97acdb2c96abf5a2fdd887a73522875e38891f7874b646738492408ea2f79cb",
+      "sourceFrontmatterSha256": "2091e90a371cc03c3d9b072a88aea36de2b45f33ef4ae62132bd4de986c9a23c",
+      "adapterFrontmatterSha256": "2091e90a371cc03c3d9b072a88aea36de2b45f33ef4ae62132bd4de986c9a23c",
+      "adapterSha256": "ab5306099b5af108e5aca1ab8c49c2c97e14107744ee97f537db3043bdfaa001",
+      "materialization": "worktree",
+      "gitBlobOid": "47f2142aa296ab8500f79fffa11d40abeb1cafea",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-compose-multiplatform/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-compose-multiplatform",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-css-native",
+      "sourcePath": "skills/genjutsu-css-native/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "7d1e67f3022789c659d5a7c7b8b3f3fc9480d47fe18a1b73dd7f10608fca99c5",
+      "sourceFrontmatterSha256": "8b853ca0dde646776720f734f0ac3c2399d376cfc35e12a26d2b36e6679af4ce",
+      "adapterFrontmatterSha256": "8b853ca0dde646776720f734f0ac3c2399d376cfc35e12a26d2b36e6679af4ce",
+      "adapterSha256": "fd135f960e64195add52af9e51aeb9e493053d1126732e74ef65f30df3e66c20",
+      "materialization": "worktree",
+      "gitBlobOid": "dda9ac6768977f1b37b7a858c12774b5e11c36c5",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-css-native/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-css-native",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-design-audit",
+      "sourcePath": "skills/genjutsu-design-audit/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "aad1f1b3161dc2bd2a36321321c4de4abb889b2a476f0ae6f80a6846352fa7cc",
+      "sourceFrontmatterSha256": "6746d79f934ad409019ee0e9c46e73e66f145d4e98535cf730ff4ade90c63daf",
+      "adapterFrontmatterSha256": "6746d79f934ad409019ee0e9c46e73e66f145d4e98535cf730ff4ade90c63daf",
+      "adapterSha256": "18e2c83349fa08a073ab70ed424b5f756a024281ba76a25a67ba9081d41284c8",
+      "materialization": "worktree",
+      "gitBlobOid": "38201473cd870784caa4e827e5d3412baa44bb37",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-design-audit/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-design-audit",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-desktop-principles",
+      "sourcePath": "skills/genjutsu-desktop-principles/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "af820131c15e6bb751819d8983e9eb1efd1b18970b52335b777f78b99f1b6179",
+      "sourceFrontmatterSha256": "3d91f8fd809a118b1567421a000779b8c5d667672a33951c9ce486e2b9220941",
+      "adapterFrontmatterSha256": "3d91f8fd809a118b1567421a000779b8c5d667672a33951c9ce486e2b9220941",
+      "adapterSha256": "fc149dff323b847e5aaab7b99a1d1d6db691371a5ab4b88fe77d670e798345ef",
+      "materialization": "worktree",
+      "gitBlobOid": "4fd5b1d29026da4f0e238bc106e3f584f1a7e2e2",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-desktop-principles/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-desktop-principles",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-framer-motion",
+      "sourcePath": "skills/genjutsu-framer-motion/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "00ff51275676babec1b9b9d3a7788e908ad312942ec2d36b1e0daf3ba64ddad8",
+      "sourceFrontmatterSha256": "0867dcba8a903f2d94b3bd32b3c86d39053aeb774e1a60fb8d41e8710925176f",
+      "adapterFrontmatterSha256": "0867dcba8a903f2d94b3bd32b3c86d39053aeb774e1a60fb8d41e8710925176f",
+      "adapterSha256": "c734162447e9b5ef74e3c54199c35b0482f5ce6cdcbdbc332e4dc1940017c29d",
+      "materialization": "worktree",
+      "gitBlobOid": "4652429211a934b3660439dac1748d08311d561a",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-framer-motion/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-framer-motion",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-gsap",
+      "sourcePath": "skills/genjutsu-gsap/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "23c1ba0e8f6e8b27f35b4d385ca66b49e0d23bc4bde82088360fb7a57071edb4",
+      "sourceFrontmatterSha256": "d70f664fe00b53540e9df822b2c9aa3504d78f5f75e93fbf2c00157b9dd42588",
+      "adapterFrontmatterSha256": "d70f664fe00b53540e9df822b2c9aa3504d78f5f75e93fbf2c00157b9dd42588",
+      "adapterSha256": "0950ef478ef88ee0101c471673a714adcd120ecebbcf1757628966bfb334cc9a",
+      "materialization": "worktree",
+      "gitBlobOid": "8b8d22b46167b0cb0e032857349e0f9a25e89d19",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-gsap/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-gsap",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-mobile-principles",
+      "sourcePath": "skills/genjutsu-mobile-principles/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "6a215dcbb2dcb6fdae2037e6a10d43a36e507f17adfb01ee0aa5fff5e6381314",
+      "sourceFrontmatterSha256": "ae1908131f45bb73662aa278049bb63a70efeca62e2287376a7c55175b213712",
+      "adapterFrontmatterSha256": "ae1908131f45bb73662aa278049bb63a70efeca62e2287376a7c55175b213712",
+      "adapterSha256": "ac384b4b100ac8ac78ea2f59098de06d5f042ed61f3709b0d414362257113fc0",
+      "materialization": "worktree",
+      "gitBlobOid": "8c72748663f4876d4b1fb4dfefda3b6f8abdc949",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-mobile-principles/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-mobile-principles",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-motion-principles",
+      "sourcePath": "skills/genjutsu-motion-principles/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "5de6b9f29bdc143ac36000f2ec1e21fc8a52d64fbae688b8a0f909ee239b98fc",
+      "sourceFrontmatterSha256": "aebf307bde95e51bdce621876e3c69950e1bbb141b8caadc29e5b6c3097873b8",
+      "adapterFrontmatterSha256": "aebf307bde95e51bdce621876e3c69950e1bbb141b8caadc29e5b6c3097873b8",
+      "adapterSha256": "8b1af1d3fda62dbeb6c874f65990b037c35655c40de11826c1a376052af1b3a1",
+      "materialization": "worktree",
+      "gitBlobOid": "2cd0827f2cd38a0d524ba1beea35da29e785e165",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-motion-principles/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-motion-principles",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-paint",
+      "sourcePath": "skills/genjutsu-paint/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "28510dc16634a87edafb17ebffefa16a579f49cd3a06487677cbc44a8cf034e8",
+      "sourceFrontmatterSha256": "6495fbd1bb7034d62b5cbf5577fa7c00992b22e3ecb79c925297f692b03c2c13",
+      "adapterFrontmatterSha256": "8827865817cb73f27bfa7f818965c37f4fc85913e10fa56eff9be70a309a3ecd",
+      "adapterSha256": "3ca80258665df684954c04f714cba438d37907f7668bd3d4a4945f956b38681d",
+      "materialization": "worktree",
+      "gitBlobOid": "c8d3479c8e9b617705f61d6e35d42843d79d8175",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-paint/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-paint",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-swiftui-graphics",
+      "sourcePath": "skills/genjutsu-swiftui-graphics/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "810860c3016fd1decc217f5654c21cfd0d80f4b5f390fdd583bf66ee9bc4fa9e",
+      "sourceFrontmatterSha256": "1770faa76c52a9f7e6c0b86c1b76fcd9ead809ab339c3ac348b40a0f6756a878",
+      "adapterFrontmatterSha256": "1770faa76c52a9f7e6c0b86c1b76fcd9ead809ab339c3ac348b40a0f6756a878",
+      "adapterSha256": "b4b87cc13fe2bd244d9fe458e56c42350790878b2b0dd405c5434a734e266306",
+      "materialization": "worktree",
+      "gitBlobOid": "6cebae5a6d919eee1c240d0d3c9ad1c3b3333a69",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-swiftui-graphics/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-swiftui-graphics",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-swiftui-motion",
+      "sourcePath": "skills/genjutsu-swiftui-motion/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "827afa8a3f90932bc60eaaffe6f76a1e5dfd5ed6710311ea236cf1f38ac11d89",
+      "sourceFrontmatterSha256": "2b06dcbcb10599fafdc1af453b567da666274480050be23f7b89a7ff452f1437",
+      "adapterFrontmatterSha256": "2b06dcbcb10599fafdc1af453b567da666274480050be23f7b89a7ff452f1437",
+      "adapterSha256": "79136397faa870e950a9a7e1ab30dfb86dc7ae8590756f381d13324766f55bf5",
+      "materialization": "worktree",
+      "gitBlobOid": "9b385e0a99ba167172ab066d179bb284e4f67df0",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-swiftui-motion/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-swiftui-motion",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-threejs-r3f",
+      "sourcePath": "skills/genjutsu-threejs-r3f/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "5658acf105ddb69d9ebdbe40012673fe99db4b4eb294b5ca4dbe7e983d601afb",
+      "sourceFrontmatterSha256": "cd07d1dc7ab075b76bfca0688bf27f9a4b69f100c2de1b43e71eb233fa9221f8",
+      "adapterFrontmatterSha256": "cd07d1dc7ab075b76bfca0688bf27f9a4b69f100c2de1b43e71eb233fa9221f8",
+      "adapterSha256": "8d0e36b8bb62b1277811cb00548bc0a2f07cdab71315bc2691eda9711a3fe6da",
+      "materialization": "worktree",
+      "gitBlobOid": "5ce7857ebf2b1a12205034d1b6487aeb375623ea",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-threejs-r3f/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-threejs-r3f",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "genjutsu-ui-ux-pro-max",
+      "sourcePath": "skills/genjutsu-ui-ux-pro-max/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "698a564904d306507fb575b2b8b63306b944d0a15020d4698d47dcebac192e36",
+      "sourceFrontmatterSha256": "aee68d42d71b796bc85db0f00e0a5cf678ce202b5e21cf6246fab47947fec230",
+      "adapterFrontmatterSha256": "aee68d42d71b796bc85db0f00e0a5cf678ce202b5e21cf6246fab47947fec230",
+      "adapterSha256": "aaaa3a57eceb148d18ac506f67a2a2dd3950ad9302880f176d323a564c64b887",
+      "materialization": "worktree",
+      "gitBlobOid": "2ec2d9abfc1cacd72e593fcd830453d5f6bba72c",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/genjutsu-ui-ux-pro-max/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "genjutsu-ui-ux-pro-max",
           "policyClass": "explicit-only"
         }
       }
@@ -11122,6 +11682,230 @@
       }
     },
     {
+      "id": "gsap-core",
+      "sourcePath": "skills/gsap-core/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "3887b47e050ab5afbe2a9a820f23d39fa02ab785e06a343be44c6f91d84d12b3",
+      "sourceFrontmatterSha256": "5a15f78937663e87f9b9f40c6c713b0e48341403526bf52bda37d7af19674fa8",
+      "adapterFrontmatterSha256": "96e3e295dff2f6c225396bd52cf058a8d2f19755aaa734e9a32e713e7009981c",
+      "adapterSha256": "8fa76e60c29a67ab1b16d5c7c96cc12998783bbb571fa5220dc57bc461cdf9f0",
+      "materialization": "worktree",
+      "gitBlobOid": "98639432f4112b664aa5e53cf5d8ea1a4697eff9",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/gsap-core/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "gsap-core",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "gsap-frameworks",
+      "sourcePath": "skills/gsap-frameworks/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "842d9d3659ec3ddc8abbdc524708f8facf81f468ac25d0577f48c759c4fa31e6",
+      "sourceFrontmatterSha256": "68f1ed733762989d7ea93be026c6848803c7161b2df1a34e3d7f86b885b57110",
+      "adapterFrontmatterSha256": "123f9e817f72b9c4295969d9f6f15fab62d298520c33f7658d51b11b76d72e21",
+      "adapterSha256": "8a90d9bcc18ee1cbd7c4c1264d3a8b4448f2909c5967b57421a1acd4b9a24bdb",
+      "materialization": "worktree",
+      "gitBlobOid": "3c2df8611b61d0c97abb8d32ed922ce8207424e5",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/gsap-frameworks/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "gsap-frameworks",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "gsap-performance",
+      "sourcePath": "skills/gsap-performance/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "cb5408d6fba707aabcbfe3320317a14c1f8fca6070074e5261047930f50d441e",
+      "sourceFrontmatterSha256": "c67352da8ec65d1dd593ebb3820a1d22cf196d7e6390b4d0d4d73f30b252d75a",
+      "adapterFrontmatterSha256": "ca753b0166d7c546f00116f7b095d2347e9180407d7420e846bd13747a7da8bb",
+      "adapterSha256": "1ab0862c6b39c3b2bb04a47b4b52d98a047ded6488bec78d3cc415bea9a2d977",
+      "materialization": "worktree",
+      "gitBlobOid": "05792acf5b0ea7fd30042cdc5e91282e8e047898",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/gsap-performance/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "gsap-performance",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "gsap-plugins",
+      "sourcePath": "skills/gsap-plugins/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "5838b856c74c07fbc9fa99b6dfd1eee34ea554c3e530c30e0d58014b707d70a4",
+      "sourceFrontmatterSha256": "bc4211f93b90d91b00eb44bcaf830364861b3b7bdbe05c256e78b23d83995572",
+      "adapterFrontmatterSha256": "cd8f4474b878ba17224162aba3b635ec2778752ad532bd62208e8ef258f6f097",
+      "adapterSha256": "cda6a2d16e40c35fa8a8fe046070fef667c5e64b8d4e44bbf2639af437ff3919",
+      "materialization": "worktree",
+      "gitBlobOid": "bb5f7483038adf26a889c8b2b85e3ef2cf0141dc",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/gsap-plugins/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "gsap-plugins",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "gsap-react",
+      "sourcePath": "skills/gsap-react/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "88e2a5312b45e8cc7b3c496637ff5bc9af2ae9c925b555c8b235b34cbc989d74",
+      "sourceFrontmatterSha256": "15aff441f8d145855c4133109b421bb14bdea606f54eba3c52d08fc6cc638f1d",
+      "adapterFrontmatterSha256": "93aa9b161967d8c59293d09af66eab8a3947d145c6032e6b282728f8bac07d04",
+      "adapterSha256": "a2dbef422a7686f286a9318dffdb38c3ec22cf4dfa7c1ce57d787de6d374a3d2",
+      "materialization": "worktree",
+      "gitBlobOid": "e2e51805457943cd4982fe792b858c14fa2c3c8f",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/gsap-react/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "gsap-react",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "gsap-scrolltrigger",
+      "sourcePath": "skills/gsap-scrolltrigger/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "9351b6666a4749c0740406ea363aaccb99a087ff45cc5e8b99a0f367facf3ef4",
+      "sourceFrontmatterSha256": "24825743c0b14f9c4ce54705e80001bb8491065f5a8181cd596d090e439ce610",
+      "adapterFrontmatterSha256": "6c0f441ee905ba50dfc6afccdc2898c2aba25e4553faf70e07a4ad328b4d4786",
+      "adapterSha256": "8dff1c16e1cc6c2a9061f966c32675b50b49737e27e822a36f4903dbfea341cd",
+      "materialization": "worktree",
+      "gitBlobOid": "6d8c09f2136c108595c9e0db859c4a39460e99cf",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/gsap-scrolltrigger/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "gsap-scrolltrigger",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "gsap-timeline",
+      "sourcePath": "skills/gsap-timeline/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "1a8b0f39cc4be3ed3d834b89672e4ae2f151b901dc3450bebf10bbc45379fe02",
+      "sourceFrontmatterSha256": "08ab11ed2016f9c5d9636becdca42c446a08b7676d3bc5756fc8e6a261c244de",
+      "adapterFrontmatterSha256": "1abd577326b480c1fcf5a1e0931e902425e87164b2e32dae6881779039dd669c",
+      "adapterSha256": "2caf2d7fe45642a4d5c07c7035da0155fc926cac24abd78a102672ed1fa73441",
+      "materialization": "worktree",
+      "gitBlobOid": "1fed372b0e5276b2a207d80bc23f81180a0dff55",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/gsap-timeline/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "gsap-timeline",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "gsap-utils",
+      "sourcePath": "skills/gsap-utils/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "1927bcc4ea95b38203404ad5ea1d060b15c4a886c65ae53e885ff1793aabe0ba",
+      "sourceFrontmatterSha256": "44e89388c2985798a048a8854b6c53ee67dce70765a8dce51254d5e38510e903",
+      "adapterFrontmatterSha256": "af1e9e4f34908402e422414be35379c93d6ea8bc1cae3d0262eac5ddeb7a66b5",
+      "adapterSha256": "34d9598d390d4a133bd81de1b0e35fe552b80db15f42c3ec78bdf8e0005562b0",
+      "materialization": "worktree",
+      "gitBlobOid": "367e405e027936ce6b5fb85ec996beb135715194",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/gsap-utils/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "gsap-utils",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
       "id": "haki-intent",
       "sourcePath": "skills/haki-intent/SKILL.md",
       "sourceClass": "canonical",
@@ -11346,6 +12130,34 @@
       }
     },
     {
+      "id": "mcp-stdio-liveness-audit-macos",
+      "sourcePath": "skills/mcp-stdio-liveness-audit-macos/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "0a3f2c2da9de1469fd4166825bdbba267cc63178b9f502400dfbbdb36f2e34ee",
+      "sourceFrontmatterSha256": "86199f69c59e3a62213e71f5a1971e041b8ea371c5bf33bfe6ce215183119765",
+      "adapterFrontmatterSha256": "86199f69c59e3a62213e71f5a1971e041b8ea371c5bf33bfe6ce215183119765",
+      "adapterSha256": "fde6e4839d5d0e97f29fbc75c14f56444ea67857de0e4f39565385b10f33b4a9",
+      "materialization": "worktree",
+      "gitBlobOid": "62b41f42f9ba733c1e4d3d8b44e3083e58bb22c0",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/mcp-stdio-liveness-audit-macos/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "mcp-stdio-liveness-audit-macos",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
       "id": "migrate-to-shoehorn",
       "sourcePath": "skills/migrate-to-shoehorn/SKILL.md",
       "sourceClass": "canonical",
@@ -11397,6 +12209,34 @@
         "provenance": {
           "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
           "governedSkillId": "mineru-document-extractor",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "motion-design",
+      "sourcePath": "skills/motion-design/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "8729ecbc7e5736c1295baaa8ba0384bb4b1aac9cf91b83fcdc64d9548a57bb19",
+      "sourceFrontmatterSha256": "2b1026a52876037891e8aeacc0038e3f7d6242ee6bff3314a252230e616d4f22",
+      "adapterFrontmatterSha256": "9a827d5cc1ba05a1fd32d431db3dd353955b0fe5af99eba89160f73a136a64c1",
+      "adapterSha256": "4745d721226f0f8b3000f0825e7a00e4e3f3c38b6424cb2b763f39636f07db14",
+      "materialization": "worktree",
+      "gitBlobOid": "9b5e2df492752a8343f21a6782a16c97ca5d8f9f",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/motion-design/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "motion-design",
           "policyClass": "explicit-only"
         }
       }
@@ -11629,12 +12469,12 @@
       "id": "omp-moe-dispatch",
       "sourcePath": "skills/omp-moe-dispatch/SKILL.md",
       "sourceClass": "canonical",
-      "sourceSha256": "ed961c7648d631564192155ba8eeba28d0e0fa2260c60e423ca0a2cd1db7019b",
+      "sourceSha256": "259fbec0ce556fa28e4504da55e1d296b7b7e2297aee2ba2b61a327c3ab53046",
       "sourceFrontmatterSha256": "6c9ebe74b14afad4a513f6013391ea433ff63516b077efc07811c117a47f209d",
       "adapterFrontmatterSha256": "8d9e9917ab3ae8f50fbf842b3635e2e50aaf18e727660a98c1dab197d5b4620a",
-      "adapterSha256": "d9d0fd378d5ee36bb055c66dd6c0ff7523b86c1196849d3c651e3e5832991137",
+      "adapterSha256": "218f96b7c03cf81481c88e7259c39ee2b288e73490e1ffa0955c0bc5ca03dce2",
       "materialization": "worktree",
-      "gitBlobOid": "b11ab4035fd351fce504975dfcb0cec97d68aa07",
+      "gitBlobOid": "9c77d0ab0b26a3dd2a3ef64f0dc9344f28c7ed48",
       "gitMode": "100644",
       "tracked": true,
       "durability": "git-index",
@@ -12578,6 +13418,34 @@
       }
     },
     {
+      "id": "security-verification-layer-discipline",
+      "sourcePath": "skills/security-verification-layer-discipline/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "43bcfebd5b99beabfe077d56482dfd4db87c70eb4e10648c4261c2084327b3de",
+      "sourceFrontmatterSha256": "be8990a2490db84b19bc89798576f3abc7bbe793593f576dfc2efa0f258d505c",
+      "adapterFrontmatterSha256": "be8990a2490db84b19bc89798576f3abc7bbe793593f576dfc2efa0f258d505c",
+      "adapterSha256": "3da307b6e1ff119a23ffaecccc724cc1ed159d9594cbe7be78713c9c9c076b68",
+      "materialization": "worktree",
+      "gitBlobOid": "47f0957777cf5fb8cd3c6addb7f1a6911b7e3b93",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/security-verification-layer-discipline/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "security-verification-layer-discipline",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
       "id": "setup-matt-pocock-skills",
       "sourcePath": "skills/setup-matt-pocock-skills/SKILL.md",
       "sourceClass": "canonical",
@@ -12797,6 +13665,314 @@
         "provenance": {
           "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
           "governedSkillId": "tdd",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "test-result-evidence-linkage",
+      "sourcePath": "skills/test-result-evidence-linkage/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "ed9a6b6d8d02f348aabe13298418bb1292f545c06779afe8cb81c2bcbbe76b71",
+      "sourceFrontmatterSha256": "aa1231d4fd391f98de4acea180b5236a9fa14f1ae66c1f61fcc3908574fd3984",
+      "adapterFrontmatterSha256": "aa1231d4fd391f98de4acea180b5236a9fa14f1ae66c1f61fcc3908574fd3984",
+      "adapterSha256": "b107ea661a50b99d3ec897c0bc025781b436f1166137cd1f66280a1e110fc1fc",
+      "materialization": "worktree",
+      "gitBlobOid": "1d283b48413264b00f32527f75c720fd49135beb",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/test-result-evidence-linkage/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "test-result-evidence-linkage",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "threejs-animation",
+      "sourcePath": "skills/threejs-animation/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "b24dc96c7a854ab97fa797a8e20d6bf981f155dfc625fd1ef347042395b7754c",
+      "sourceFrontmatterSha256": "77cfbc1353cb4cb12c1fc941177d4594df1668a26ffe33d470dd31c8a2ddc375",
+      "adapterFrontmatterSha256": "3a08bdbfb70fdc97f20b57bbcf9d2d15ecc7f6b93c89a6cedeee121a54673685",
+      "adapterSha256": "a779790eaedbda33a466c05fdfbfd82c3042fb0ac481b234cfe4071630bfcd10",
+      "materialization": "worktree",
+      "gitBlobOid": "91742cedece4dadc8f8c54037dd7c85c35906b3b",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/threejs-animation/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "threejs-animation",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "threejs-fundamentals",
+      "sourcePath": "skills/threejs-fundamentals/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "eb66d52f53f489067d602b9b62df507adb391d8220bdd1a8aae6b73e6cee578a",
+      "sourceFrontmatterSha256": "0329d2244007e2125ce509400f71af78cb63d2ceb6d49eed766a6161243b48b9",
+      "adapterFrontmatterSha256": "c6e2afcfbe95867fd5e8801b81645d91b5cf8b32618d41819485ad1c18650c64",
+      "adapterSha256": "13f46e70f7aedd277270452435d278625e58d30891f7b7235f8eec0fafea0cce",
+      "materialization": "worktree",
+      "gitBlobOid": "21b634124a4b178024e1225280e3c6d6213491fd",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/threejs-fundamentals/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "threejs-fundamentals",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "threejs-geometry",
+      "sourcePath": "skills/threejs-geometry/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "8337bcf86621411f54ef39727b338c84890815e4b3612ce635d593dd9c321a3e",
+      "sourceFrontmatterSha256": "1edeb7f37aad05081848573fbc2cbf63a079818a917818c902de0a1197f129f1",
+      "adapterFrontmatterSha256": "0aaaefa6952e52b61b53111276ed18129b516ce0d30bd02c0a37290690acaa22",
+      "adapterSha256": "9a4e8ae90453542fe1caad84ac25f632cc2d565101d38c5833b271de850986e3",
+      "materialization": "worktree",
+      "gitBlobOid": "e077e2d78c5239e20a7bb6f88b88cd8a7d22da28",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/threejs-geometry/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "threejs-geometry",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "threejs-interaction",
+      "sourcePath": "skills/threejs-interaction/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "1bb23f0388d39863432494ff00ea0a96ae7d093c0c6f3149fb223ba1e673fef6",
+      "sourceFrontmatterSha256": "d55ad5cf3f8d2513a9d7f6bbc8a72290259b0b699fed5db0864067ac601d5966",
+      "adapterFrontmatterSha256": "6b38f86ac9e116a434be1f04082aae93c40b659c152ae27466b1b74633a54d36",
+      "adapterSha256": "dbc519927bb150ccb511cc1b3b1c34f5d495f596e36af2e7ef570f00c2f1f325",
+      "materialization": "worktree",
+      "gitBlobOid": "9c93424ee1ace63b27d851fc03b2ab6cb8d6b85c",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/threejs-interaction/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "threejs-interaction",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "threejs-lighting",
+      "sourcePath": "skills/threejs-lighting/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "777875f7d6a75219d009ac69310772236231eec7cb57287c0509bb53e994af9d",
+      "sourceFrontmatterSha256": "486e3b1553b019e49c5eab33d0d82fcc254295726b0e29f99b29859744235673",
+      "adapterFrontmatterSha256": "9aa853d39bf73d1505d4fbedf84c7d133769c3c54bcbc1f6161a5fc88b4d10a7",
+      "adapterSha256": "9215372a191e85474fd904593e13808e227a40054b656c8fd0b618f808094af8",
+      "materialization": "worktree",
+      "gitBlobOid": "575cb0c475840dfdd845bf144bc94c15b30ddb97",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/threejs-lighting/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "threejs-lighting",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "threejs-loaders",
+      "sourcePath": "skills/threejs-loaders/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "03e0d7319692bb7eaa13cfada5d27d39840c7520c5ddc3fc8cc07b645dcba2e9",
+      "sourceFrontmatterSha256": "9ab952313b39b473b57416cae48f2c4f08cd4cb112dbf9015a3678de4b9e78b3",
+      "adapterFrontmatterSha256": "d83aed83a26a3a154a3478aafe0496a4f7fbb6a0fe07836169a3d230f702248f",
+      "adapterSha256": "110dbb6df2bdf3656daa1ea3c208513661644545992bfed234b825734a35e656",
+      "materialization": "worktree",
+      "gitBlobOid": "4754a7aaad307a9e6396f68af878efbda9d5297b",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/threejs-loaders/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "threejs-loaders",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "threejs-materials",
+      "sourcePath": "skills/threejs-materials/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "d5846d1b8254b903eacb3014486efbe331101518604b451098fd31989c3e7fe7",
+      "sourceFrontmatterSha256": "16ba213b5f9a4973c1b6bc350e6999a06e0c920e6d39751a7cec6a02018888dd",
+      "adapterFrontmatterSha256": "66f786f08f9379ee891ec47da901ca39553098b082e016abbe9a6e8b700cc2c5",
+      "adapterSha256": "792e42b61521dc14c1eddf93ef5eb687f9dd43d3519197f88578d0c77c704443",
+      "materialization": "worktree",
+      "gitBlobOid": "4731f2826fadd9c5a61d7644a295afa9d4d2b568",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/threejs-materials/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "threejs-materials",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "threejs-postprocessing",
+      "sourcePath": "skills/threejs-postprocessing/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "570b86434c30ad9bdc30f4f6d4e8c04124a07dd4ccaa778d4717ecc211dc1d90",
+      "sourceFrontmatterSha256": "dd2bc27f624ee6834fc5ea1fe28e88a0ccd5edb7d3c0f0d919977b3ccd57528b",
+      "adapterFrontmatterSha256": "4c5cacf789c13d6c8a9b63de03acdf82a386b19a8f2b3b182ac05046b4bee68a",
+      "adapterSha256": "77e8e15f0df30e3f5be7a3922d31e3e3f45d1e89f49f4548f7add0e8b2cb678d",
+      "materialization": "worktree",
+      "gitBlobOid": "62675b9a5d6023c1b4506849b58dbea2359f6754",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/threejs-postprocessing/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "threejs-postprocessing",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "threejs-shaders",
+      "sourcePath": "skills/threejs-shaders/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "6702267bd3ee70d458b54078211db36b1c3738c3faa0570e88e33dceaf478a4d",
+      "sourceFrontmatterSha256": "76e991d1a75780911c6ce7eec901ea82ce03cdcf7b020b672b475fc003dcf70f",
+      "adapterFrontmatterSha256": "7b330a2170bd318e65a1325c9ab5638d52350fcd784ae3f5741848d653daa906",
+      "adapterSha256": "32c55310ddbff9fac4316f884bc737d752c4897dbd832ff1c5bfad0252b447d1",
+      "materialization": "worktree",
+      "gitBlobOid": "f0dff82de25e782bf9a296d37523b63c3f55a2c6",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/threejs-shaders/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "threejs-shaders",
+          "policyClass": "explicit-only"
+        }
+      }
+    },
+    {
+      "id": "threejs-textures",
+      "sourcePath": "skills/threejs-textures/SKILL.md",
+      "sourceClass": "canonical",
+      "sourceSha256": "2a90ce70931e9b172fa5b70c13fd12e7b6f1600482d3ba0c73d95570fe728b65",
+      "sourceFrontmatterSha256": "8d78a0754c864da73192542cfbdbebe16ed57ae32f1724574d7dac1d16f8fa11",
+      "adapterFrontmatterSha256": "f48745140aa314b589ab3ff05063da353eb4f709699e811744d9cdd5d03c3efb",
+      "adapterSha256": "3f8e64e2f549d97ef17a357f452b1193c063101f914123197fe211e5037d58d3",
+      "materialization": "worktree",
+      "gitBlobOid": "53642053e3fc7f8437da9bcb6e9b1981160b5eed",
+      "gitMode": "100644",
+      "tracked": true,
+      "durability": "git-index",
+      "provenanceSource": "index",
+      "sourceMatchesGitIndex": true,
+      "operationalStatus": "active",
+      "statusReason": "promoted from managed-skill residue 2026-07-22",
+      "nativeInvocation": {
+        "allowImplicitInvocation": false,
+        "sidecarPath": ".agents/skills/threejs-textures/agents/openai.yaml",
+        "sidecarSha256": "b61e7d432e2d3bb13bcb5a869822ad67d45da2f19f8e135de0a9596de8214d91",
+        "provenance": {
+          "generatedBy": "_SYSTEM/Scripts/yuri-codex-skill-projector.mjs",
+          "governedSkillId": "threejs-textures",
           "policyClass": "explicit-only"
         }
       }

@@ -9,7 +9,7 @@ description: "Route substantial YURI/MURE work through the OMP TaskTool using al
 
 Authoritative source: `skills/omp-moe-dispatch/SKILL.md`
 
-Authoritative source SHA-256: `ed961c7648d631564192155ba8eeba28d0e0fa2260c60e423ca0a2cd1db7019b`
+Authoritative source SHA-256: `259fbec0ce556fa28e4504da55e1d296b7b7e2297aee2ba2b61a327c3ab53046`
 
 Source class: `canonical`
 
