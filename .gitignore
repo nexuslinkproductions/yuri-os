@@ -181,6 +181,10 @@ _SYSTEM/state/worker-captures/
 _SYSTEM/state/workcell/*
 !_SYSTEM/state/workcell/.gitkeep
 _SYSTEM/state/memory-proposal-autopilot/
+# Per-run stamps and live ledgers (regenerate, never source)
+_SYSTEM/state/context-preflight-last.json
+_SYSTEM/state/energy-outcome-shadow.jsonl
+_SYSTEM/state/originator-telemetry.jsonl
 _SYSTEM/training/state/
 _SYSTEM/.claude/
 .amp/
