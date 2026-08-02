@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: true
 origin_frontmatter: "name: bypassing-authentication-with-forced-browsing | description: Discovering and accessing unprotected pages, APIs, and administrative |   interfaces by enumerating URLs and bypassing authentication controls during authorized |   security assessments. | domain: cybersecurity | subdomain: web-application-security | tags: | - penetration-testing | - authentication-bypass | - forced-browsing | - ffuf | - directory-enumeration | - owasp | version: '1.0' | author: mahipal | license: Apache-2.0 | ni"
+hide: true
 ---
 
 > AUTHORIZED-LAB ONLY. Offensive/dual-use capability. Use exclusively against systems you own or have explicit written authorization to test. This skill is gated out of the default discovery path; activation requires an explicit authorized-engagement flag.

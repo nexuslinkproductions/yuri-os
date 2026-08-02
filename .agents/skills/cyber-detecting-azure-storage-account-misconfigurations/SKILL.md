@@ -1,6 +1,7 @@
 ---
 name: cyber-detecting-azure-storage-account-misconfigurations
 description: "Audit Azure Blob and ADLS storage accounts for public access exposure, weak or long-lived SAS tokens, missing encryption at rest, disabled HTTPS-only traffic, and outdated TLS versions using the azure-mgmt-storage Python SDK."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Audit Azure Blob and ADLS storage accounts for public access expos
 
 Authoritative source: `.claude/skills/cyber-detecting-azure-storage-account-misconfigurations/SKILL.md`
 
-Authoritative source SHA-256: `a5f7191ce39d17a0aa9e1099108471b64ae8c624a612d922276a61306e0911aa`
+Authoritative source SHA-256: `b7c854e48036c6558d903d676c6d4156e85ecbcc1be60e835787abca0488929b`
 
 Source class: `cyber-armed`
 

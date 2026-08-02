@@ -1,6 +1,7 @@
 ---
 name: cyber-building-devsecops-pipeline-with-gitlab-ci
 description: "Design and implement a comprehensive DevSecOps pipeline in GitLab CI/CD integrating SAST, DAST, container scanning, dependency scanning, and secret detection."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Design and implement a comprehensive DevSecOps pipeline in GitLab 
 
 Authoritative source: `.claude/skills/cyber-building-devsecops-pipeline-with-gitlab-ci/SKILL.md`
 
-Authoritative source SHA-256: `36239958180b1921ea4871bcca3ff85707d8f6cf322ff7ce14345a9d6e31c882`
+Authoritative source SHA-256: `ea9fdeabafe3ce4c8e2237bf58e3dbfc229172ef0f41d218e91d369d665c76ac`
 
 Source class: `cyber-armed`
 

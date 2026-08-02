@@ -1,6 +1,7 @@
 ---
 name: cyber-enumerating-cloud-with-cloudfox
 description: "Map AWS and Azure attack paths and find exploitable misconfigurations with CloudFox."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Map AWS and Azure attack paths and find exploitable misconfigurati
 
 Authoritative source: `.claude/skills/cyber-enumerating-cloud-with-cloudfox/SKILL.md`
 
-Authoritative source SHA-256: `8e4bd5fcf0eee0ad22ad6c5eeaceb3f326f3c46332b79f4264cc5cb4470ad5f7`
+Authoritative source SHA-256: `28d8f22439b33b21d9b7ef44a9121acb82bc83203eb421dfd35e12e445b0e71e`
 
 Source class: `cyber-armed`
 

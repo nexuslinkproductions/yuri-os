@@ -1,6 +1,7 @@
 ---
 name: cyber-relaying-ntlm-for-adcs-esc8
 description: "Run ntlmrelayx into ADCS web enrollment to obtain a domain controller certificate via ESC8."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Run ntlmrelayx into ADCS web enrollment to obtain a domain control
 
 Authoritative source: `.claude/skills/cyber-relaying-ntlm-for-adcs-esc8/SKILL.md`
 
-Authoritative source SHA-256: `b27b988db3f870c301325898d6b208221b40162bde78a5d3aa663564abee404a`
+Authoritative source SHA-256: `1c3c352dfc60badf1b81cfee4ca43d8e7e07204f7741f3a0c256e1246292002f`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-analyzing-browser-forensics-with-hindsight
 description: "Analyze Chromium-based browser artifacts using Hindsight to extract browsing history, downloads, cookies, cached content, autofill data, saved passwords, and browser extensions from Chrome, Edge, Brave, and Opera for forensic investigation."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Analyze Chromium-based browser artifacts using Hindsight to extrac
 
 Authoritative source: `.claude/skills/cyber-analyzing-browser-forensics-with-hindsight/SKILL.md`
 
-Authoritative source SHA-256: `22a8d718ffb1710b219f8bca87946fc39f58c556c9646b4023bb39ff59c6fb63`
+Authoritative source SHA-256: `36f74c7184be38def9c13c160889ad45bdc5d2c87597b95a858759b273f2d4f6`
 
 Source class: `cyber-armed`
 

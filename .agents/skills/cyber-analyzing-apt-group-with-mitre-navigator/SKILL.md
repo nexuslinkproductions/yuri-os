@@ -1,6 +1,7 @@
 ---
 name: cyber-analyzing-apt-group-with-mitre-navigator
 description: "Analyze advanced persistent threat (APT) group techniques using MITRE ATT&CK Navigator to create layered heatmaps of adversary TTPs for detection gap analysis and threat-informed defense."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Analyze advanced persistent threat (APT) group techniques using MI
 
 Authoritative source: `.claude/skills/cyber-analyzing-apt-group-with-mitre-navigator/SKILL.md`
 
-Authoritative source SHA-256: `79ebf6142a2d4bf03d3e96c55c1db6b3ab5d81d8076e27a44f3f9bf426d84165`
+Authoritative source SHA-256: `02452fdfa830c7bad420aca4145e751ad15bbfcfddc8f4841c9a5c70bc1aa1e4`
 
 Source class: `cyber-armed`
 

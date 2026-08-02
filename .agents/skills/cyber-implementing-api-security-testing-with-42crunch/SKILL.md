@@ -1,6 +1,7 @@
 ---
 name: cyber-implementing-api-security-testing-with-42crunch
 description: "Implement comprehensive API security testing using the 42Crunch platform to perform static audit and dynamic conformance scanning of OpenAPI specifications."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Implement comprehensive API security testing using the 42Crunch pl
 
 Authoritative source: `.claude/skills/cyber-implementing-api-security-testing-with-42crunch/SKILL.md`
 
-Authoritative source SHA-256: `144d2c5b23b0e1d5100588cbedce1a946f3e3743d9134da44c1f48080c945a16`
+Authoritative source SHA-256: `852bc12f337809af89aa8b24ade3f9cee0b0e15dcbec24459af5beb6cd0fb13f`
 
 Source class: `cyber-armed`
 

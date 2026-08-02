@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: recovering-from-ransomware-attack | description: 'Executes structured recovery from a ransomware incident following NIST |   and CISA frameworks, including environment isolation, forensic evidence preservation, |   clean infrastructure rebuild, prioritized system restoration from verified backups, |   credential reset, and validation against re-infection. Covers Active Directory recovery, |   database restoration, and application stack rebuild in dependency order. Activates |   for request"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

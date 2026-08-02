@@ -1,6 +1,7 @@
 ---
 name: cyber-parsing-artifacts-with-eric-zimmerman-tools
 description: "Parse registry, prefetch, shellbags, and MFT with EZ Tools and Timeline Explorer."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Parse registry, prefetch, shellbags, and MFT with EZ Tools and Tim
 
 Authoritative source: `.claude/skills/cyber-parsing-artifacts-with-eric-zimmerman-tools/SKILL.md`
 
-Authoritative source SHA-256: `e11c24eb1213835ba54c93aafd27052844d0feed687521b1b0d591e7f952acf5`
+Authoritative source SHA-256: `329e829baaa010a7bab1d3826a1de9a2ea752860e5a44302956ff79da811f068`
 
 Source class: `cyber-armed`
 

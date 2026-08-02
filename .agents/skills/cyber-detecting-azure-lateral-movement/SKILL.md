@@ -1,6 +1,7 @@
 ---
 name: cyber-detecting-azure-lateral-movement
 description: "Detect lateral movement in Azure AD/Entra ID environments using Microsoft Graph API audit logs, Azure Sentinel KQL hunting queries, and sign-in anomaly correlation to identify privilege escalation, token theft, and cross-tenant pivoting."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detect lateral movement in Azure AD/Entra ID environments using Mi
 
 Authoritative source: `.claude/skills/cyber-detecting-azure-lateral-movement/SKILL.md`
 
-Authoritative source SHA-256: `5bc07508216e151f9cd61b47a016e755c80eff057eaec6e383f55713507ed132`
+Authoritative source SHA-256: `0d1797d2c184629a2e2003aa5a3412091c3c363a0b1c4222feaf32fa538bfca2`
 
 Source class: `cyber-armed`
 

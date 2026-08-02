@@ -1,6 +1,7 @@
 ---
 name: cyber-investigating-ransomware-attack-artifacts
 description: "Identify, collect, and analyze ransomware attack artifacts to determine the variant, initial access vector, encryption scope, and recovery options."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Identify, collect, and analyze ransomware attack artifacts to dete
 
 Authoritative source: `.claude/skills/cyber-investigating-ransomware-attack-artifacts/SKILL.md`
 
-Authoritative source SHA-256: `94b289dfd36df53cb15066d454a4143d6e78af7bc3d322c491d8a34433000f05`
+Authoritative source SHA-256: `f560bc3d4fca91ffe56b94d6655bc28341079b8d8e9170ecbca5ea143c67c85c`
 
 Source class: `cyber-armed`
 

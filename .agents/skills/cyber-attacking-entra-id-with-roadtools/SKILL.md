@@ -1,6 +1,7 @@
 ---
 name: cyber-attacking-entra-id-with-roadtools
 description: "[LAB-GATED; discovery is not runtime authorization; offensive/dual-use — authorized-lab gate] Enumerate Entra ID with ROADrecon and acquire and exchange tokens with roadtx."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "[LAB-GATED; discovery is not runtime authorization; offensive/dual
 
 Authoritative source: `.claude/skills-labgated/cyber-attacking-entra-id-with-roadtools/SKILL.md`
 
-Authoritative source SHA-256: `7d6e625e19b9a1c9f26489a8d28db378777b493c142144f2765301760bdcdc69`
+Authoritative source SHA-256: `54cd0a1f7bd414c6a951ae28c3aa59435c19262513f3117484cc86c72fb75944`
 
 > AUTHORIZED-LAB ONLY. Offensive/dual-use capability. Use exclusively against systems you own or have explicit written authorization to test. Owner-authorized metadata discovery does not authorize runtime actions; use requires an explicit authorized-engagement decision.
 

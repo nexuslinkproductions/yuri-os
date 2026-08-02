@@ -1,6 +1,7 @@
 ---
 name: cyber-validating-backup-integrity-for-recovery
 description: "Validate backup integrity through cryptographic hash verification, automated restore testing, corruption detection, and recoverability checks to ensure backups are reliable for disaster recovery and ransomware response scenarios."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Validate backup integrity through cryptographic hash verification,
 
 Authoritative source: `.claude/skills/cyber-validating-backup-integrity-for-recovery/SKILL.md`
 
-Authoritative source SHA-256: `c91dcd72595a8aa492c68f3939adf77c8639b8aed97beff1963be51014b166b8`
+Authoritative source SHA-256: `13457bf5f1d5fefbf8396a796399eebafecc82925e269d2ccfa33a7979e49e0d`
 
 Source class: `cyber-armed`
 

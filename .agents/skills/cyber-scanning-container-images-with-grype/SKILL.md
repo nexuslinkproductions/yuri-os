@@ -1,6 +1,7 @@
 ---
 name: cyber-scanning-container-images-with-grype
 description: "Scan container images for known vulnerabilities using Anchore Grype with SBOM-based matching and configurable severity thresholds."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Scan container images for known vulnerabilities using Anchore Gryp
 
 Authoritative source: `.claude/skills/cyber-scanning-container-images-with-grype/SKILL.md`
 
-Authoritative source SHA-256: `6f93a7f6f112ff39d92738988dc3bd4411a02eae2804df694f14aebc1fa010cd`
+Authoritative source SHA-256: `74300e91e1205ee2774bca7475b7d5cf2233dc0b5e87f96d2cc306583009a7a7`
 
 Source class: `cyber-armed`
 

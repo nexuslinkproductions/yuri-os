@@ -1,6 +1,7 @@
 ---
 name: cyber-testing-for-xml-injection-vulnerabilities
 description: "Test web applications for XML injection vulnerabilities including XXE, XPath injection, and XML entity attacks to identify data exposure and server-side request forgery risks."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Test web applications for XML injection vulnerabilities including 
 
 Authoritative source: `.claude/skills/cyber-testing-for-xml-injection-vulnerabilities/SKILL.md`
 
-Authoritative source SHA-256: `6d480af9f0f397c2836082c08b76027843570fd8f4c7da9b68be6eb479d3c5da`
+Authoritative source SHA-256: `04cfb96564d2449cd52ec0d819748086ad7ac7bad688bd1bc340611f15ccad44`
 
 Source class: `cyber-armed`
 

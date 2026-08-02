@@ -1,6 +1,7 @@
 ---
 name: cyber-testing-for-system-prompt-leakage
 description: "Extract and defend system prompts plus embedded secrets and routing logic."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Extract and defend system prompts plus embedded secrets and routin
 
 Authoritative source: `.claude/skills/cyber-testing-for-system-prompt-leakage/SKILL.md`
 
-Authoritative source SHA-256: `2f0a457557416e476618f74e519418ce8a51737626b4988b2571326d333d2bd5`
+Authoritative source SHA-256: `39d611c559dad6e3ef771d8aaa79085124eb40a31b751c04ff5a3c1a1a4f7648`
 
 Source class: `cyber-armed`
 

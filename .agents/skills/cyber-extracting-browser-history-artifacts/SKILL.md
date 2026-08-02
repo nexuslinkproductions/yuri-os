@@ -1,6 +1,7 @@
 ---
 name: cyber-extracting-browser-history-artifacts
 description: "Extract and analyze browser history, cookies, cache, downloads, and bookmarks from Chrome, Firefox, and Edge for forensic evidence of user web activity."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Extract and analyze browser history, cookies, cache, downloads, an
 
 Authoritative source: `.claude/skills/cyber-extracting-browser-history-artifacts/SKILL.md`
 
-Authoritative source SHA-256: `a05513a2c63ad5603c0c4c2f2332450019ad8818a0899edf58d701887a134c7f`
+Authoritative source SHA-256: `14bfd84d4c35333ba6aa5d2501af0f8ee9cc9ab8015f78f28b9dc7786a8c7602`
 
 Source class: `cyber-armed`
 

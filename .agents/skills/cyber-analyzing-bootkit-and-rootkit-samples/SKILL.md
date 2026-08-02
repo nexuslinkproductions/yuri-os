@@ -1,6 +1,7 @@
 ---
 name: cyber-analyzing-bootkit-and-rootkit-samples
 description: "Analyzes bootkit and advanced rootkit malware that infects the Master Boot Record (MBR), Volume Boot Record (VBR), or UEFI firmware to gain persistence below the operating system. Covers boot sector analysis, UEFI module inspection, and anti-rootkit detection techniques. Activates for requests involving bootkit analysis, MBR malware investigation, UEFI persistence analysis, or pre-OS malware detec"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Analyzes bootkit and advanced rootkit malware that infects the Mas
 
 Authoritative source: `.claude/skills/cyber-analyzing-bootkit-and-rootkit-samples/SKILL.md`
 
-Authoritative source SHA-256: `f71c055123f59bf1bb97a67d4eb3334e2deb4d5905cfef92135c8a732fb1347f`
+Authoritative source SHA-256: `55943f317be3f658e4b1f18d23b4f6e54eee54e5251925a9e36dacff4dbb43cc`
 
 Source class: `cyber-armed`
 

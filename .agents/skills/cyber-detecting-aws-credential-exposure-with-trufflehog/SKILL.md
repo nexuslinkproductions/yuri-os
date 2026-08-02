@@ -1,6 +1,7 @@
 ---
 name: cyber-detecting-aws-credential-exposure-with-trufflehog
 description: "Detecting exposed AWS credentials in source code repositories, CI/CD pipelines, and configuration files using TruffleHog, git-secrets, and AWS-native detection mechanisms to prevent credential theft and unauthorized account access."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detecting exposed AWS credentials in source code repositories, CI/
 
 Authoritative source: `.claude/skills/cyber-detecting-aws-credential-exposure-with-trufflehog/SKILL.md`
 
-Authoritative source SHA-256: `0debb9c1fac3d8f806c030f37c9647c438a42c174e6018272ae7bc25f997bbd9`
+Authoritative source SHA-256: `e4846123f5d78f7546be1598da42201129fb5638ec1d9b32a7c94a2106d2a4a2`
 
 Source class: `cyber-armed`
 

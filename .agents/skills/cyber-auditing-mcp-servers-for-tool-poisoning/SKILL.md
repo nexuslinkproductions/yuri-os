@@ -1,6 +1,7 @@
 ---
 name: cyber-auditing-mcp-servers-for-tool-poisoning
 description: "Scan Model Context Protocol servers and tool metadata for poisoning, SSRF, and unauthenticated exposure."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Scan Model Context Protocol servers and tool metadata for poisonin
 
 Authoritative source: `.claude/skills/cyber-auditing-mcp-servers-for-tool-poisoning/SKILL.md`
 
-Authoritative source SHA-256: `c3027aa1fcfc4cdc905781757607a0d617b14f8e78f9c52e196937ec11b9b28b`
+Authoritative source SHA-256: `b7a9163a0f30afc5b3d024c722da2be40f9fd0c3a7743f52e0c39dce18043a23`
 
 Source class: `cyber-armed`
 

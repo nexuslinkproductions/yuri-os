@@ -1,6 +1,7 @@
 ---
 name: cyber-building-c2-redirector-infrastructure
 description: "Architect redirectors with nginx and Apache, malleable profiles, and OPSEC for resilient C2."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Architect redirectors with nginx and Apache, malleable profiles, a
 
 Authoritative source: `.claude/skills/cyber-building-c2-redirector-infrastructure/SKILL.md`
 
-Authoritative source SHA-256: `38029633ba11698e20c95d3a7963948d5aa0ed2b84c3b8f7d4e66e78ec5b69b7`
+Authoritative source SHA-256: `6de395870bd6c68752b5e9e8448e0b8c20f0ccbfbef0a9b1c2dc71caafb2a8e5`
 
 Source class: `cyber-armed`
 

@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: testing-api-for-broken-object-level-authorization | description: 'Tests REST and GraphQL APIs for Broken Object Level Authorization (BOLA/IDOR) |   vulnerabilities where an authenticated user can access or modify resources belonging |   to other users by manipulating object identifiers in API requests. The tester intercepts |   API calls, identifies object ID parameters (numeric IDs, UUIDs, slugs), and systematically |   replaces them with IDs belonging to other users to determine if the s"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

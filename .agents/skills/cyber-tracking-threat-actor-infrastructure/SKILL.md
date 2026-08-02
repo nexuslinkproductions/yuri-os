@@ -1,6 +1,7 @@
 ---
 name: cyber-tracking-threat-actor-infrastructure
 description: "Threat actor infrastructure tracking involves monitoring and mapping adversary-controlled assets including command-and-control (C2) servers, phishing domains, exploit kit hosts, bulletproof hosting, a"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Threat actor infrastructure tracking involves monitoring and mappi
 
 Authoritative source: `.claude/skills/cyber-tracking-threat-actor-infrastructure/SKILL.md`
 
-Authoritative source SHA-256: `fee402fa55a9ac2d56a326e798e543cc8b14654b224d708afd86f3bbb267d820`
+Authoritative source SHA-256: `9565315208deb5e4cd189d0ff44aff3505f08f6c18da92c39b0ff35e9c500212`
 
 Source class: `cyber-armed`
 

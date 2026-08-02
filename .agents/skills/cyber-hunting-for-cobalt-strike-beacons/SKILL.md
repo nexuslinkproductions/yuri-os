@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-for-cobalt-strike-beacons
 description: "Detect Cobalt Strike beacon network activity using default TLS certificate signatures (serial 8BB00EE), JA3/JA3S/JARM fingerprints, HTTP C2 profile pattern matching, beacon jitter analysis, and named pipe detection via Zeek, Suricata, and Python PCAP analysis."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detect Cobalt Strike beacon network activity using default TLS cer
 
 Authoritative source: `.claude/skills/cyber-hunting-for-cobalt-strike-beacons/SKILL.md`
 
-Authoritative source SHA-256: `5635adf168d92abecd6be7a4a69f357169b3573eb9fbce435ee0f4193c295163`
+Authoritative source SHA-256: `0644ac258c9e995c6c99f3ee365464c48d0698d728d14e66d7e9e0a4ca523404`
 
 Source class: `cyber-armed`
 

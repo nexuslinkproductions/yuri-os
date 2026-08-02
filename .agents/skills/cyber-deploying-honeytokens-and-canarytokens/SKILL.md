@@ -1,6 +1,7 @@
 ---
 name: cyber-deploying-honeytokens-and-canarytokens
 description: "Plant canarytokens and honey credentials and alert on breach."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Plant canarytokens and honey credentials and alert on breach."
 
 Authoritative source: `.claude/skills/cyber-deploying-honeytokens-and-canarytokens/SKILL.md`
 
-Authoritative source SHA-256: `69eb671e40ab4763930e1b4b888bc1a3933d742727c63ca45f3286fd91c6ca43`
+Authoritative source SHA-256: `7ec16f4e1a396711a5891b3aee17166862347b2c74d23b6a73e34fffac12ac53`
 
 Source class: `cyber-armed`
 

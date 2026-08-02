@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: securing-agentic-ai-tool-invocation | description: Apply least-privilege tool allowlisting, identity binding, and human-in-the-loop controls for agent tool calls. | domain: cybersecurity | subdomain: ai-security | tags: | - ai-security | - agentic-ai | - least-privilege | - tool-allowlisting | - human-in-the-loop | - nemo-guardrails | - identity-binding | - owasp-agentic | version: '1.0' | author: mahipal | license: Apache-2.0 | nist_csf: | - GOVERN-1.3 | mitre_attack: | - AML.T0053"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

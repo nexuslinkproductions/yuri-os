@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: analyzing-certificate-transparency-for-phishing | description: Monitor Certificate Transparency logs using crt.sh and Certstream to |   detect phishing domains, lookalike certificates, and unauthorized certificate issuance |   targeting your organization. | domain: cybersecurity | subdomain: threat-intelligence | tags: | - certificate-transparency | - ct-logs | - phishing | - crt-sh | - certstream | - ssl | - domain-monitoring | - threat-intelligence | version: '1.0' | author: mahipal | li"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

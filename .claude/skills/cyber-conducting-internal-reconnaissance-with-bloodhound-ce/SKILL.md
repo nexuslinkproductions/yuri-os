@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: conducting-internal-reconnaissance-with-bloodhound-ce | description: Conduct internal Active Directory reconnaissance using BloodHound Community |   Edition to map attack paths, identify privilege escalation chains, and discover |   misconfigurations in domain environments. | domain: cybersecurity | subdomain: red-teaming | tags: | - red-team | - reconnaissance | - bloodhound | - active-directory | - attack-paths | - privilege-escalation | - graph-analysis | version: '1.0' | author: mahipa"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

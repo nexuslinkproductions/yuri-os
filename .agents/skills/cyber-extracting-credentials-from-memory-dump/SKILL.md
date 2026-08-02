@@ -1,6 +1,7 @@
 ---
 name: cyber-extracting-credentials-from-memory-dump
 description: "Extract cached credentials, password hashes, Kerberos tickets, and authentication tokens from memory dumps using Volatility and Mimikatz for forensic investigation."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Extract cached credentials, password hashes, Kerberos tickets, and
 
 Authoritative source: `.claude/skills/cyber-extracting-credentials-from-memory-dump/SKILL.md`
 
-Authoritative source SHA-256: `c758e3ab5ae3189e75e71efb78f92cf4e91f93f6a1377f6aa75d7494c8865dcc`
+Authoritative source SHA-256: `681811ba615aae5108ccfeaee87e123a8ebe73a3ae5c51528699acd0290f4158`
 
 Source class: `cyber-armed`
 

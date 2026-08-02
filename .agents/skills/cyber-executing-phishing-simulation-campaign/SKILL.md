@@ -1,6 +1,7 @@
 ---
 name: cyber-executing-phishing-simulation-campaign
 description: "Executes authorized phishing simulation campaigns to assess an organization''s susceptibility to email-based social engineering attacks. The tester designs realistic phishing scenarios, builds credential harvesting infrastructure, sends targeted phishing emails, and tracks open rates, click-through rates, and credential submission rates to measure human security awareness. Activates for requests i"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Executes authorized phishing simulation campaigns to assess an org
 
 Authoritative source: `.claude/skills/cyber-executing-phishing-simulation-campaign/SKILL.md`
 
-Authoritative source SHA-256: `d5df69bd14bd9f50fbbf2a7fcefdf0ac2a760c915ee1883a8b8fa652d9aeaa07`
+Authoritative source SHA-256: `29d8a0f00f7fa11348d6ef7e6f9205274921926d1c24ee86cccd87f492b56abf`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-detecting-beaconing-patterns-with-zeek
 description: "Performs statistical analysis of Zeek conn.log connection intervals to detect C2 beaconing patterns. Uses the ZAT library to load Zeek logs into Pandas DataFrames, calculates inter-arrival time standard deviation, and flags periodic connections with low jitter. Use when hunting for command-and-control callbacks in network data."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Performs statistical analysis of Zeek conn.log connection interval
 
 Authoritative source: `.claude/skills/cyber-detecting-beaconing-patterns-with-zeek/SKILL.md`
 
-Authoritative source SHA-256: `24ee7bb23fc35628d22525a854826a6a815045c3352d67cb26f0b065d65f0ff0`
+Authoritative source SHA-256: `9bbbb1b78bff61f177548f59547af3384828aff52eed2b768734bd6d7d84d684`
 
 Source class: `cyber-armed`
 

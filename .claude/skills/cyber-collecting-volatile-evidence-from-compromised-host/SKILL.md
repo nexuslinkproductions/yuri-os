@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: collecting-volatile-evidence-from-compromised-host | description: Collect volatile forensic evidence from a compromised system following |   order of volatility, preserving memory, network connections, processes, and system |   state before they are lost. | domain: cybersecurity | subdomain: incident-response | tags: | - incident-response | - dfir | - forensics | - volatile-evidence | - memory-forensics | - chain-of-custody | mitre_attack: | - T1059.001 | - T1057 | - T1049 | - T1003.001 | "
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

@@ -1,6 +1,7 @@
 ---
 name: cyber-generating-forensic-timelines-with-hayabusa
 description: "Produce Sigma-based EVTX timelines and summaries with Hayabusa."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Produce Sigma-based EVTX timelines and summaries with Hayabusa."
 
 Authoritative source: `.claude/skills/cyber-generating-forensic-timelines-with-hayabusa/SKILL.md`
 
-Authoritative source SHA-256: `386acf62d0f1405b940c55f1da0a052ae0bd870ae4038c9658c2442a9ab6ecd9`
+Authoritative source SHA-256: `c33098b5da7bfe417c0b54783696e35edef87976f7e14027f66bbf3639c27f5b`
 
 Source class: `cyber-armed`
 

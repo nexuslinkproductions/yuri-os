@@ -1,6 +1,7 @@
 ---
 name: cyber-implementing-api-abuse-detection-with-rate-limiting
 description: "Implement API abuse detection using token bucket, sliding window, and adaptive rate limiting algorithms to prevent DDoS, brute force, and credential stuffing attacks."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Implement API abuse detection using token bucket, sliding window, 
 
 Authoritative source: `.claude/skills/cyber-implementing-api-abuse-detection-with-rate-limiting/SKILL.md`
 
-Authoritative source SHA-256: `1242dfd1a2bbbb8869f9154a2806a33bcc578bc7cd4357ae10602c285c576a01`
+Authoritative source SHA-256: `fad9877ed56f0f149beecac1d6ea70f965e9fdd1f22e54c3044be3154d0fa4bd`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-detecting-bluetooth-low-energy-attacks
 description: "Detects and analyzes Bluetooth Low Energy (BLE) security attacks including sniffing, replay attacks, GATT enumeration abuse, and Man-in-the-Middle interception. Uses Ubertooth One and nRF52840 sniffers for packet capture, the bleak Python library for GATT service enumeration, and crackle for BLE encryption cracking. Use when assessing IoT device BLE security, monitoring for BLE-based attacks on wi"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detects and analyzes Bluetooth Low Energy (BLE) security attacks i
 
 Authoritative source: `.claude/skills/cyber-detecting-bluetooth-low-energy-attacks/SKILL.md`
 
-Authoritative source SHA-256: `f25756b7e6f77b3b54f102ae6626165d6cf6a311057ae858281b87764ebc769c`
+Authoritative source SHA-256: `40796424366d9074553d094bcfb37abfcc5512db8999599cf3eca2baf9de113d`
 
 Source class: `cyber-armed`
 

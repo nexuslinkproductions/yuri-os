@@ -1,6 +1,7 @@
 ---
 name: cyber-abusing-dpapi-for-credential-access
 description: "[LAB-GATED; discovery is not runtime authorization; offensive/dual-use — authorized-lab gate] Extract DPAPI-protected secrets such as credentials and browser data offline and online."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "[LAB-GATED; discovery is not runtime authorization; offensive/dual
 
 Authoritative source: `.claude/skills-labgated/cyber-abusing-dpapi-for-credential-access/SKILL.md`
 
-Authoritative source SHA-256: `a9d0ef1bf8f7f36c99ad64d77d3627cf437545afac46dd917ab88d3d40def202`
+Authoritative source SHA-256: `07c4d157b7a7887cf9b1010b699fdbf0dc0a732c068f8c87a0343f367cf32b5f`
 
 > AUTHORIZED-LAB ONLY. Offensive/dual-use capability. Use exclusively against systems you own or have explicit written authorization to test. Owner-authorized metadata discovery does not authorize runtime actions; use requires an explicit authorized-engagement decision.
 

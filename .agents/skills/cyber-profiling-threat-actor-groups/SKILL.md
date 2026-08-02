@@ -1,6 +1,7 @@
 ---
 name: cyber-profiling-threat-actor-groups
 description: "Develops comprehensive threat actor profiles for APT groups, criminal organizations, and hacktivist collectives by aggregating TTP documentation, historical campaign data, tooling fingerprints, and attribution indicators from multiple intelligence sources. Use when briefing executives on sector-specific threats, updating threat model assumptions, or prioritizing defensive controls against specific"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Develops comprehensive threat actor profiles for APT groups, crimi
 
 Authoritative source: `.claude/skills/cyber-profiling-threat-actor-groups/SKILL.md`
 
-Authoritative source SHA-256: `76afee0dbd4ef69c5ac1080ccbbafa5c6ec34752f5c1239d68a6680a60aa3d71`
+Authoritative source SHA-256: `bbd409eb0f71c3b8f9401168e7de2aed67efac35d48b49ecb9193664d95474e4`
 
 Source class: `cyber-armed`
 

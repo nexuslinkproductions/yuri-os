@@ -1,6 +1,7 @@
 ---
 name: cyber-moving-laterally-with-netexec
 description: "Use NetExec for SMB, WinRM, LDAP, and MSSQL enumeration, password spraying, and execution."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Use NetExec for SMB, WinRM, LDAP, and MSSQL enumeration, password 
 
 Authoritative source: `.claude/skills/cyber-moving-laterally-with-netexec/SKILL.md`
 
-Authoritative source SHA-256: `dbdc0ac2cbfe11135b498f100064fe5968ef7053094fc76775c2d13fd8dcae5d`
+Authoritative source SHA-256: `a9fbf07fa9af78f16d210f75d0f6d80d4839b4a51821b443a81701d1ea7f4bbf`
 
 Source class: `cyber-armed`
 

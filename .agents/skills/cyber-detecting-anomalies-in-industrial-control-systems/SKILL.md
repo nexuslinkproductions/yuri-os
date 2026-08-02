@@ -1,6 +1,7 @@
 ---
 name: cyber-detecting-anomalies-in-industrial-control-systems
 description: "This skill covers deploying anomaly detection systems for industrial control environments using machine learning models trained on OT network baselines, physics-based process models, and behavioral analysis of industrial protocol communications. It addresses building normal behavior profiles for SCADA polling patterns, detecting deviations in Modbus/DNP3/OPC UA traffic, identifying rogue devices,"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "This skill covers deploying anomaly detection systems for industri
 
 Authoritative source: `.claude/skills/cyber-detecting-anomalies-in-industrial-control-systems/SKILL.md`
 
-Authoritative source SHA-256: `c3543973d63f0f7cfdc793e3b2a10702d2d77e642196c2806b2e85c3648c9735`
+Authoritative source SHA-256: `4b2fe2829469db85d00cf03059eaa24d31d4fc270fae5c8098c1ca26cc4a437c`
 
 Source class: `cyber-armed`
 

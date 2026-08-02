@@ -1,6 +1,7 @@
 ---
 name: cyber-investigating-phishing-email-incident
 description: "Investigates phishing email incidents from initial user report through header analysis, URL/attachment detonation, impacted user identification, and containment actions using SOC tools like Splunk, Microsoft Defender, and sandbox analysis platforms. Use when a reported phishing email requires full incident investigation to determine scope and impact."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Investigates phishing email incidents from initial user report thr
 
 Authoritative source: `.claude/skills/cyber-investigating-phishing-email-incident/SKILL.md`
 
-Authoritative source SHA-256: `a649f4ef5bbdfcd221ddd7d9e763fa22d66daa22bd7a7230940525bd2f5b554c`
+Authoritative source SHA-256: `3a7b218caa294900247dbd4929dd52968aeb22d961deabf1f4dd112774372502`
 
 Source class: `cyber-armed`
 

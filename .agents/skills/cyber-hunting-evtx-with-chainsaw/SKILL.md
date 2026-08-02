@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-evtx-with-chainsaw
 description: "Perform rapid Sigma and keyword hunting across Windows event logs with Chainsaw."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Perform rapid Sigma and keyword hunting across Windows event logs 
 
 Authoritative source: `.claude/skills/cyber-hunting-evtx-with-chainsaw/SKILL.md`
 
-Authoritative source SHA-256: `08354b84b4d1735377c0485ee3fdd4926a1c527dbd91cde2a5285f2fcfb78506`
+Authoritative source SHA-256: `1a34eb554acf4a14710ea8e192a22afc2231623779af98760cc3afebe7119e5e`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-for-domain-fronting-c2-traffic
 description: "Detect domain fronting C2 traffic by analyzing SNI vs HTTP Host header mismatches in proxy logs and TLS certificate discrepancies using pyOpenSSL for certificate inspection"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detect domain fronting C2 traffic by analyzing SNI vs HTTP Host he
 
 Authoritative source: `.claude/skills/cyber-hunting-for-domain-fronting-c2-traffic/SKILL.md`
 
-Authoritative source SHA-256: `90783bde2c44215d471f841b7c87f0db9b6ce5b0e40b4e37ed729c8fa2621f58`
+Authoritative source SHA-256: `e5c786d8eedfed6b97b34565ca921d21988ed8d13a926142768971daa1255787`
 
 Source class: `cyber-armed`
 

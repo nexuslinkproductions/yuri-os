@@ -1,6 +1,7 @@
 ---
 name: cyber-implementing-aqua-security-for-container-scanning
 description: "Deploy Aqua Security's Trivy scanner to detect vulnerabilities, misconfigurations, secrets, and license issues in container images across CI/CD pipelines and registries."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Deploy Aqua Security's Trivy scanner to detect vulnerabilities, mi
 
 Authoritative source: `.claude/skills/cyber-implementing-aqua-security-for-container-scanning/SKILL.md`
 
-Authoritative source SHA-256: `0ad623a5cb46fc7c498badf9c03ed4f9b5f1bc6f5b4f39c931485f2f7e358e58`
+Authoritative source SHA-256: `5fe295a10bcfe8a49d7fe1b6988249d52829104c1c8a28c5ceeba4bed17bb21a`
 
 Source class: `cyber-armed`
 

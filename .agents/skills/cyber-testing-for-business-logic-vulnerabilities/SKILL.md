@@ -1,6 +1,7 @@
 ---
 name: cyber-testing-for-business-logic-vulnerabilities
 description: "Identifying flaws in application business logic that allow price manipulation, workflow bypass, and privilege escalation beyond what technical vulnerability scanners can detect."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Identifying flaws in application business logic that allow price m
 
 Authoritative source: `.claude/skills/cyber-testing-for-business-logic-vulnerabilities/SKILL.md`
 
-Authoritative source SHA-256: `d06a63a71a5b8645985b2b4aa7196ad825e35701349604fe79a10d05bf4f57c9`
+Authoritative source SHA-256: `54db6ef3124441ed021dcba893e9722861e74eac7e8ef648c744b3a9a2db88cd`
 
 Source class: `cyber-armed`
 

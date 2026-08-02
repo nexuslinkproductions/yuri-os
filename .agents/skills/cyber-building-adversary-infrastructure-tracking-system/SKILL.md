@@ -1,6 +1,7 @@
 ---
 name: cyber-building-adversary-infrastructure-tracking-system
 description: "Build an automated system to track adversary infrastructure using passive DNS, certificate transparency, WHOIS data, and IP enrichment to map and monitor threat actor command-and-control networks."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Build an automated system to track adversary infrastructure using 
 
 Authoritative source: `.claude/skills/cyber-building-adversary-infrastructure-tracking-system/SKILL.md`
 
-Authoritative source SHA-256: `350ad57712b8a6e410f2e09e0e66cc16eed1f2483864919d108550a84496b768`
+Authoritative source SHA-256: `34ae411dcd2e6bda38c85c3bc2dffac38887864dfbb1cb2f926681df49e69055`
 
 Source class: `cyber-armed`
 

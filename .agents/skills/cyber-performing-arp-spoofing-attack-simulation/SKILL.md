@@ -1,6 +1,7 @@
 ---
 name: cyber-performing-arp-spoofing-attack-simulation
 description: "Simulates ARP spoofing attacks in authorized lab or pentest environments using arpspoof, Ettercap, and Scapy to demonstrate man-in-the-middle risks, test network detection capabilities, and validate ARP inspection countermeasures."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Simulates ARP spoofing attacks in authorized lab or pentest enviro
 
 Authoritative source: `.claude/skills/cyber-performing-arp-spoofing-attack-simulation/SKILL.md`
 
-Authoritative source SHA-256: `d74fa445edee8a397414b49d2a2321b0e02e6a7d81adb51d4c133e95e925f6f7`
+Authoritative source SHA-256: `90b79aedd6a705cd150b3f806560cbdcb02f4b91af52d7bb9bce879a24fede03`
 
 Source class: `cyber-armed`
 

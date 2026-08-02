@@ -1,6 +1,7 @@
 ---
 name: cyber-correlating-security-events-in-qradar
 description: "Correlates security events in IBM QRadar SIEM using AQL (Ariel Query Language), custom rules, building blocks, and offense management to detect multi-stage attacks across network, endpoint, and application log sources. Use when SOC analysts need to investigate QRadar offenses, build correlation rules, or tune detection logic for reducing false positives."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Correlates security events in IBM QRadar SIEM using AQL (Ariel Que
 
 Authoritative source: `.claude/skills/cyber-correlating-security-events-in-qradar/SKILL.md`
 
-Authoritative source SHA-256: `679b6457dc2e3813efc4f2b6bba3d8f725d7c17a976bd0147b3f4c105064cbc8`
+Authoritative source SHA-256: `a525c14d6dd093f58584fe47b98ff7706ef928135e1555737bb7f81746f0c834`
 
 Source class: `cyber-armed`
 

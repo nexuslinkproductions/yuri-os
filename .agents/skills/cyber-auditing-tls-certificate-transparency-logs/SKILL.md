@@ -1,6 +1,7 @@
 ---
 name: cyber-auditing-tls-certificate-transparency-logs
 description: "Monitors Certificate Transparency (CT) logs to detect unauthorized certificate issuance, discover subdomains via CT data, and alert on suspicious certificate activity for owned domains. Uses the crt.sh API and direct CT log querying based on RFC 6962 to build continuous monitoring pipelines that catch rogue certificates, track CA behavior, and map the external attack surface. Activates for request"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Monitors Certificate Transparency (CT) logs to detect unauthorized
 
 Authoritative source: `.claude/skills/cyber-auditing-tls-certificate-transparency-logs/SKILL.md`
 
-Authoritative source SHA-256: `93410f431228a86cb0e274c58a624dfbc5a697e279387f2f26e0fbbc8dd3a4ec`
+Authoritative source SHA-256: `8d564ce2b67165b90797c425d9b82f57f4e21d271bf435468111a07995aac338`
 
 Source class: `cyber-armed`
 

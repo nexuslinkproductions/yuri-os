@@ -1,6 +1,7 @@
 ---
 name: cyber-building-attack-pattern-library-from-cti-reports
 description: "Extract and catalog attack patterns from cyber threat intelligence reports into a structured STIX-based library mapped to MITRE ATT&CK for detection engineering and threat-informed defense."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Extract and catalog attack patterns from cyber threat intelligence
 
 Authoritative source: `.claude/skills/cyber-building-attack-pattern-library-from-cti-reports/SKILL.md`
 
-Authoritative source SHA-256: `da8d679c5832897cd4d2c6f6c77867292b8d60ab7384908e81542384fdb9ad6b`
+Authoritative source SHA-256: `d710af4545f891476f356e4013cf6eafdd36563b058a1de63af28654db1b8776`
 
 Source class: `cyber-armed`
 

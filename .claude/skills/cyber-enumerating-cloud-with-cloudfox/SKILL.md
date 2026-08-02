@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: enumerating-cloud-with-cloudfox | description: Map AWS and Azure attack paths and find exploitable misconfigurations with |   CloudFox. | domain: cybersecurity | subdomain: cloud-security | tags: | - cloudfox | - aws | - azure | - cloud-pentest | - attack-paths | - situational-awareness | - enumeration | - offensive-security | version: '1.0' | author: mahipal | license: Apache-2.0 | nist_csf: | - ID.AM-03 | mitre_attack: | - T1526"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

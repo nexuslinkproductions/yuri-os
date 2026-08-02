@@ -1,6 +1,7 @@
 ---
 name: cyber-deploying-active-directory-honeytokens
 description: "Deploys deception-based honeytokens in Active Directory including fake privileged accounts with AdminCount=1, fake SPNs for Kerberoasting detection (honeyroasting), decoy GPOs with cpassword traps, and fake BloodHound paths. Monitors Windows Security Event IDs 4769, 4625, 4662, 5136 for honeytoken interaction. Use when implementing AD deception defenses for detecting lateral movement, credential t"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Deploys deception-based honeytokens in Active Directory including 
 
 Authoritative source: `.claude/skills/cyber-deploying-active-directory-honeytokens/SKILL.md`
 
-Authoritative source SHA-256: `86bed420743a76e6722752ef79afead7f21dfbcb2cddafb4b67250748c971d20`
+Authoritative source SHA-256: `e6e0fa798d2579a05418c95cea929c8563de7f2d23ccdd1979928583860cc16b`
 
 Source class: `cyber-armed`
 

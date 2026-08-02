@@ -1,6 +1,7 @@
 ---
 name: cyber-hardening-windows-endpoint-with-cis-benchmark
 description: "Hardens Windows endpoints using CIS (Center for Internet Security) Benchmark recommendations to reduce attack surface, enforce security baselines, and meet compliance requirements. Use when deploying new Windows workstations or servers, remediating audit findings, or establishing organization-wide security baselines. Activates for requests involving Windows hardening, CIS benchmarks, GPO security"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Hardens Windows endpoints using CIS (Center for Internet Security)
 
 Authoritative source: `.claude/skills/cyber-hardening-windows-endpoint-with-cis-benchmark/SKILL.md`
 
-Authoritative source SHA-256: `8bb2aed281a143898c700b8c214d790543582aa4bbb7938b654896a869e73484`
+Authoritative source SHA-256: `37def04278134b0e54dd9b4e82c9b24cb327c9f86aa87f1d081006108986091a`
 
 Source class: `cyber-armed`
 

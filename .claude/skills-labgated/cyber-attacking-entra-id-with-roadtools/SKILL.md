@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: true
 origin_frontmatter: "name: attacking-entra-id-with-roadtools | description: Enumerate Entra ID with ROADrecon and acquire and exchange tokens with roadtx. | domain: cybersecurity | subdomain: identity-access-management | tags: | - red-team | - entra-id | - azure-ad | - roadtools | - token-manipulation | - cloud-enumeration | - primary-refresh-token | - identity-attack | version: '1.0' | author: mahipal | license: Apache-2.0 | nist_csf: | - ID.AM-03 | mitre_attack: | - T1087.004"
+hide: true
 ---
 
 > AUTHORIZED-LAB ONLY. Offensive/dual-use capability. Use exclusively against systems you own or have explicit written authorization to test. This skill is gated out of the default discovery path; activation requires an explicit authorized-engagement flag.

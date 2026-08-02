@@ -1,6 +1,7 @@
 ---
 name: cyber-extracting-windows-event-logs-artifacts
 description: "Extract, parse, and analyze Windows Event Logs (EVTX) using Chainsaw, Hayabusa, and EvtxECmd to detect lateral movement, persistence, and privilege escalation."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Extract, parse, and analyze Windows Event Logs (EVTX) using Chains
 
 Authoritative source: `.claude/skills/cyber-extracting-windows-event-logs-artifacts/SKILL.md`
 
-Authoritative source SHA-256: `431cbbafd2b419aae619f56d840bfcfe966ef62129aa1e00218d848014969c7c`
+Authoritative source SHA-256: `3982dd948f311026f460074cfd37b71e32af3fc783fca9f12236c1236e9a1821`
 
 Source class: `cyber-armed`
 

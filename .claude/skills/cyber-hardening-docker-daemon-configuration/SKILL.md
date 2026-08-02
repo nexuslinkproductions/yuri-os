@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: hardening-docker-daemon-configuration | description: Harden the Docker daemon by configuring daemon.json with user namespace |   remapping, TLS authentication, rootless mode, and CIS benchmark controls. | domain: cybersecurity | subdomain: container-security | tags: | - docker | - daemon-hardening | - container-security | - cis-benchmark | - rootless | - userns-remap | version: '1.0' | author: mahipal | license: Apache-2.0 | nist_csf: | - PR.PS-01 | - PR.IR-01 | - ID.AM-08 | - DE.CM-01 | m"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

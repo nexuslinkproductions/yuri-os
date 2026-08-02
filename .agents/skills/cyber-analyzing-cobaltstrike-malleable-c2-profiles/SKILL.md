@@ -1,6 +1,7 @@
 ---
 name: cyber-analyzing-cobaltstrike-malleable-c2-profiles
 description: "Parse and analyze Cobalt Strike Malleable C2 profiles using dissect.cobaltstrike and pyMalleableC2 to extract C2 indicators, detect evasion techniques, and generate network detection signatures."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Parse and analyze Cobalt Strike Malleable C2 profiles using dissec
 
 Authoritative source: `.claude/skills/cyber-analyzing-cobaltstrike-malleable-c2-profiles/SKILL.md`
 
-Authoritative source SHA-256: `cf3bac010f2fe59b80d09af699a6516a6e672640f9c60d239557ebe1aee696a5`
+Authoritative source SHA-256: `6810344df099274b499edfda1451c654fc33ddc3941504860ec6b2429ceb9998`
 
 Source class: `cyber-armed`
 

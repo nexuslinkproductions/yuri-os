@@ -1,6 +1,7 @@
 ---
 name: cyber-analyzing-disk-image-with-autopsy
 description: "Perform comprehensive forensic analysis of disk images using Autopsy to recover files, examine artifacts, and build investigation timelines."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Perform comprehensive forensic analysis of disk images using Autop
 
 Authoritative source: `.claude/skills/cyber-analyzing-disk-image-with-autopsy/SKILL.md`
 
-Authoritative source SHA-256: `af852973dc22b91862626edb46ab9550bc38edfbf6eaf5641ef3e8e88fa25bcb`
+Authoritative source SHA-256: `8f6713136db7669df7a9951dcafbd0c7af232be82e52725e308610e3ac4334b4`
 
 Source class: `cyber-armed`
 

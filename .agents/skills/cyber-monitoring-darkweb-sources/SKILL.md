@@ -1,6 +1,7 @@
 ---
 name: cyber-monitoring-darkweb-sources
 description: "Monitors dark web forums, marketplaces, paste sites, and ransomware leak sites for mentions of organizational assets, leaked credentials, threatened attacks, and threat actor communications to provide early warning intelligence. Use when establishing dark web monitoring coverage, investigating specific data breach claims, or enriching incident investigations with dark web context. Activates for re"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Monitors dark web forums, marketplaces, paste sites, and ransomwar
 
 Authoritative source: `.claude/skills/cyber-monitoring-darkweb-sources/SKILL.md`
 
-Authoritative source SHA-256: `2ab724f80aab78347165dfa0262034145d7c37102bc1e93ccd5d57bf0f1823c3`
+Authoritative source SHA-256: `ed85252de11db659a6954477dc5d77d670fbd67aee02ee6ec5ef5969d352687b`
 
 Source class: `cyber-armed`
 

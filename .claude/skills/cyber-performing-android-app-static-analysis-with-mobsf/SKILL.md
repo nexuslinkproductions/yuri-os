@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: performing-android-app-static-analysis-with-mobsf | description: 'Performs automated static analysis of Android applications using Mobile |   Security Framework (MobSF) to identify hardcoded secrets, insecure permissions, |   vulnerable components, weak cryptography, and code-level security flaws without |   executing the application. Use when assessing Android APK/AAB files for security |   vulnerabilities before deployment, during penetration testing, or as part of CI/CD |   security gat"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

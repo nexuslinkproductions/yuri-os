@@ -1,6 +1,7 @@
 ---
 name: cyber-scanning-infrastructure-with-nessus
 description: "Tenable Nessus is the industry-leading vulnerability scanner used to identify security weaknesses across network infrastructure including servers, workstations, network devices, and operating systems."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Tenable Nessus is the industry-leading vulnerability scanner used 
 
 Authoritative source: `.claude/skills/cyber-scanning-infrastructure-with-nessus/SKILL.md`
 
-Authoritative source SHA-256: `3db3aa86a3df51438758384a463cd3cd833f63f8fa131b10bbdd6181eff4b1a4`
+Authoritative source SHA-256: `92f67043cbb102f547558e19eef8eee92fae89a8dce9e68b85aafdae6919fdfb`
 
 Source class: `cyber-armed`
 

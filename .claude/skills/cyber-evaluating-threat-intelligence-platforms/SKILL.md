@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: evaluating-threat-intelligence-platforms | description: 'Evaluates and selects Threat Intelligence Platform (TIP) products based |   on organizational requirements including feed integration capability, STIX/TAXII |   support, workflow automation, analyst interface, and total cost of ownership. Use |   when conducting a TIP procurement, migrating between TIP solutions, or assessing |   whether the current TIP meets program maturity requirements. Activates for requests |   involving ThreatC"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

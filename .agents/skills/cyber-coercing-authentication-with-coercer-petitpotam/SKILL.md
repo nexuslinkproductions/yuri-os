@@ -1,6 +1,7 @@
 ---
 name: cyber-coercing-authentication-with-coercer-petitpotam
 description: "Trigger machine account authentication with PetitPotam (MS-EFSR) and Coercer across MS-RPRN, MS-DFSNM, and MS-FSRVP to feed NTLM relay into AD CS Web Enrollment (ESC8) and other relay targets."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Trigger machine account authentication with PetitPotam (MS-EFSR) a
 
 Authoritative source: `.claude/skills/cyber-coercing-authentication-with-coercer-petitpotam/SKILL.md`
 
-Authoritative source SHA-256: `63ad654b19f0b18f46c17f7b88c8a183f7b0142d7c7d3d4dd07a6449e4148949`
+Authoritative source SHA-256: `dc585ec8439fa49a669f484d16ff5951dc4495260626d5bee6b3b8a17939de86`
 
 Source class: `cyber-armed`
 

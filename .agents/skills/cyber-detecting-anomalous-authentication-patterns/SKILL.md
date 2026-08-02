@@ -1,6 +1,7 @@
 ---
 name: cyber-detecting-anomalous-authentication-patterns
 description: "Detects anomalous authentication patterns using UEBA analytics, statistical baselines, and machine learning models to identify impossible travel, credential stuffing, brute force, password spraying, and compromised account behaviors across authentication logs. Activates for requests involving authentication anomaly detection, login behavior analysis, UEBA implementation, or suspicious sign-in inve"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detects anomalous authentication patterns using UEBA analytics, st
 
 Authoritative source: `.claude/skills/cyber-detecting-anomalous-authentication-patterns/SKILL.md`
 
-Authoritative source SHA-256: `2d12e1386fb24c01f3b87ba53a2111b1789d7cd9979045cd44c44b87b66a7840`
+Authoritative source SHA-256: `8208fa34d5e6d1c4a852b4949d87bf8c51d79db86a4b2aa355313917bc3a56b7`
 
 Source class: `cyber-armed`
 

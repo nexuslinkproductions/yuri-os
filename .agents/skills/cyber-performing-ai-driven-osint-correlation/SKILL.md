@@ -1,6 +1,7 @@
 ---
 name: cyber-performing-ai-driven-osint-correlation
 description: "Use AI and LLM-based reasoning to correlate findings across multiple OSINT sources—username enumeration, email lookups, social media profiles, domain records, breach databases, and dark-web mentions—into unified intelligence profiles with confidence scoring and link analysis."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Use AI and LLM-based reasoning to correlate findings across multip
 
 Authoritative source: `.claude/skills/cyber-performing-ai-driven-osint-correlation/SKILL.md`
 
-Authoritative source SHA-256: `f762c33de19ae228d3d5b303e64c321be2359e0a850c45f1bc97347f19466deb`
+Authoritative source SHA-256: `c2a1dc750335cce58bd41dd056bc30da26a0709dea9b1f475f0e826a3c3cd9c6`
 
 Source class: `cyber-armed`
 

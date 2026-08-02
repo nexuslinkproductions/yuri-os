@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: true
 origin_frontmatter: "name: attacking-oauth-with-device-code-phishing | description: Run OAuth 2.0 device-code and illicit-consent phishing against Microsoft Entra ID to steal access and refresh tokens, bypass MFA, and pivot across Microsoft 365 services. | domain: cybersecurity | subdomain: identity-access-management | tags: | - device-code-phishing | - oauth | - entra-id | - token-theft | - mfa-bypass | - illicit-consent | - tokentactics | - red-team | version: '1.0' | author: mahipal | license: Apache-2.0 | nist_c"
+hide: true
 ---
 
 > AUTHORIZED-LAB ONLY. Offensive/dual-use capability. Use exclusively against systems you own or have explicit written authorization to test. This skill is gated out of the default discovery path; activation requires an explicit authorized-engagement flag.

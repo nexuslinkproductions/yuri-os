@@ -1,6 +1,7 @@
 ---
 name: cyber-achieving-cmmc-level-2-compliance
 description: ">- Prepare a defense-contractor environment for CMMC Level 2 certification: scope CUI and FCI, implement the 110 NIST SP 800-171 Rev 2 security requirements across 14 families, compute the SPRS score with the DoD Assessment Methodology, manage a compliant POA&M, and ready the organization for a C3PAO assessment. Use when an organization handles Controlled Unclassified Information (CUI) under a DoD"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: ">- Prepare a defense-contractor environment for CMMC Level 2 certi
 
 Authoritative source: `.claude/skills/cyber-achieving-cmmc-level-2-compliance/SKILL.md`
 
-Authoritative source SHA-256: `419cdf0cea57de101c7810a2d7fee60fb6d19185e3bcbee0e4a74dc84f88b9ab`
+Authoritative source SHA-256: `9631cca17e6045ee93d608c4a28d159d127af2001d25079585355c72fa96a1c8`
 
 Source class: `cyber-armed`
 

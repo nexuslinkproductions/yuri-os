@@ -1,6 +1,7 @@
 ---
 name: cyber-performing-active-directory-bloodhound-analysis
 description: "Use BloodHound and SharpHound to enumerate Active Directory relationships and identify attack paths from compromised users to Domain Admin."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Use BloodHound and SharpHound to enumerate Active Directory relati
 
 Authoritative source: `.claude/skills/cyber-performing-active-directory-bloodhound-analysis/SKILL.md`
 
-Authoritative source SHA-256: `f96f34d8511164e0c684ccdd148767dc60ae1b5443d5564ba12d68f6f2885ace`
+Authoritative source SHA-256: `e64cb28904a59dc83c35d9b78370f3fe62d642dd43c3768babc2a4f14f30aa37`
 
 Source class: `cyber-armed`
 

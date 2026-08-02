@@ -1,6 +1,7 @@
 ---
 name: cyber-analyzing-cyber-kill-chain
 description: "Analyzes intrusion activity against the Lockheed Martin Cyber Kill Chain framework to identify which phases an adversary has completed, where defenses succeeded or failed, and what controls would have interrupted the attack at earlier phases. Use when conducting post-incident analysis, building prevention-focused security controls, or mapping detection gaps to kill chain phases. Activates for requ"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Analyzes intrusion activity against the Lockheed Martin Cyber Kill
 
 Authoritative source: `.claude/skills/cyber-analyzing-cyber-kill-chain/SKILL.md`
 
-Authoritative source SHA-256: `cc064afec654bcfb1ff68b754caf41f2b2c1215e3309b5a1abda738364e04582`
+Authoritative source SHA-256: `dde91c16731b0b0f319643c192b324278c19db33a24c3d23f63b86ab138889da`
 
 Source class: `cyber-armed`
 

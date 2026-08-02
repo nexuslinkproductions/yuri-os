@@ -1,6 +1,7 @@
 ---
 name: cyber-conducting-pass-the-ticket-attack
 description: "Pass-the-Ticket (PtT) is a lateral movement technique that uses stolen Kerberos tickets (TGT or TGS) to authenticate to services without knowing the user's password. By extracting Kerberos tickets fro"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Pass-the-Ticket (PtT) is a lateral movement technique that uses st
 
 Authoritative source: `.claude/skills/cyber-conducting-pass-the-ticket-attack/SKILL.md`
 
-Authoritative source SHA-256: `68eef2a89ea124dc37b92e0e15bb8686399e0a8aaaef2720cab79963d9a9dedb`
+Authoritative source SHA-256: `119c5515368492e2585feb9ffc2adf1c6a8031efa7df6ff219e2585f233b3e53`
 
 Source class: `cyber-armed`
 

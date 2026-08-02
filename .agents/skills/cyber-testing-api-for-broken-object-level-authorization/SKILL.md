@@ -1,6 +1,7 @@
 ---
 name: cyber-testing-api-for-broken-object-level-authorization
 description: "Tests REST and GraphQL APIs for Broken Object Level Authorization (BOLA/IDOR) vulnerabilities where an authenticated user can access or modify resources belonging to other users by manipulating object identifiers in API requests. The tester intercepts API calls, identifies object ID parameters (numeric IDs, UUIDs, slugs), and systematically replaces them with IDs belonging to other users to determ"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Tests REST and GraphQL APIs for Broken Object Level Authorization 
 
 Authoritative source: `.claude/skills/cyber-testing-api-for-broken-object-level-authorization/SKILL.md`
 
-Authoritative source SHA-256: `09b8674716ad2c1a2fb87d69c9e05bb53f9c88f7835ddd677251d1564c6f328e`
+Authoritative source SHA-256: `b58733efc887d5ce8a8173c5db72638fb2fa6c2395bbf6cf2ef23fd3a09f0a82`
 
 Source class: `cyber-armed`
 

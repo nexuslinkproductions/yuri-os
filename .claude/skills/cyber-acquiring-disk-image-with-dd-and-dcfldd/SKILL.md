@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: acquiring-disk-image-with-dd-and-dcfldd | description: Create forensically sound bit-for-bit disk images using dd and dcfldd |   while preserving evidence integrity through hash verification. | domain: cybersecurity | subdomain: digital-forensics | tags: | - forensics | - disk-imaging | - evidence-acquisition | - dd | - dcfldd | - hash-verification | version: '1.0' | author: mahipal | license: Apache-2.0 | nist_csf: | - RS.AN-01 | - RS.AN-03 | - DE.AE-02 | - RS.MA-01 | mitre_attack: | - T1"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

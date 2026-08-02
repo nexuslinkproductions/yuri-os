@@ -1,6 +1,7 @@
 ---
 name: cyber-performing-api-security-testing-with-postman
 description: "Uses Postman to perform structured API security testing by building collections that test for OWASP API Security Top 10 vulnerabilities including authentication bypass, authorization flaws, injection, and data exposure. The tester creates environments with multiple user roles, writes test scripts for automated security validation, and integrates Postman with OWASP ZAP and Newman for CI/CD security"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Uses Postman to perform structured API security testing by buildin
 
 Authoritative source: `.claude/skills/cyber-performing-api-security-testing-with-postman/SKILL.md`
 
-Authoritative source SHA-256: `7d1a6490dac498698fc909d88068d82a820b6d03015904532e14ebfbecc95bd9`
+Authoritative source SHA-256: `b42d25ed3f602507cd58edb0739c4f5daacea5b03452b162696838fabf3abf04`
 
 Source class: `cyber-armed`
 

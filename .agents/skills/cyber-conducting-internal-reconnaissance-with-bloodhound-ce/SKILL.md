@@ -1,6 +1,7 @@
 ---
 name: cyber-conducting-internal-reconnaissance-with-bloodhound-ce
 description: "Conduct internal Active Directory reconnaissance using BloodHound Community Edition to map attack paths, identify privilege escalation chains, and discover misconfigurations in domain environments."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Conduct internal Active Directory reconnaissance using BloodHound 
 
 Authoritative source: `.claude/skills/cyber-conducting-internal-reconnaissance-with-bloodhound-ce/SKILL.md`
 
-Authoritative source SHA-256: `cafb74f263f3410a943ed4406e8c5d547127c6844aa81c82d5318d17fc6b14ab`
+Authoritative source SHA-256: `86b5b2164680b851b6b13b0d02cebdadb094981580cea71024bcbc68f27e9b31`
 
 Source class: `cyber-armed`
 

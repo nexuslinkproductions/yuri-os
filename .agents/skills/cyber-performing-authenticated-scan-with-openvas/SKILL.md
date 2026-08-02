@@ -1,6 +1,7 @@
 ---
 name: cyber-performing-authenticated-scan-with-openvas
 description: "Configure and execute authenticated vulnerability scans using OpenVAS/Greenbone Vulnerability Management with SSH and SMB credentials for comprehensive host-level assessment."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Configure and execute authenticated vulnerability scans using Open
 
 Authoritative source: `.claude/skills/cyber-performing-authenticated-scan-with-openvas/SKILL.md`
 
-Authoritative source SHA-256: `3c45c3694cf15d9a8a0ec098dd3b79e424bb0fd2fb41b15d2b11aaf238fadc11`
+Authoritative source SHA-256: `30cb7b964b6951bb2dffb1074f411637360939981590df4f102817b52c7f094f`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-for-dcom-lateral-movement
 description: "Hunt for DCOM-based lateral movement by detecting abuse of MMC20.Application, ShellBrowserWindow, and ShellWindows COM objects through Sysmon Event ID 1 (process creation) and Event ID 3 (network connection) correlation, WMI event analysis, RPC endpoint mapper traffic on port 135, and DCOM-specific parent-child process relationships."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Hunt for DCOM-based lateral movement by detecting abuse of MMC20.A
 
 Authoritative source: `.claude/skills/cyber-hunting-for-dcom-lateral-movement/SKILL.md`
 
-Authoritative source SHA-256: `3799df3255a9af6b63ccbb4d59d7dce359f9f90128ff457dc5c149ab7026f6d2`
+Authoritative source SHA-256: `aebc3b0fc962a00be63be923e693740115730e19cb208748485db8acbf1d5b3a`
 
 Source class: `cyber-armed`
 

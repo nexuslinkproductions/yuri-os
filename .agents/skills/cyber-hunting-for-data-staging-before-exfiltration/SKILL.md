@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-for-data-staging-before-exfiltration
 description: "Detect data staging activity before exfiltration by monitoring for archive creation with 7-Zip/RAR, unusual temp folder access, large file consolidation, and staging directory patterns via EDR and process telemetry"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detect data staging activity before exfiltration by monitoring for
 
 Authoritative source: `.claude/skills/cyber-hunting-for-data-staging-before-exfiltration/SKILL.md`
 
-Authoritative source SHA-256: `0b0a023fbb49d162c4d96cace4ae4aa20918e1417131ad228ab7363a3438ce8d`
+Authoritative source SHA-256: `a5881900cae4abf2928e1865085702ebf2cea7e505c757f85332c25d317afa19`
 
 Source class: `cyber-armed`
 

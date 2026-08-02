@@ -1,6 +1,7 @@
 ---
 name: cyber-performing-active-directory-compromise-investigation
 description: "Investigate Active Directory compromise by analyzing authentication logs, replication metadata, Group Policy changes, and Kerberos ticket anomalies to identify attacker persistence and lateral movement paths."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Investigate Active Directory compromise by analyzing authenticatio
 
 Authoritative source: `.claude/skills/cyber-performing-active-directory-compromise-investigation/SKILL.md`
 
-Authoritative source SHA-256: `2a3527ab5c8bea1840d421f6106bd9b5fe4db6baa234867764fe5ed97912d916`
+Authoritative source SHA-256: `89253b3a17bd7a14020ab63e11180bbff99be1f0aea037278c4635a525a515ef`
 
 Source class: `cyber-armed`
 

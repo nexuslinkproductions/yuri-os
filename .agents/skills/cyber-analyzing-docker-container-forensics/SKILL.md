@@ -1,6 +1,7 @@
 ---
 name: cyber-analyzing-docker-container-forensics
 description: "Investigate compromised Docker containers by analyzing images, layers, volumes, logs, and runtime artifacts to identify malicious activity and evidence."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Investigate compromised Docker containers by analyzing images, lay
 
 Authoritative source: `.claude/skills/cyber-analyzing-docker-container-forensics/SKILL.md`
 
-Authoritative source SHA-256: `539c718a1c4ab58960d4c31beab562e795ffb3730372c8068ea35d5ec154eb06`
+Authoritative source SHA-256: `fdda2505b384a848aea1380897430a4ce629f772b1769aee67c9ee94c706d8c2`
 
 Source class: `cyber-armed`
 

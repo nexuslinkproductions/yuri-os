@@ -1,6 +1,7 @@
 ---
 name: cyber-fleet-hunting-with-velociraptor
 description: "Deploy a Velociraptor server and agents and write VQL hunts across a fleet."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Deploy a Velociraptor server and agents and write VQL hunts across
 
 Authoritative source: `.claude/skills/cyber-fleet-hunting-with-velociraptor/SKILL.md`
 
-Authoritative source SHA-256: `ab290f5ca950eb6b10ff132f5fe81b27dc7194dd2812a9bba57e285a4b4fa598`
+Authoritative source SHA-256: `31603baf05250d011f9e8894b067d63537be48847f63668b5eb748db87ffe09b`
 
 Source class: `cyber-armed`
 

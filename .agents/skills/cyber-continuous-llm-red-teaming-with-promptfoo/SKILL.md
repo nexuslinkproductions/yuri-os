@@ -1,6 +1,7 @@
 ---
 name: cyber-continuous-llm-red-teaming-with-promptfoo
 description: "Wire Promptfoo and DeepTeam into CI/CD for automated regression red-teaming of LLM apps against OWASP LLM Top 10 and OWASP Agentic presets, failing the build when jailbreak or injection vulnerabilities regress."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Wire Promptfoo and DeepTeam into CI/CD for automated regression re
 
 Authoritative source: `.claude/skills/cyber-continuous-llm-red-teaming-with-promptfoo/SKILL.md`
 
-Authoritative source SHA-256: `bfa15bd89ebdbc65bbc947b0bffbc1b31dbcaac2be5caef4dbbf8daf04e19855`
+Authoritative source SHA-256: `eae5701e47ffd9ef344d46d4a564df85ba49def09e855f7a400ea46c3cc7808d`
 
 Source class: `cyber-armed`
 

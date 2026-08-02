@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: analyzing-api-gateway-access-logs | description: 'Parses API Gateway access logs (AWS API Gateway, Kong, Nginx) to detect |   BOLA/IDOR attacks, rate limit bypass, credential scanning, and injection attempts. |   Uses pandas for statistical analysis of request patterns and anomaly detection. |   Use when investigating API abuse or building API-specific threat detection rules. |  |   ' | domain: cybersecurity | subdomain: security-operations | tags: | - api-security | - access-log-analysis "
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

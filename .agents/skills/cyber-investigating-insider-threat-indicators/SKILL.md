@@ -1,6 +1,7 @@
 ---
 name: cyber-investigating-insider-threat-indicators
 description: "Investigates insider threat indicators including data exfiltration attempts, unauthorized access patterns, policy violations, and pre-departure behaviors using SIEM analytics, DLP alerts, and HR data correlation. Use when SOC teams receive insider threat referrals from HR, detect anomalous data movement by employees, or need to build investigation timelines for potential insider threats."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Investigates insider threat indicators including data exfiltration
 
 Authoritative source: `.claude/skills/cyber-investigating-insider-threat-indicators/SKILL.md`
 
-Authoritative source SHA-256: `ce37603521e2d28cd4a92dcf0bcf3a48d113e55b35ba1656f46a886e41082853`
+Authoritative source SHA-256: `5541224572b267c28f01abb62795ffed420242a400cfcce38f0dda2c3c2c9800`
 
 Source class: `cyber-armed`
 

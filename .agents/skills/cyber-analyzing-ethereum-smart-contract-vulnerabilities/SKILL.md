@@ -1,6 +1,7 @@
 ---
 name: cyber-analyzing-ethereum-smart-contract-vulnerabilities
 description: "Perform static and symbolic analysis of Solidity smart contracts using Slither and Mythril to detect reentrancy, integer overflow, access control, and other vulnerability classes before deployment to Ethereum mainnet."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Perform static and symbolic analysis of Solidity smart contracts u
 
 Authoritative source: `.claude/skills/cyber-analyzing-ethereum-smart-contract-vulnerabilities/SKILL.md`
 
-Authoritative source SHA-256: `ee8e8c6f60f6edaf198d54f0468088690a4c466060b3b9a7e867799faf9e0893`
+Authoritative source SHA-256: `de11d8ed5dba852bf9e29e2f51850905ec040f2f13245b574cd3680006540a56`
 
 Source class: `cyber-armed`
 

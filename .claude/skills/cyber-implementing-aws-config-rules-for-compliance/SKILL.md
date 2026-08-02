@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: implementing-aws-config-rules-for-compliance | description: 'Implementing AWS Config rules for continuous compliance monitoring of |   AWS resources, deploying managed and custom rules aligned to CIS and PCI DSS frameworks, |   configuring automatic remediation with SSM Automation, and aggregating compliance |   data across accounts. |  |   ' | domain: cybersecurity | subdomain: cloud-security | tags: | - cloud-security | - aws | - config-rules | - compliance | - automation | - remediation"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

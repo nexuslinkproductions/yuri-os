@@ -1,6 +1,7 @@
 ---
 name: cyber-validating-tpm-measured-boot-attestation
 description: "Verify TPM PCRs and measured-boot and remote-attestation integrity."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Verify TPM PCRs and measured-boot and remote-attestation integrity
 
 Authoritative source: `.claude/skills/cyber-validating-tpm-measured-boot-attestation/SKILL.md`
 
-Authoritative source SHA-256: `05e3328e8d80e5922c6038d4620a5d8209bda1ac9e7ab8e4e705b84836652848`
+Authoritative source SHA-256: `03e3668a63ecaaf9967bb683f7ea7a09dea0c9340c42d82a0f37aa7221d32c60`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-executing-active-directory-attack-simulation
 description: "Executes authorized attack simulations against Active Directory environments to identify misconfigurations, weak credentials, dangerous privilege paths, and exploitable trust relationships that could lead to domain compromise. The tester uses BloodHound for attack path analysis, Mimikatz for credential extraction, and Impacket for protocol-level attacks including Kerberoasting, AS-REP Roasting, an"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Executes authorized attack simulations against Active Directory en
 
 Authoritative source: `.claude/skills/cyber-executing-active-directory-attack-simulation/SKILL.md`
 
-Authoritative source SHA-256: `7e0851b30498558ee20dee6e780f6e95c8023c8f6d1db8912a86344d9124124a`
+Authoritative source SHA-256: `d276ccd16e9fcc979d61e8b12dbb82a9c0ce261957848b3c11c2d76018f35f93`
 
 Source class: `cyber-armed`
 

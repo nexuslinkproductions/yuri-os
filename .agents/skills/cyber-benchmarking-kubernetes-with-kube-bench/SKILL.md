@@ -1,6 +1,7 @@
 ---
 name: cyber-benchmarking-kubernetes-with-kube-bench
 description: "Run CIS Kubernetes Benchmark checks and remediate findings with kube-bench."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Run CIS Kubernetes Benchmark checks and remediate findings with ku
 
 Authoritative source: `.claude/skills/cyber-benchmarking-kubernetes-with-kube-bench/SKILL.md`
 
-Authoritative source SHA-256: `bcc4d84b3a4702bd191bdf7b5f2612a90f6f415d34797cb59cefcfe3c01b8b32`
+Authoritative source SHA-256: `04ac93e28f5eb308e8ac127e4b8ca8a7513c0d0d182e80d2dd694d240d704cc4`
 
 Source class: `cyber-armed`
 

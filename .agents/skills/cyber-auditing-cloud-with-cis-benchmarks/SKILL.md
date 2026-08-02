@@ -1,6 +1,7 @@
 ---
 name: cyber-auditing-cloud-with-cis-benchmarks
 description: "This skill details how to conduct cloud security audits using Center for Internet Security benchmarks for AWS, Azure, and GCP. It covers interpreting CIS Foundations Benchmark controls, running automated assessments with tools like Prowler and ScoutSuite, remediating failed controls, and maintaining continuous compliance monitoring against CIS v5 for AWS, v4 for Azure, and v4 for GCP."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "This skill details how to conduct cloud security audits using Cent
 
 Authoritative source: `.claude/skills/cyber-auditing-cloud-with-cis-benchmarks/SKILL.md`
 
-Authoritative source SHA-256: `f0ef0dcb3526f1543c7422f3d851893f22a03f4f47e7a097c4198703703f82cd`
+Authoritative source SHA-256: `5c4a764a67cfda6fbd180156cf73593f850d8883bde7f946536724a138c3f058`
 
 Source class: `cyber-armed`
 

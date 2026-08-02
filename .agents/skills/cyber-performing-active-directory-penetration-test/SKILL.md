@@ -1,6 +1,7 @@
 ---
 name: cyber-performing-active-directory-penetration-test
 description: "Conduct a focused Active Directory penetration test to enumerate domain objects, discover attack paths with BloodHound, exploit Kerberos weaknesses, escalate privileges via ADCS/DCSync, and demonstrate domain compromise."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Conduct a focused Active Directory penetration test to enumerate d
 
 Authoritative source: `.claude/skills/cyber-performing-active-directory-penetration-test/SKILL.md`
 
-Authoritative source SHA-256: `ed8d6a02964b7d97f87478d323cde34123ebe9cb137bd0ebb3c2d5c7d58a615f`
+Authoritative source SHA-256: `185569fe6203a7f390ba34fe654bee662856795d3b17fb036caa4a10b5b9cc5c`
 
 Source class: `cyber-armed`
 

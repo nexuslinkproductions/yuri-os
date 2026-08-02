@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-for-data-exfiltration-indicators
 description: "Hunt for data exfiltration through network traffic analysis, detecting unusual data flows, DNS tunneling, cloud storage uploads, and encrypted channel abuse."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Hunt for data exfiltration through network traffic analysis, detec
 
 Authoritative source: `.claude/skills/cyber-hunting-for-data-exfiltration-indicators/SKILL.md`
 
-Authoritative source SHA-256: `3bd2511ef1a4712c3987c392e044a844008268fb8a223cb7d6ede561268b8bbd`
+Authoritative source SHA-256: `3d1cd9d039d8b358160f460064eb6ae98e4e833f80834753388260daa18f3727`
 
 Source class: `cyber-armed`
 

@@ -1,6 +1,7 @@
 ---
 name: cyber-conducting-full-scope-red-team-engagement
 description: "Plan and execute a comprehensive red team engagement covering reconnaissance through post-exploitation using MITRE ATT&CK-aligned TTPs to evaluate an organization's detection and response capabilities."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Plan and execute a comprehensive red team engagement covering reco
 
 Authoritative source: `.claude/skills/cyber-conducting-full-scope-red-team-engagement/SKILL.md`
 
-Authoritative source SHA-256: `6e628133f401f99c8ab8f0c33320004c8755c2591a1a1821d35fea29d872ca0d`
+Authoritative source SHA-256: `e026d2e28df08ef48b114c96b14ac6a938a1f8d650b67a19cc2901ffc05e2285`
 
 Source class: `cyber-armed`
 

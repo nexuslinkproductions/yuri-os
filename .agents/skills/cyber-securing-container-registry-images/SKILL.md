@@ -1,6 +1,7 @@
 ---
 name: cyber-securing-container-registry-images
 description: "Securing container registry images by implementing vulnerability scanning with Trivy and Grype, enforcing image signing with Cosign and Sigstore, configuring registry access controls, and building CI/CD pipelines that prevent deploying unscanned or unsigned images."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Securing container registry images by implementing vulnerability s
 
 Authoritative source: `.claude/skills/cyber-securing-container-registry-images/SKILL.md`
 
-Authoritative source SHA-256: `bc1feeef016b2703cb9c09b1acd4b3d6dc9dae6642e29053cb4469d6f6412009`
+Authoritative source SHA-256: `4b5483a524ddf82745b7504de1a78668deb1b8af26e164ea446f43f3afa24259`
 
 Source class: `cyber-armed`
 

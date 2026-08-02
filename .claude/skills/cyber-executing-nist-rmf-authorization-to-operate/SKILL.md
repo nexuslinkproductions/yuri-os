@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: executing-nist-rmf-authorization-to-operate | description: >- |   Drive a federal system through the NIST Risk Management Framework (SP 800-37 Rev 2) |   to an Authorization to Operate (ATO): Prepare, Categorize (FIPS 199), Select a control |   baseline (FIPS 200 / SP 800-53 Rev 5), Implement, Assess (SP 800-53A), Authorize, and |   Monitor continuously. Use when a system needs an ATO or a renewal, when working a |   FISMA/FedRAMP authorization package, when building or reviewing an SSP, S"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

@@ -1,6 +1,7 @@
 ---
 name: cyber-configuring-oauth2-authorization-flow
 description: "Configure secure OAuth 2.0 authorization flows including Authorization Code with PKCE, Client Credentials, and Device Authorization Grant. This skill covers flow selection, PKCE implementation, token"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Configure secure OAuth 2.0 authorization flows including Authoriza
 
 Authoritative source: `.claude/skills/cyber-configuring-oauth2-authorization-flow/SKILL.md`
 
-Authoritative source SHA-256: `74a2ddd3a40e71f54fc8771295493903fe9a1432f86910bd4a7291ab5fa6b407`
+Authoritative source SHA-256: `82a3ce91551903313b26aefa47865f2431c34bceed39e41c47700df7c8a322bf`
 
 Source class: `cyber-armed`
 

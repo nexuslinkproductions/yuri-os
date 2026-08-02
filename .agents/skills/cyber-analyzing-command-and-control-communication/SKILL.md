@@ -1,6 +1,7 @@
 ---
 name: cyber-analyzing-command-and-control-communication
 description: "Analyzes malware command-and-control (C2) communication protocols to understand beacon patterns, command structures, data encoding, and infrastructure. Covers HTTP, HTTPS, DNS, and custom protocol C2 analysis for detection development and threat intelligence. Activates for requests involving C2 analysis, beacon detection, C2 protocol reverse engineering, or command-and-control infrastructure mappi"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Analyzes malware command-and-control (C2) communication protocols 
 
 Authoritative source: `.claude/skills/cyber-analyzing-command-and-control-communication/SKILL.md`
 
-Authoritative source SHA-256: `f47be982951316a2ecfc3f40f6dea7a10451c8eea75ff04264519c4963d472a1`
+Authoritative source SHA-256: `54623b21488aba187dc1b2a7b6132baa96d8f72cfc2c3c32c2666f2ca3016a2c`
 
 Source class: `cyber-armed`
 

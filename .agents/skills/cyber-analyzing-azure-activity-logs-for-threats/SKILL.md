@@ -1,6 +1,7 @@
 ---
 name: cyber-analyzing-azure-activity-logs-for-threats
 description: "Queries Azure Monitor activity logs and sign-in logs via azure-monitor-query to detect suspicious administrative operations, impossible travel, privilege escalation, and resource modifications. Builds KQL queries for threat hunting in Azure environments. Use when investigating suspicious Azure tenant activity or building cloud SIEM detections."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Queries Azure Monitor activity logs and sign-in logs via azure-mon
 
 Authoritative source: `.claude/skills/cyber-analyzing-azure-activity-logs-for-threats/SKILL.md`
 
-Authoritative source SHA-256: `4cc26e1983556c2564d3e903719f66ad8663c008181fd367bd8bf26e0b28a71c`
+Authoritative source SHA-256: `f52b90e1edfece6020e30df6acae43100bafe0d0ed402030b3445c293f2b9f01`
 
 Source class: `cyber-armed`
 

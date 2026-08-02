@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: implementing-api-gateway-security-controls | description: 'Implements security controls at the API gateway layer including authentication |   enforcement, rate limiting, request validation, IP allowlisting, TLS termination, |   and threat protection. The engineer configures API gateways (Kong, AWS API Gateway, |   Azure APIM, Apigee) to act as a centralized security enforcement point that validates, |   throttles, and monitors all API traffic before it reaches backend services. Activates |"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

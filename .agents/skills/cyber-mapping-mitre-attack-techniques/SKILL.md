@@ -1,6 +1,7 @@
 ---
 name: cyber-mapping-mitre-attack-techniques
 description: "Maps observed adversary behaviors, security alerts, and detection rules to MITRE ATT&CK techniques and sub-techniques to quantify detection coverage and guide control prioritization. Use when building an ATT&CK-based coverage heatmap, tagging SIEM alerts with technique IDs, aligning security controls to adversary playbooks, or reporting threat exposure to executives. Activates for requests involvi"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Maps observed adversary behaviors, security alerts, and detection 
 
 Authoritative source: `.claude/skills/cyber-mapping-mitre-attack-techniques/SKILL.md`
 
-Authoritative source SHA-256: `93ec20b18c25bd639f7f2e89ed0e202657a13ff1eca623ebb4e6ae243a32e9da`
+Authoritative source SHA-256: `fc0c6ffdbf3ad3ccd032866c513b581832d72785db6c11e6fb7bcb274309775f`
 
 Source class: `cyber-armed`
 

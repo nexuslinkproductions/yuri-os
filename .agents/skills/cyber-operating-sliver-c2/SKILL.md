@@ -1,6 +1,7 @@
 ---
 name: cyber-operating-sliver-c2
 description: "Stand up a Sliver C2 server and listeners, generate cross-platform implants and beacons, and run post-exploitation, pivoting, and BOF/.NET tooling via the armory for adversary emulation."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Stand up a Sliver C2 server and listeners, generate cross-platform
 
 Authoritative source: `.claude/skills/cyber-operating-sliver-c2/SKILL.md`
 
-Authoritative source SHA-256: `1030b603cab5ca56c8cf1b74367a08672ca4945084979cd5cebeacd410900e37`
+Authoritative source SHA-256: `805695d1de0acee1a21e1eb0e434b9bffea9d71f31b1d5730e9d46021eb1e3cd`
 
 Source class: `cyber-armed`
 

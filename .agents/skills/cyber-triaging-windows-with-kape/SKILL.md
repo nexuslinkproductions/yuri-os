@@ -1,6 +1,7 @@
 ---
 name: cyber-triaging-windows-with-kape
 description: "Run targeted forensic artifact collection and module parsing with KAPE."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Run targeted forensic artifact collection and module parsing with 
 
 Authoritative source: `.claude/skills/cyber-triaging-windows-with-kape/SKILL.md`
 
-Authoritative source SHA-256: `1e874add2d224b3e883a4cb0fc855a060a952256ee83625da7976b2a07859795`
+Authoritative source SHA-256: `757575dbb6b5a72925e84db52d9857e0e740a956b1b139944e75754d60cf3860`
 
 Source class: `cyber-armed`
 

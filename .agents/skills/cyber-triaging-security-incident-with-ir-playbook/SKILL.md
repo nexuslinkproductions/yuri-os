@@ -1,6 +1,7 @@
 ---
 name: cyber-triaging-security-incident-with-ir-playbook
 description: "Classify and prioritize security incidents using structured IR playbooks to determine severity, assign response teams, and initiate appropriate response procedures."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Classify and prioritize security incidents using structured IR pla
 
 Authoritative source: `.claude/skills/cyber-triaging-security-incident-with-ir-playbook/SKILL.md`
 
-Authoritative source SHA-256: `1810585f4e3e64283c1aec8be443268c00f8696f9f80ad21712b2635e296cac7`
+Authoritative source SHA-256: `90ddd2f9b049cff9176a99fbeaa520e1f8b308aefb3961ca123ea1d4af890b23`
 
 Source class: `cyber-armed`
 

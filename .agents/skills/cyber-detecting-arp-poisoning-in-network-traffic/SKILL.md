@@ -1,6 +1,7 @@
 ---
 name: cyber-detecting-arp-poisoning-in-network-traffic
 description: "Detect and prevent ARP spoofing attacks using ARPWatch, Dynamic ARP Inspection, Wireshark analysis, and custom monitoring scripts to protect against man-in-the-middle interception."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Detect and prevent ARP spoofing attacks using ARPWatch, Dynamic AR
 
 Authoritative source: `.claude/skills/cyber-detecting-arp-poisoning-in-network-traffic/SKILL.md`
 
-Authoritative source SHA-256: `3b19c856894bbd761ce2f04bae9f27b085d19347e85cd3761cad70515741c673`
+Authoritative source SHA-256: `2addf644d7157377f4b526cf22af52e8d8100856b2d6b37d1dcd27b049adadc3`
 
 Source class: `cyber-armed`
 

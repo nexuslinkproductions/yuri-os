@@ -1,6 +1,7 @@
 ---
 name: cyber-testing-for-xss-vulnerabilities
 description: "Tests web applications for Cross-Site Scripting (XSS) vulnerabilities by injecting JavaScript payloads into reflected, stored, and DOM-based contexts to demonstrate client-side code execution, session hijacking, and user impersonation. The tester identifies all injection points and output contexts, crafts context-appropriate payloads, and bypasses sanitization and CSP protections. Activates for re"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Tests web applications for Cross-Site Scripting (XSS) vulnerabilit
 
 Authoritative source: `.claude/skills/cyber-testing-for-xss-vulnerabilities/SKILL.md`
 
-Authoritative source SHA-256: `99d74491df0929d40682c0936bd66f184f0316a4ee3d1bb384258307dc806cc3`
+Authoritative source SHA-256: `23b788e68ddc13cb1cda304453ac35e964bb9d0544ce35c56f5a01a30f7e0140`
 
 Source class: `cyber-armed`
 

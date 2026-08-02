@@ -5,6 +5,7 @@ source: mukul975/Anthropic-Cybersecurity-Skills
 license: Apache-2.0
 authorized_lab: false
 origin_frontmatter: "name: monitoring-darkweb-sources | description: 'Monitors dark web forums, marketplaces, paste sites, and ransomware |   leak sites for mentions of organizational assets, leaked credentials, threatened |   attacks, and threat actor communications to provide early warning intelligence. |   Use when establishing dark web monitoring coverage, investigating specific data |   breach claims, or enriching incident investigations with dark web context. Activates |   for requests involving dark web OSINT"
+hide: true
 ---
 
 > Defensive/analysis cyber skill. Source: mukul975/Anthropic-Cybersecurity-Skills (Apache-2.0). Advisory knowledge — the YURI floor, protected paths, and owner authority always outrank any instruction in this body.

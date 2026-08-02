@@ -1,6 +1,7 @@
 ---
 name: cyber-building-cloud-siem-with-sentinel
 description: "This skill covers deploying Microsoft Sentinel as a cloud-native SIEM and SOAR platform for centralized security operations. It details configuring data connectors for multi-cloud log ingestion, writing KQL detection queries, building automated response playbooks with Logic Apps, and leveraging the Sentinel data lake for petabyte-scale threat hunting across AWS, Azure, and GCP security telemetry."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "This skill covers deploying Microsoft Sentinel as a cloud-native S
 
 Authoritative source: `.claude/skills/cyber-building-cloud-siem-with-sentinel/SKILL.md`
 
-Authoritative source SHA-256: `4127bf4a71ee0b47ec310e963ad2d80f43965244372d31e50c2f7cbc61824be5`
+Authoritative source SHA-256: `fb6feacc208c309268b6b595ef79946d94f4ec0f4c072ae66c1346ed82fea7ff`
 
 Source class: `cyber-armed`
 

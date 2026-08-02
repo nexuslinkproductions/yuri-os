@@ -1,6 +1,7 @@
 ---
 name: cyber-analyzing-campaign-attribution-evidence
 description: "Campaign attribution analysis involves systematically evaluating evidence to determine which threat actor or group is responsible for a cyber operation. This skill covers collecting and weighting attr"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Campaign attribution analysis involves systematically evaluating e
 
 Authoritative source: `.claude/skills/cyber-analyzing-campaign-attribution-evidence/SKILL.md`
 
-Authoritative source SHA-256: `de6756e5a09ee36bcbbaa6eb240ef55d46ab12845c1080ffc1a1d4dd2fa66dab`
+Authoritative source SHA-256: `3ce92e92d652fd6d5868a62a548c89080034467ec304f20d98b547d93cdf280b`
 
 Source class: `cyber-armed`
 

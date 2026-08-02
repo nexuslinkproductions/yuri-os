@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-bootkits-in-efi-system-partition
 description: "Baseline the EFI System Partition and hunt malicious EFI binaries (ESPecter, BlackLotus, Bootkitty, Glupteba) by mounting the ESP, hashing and verifying boot loaders, scanning with YARA, and detecting anomalous non-EFI files."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Baseline the EFI System Partition and hunt malicious EFI binaries 
 
 Authoritative source: `.claude/skills/cyber-hunting-bootkits-in-efi-system-partition/SKILL.md`
 
-Authoritative source SHA-256: `a0e0aa54384c864605816bcf6cb4b510ae2fe5993664c3f18d79d516e9e0bf30`
+Authoritative source SHA-256: `0002a15b128f2523c3e0cb3620f946ae863ffd5fc0ecdb6751625061224b536e`
 
 Source class: `cyber-armed`
 

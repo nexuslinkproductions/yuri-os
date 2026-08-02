@@ -1,6 +1,7 @@
 ---
 name: cyber-conducting-network-penetration-test
 description: "Conducts comprehensive network penetration tests against authorized target environments by performing host discovery, port scanning, service enumeration, vulnerability identification, and controlled exploitation to assess the security posture of network infrastructure. The tester follows PTES methodology from reconnaissance through post-exploitation and reporting. Activates for requests involving"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Conducts comprehensive network penetration tests against authorize
 
 Authoritative source: `.claude/skills/cyber-conducting-network-penetration-test/SKILL.md`
 
-Authoritative source SHA-256: `cc868df9bc0f28933e428125a671d28e4533a3a0d40334ff7046638c856be424`
+Authoritative source SHA-256: `555be5117d71d2bc721f9fc5606cc7b25715a539355f5a09acacf6030b20c4aa`
 
 Source class: `cyber-armed`
 

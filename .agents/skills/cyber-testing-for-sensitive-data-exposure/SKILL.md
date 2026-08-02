@@ -1,6 +1,7 @@
 ---
 name: cyber-testing-for-sensitive-data-exposure
 description: "Identifying sensitive data exposure vulnerabilities including API key leakage, PII in responses, insecure storage, and unprotected data transmission during security assessments."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Identifying sensitive data exposure vulnerabilities including API 
 
 Authoritative source: `.claude/skills/cyber-testing-for-sensitive-data-exposure/SKILL.md`
 
-Authoritative source SHA-256: `292d94e4e62816860a452e3c27a40bdc18af9117368f4408cae9aa863f4b6623`
+Authoritative source SHA-256: `21aba890a09559695873de5f9c61c0e7cbff6752155723328e991d1bbdaa2608`
 
 Source class: `cyber-armed`
 

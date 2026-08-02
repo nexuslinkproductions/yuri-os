@@ -1,6 +1,7 @@
 ---
 name: cyber-configuring-multi-factor-authentication-with-duo
 description: "Deploy Cisco Duo multi-factor authentication across enterprise applications, VPN, RDP, and SSH access points. This skill covers Duo integration methods, adaptive authentication policies, device trust"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Deploy Cisco Duo multi-factor authentication across enterprise app
 
 Authoritative source: `.claude/skills/cyber-configuring-multi-factor-authentication-with-duo/SKILL.md`
 
-Authoritative source SHA-256: `d7886c7c183b5969f5b97699d3982f65404cc22b34b6ae57294acefcf6a21422`
+Authoritative source SHA-256: `e12a32f0d01111c55e86eeb46c7d789dc2675238f0ae72aad86b8dc7b38c7801`
 
 Source class: `cyber-armed`
 

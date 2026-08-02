@@ -1,6 +1,7 @@
 ---
 name: cyber-hunting-for-dns-based-persistence
 description: "Hunt for DNS-based persistence mechanisms including DNS hijacking, dangling CNAME records, wildcard DNS abuse, and unauthorized zone modifications using passive DNS databases, SecurityTrails API, and DNS audit log analysis."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Hunt for DNS-based persistence mechanisms including DNS hijacking,
 
 Authoritative source: `.claude/skills/cyber-hunting-for-dns-based-persistence/SKILL.md`
 
-Authoritative source SHA-256: `3f03c6aa5c050fe7495ad6201bb00fbe3fcd394b45137d2f8d6eb5ab4f4b443b`
+Authoritative source SHA-256: `32fe4b6df56ec0c04fbcb351bf540dd555dd9c247844e31ef740f9d99e719b05`
 
 Source class: `cyber-armed`
 

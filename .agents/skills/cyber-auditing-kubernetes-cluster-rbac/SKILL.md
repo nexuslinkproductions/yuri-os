@@ -1,6 +1,7 @@
 ---
 name: cyber-auditing-kubernetes-cluster-rbac
 description: "Auditing Kubernetes cluster RBAC configurations to identify overly permissive roles, wildcard permissions, dangerous ClusterRoleBindings, service account abuse, and privilege escalation paths using kubectl, rbac-tool, KubiScan, and Kubeaudit."
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Auditing Kubernetes cluster RBAC configurations to identify overly
 
 Authoritative source: `.claude/skills/cyber-auditing-kubernetes-cluster-rbac/SKILL.md`
 
-Authoritative source SHA-256: `54a5149a0fefd28cc814645796b6b1746581f1ed03c68c1433d33b3c42e7ceaa`
+Authoritative source SHA-256: `d8120cc481b513adc4ad108f0181f30c67f607ff794bd0e3e236eede7f42223d`
 
 Source class: `cyber-armed`
 

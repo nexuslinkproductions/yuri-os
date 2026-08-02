@@ -1,6 +1,7 @@
 ---
 name: cyber-containing-active-breach
 description: "Executes containment strategies to stop active adversary operations and prevent lateral movement during a confirmed security breach. Implements short-term and long-term containment using network segmentation, endpoint isolation, credential revocation, and access control modifications. Activates for requests involving breach containment, lateral movement prevention, network isolation, active threat"
+hide: true
 ---
 
 <!-- GENERATED:YURI-CODEX-SKILL-ADAPTER:v1 -->
@@ -9,7 +10,7 @@ description: "Executes containment strategies to stop active adversary operation
 
 Authoritative source: `.claude/skills/cyber-containing-active-breach/SKILL.md`
 
-Authoritative source SHA-256: `3a793eb74dc22cfc007a8fe337527ed30d0f6c02168805da3776d65f02d67a70`
+Authoritative source SHA-256: `4b9c2505fd7f799e2afe798076ddf23f05a010d9eb834b329f37e5ac2f7dfed0`
 
 Source class: `cyber-armed`
 
