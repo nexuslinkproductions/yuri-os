@@ -11,6 +11,8 @@ Authoritative source: `.claude/skills-labgated/cyber-attacking-oauth-with-device
 
 Authoritative source SHA-256: `b5a696958aed3beb904b0a1b7d7f03c495651398f3aeb1b094ddd993adf59b4f`
 
+> AUTHORIZED-LAB ONLY. Offensive/dual-use capability. Use exclusively against systems you own or have explicit written authorization to test. Owner-authorized metadata discovery does not authorize runtime actions; use requires an explicit authorized-engagement decision.
+
 Source class: `labgated`
 Owner-authorized discovery: `true`
 Runtime/action authorization: `false`

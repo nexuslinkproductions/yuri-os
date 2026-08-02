@@ -270,6 +270,8 @@ function adapterBody(source) {
     .trim();
   const risk = source.sourceClass === 'labgated'
     ? [
+        LABGATED_BANNER,
+        '',
         'Source class: `labgated`',
         'Owner-authorized discovery: `true`',
         'Runtime/action authorization: `false`',

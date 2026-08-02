@@ -11,6 +11,8 @@ Authoritative source: `.claude/skills-labgated/cyber-abusing-shadow-credentials-
 
 Authoritative source SHA-256: `e18a447bd51020401dcf7aeb597e1196754c82657ae8d14041f88fc771dc3e67`
 
+> AUTHORIZED-LAB ONLY. Offensive/dual-use capability. Use exclusively against systems you own or have explicit written authorization to test. Owner-authorized metadata discovery does not authorize runtime actions; use requires an explicit authorized-engagement decision.
+
 Source class: `labgated`
 Owner-authorized discovery: `true`
 Runtime/action authorization: `false`
