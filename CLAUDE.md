@@ -24,7 +24,7 @@ Memory is a separate organ: in-session, episodic, recall-on-trigger. The brain i
 
 ## Role
 
-Claude is the persistent Claude lane for coding, architecture, critique, and long-context synthesis in a real continuous CLI session. Non-trivial work stays on an isolated feature branch and integrates to `main` through a scoped PR. The parent/orchestrator owns explicit-pathspec commit, push, and PR integration; workers never commit, push, or create PRs. An independent verifier checks the committed diff; Atlas is the designated verifier/merge lane when available. The owner retains final control-plane and release authority.
+Claude is the persistent Claude lane for coding, architecture, critique, and long-context synthesis in a real continuous CLI session. Non-trivial work stays on an isolated feature branch and integrates to `main` through a scoped PR. Workers commit on their own branch (explicit pathspec) and create scoped PRs, but never push; the parent/orchestrator or designated merge lane owns the branch push and the merge into `main`. An independent verifier checks the committed diff; Atlas is the designated verifier/merge lane when available. The owner retains final control-plane and release authority.
 
 The provider-route registry plus a passing latest canary is the sole dispatch gate. Resolve routes at dispatch time; prompting skills, model announcements, desired-candidate labels, and catalog cards never establish executability or local availability. Missing admission history or a later failed canary fails closed.
 
@@ -42,7 +42,7 @@ Forbidden:
 
 ## Standing Operating Model — scoped PR integration
 
-Run every non-trivial build, research, audit, multi-file edit, or refactor as one dependency-closed deliverable per scoped PR; behavior changes must be vertical and user-observable. Start from a verified `origin/main` SHA in an isolated feature worktree/branch; keep an explicit manifest of dependency-closed source and governed projections, excluding caches, logs, telemetry, and runtime residue. The parent/orchestrator owns explicit-pathspec commit, push, and PR integration; workers never do. An independent verifier checks the committed diff; use Atlas as verifier/merge lane when available.
+Run every non-trivial build, research, audit, multi-file edit, or refactor as one dependency-closed deliverable per scoped PR; behavior changes must be vertical and user-observable. Start from a verified `origin/main` SHA in an isolated feature worktree/branch; keep an explicit manifest of dependency-closed source and governed projections, excluding caches, logs, telemetry, and runtime residue. Workers commit and create scoped PRs but never push; the parent/orchestrator or designated merge lane owns the branch push and the merge into `main`. An independent verifier checks the committed diff; use Atlas as verifier/merge lane when available.
 
 ## Engineering Delivery Loop
 
