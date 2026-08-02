@@ -11,6 +11,8 @@ Authoritative source: `.claude/skills-labgated/cyber-attacking-entra-id-with-roa
 
 Authoritative source SHA-256: `7d6e625e19b9a1c9f26489a8d28db378777b493c142144f2765301760bdcdc69`
 
+> AUTHORIZED-LAB ONLY. Offensive/dual-use capability. Use exclusively against systems you own or have explicit written authorization to test. Owner-authorized metadata discovery does not authorize runtime actions; use requires an explicit authorized-engagement decision.
+
 Source class: `labgated`
 Owner-authorized discovery: `true`
 Runtime/action authorization: `false`
