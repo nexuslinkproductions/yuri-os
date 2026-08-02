@@ -17,7 +17,7 @@ export const PROJECTION_ROOT = '.agents/skills';
 export const PROJECTOR_ID = '_SYSTEM/Scripts/yuri-codex-skill-projector.mjs';
 
 const DEFAULT_FS_OPS = { existsSync, lstatSync };
-const EXPECTED_GOVERNED_COUNTS = Object.freeze({ canonical: 169, armed: 300, labgated: 39, total: 508, implicit: 1, explicitOnly: 507 });
+const EXPECTED_GOVERNED_COUNTS = Object.freeze({ canonical: 171, armed: 300, labgated: 39, total: 510, implicit: 1, explicitOnly: 509 });
 const EXPECTED_IMPLICIT_IDS = Object.freeze(['activate-yuri-skills']);
 const EXPECTED_COLLISION_IDS = Object.freeze(['browser-harness', 'hatch-pet', 'humanizer', 'imagegen', 'openai-docs', 'plugin-creator', 'skill-creator', 'skill-installer']);
 const EXPECTED_COLLISION_RULES = 14;

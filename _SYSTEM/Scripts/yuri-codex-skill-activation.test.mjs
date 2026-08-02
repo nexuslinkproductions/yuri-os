@@ -66,13 +66,13 @@ function promptItems(plan, extraLines = []) {
   }];
 }
 
-test('plan emits only the 14 native collision states while 508 governed sidecars remain authoritative', () => {
+test('plan emits only the 14 native collision states while 510 governed sidecars remain authoritative', () => {
   const plan = buildActivationPlan(REPO_ROOT);
   assert.deepEqual(plan.counts, {
-    governed: 508,
+    governed: 510,
     implicitGoverned: 1,
-    explicitOnlyGoverned: 507,
-    canonical: 169,
+    explicitOnlyGoverned: 509,
+    canonical: 171,
     armed: 300,
     labgated: 39,
     adapterRules: 0,
@@ -257,7 +257,7 @@ test('fresh-prompt acceptance requires exact preferred paths, one implicit gover
   const accepted = validatePromptReport(report, plan);
   assert.equal(accepted.ok, true);
   assert.equal(accepted.implicitGoverned, 1);
-  assert.equal(accepted.explicitOnlyGoverned, 507);
+  assert.equal(accepted.explicitOnlyGoverned, 509);
   assert.equal(report.truncatedDescriptions.length, 0);
 
   const explicitPath = path.resolve(REPO_ROOT, '.agents/skills/ad-creative/SKILL.md');

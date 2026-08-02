@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prompting Kimi K3"
+  short_description: "Tune agent prompts for Kimi K3"
+  default_prompt: "Use $prompting-kimi-k3 to adapt this agent prompt for Kimi K3."

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "updated": "2026-08-02",
-  "purpose": "Reconcile only duplicate native Codex skill paths. All 508 governed YURI adapters remain installed and are controlled exclusively by their generated agents/openai.yaml implicit-invocation sidecars.",
+  "purpose": "Reconcile only duplicate native Codex skill paths. All 510 governed YURI adapters remain installed and are controlled exclusively by their generated agents/openai.yaml implicit-invocation sidecars.",
   "promptAcceptance": {
     "codexVersionTested": "0.144.5",
     "metadataContextPercent": 2,
@@ -13,12 +13,12 @@
     "authority": "generated-agents-openai-yaml-sidecars",
     "manifestPath": ".agents/skills/.yuri-projection.json",
     "expected": {
-      "canonical": 169,
+      "canonical": 171,
       "armed": 300,
       "labgated": 39,
-      "total": 508,
+      "total": 510,
       "implicit": 1,
-      "explicitOnly": 507
+      "explicitOnly": 509
     },
     "implicitSkillIds": [
       "activate-yuri-skills"
