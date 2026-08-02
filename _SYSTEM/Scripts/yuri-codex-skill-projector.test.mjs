@@ -466,7 +466,15 @@ test('machine-global absolute collision entries are preserved verbatim', () => {
 test('traversal or malformed collision legacyPath entries fail closed', () => {
   const { root } = normalFixture();
   const registryPath = path.join(root, '_SYSTEM/config/codex-skill-collision-registry.json');
-  const badPaths = ['../escape/SKILL.md', 'a/../../escape/SKILL.md', '.codex/../escape/SKILL.md', '/Users/marcelspatz/../.codex/x/SKILL.md'];
+  const badPaths = [
+    '../escape/SKILL.md',
+    'a/../../escape/SKILL.md',
+    '.codex/../escape/SKILL.md',
+    '/Users/marcelspatz/../.codex/x/SKILL.md',
+    '.codex//skills/alpha/SKILL.md',
+    'a//b/SKILL.md',
+    '/Users//marcelspatz/.codex/x/SKILL.md',
+  ];
   for (const legacyPath of badPaths) {
     const registry = JSON.parse(readFileSync(registryPath, 'utf8'));
     registry.collisions = [{ adapterId: 'alpha', legacyPath, state: 'current', requiredEnabled: true }];

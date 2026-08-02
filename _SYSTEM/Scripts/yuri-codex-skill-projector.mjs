@@ -384,15 +384,16 @@ function resolveCollisionLegacyPath(repoRoot, legacyPath) {
   if (/[\0\r\n\\]/.test(legacyPath)) {
     fail('PATH_TRAVERSAL', `collision legacyPath contains unsafe characters: ${JSON.stringify(legacyPath)}`);
   }
-  const parts = legacyPath.split('/').filter(Boolean);
-  if (parts.some((part) => part === '.' || part === '..')) {
-    fail('PATH_TRAVERSAL', `collision legacyPath contains traversal: ${legacyPath}`);
+  const absolute = path.posix.isAbsolute(legacyPath);
+  const parts = legacyPath.split('/');
+  if (parts.some((part, index) => (!part && !(absolute && index === 0)) || part === '.' || part === '..')) {
+    fail('PATH_TRAVERSAL', `collision legacyPath contains empty or traversal segments: ${legacyPath}`);
   }
   // Machine-global ledger entries stay absolute; repository-local entries are
   // normalized repository-relative (e.g. .codex/skills/...) and resolve against
   // the ACTIVE repoRoot so isolated worktrees see their own path, never a
   // hard-coded canonical checkout path.
-  if (path.posix.isAbsolute(legacyPath)) return legacyPath;
+  if (absolute) return legacyPath;
   return absolutePath(repoRoot, legacyPath);
 }
 
