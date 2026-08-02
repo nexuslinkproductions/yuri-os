@@ -488,3 +488,11 @@ _SYSTEM/state/whatsapp-cache/
 _SYSTEM/state/cloud-slots/
 _SYSTEM/state/fleet-handoffs/
 _SYSTEM/state/claim-extractor/
+# Root-level _SYSTEM/state runtime residue: process stdout/stderr, error
+# archives, and per-run report/worker-last outputs. None tracked in
+# origin/main; regenerated at runtime.
+_SYSTEM/state/*.out
+_SYSTEM/state/*.err
+_SYSTEM/state/*.err.gz
+_SYSTEM/state/energy-outcome-report.txt
+_SYSTEM/state/worker-last-*.txt
