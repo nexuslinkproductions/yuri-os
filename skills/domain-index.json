@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-07-22T20:27:07Z",
+  "updated": "2026-08-02T00:00:00Z",
   "canonicalRoot": "skills",
   "orderMatters": true,
   "domains": [
@@ -19,6 +19,8 @@
         "izanagi-simulator",
         "geass-lock",
         "prompt-engineering",
+        "prompting-kimi-k3",
+        "prompting-opus-5",
         "anime-dna-extensions",
         "compact-optimizer",
         "oracle-adapters",
