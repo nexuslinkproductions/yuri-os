@@ -16,19 +16,17 @@ Memory is a separate organ: in-session, episodic, recall-on-trigger. The brain i
 
 ## Start of Task
 
-1. `node _SYSTEM/Scripts/xref-query.mjs "<task>"` before broad exploration; `propagation-scan.mjs <node-id> --dry-run` when a circuitry node is in scope.
-2. `node _SYSTEM/Scripts/capability-recall.mjs "<need>"` before building any new primitive (CAPABILITY-FIRST).
-3. Follow the YURI context, xref evidence, protected paths, commit boundary, GitNexus rules, and local evidence priority.
-4. Keep changes scoped to the requested task. Attack your own work before claiming it is ready; run the smallest meaningful checks including negative ones; report exact failures.
-5. End with changed files, checks run, residual risk.
+1. Keep `main` as the canonical integration target. For every non-trivial mutation, verify the local `origin/main` SHA, start from it in an isolated worktree on a feature branch, and land through a scoped PR. Preserve unrelated dirty work; never fold it into an omnibus commit or PR.
+2. Run `node _SYSTEM/Scripts/xref-query.mjs "<task>"` before broad exploration and `node _SYSTEM/Scripts/capability-recall.mjs "<need>"` before creating a primitive. Use the graph and GitNexus pointers below for impact work.
+3. Define one dependency-closed deliverable per PR; behavior changes must be vertical and user-observable. Maintain an explicit path manifest containing dependency-closed source and governed projections; exclude caches, logs, telemetry, and runtime residue.
+4. Compose existing skills rather than creating a parallel workflow: `using-git-worktrees`, `gitnexus-impact-analysis`, `gitnexus-pr-review`, `requesting-code-review`, `adversarial-verification`, `test-result-evidence-linkage`, and `finishing-a-development-branch`.
+5. Attack the committed result before calling it ready. Report changed paths, exact checks, residual risk, and anything deliberately deferred.
 
 ## Role
 
-Claude is the persistent Claude lane for coding, architecture, critique, and long-context synthesis when launched as a real continuous CLI session. It holds direct commit/push authority for its own session's verified work (owner upgrade 2026-06-14) under the Mutation Contract in `yuri-origin.md`, and when orchestrating per the Standing Operating Model below, finalizes dispatched work itself.
+Claude is the persistent Claude lane for coding, architecture, critique, and long-context synthesis in a real continuous CLI session. Non-trivial work stays on an isolated feature branch and integrates to `main` through a scoped PR. The parent/orchestrator owns explicit-pathspec commit, push, and PR integration; workers never commit, push, or create PRs. An independent verifier checks the committed diff; Atlas is the designated verifier/merge lane when available. The owner retains final control-plane and release authority.
 
-Codex (model `gpt-5.5`) is an optional external clarification check — invoked when the session is genuinely uncertain or an independent second opinion is worth it, not a mandatory verifier. The owner holds ultimate control-plane and release authority. Do not call work `Codex-verified` just because Claude completed its own checks.
-
-The orchestrator seat is whatever `_SYSTEM/config/provider-route-registry.json` `roleTopology.orchestrator.owner` resolves at session start; the registry, not this file, is the source of truth. Use Sonnet for delegated worker lanes and regular collaboration; reserve the main lane's reasoning for heavier coding, architecture, or refactor judgment, and route mechanical/bulk work down to cheaper dispatched lanes.
+The provider-route registry plus a passing latest canary is the sole dispatch gate. Resolve routes at dispatch time; prompting skills, model announcements, desired-candidate labels, and catalog cards never establish executability or local availability. Missing admission history or a later failed canary fails closed.
 
 ## Required Launch Shape
 
@@ -42,15 +40,22 @@ Forbidden:
 
 - Claude SDK calls, `claude -p`, `claude --print`, no-session-persistence prompt calls, fresh paid prompt processes for advisory packets
 
-## Standing Operating Model — fleet by default
+## Standing Operating Model — scoped PR integration
 
-The `fleet-economy` model is the DEFAULT way every non-trivial task runs (build, research, audit, multi-file edit, refactor; skip trivial reads + pure conversation):
+Run every non-trivial build, research, audit, multi-file edit, or refactor as one dependency-closed deliverable per scoped PR; behavior changes must be vertical and user-observable. Start from a verified `origin/main` SHA in an isolated feature worktree/branch; keep an explicit manifest of dependency-closed source and governed projections, excluding caches, logs, telemetry, and runtime residue. The parent/orchestrator owns explicit-pathspec commit, push, and PR integration; workers never do. An independent verifier checks the committed diff; use Atlas as verifier/merge lane when available.
 
-1. Decompose → dispatch parallel worker lanes through the native OMP `task` tool (parent-orchestrator-only), casting to `mure-*` agent cards or bare roles. Every route is gated by `_SYSTEM/config/provider-route-registry.json`: canary-proven admission AND a passing latest canary, or it fails closed. Retired/blocked: Haiku 4.5, Terra (quota-blocked pending re-canary), local Ollama SLMs, Codex in the dispatch roster, direct DeepSeek until its runner is live-canary proven.
-2. Adversarially verify every lane result against local evidence — lane output is a hypothesis, never proof.
-3. Finalize orchestrator-session only: scoped-pathspec commit/push, irreversible/outward calls.
+## Engineering Delivery Loop
 
-Posture: the orchestrator INSTRUCTS, subagents EXECUTE. Direct main-lane edits are for trivial, self-contained changes only. Canonical doctrine: the `fleet-economy` skill (`opus-fleet` is a compatibility redirect). Model map: `_SYSTEM/config/cloud-fleet-models.json`.
+Compose the existing skills: `using-git-worktrees` for isolation, `gitnexus-impact-analysis` before non-trivial changes, `requesting-code-review` and `gitnexus-pr-review` before integration, `adversarial-verification` plus `test-result-evidence-linkage` for committed-diff evidence, and `finishing-a-development-branch` for the scoped PR closeout. Keep detailed mechanics in those skills; this adapter sets only the engineering boundary.
+
+
+## Graph Engineering
+
+- Treat `_SYSTEM/yuri-graph.json` as the canonical editable graph. Regenerate generated graph views from it; never hand-edit `_SYSTEM/yuri-graph-state.json` or any other generated view.
+- Use `node _SYSTEM/Scripts/xref-query.mjs "<task>"` to locate candidates; use `node _SYSTEM/Scripts/yuri-navigate.mjs <node-id> --metric both --json` for structural dependency and impact; use GitNexus for symbol and flow blast radius.
+- Use `node _SYSTEM/Scripts/propagation-scan.mjs <node-id> --dry-run` only for a known circuitry node. It is a read-only sibling proposal, not graph mutation.
+- Use Wayfinder as a decision-ticket DAG for unresolved decisions only, never as an architecture graph or structural substitute.
+- State graph-tracer uncertainty explicitly: distinguish canonical graph evidence, generated views, circuitry propagation, GitNexus structural evidence, and unavailable or stale legs. Structural outputs are advisory until locally corroborated.
 
 ## Protected Paths
 
@@ -58,7 +63,8 @@ Protected paths are mutation-locked per `yuri-origin.md` → Protected Surfaces 
 
 ## Memory (Track B pointer)
 
-Two-track routing lives in `yuri-origin.md` → Memory Architecture. Track B (Claude-only behavioral learning): Write the `<slug>.md` directly into `~/.claude/projects/*/memory/` with v3 frontmatter; MEMORY.md self-heals via SessionStart reindex; `_SYSTEM/Scripts/claude-memory-write.mjs` is optional validation. Track A (anything another lane should know): `memory-kernel.mjs`. Ambiguous → Track A. Cross-link by handle, never duplicate.
+Two-track routing lives in `yuri-origin.md` → Memory Architecture. Track B (Claude-only behavioral learning): Write the `<slug>.md` directly into `~/.claude/projects/*/memory/` with v3 frontmatter; MEMORY.md self-heals via SessionStart reindex; `_SYSTEM/Scripts/claude-memory-write.mjs` is optional validation/reindex. Track A (anything another lane should know): `memory-kernel.mjs`. Ambiguous → Track A. Cross-link by handle, never duplicate.
+
 
 ## Persona & Overlay
 
