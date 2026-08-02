@@ -487,6 +487,14 @@
     "source_path": "skills/prompt-library/SKILL.md",
     "hash": "c06e607be34c5e89"
   },
+  "prompting-kimi-k3": {
+    "source_path": "skills/prompting-kimi-k3/SKILL.md",
+    "hash": "98497a39e27ee7cb"
+  },
+  "prompting-opus-5": {
+    "source_path": "skills/prompting-opus-5/SKILL.md",
+    "hash": "0975cc893d4a5a5e"
+  },
   "quantum-hypothesis-simulation": {
     "source_path": "skills/quantum-hypothesis-simulation/SKILL.md",
     "hash": "d16334e30bbd7d77"

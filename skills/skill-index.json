@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-07-22",
+  "updated": "2026-08-02",
   "canonicalRoot": "skills",
   "sourceOfTruth": true,
-  "count": 169,
+  "count": 171,
   "rules": {
     "skillBodyPath": "skills/<skill-id>/SKILL.md",
     "providerCaches": "reference_only",
@@ -495,6 +495,16 @@
       "id": "prompt-engineering",
       "path": "skills/prompt-engineering/SKILL.md",
       "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "prompting-kimi-k3",
+      "path": "skills/prompting-kimi-k3/SKILL.md",
+      "sourceFamily": "yuri_native"
+    },
+    {
+      "id": "prompting-opus-5",
+      "path": "skills/prompting-opus-5/SKILL.md",
+      "sourceFamily": "yuri_native"
     },
     {
       "id": "quantum-hypothesis-simulation",

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prompting Opus 5"
+  short_description: "Tune agent prompts for Claude Opus 5"
+  default_prompt: "Use $prompting-opus-5 to adapt this agent prompt for Claude Opus 5."
