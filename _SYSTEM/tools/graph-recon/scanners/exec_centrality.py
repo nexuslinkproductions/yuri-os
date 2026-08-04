@@ -119,7 +119,7 @@ class ExecCentralityScanner(BaseScanner):
                     "boundaries": dict(sorted(b.items())),
                     "top_reachable": top,
                 },
-                evidence=[f"graph:{src}", f"node:{sid}"],
+                evidence=[f"{src}", f"node:{sid}"],
                 src=self.name,
             ))
             # findings
@@ -128,20 +128,20 @@ class ExecCentralityScanner(BaseScanner):
                     id=f"EXEC-{sid}", sev="high", dim="analytics",
                     desc=(f"exec source reaches {ports} network endpoint(s) AND crosses "
                           f"trust boundaries ({dict(b)}): {sid}"),
-                    evidence=[f"graph:{src}", f"node:{sid}"],
+                    evidence=[f"{src}", f"node:{sid}"],
                 ))
             elif sum(b.values()) > 0:
                 r.findings.append(Finding(
                     id=f"EXEC-{sid}", sev="medium", dim="analytics",
                     desc=f"exec source crosses trust boundaries ({dict(b)}): {sid}",
-                    evidence=[f"graph:{src}", f"node:{sid}"],
+                    evidence=[f"{src}", f"node:{sid}"],
                 ))
             elif any(e.get("kind") == "launchd_to_script" and e.get("to") == sid
                      for e in edges):
                 r.findings.append(Finding(
                     id=f"EXEC-{sid}", sev="info", dim="analytics",
                     desc=f"launchd-persisted exec target (persistence surface): {sid}",
-                    evidence=[f"graph:{src}", f"node:{sid}"],
+                    evidence=[f"{src}", f"node:{sid}"],
                 ))
 
         # ranking table: score desc, then id asc (deterministic)
@@ -151,7 +151,7 @@ class ExecCentralityScanner(BaseScanner):
             kind="exec_ranking",
             props={"top10": [f"exec:{x[0]}" for x in ranked[:10]],
                    "total_sources": len(sources)},
-            evidence=[f"graph:{src}", f"sources:{len(sources)}"],
+            evidence=[f"{src}", f"sources:{len(sources)}"],
             src=self.name,
         ))
 

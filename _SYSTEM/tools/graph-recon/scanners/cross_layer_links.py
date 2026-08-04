@@ -79,7 +79,7 @@ class CrossLayerLinksScanner(BaseScanner):
                     "boundaries": dict(sorted(boundaries.items())),
                     "samples": samples,
                 },
-                evidence=[f"graph:{src}", f"edges:{len(recs)}"],
+                evidence=[f"{src}", f"edges:{len(recs)}"],
                 src=self.name,
             ))
 
@@ -100,7 +100,7 @@ class CrossLayerLinksScanner(BaseScanner):
             id="query:memory_bus",
             kind="surface_query",
             props={"touching_nodes": mb_touchers, "memory_bus_nodes": mb_ids},
-            evidence=[f"graph:{src}", f"touchers:{len(mb_touchers)}"],
+            evidence=[f"{src}", f"touchers:{len(mb_touchers)}"],
             src=self.name,
         ))
 
@@ -111,7 +111,7 @@ class CrossLayerLinksScanner(BaseScanner):
             id="query:writers",
             kind="surface_query",
             props={"writers": writers, "write_targets": targets, "count": len(writers)},
-            evidence=[f"graph:{src}", f"writers:{len(writers)}"],
+            evidence=[f"{src}", f"writers:{len(writers)}"],
             src=self.name,
         ))
 
@@ -131,7 +131,7 @@ class CrossLayerLinksScanner(BaseScanner):
                 "incident_edges": len(touch_edges),
                 "touching_surfaces": dict(sorted(touch_by_surface.items())),
             },
-            evidence=[f"graph:{src}", f"incident:{len(touch_edges)}"],
+            evidence=[f"{src}", f"incident:{len(touch_edges)}"],
             src=self.name,
         ))
 
@@ -145,20 +145,20 @@ class CrossLayerLinksScanner(BaseScanner):
                 r.findings.append(Finding(
                     id=fid, sev="high", dim="analytics",
                     desc=f"edge links secret/protected surface to network surface: {f} -> {t} ({e.get('kind')})",
-                    evidence=[f"graph:{src}", f"edge:{f}->{t}"],
+                    evidence=[f"{src}", f"edge:{f}->{t}"],
                 ))
             elif e.get("kind") == "file_write" and \
                  (KIND_TO_SURFACE.get(kind_of.get(t, "")) in SECRET_SURFACES or kind_of.get(t) == "database"):
                 r.findings.append(Finding(
                     id=fid, sev="medium", dim="analytics",
                     desc=f"file_write into protected/secret/database target: {f} -> {t}",
-                    evidence=[f"graph:{src}", f"edge:{f}->{t}"],
+                    evidence=[f"{src}", f"edge:{f}->{t}"],
                 ))
             elif f in mb_ids or t in mb_ids:
                 r.findings.append(Finding(
                     id=fid, sev="info", dim="analytics",
                     desc=f"edge touches memory-bus: {f} -> {t} ({e.get('kind')})",
-                    evidence=[f"graph:{src}", f"edge:{f}->{t}"],
+                    evidence=[f"{src}", f"edge:{f}->{t}"],
                 ))
 
         r.nodes.sort(key=lambda n: n.id)

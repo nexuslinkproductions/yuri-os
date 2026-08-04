@@ -152,7 +152,7 @@ class ArticulationScanner(BaseScanner):
                     "component_size": sizes.get(nid, 0),
                     "exec_capable": is_exec(nid),
                 },
-                evidence=[f"graph:{src}", f"node:{nid}"],
+                evidence=[f"{src}", f"node:{nid}"],
                 src=self.name,
             ))
             if is_exec(nid):
@@ -161,7 +161,7 @@ class ArticulationScanner(BaseScanner):
                     sev="medium",
                     dim="analytics",
                     desc=f"exec-capable code node is an articulation point (single point of failure): {nid}",
-                    evidence=[f"graph:{src}", f"node:{nid}"],
+                    evidence=[f"{src}", f"node:{nid}"],
                 ))
             elif degree >= 10:
                 r.findings.append(Finding(
@@ -169,14 +169,14 @@ class ArticulationScanner(BaseScanner):
                     sev="info",
                     dim="analytics",
                     desc=f"high-degree articulation point (degree {degree}): {nid}",
-                    evidence=[f"graph:{src}", f"node:{nid}"],
+                    evidence=[f"{src}", f"node:{nid}"],
                 ))
 
         # ---- bridge edges ----
         for f, t in sorted(bridges):
             r.edges.append(Edge(
                 from_=f, to=t, kind="bridge",
-                props={}, evidence=[f"graph:{src}", f"edge:{f}->{t}"], boundary="none",
+                props={}, evidence=[f"{src}", f"edge:{f}->{t}"], boundary="none",
             ))
 
         # ---- summary ----
@@ -190,7 +190,7 @@ class ArticulationScanner(BaseScanner):
                 "code_nodes": len(code_ids),
                 "top10": [f"art:{nid}" for nid in top],
             },
-            evidence=[f"graph:{src}"],
+            evidence=[f"{src}"],
             src=self.name,
         ))
 

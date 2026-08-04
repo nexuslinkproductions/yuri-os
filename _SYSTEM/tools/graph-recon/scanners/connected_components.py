@@ -79,13 +79,13 @@ class ConnectedComponentsScanner(BaseScanner):
                     "layers": len(kinds),
                     "top_members": members[:10],
                 },
-                evidence=[f"graph:{src}", f"union-find over {len(nodes)} nodes / {len(edges)} edges"],
+                evidence=[f"{src}", f"union-find over {len(nodes)} nodes / {len(edges)} edges"],
                 src=self.name,
             ))
             for m in members:
                 r.edges.append(Edge(
                     from_=cid, to=m, kind="member_of",
-                    props={}, evidence=[f"graph:{src}", f"component {cid}"], boundary="none",
+                    props={}, evidence=[f"{src}", f"component {cid}"], boundary="none",
                 ))
             # finding: secret/protected surface shares a component with network endpoints
             if kinds.keys() & SECRET_KINDS and kinds.keys() & NETWORK_KINDS:
@@ -96,7 +96,7 @@ class ConnectedComponentsScanner(BaseScanner):
                     desc=(f"component of {len(members)} nodes mixes secret/protected surface "
                           f"({sorted(kinds.keys() & SECRET_KINDS)}) with network surface "
                           f"({sorted(kinds.keys() & NETWORK_KINDS)})"),
-                    evidence=[f"graph:{src}", f"component:{cid}"],
+                    evidence=[f"{src}", f"component:{cid}"],
                 ))
 
         # ---- top-N summary node ----
@@ -106,7 +106,7 @@ class ConnectedComponentsScanner(BaseScanner):
             kind="component_ranking",
             props={"top10": top, "total_components": len(ordered),
                    "singletons": sum(1 for m in comps.values() if len(m) == 1)},
-            evidence=[f"graph:{src}"],
+            evidence=[f"{src}"],
             src=self.name,
         ))
 

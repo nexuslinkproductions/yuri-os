@@ -42,6 +42,12 @@ Dangling edge endpoints (e.g. test_suite nodes emitted only as edge endpoints)
 are synthesized as minimal node records, deterministically, so every edge
 endpoint is addressable. Missing input => empty result + note, never a crash.
 
+Evidence labels are PATH-INDEPENDENT (M1 refinement, Orion verdict
+2026-08-04): the source evidence item is `graph:<sha256-prefix-of-input>`
+(16 hex chars, content-addressed), never an absolute path, so scanner
+output is byte-identical across environments for the same input content.
+The pinned v3 ecosystem artifact yields `graph:57931c3327693081`.
+
 ## Scanners (22)
 live_ports, launchd, mcp_servers, file_inventory, organs, registries, memory_schema, formula_banks,
 test_wiring, writers, git_history, secrets_control (wraps YURI control), deps_audit (network-gated),

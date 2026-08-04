@@ -9,10 +9,16 @@ Input resolution order (first hit wins):
   2. $GRAPH_RECON_GRAPH                   (environment override)
   3. <repo-root>/_SYSTEM/graph-ecosystem/full-graph.jsonl   (default artifact)
 
+Evidence label is PATH-INDEPENDENT: load_graph returns a content-addressed
+source label `graph:<sha256-prefix-of-input>` (16 hex chars), never an
+absolute path, so scanner evidence is byte-identical across environments
+(M1 refinement, Orion verdict 2026-08-04).
+
 Fail-open: a missing/unreadable input yields empty (nodes, edges) with a note;
 it never raises, so `graph-recon run` keeps the loop alive without the artifact.
 """
 from __future__ import annotations
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -43,19 +49,23 @@ def load_graph(ctx) -> tuple[dict, list, str]:
         )
     nodes: dict = {}
     edges: list = []
+    h = hashlib.sha256()
     try:
-        with open(path, encoding="utf-8") as f:
-            for line in f:
-                if not line.strip():
-                    continue
-                rec = json.loads(line)
-                if "from" in rec and "to" in rec:
-                    edges.append(rec)
-                elif "id" in rec:
-                    nodes[rec["id"]] = rec  # last wins; file order deterministic
+        raw = path.read_bytes()  # hash raw bytes => matches shasum/pin files exactly
+        h.update(raw)
+        for line in raw.decode("utf-8", errors="replace").splitlines():
+            if not line.strip():
+                continue
+            rec = json.loads(line)
+            if "from" in rec and "to" in rec:
+                edges.append(rec)
+            elif "id" in rec:
+                nodes[rec["id"]] = rec  # last wins; file order deterministic
     except Exception as e:  # noqa: BLE001 — fail-open per contract
         return {}, [], f"graph input error: {e}"
     edges.sort(key=lambda e: (e["from"], e["to"], e.get("kind", "")))
+    # ---- content-addressed, path-independent source label (M1 refinement) ----
+    pin16 = h.hexdigest()[:16]
     # ---- synthesize dangling edge endpoints (deterministic, id-prefix kind) ----
     # Some layers (e.g. test_wiring) emit edges whose endpoint nodes live in
     # other layers/merges. Analytics must treat edge endpoints as graph
@@ -71,7 +81,7 @@ def load_graph(ctx) -> tuple[dict, list, str]:
                     "src": "graphio-synthetic",
                 }
                 synth += 1
-    return nodes, edges, f"{path} (+{synth} synthesized endpoints)"
+    return nodes, edges, f"graph:{pin16} (+{synth} synthesized endpoints)"
 
 
 def layer_kind(rec: dict) -> str:

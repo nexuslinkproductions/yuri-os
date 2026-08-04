@@ -168,9 +168,62 @@ def test_fail_open_no_input() -> None:
         assert res.notes, sc.name
 
 
+def test_evidence_pin_path_independent() -> None:
+    """M1 refinement (Orion verdict): evidence label is the content pin
+    (`graph:<sha256-prefix>`), never the input path, and is byte-identical
+    across environments — same input at a different path => same evidence."""
+    import tempfile
+    from reconloop.graphio import load_graph
+
+    pin16 = PIN.read_text().strip()[:16]
+
+    # 1. fixture at its canonical path: label is graph:<pin16>, no path anywhere
+    c = ScanContext(str(ROOT), graph_input=str(FIXTURE))
+    r = ConnectedComponentsScanner().run(c)
+    for rec in r.nodes + r.edges:
+        assert any(f"graph:{pin16}" in ev for ev in rec.evidence), rec.evidence
+        assert str(FIXTURE) not in "".join(rec.evidence), rec.evidence
+
+    # 2. same fixture copied to a different path: identical evidence + records
+    with tempfile.TemporaryDirectory() as td:
+        other = Path(td) / "copy.jsonl"
+        other.write_bytes(FIXTURE.read_bytes())
+        c2 = ScanContext(str(ROOT), graph_input=str(other))
+        r2 = ConnectedComponentsScanner().run(c2)
+        assert canonical(r.nodes) == canonical(r2.nodes), "records identical across paths"
+        assert [rec.evidence for rec in r.nodes] == [rec.evidence for rec in r2.nodes], \
+            "evidence identical across paths"
+
+    # 3. load_graph itself: source label is graph:<pin16>
+    nodes, edges, src = load_graph(c)
+    assert nodes and edges
+    assert src.startswith(f"graph:{pin16}"), src
+    assert "/" not in src.split("(")[0], src
+
+
+def test_real_input_pin_matches_ecosystem_sha256() -> None:
+    """Real-graph evidence pin must equal the ecosystem artifact's pinned
+    sha256 prefix (57931c33 for graph v3) when run against that artifact.
+    This is the cross-environment determinism contract: evidence is a function
+    of content only. Skipped when the pinned v3 input is not present locally."""
+    v3 = ROOT.parent.parent.parent / "_SYSTEM" / "graph-ecosystem" / "full-graph.jsonl"
+    if not v3.exists():
+        print("SKIP test_real_input_pin_matches_ecosystem_sha256 (no local v3 artifact)")
+        return
+    c = ScanContext(str(ROOT), graph_input=str(v3))
+    nodes, edges, src = load_graph(c)
+    assert nodes and edges
+    pin_path = v3.with_suffix(".sha256")
+    if pin_path.exists():
+        expected = pin_path.read_text().strip().split()[0][:16]
+        assert src.startswith(f"graph:{expected}"), (src, expected)
+
+
 if __name__ == "__main__":
     for fn in (test_fixture_rev_pinned, test_connected_components, test_articulation,
-               test_cross_layer_links, test_exec_centrality, test_fail_open_no_input):
+               test_cross_layer_links, test_exec_centrality, test_fail_open_no_input,
+               test_evidence_pin_path_independent,
+               test_real_input_pin_matches_ecosystem_sha256):
         fn()
         print(f"OK {fn.__name__}")
     print("test_analytics OK (all)")
