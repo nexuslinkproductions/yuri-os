@@ -55,24 +55,24 @@ def test_connected_components() -> None:
     assert_evidence(r1.edges, "cc-edges")
 
     comps = {n.id: n for n in r1.nodes if n.kind == "component"}
-    # 4 components; largest = 9 members
-    assert len(comps) == 4, [n.id for n in r1.nodes if n.kind == "component"]
+    # 3 components; largest = 12 members (d->port edge merges network + secrets)
+    assert len(comps) == 3, [n.id for n in r1.nodes if n.kind == "component"]
     largest = max(comps.values(), key=lambda n: n.props["size"])
-    assert largest.props["size"] == 9
-    # largest component: files + launchd + memory.db + env + secret
+    assert largest.props["size"] == 12
     expected_members = {
-        "file:a.py", "file:b.py", "file:c.py", "file:d.py", "test_suite:t.py",
-        "launchd_agent:la1", "database:memory.db", "env_file:.env",
-        "protected_path:secret.pem",
+        "file:a.py", "file:b.py", "file:c.py", "file:d.py", "file:reader.py",
+        "test_suite:t.py", "launchd_agent:la1", "database:memory.db",
+        "env_file:.env", "protected_path:secret.pem", "port:8080", "process:p1",
     }
     top = largest.props["top_members"]
-    assert set(top) == expected_members, top
-    # membership edges: sum of sizes
+    assert set(top) == set(sorted(expected_members)[:10]), top  # capped at 10
     assert len(r1.edges) == sum(n.props["size"] for n in comps.values())
-    # summary node
     summary = next(n for n in r1.nodes if n.kind == "component_ranking")
-    assert summary.props["total_components"] == 4
+    assert summary.props["total_components"] == 3
     assert summary.props["singletons"] == 1  # governance_organ:o1
+    # M1.5: largest component mixes secrets (.env/secret.pem) + network (port/p1)
+    # => CC medium finding fires (was absent in the M1 fixture)
+    assert any(f.id == f"CC-{largest.id}" and f.sev == "medium" for f in r1.findings)
 
 
 def test_articulation() -> None:
@@ -119,16 +119,24 @@ def test_cross_layer_links() -> None:
     assert links["xlink:harness->servers:mcp_registration"].props["count"] == 1
     assert links["xlink:files->secrets:file_read"].props["count"] == 1
     assert links["xlink:files->protected:file_read"].props["count"] == 1
+    # M1.5 item 4: bidirectional incident — memory-bus node as FROM
+    assert links["xlink:memory->files:file_read"].props["count"] == 1
+    # M1.5: d->port edge => files->ports network_conn
+    assert links["xlink:files->ports:network_conn"].props["count"] == 1
 
     q = {n.id: n for n in r1.nodes if n.kind == "surface_query"}
+    # M1.5 item 4: touchers now found on BOTH sides (d via from, reader via to)
+    assert q["query:memory_bus"].props["touching_nodes"] == ["file:d.py", "file:reader.py"]
     assert q["query:writers"].props["writers"] == ["file:d.py"]
     assert q["query:writers"].props["write_targets"] == ["database:memory.db"]
-    assert q["query:memory_bus"].props["touching_nodes"] == ["file:d.py"]
+    assert q["query:writers"].props["incident_nodes"] == ["database:memory.db", "file:d.py"]
     assert q["query:secrets"].props["incident_edges"] == 2
 
-    # findings: file_write into database => medium; no network-secret link => no high
+    # findings: file_write into database => medium; memory-bus file_read => info; no high
     assert any(f.id == "XL:file:d.py->database:memory.db:file_write"
                and f.sev == "medium" for f in r1.findings)
+    assert any(f.id == "XL:database:memory.db->file:reader.py:file_read"
+               and f.sev == "info" for f in r1.findings)
     assert not any(f.sev == "high" for f in r1.findings)
 
 
@@ -141,31 +149,45 @@ def test_exec_centrality() -> None:
 
     srcs = {n.id: n for n in r1.nodes if n.kind == "exec_source"}
     assert set(srcs) == {"exec:file:b.py", "exec:file:d.py", "exec:mcp_server:m1"}, set(srcs)
-    # b: tests b->c reach {c}=1 ; d: tests d->a->b->c + file_write d->memory.db
-    #    reach {a,b,c,memory.db}=4
+    # M1.5 item 5: crossings on REACHABLE PATHS only.
+    # d: tests d->a->b->c + file_write d->memory.db + network_conn d->port(lan)
+    #    reach {a,b,c,memory.db,port:8080}=5, crossings=1 (lan edge on path), port_reach=1
+    assert srcs["exec:file:d.py"].props["reach"] == 5
+    assert srcs["exec:file:d.py"].props["trust_crossings"] == 1
+    assert srcs["exec:file:d.py"].props["port_reach"] == 1
+    # b: launchd target, tests b->c => reach {c}=1, NO path crossings (launchd edge
+    # is incident but not on a reachable path)
     assert srcs["exec:file:b.py"].props["reach"] == 1
-    assert srcs["exec:file:b.py"].props["trust_crossings"] == 1  # launchd local
-    assert srcs["exec:file:d.py"].props["reach"] == 4
-    assert srcs["exec:file:d.py"].props["trust_crossings"] == 0
+    assert srcs["exec:file:b.py"].props["trust_crossings"] == 0
     assert srcs["exec:mcp_server:m1"].props["reach"] == 0
-    assert srcs["exec:mcp_server:m1"].props["trust_crossings"] == 1  # mcp local
-    # ranking: d.py (score 4) first; b.py (1) then m1 (0)
+    assert srcs["exec:mcp_server:m1"].props["trust_crossings"] == 0
+    # ranking: d (score 7) first; b (1) then m1 (0)
     top = next(n for n in r1.nodes if n.kind == "exec_ranking").props["top10"]
     assert top == ["exec:file:d.py", "exec:file:b.py", "exec:mcp_server:m1"], top
-    # findings: b.py and m1 cross trust boundaries => medium; d.py none
-    assert any(f.id == "EXEC-file:b.py" and f.sev == "medium" for f in r1.findings)
-    assert any(f.id == "EXEC-mcp_server:m1" and f.sev == "medium" for f in r1.findings)
-    assert not any(f.id.startswith("EXEC-file:d.py") for f in r1.findings)
+    # M1.5: d reaches port ACROSS a trust boundary => HIGH finding
+    assert any(f.id == "EXEC-file:d.py" and f.sev == "high" for f in r1.findings)
+    # b: no path crossing, launchd-persisted => info
+    assert any(f.id == "EXEC-file:b.py" and f.sev == "info" for f in r1.findings)
+    assert not any(f.id == "EXEC-file:d.py" and f.sev != "high" for f in r1.findings)
 
 
-def test_fail_open_no_input() -> None:
-    """Analytics scanners fail open (empty result + note) without a graph input."""
+def test_fail_closed_requires_graph() -> None:
+    """M1.5 item 3: analytics scanners RAISE (fail-closed) without a graph input;
+    base (filesystem) scanners keep fail-open semantics."""
+    from reconloop.graphio import GraphInputRequiredError
     c = ScanContext(str(ROOT), graph_input="")
     for sc in (ConnectedComponentsScanner(), ArticulationScanner(),
                CrossLayerLinksScanner(), ExecCentralityScanner()):
-        res = sc.run(c)
-        assert res.nodes == [] and res.edges == [], sc.name
-        assert res.notes, sc.name
+        try:
+            sc.run(c)
+            raise AssertionError(f"{sc.name} must fail closed without graph input")
+        except GraphInputRequiredError:
+            pass
+    # base scanners: load_graph still fail-open (no raise, empty result)
+    from reconloop.graphio import load_graph
+    nodes, edges, src = load_graph(c)
+    assert nodes == {} and edges == []
+    assert "no graph input" in src
 
 
 def test_evidence_pin_path_independent() -> None:
@@ -221,7 +243,7 @@ def test_real_input_pin_matches_ecosystem_sha256() -> None:
 
 if __name__ == "__main__":
     for fn in (test_fixture_rev_pinned, test_connected_components, test_articulation,
-               test_cross_layer_links, test_exec_centrality, test_fail_open_no_input,
+               test_cross_layer_links, test_exec_centrality, test_fail_closed_requires_graph,
                test_evidence_pin_path_independent,
                test_real_input_pin_matches_ecosystem_sha256):
         fn()

@@ -48,13 +48,13 @@ SOURCE_KINDS = {"script", "service"}
 class ExecCentralityScanner(BaseScanner):
     name = "exec_centrality"
     dim = "analytics"
+    requires_graph = True  # M1.5: fail-closed — merged-graph input required
 
     def run(self, ctx) -> ScanResult:
+        from reconloop.graphio import require_graph  # noqa: E402
+        require_graph(ctx)  # M1.5: fail-closed when no graph input
         r = ScanResult()
         nodes, edges, src = load_graph(ctx)
-        if not nodes:
-            r.notes = f"no graph input ({src})"
-            return r
 
         # outgoing edge index (deterministic: sorted target list)
         outgoing: dict[str, list] = {}
@@ -79,22 +79,23 @@ class ExecCentralityScanner(BaseScanner):
             r.notes = f"no exec-capable sources ({src})"
             return r
 
-        # incident boundary stats per node
-        boundary_inc: dict[str, Counter] = {}
-        for e in edges:
-            for nid in (e.get("from"), e.get("to")):
-                if nid in nodes and e.get("boundary") and e["boundary"] != "none":
-                    boundary_inc.setdefault(nid, Counter())[e["boundary"]] += 1
-
         # BFS reach per source (deterministic: sorted BFS over sorted neighbors)
-        def reach_stats(source: str) -> tuple[int, int, int, list]:
+        # M1.5 item 5: crossings = boundary edges ON REACHABLE PATHS — counted
+        # during BFS from the source (edge from a visited node with boundary !=
+        # none), NOT incident-only. Cycle-safe via visited set; deterministic
+        # because neighbors are sorted and each edge is examined once.
+        def reach_stats(source: str) -> tuple[int, int, int, int, dict, list]:
             seen = set()
             q = deque([source])
             order = []
+            crossing_b = Counter()
             while q:
                 v = q.popleft()
                 for e in outgoing.get(v, []):
                     w = e["to"]
+                    b = e.get("boundary") or "none"
+                    if b != "none":
+                        crossing_b[b] += 1  # boundary edge on a reachable path
                     if w in nodes and w not in seen:
                         seen.add(w)
                         order.append(w)
@@ -102,38 +103,38 @@ class ExecCentralityScanner(BaseScanner):
             score = sum(WEIGHT.get(nodes[w].get("kind"), 1) for w in seen)
             port_reach = sum(1 for w in seen
                              if nodes[w].get("kind") in ("port", "network_endpoint"))
-            return len(seen), score, port_reach, sorted(seen)[:10]
+            return (len(seen), score, port_reach, sum(crossing_b.values()),
+                    dict(sorted(crossing_b.items())), sorted(seen)[:10])
 
         rows: list[tuple] = []
         for sid in sorted(sources):
-            reach_n, score, ports, top = reach_stats(sid)
-            b = boundary_inc.get(sid, Counter())
-            rows.append((sid, reach_n, score, ports, top, dict(sorted(b.items()))))
+            reach_n, score, ports, crossings, b, top = reach_stats(sid)
+            rows.append((sid, reach_n, score, ports, top, b))
             r.nodes.append(Node(
                 id=f"exec:{sid}",
                 kind="exec_source",
                 props={
                     "kind": nodes[sid].get("kind", "?"),
                     "reach": reach_n, "reach_score": score, "port_reach": ports,
-                    "trust_crossings": sum(b.values()),
-                    "boundaries": dict(sorted(b.items())),
+                    "trust_crossings": crossings,
+                    "boundaries": b,
                     "top_reachable": top,
                 },
                 evidence=[f"{src}", f"node:{sid}"],
                 src=self.name,
             ))
             # findings
-            if ports > 0 and sum(b.values()) > 0:
+            if ports > 0 and crossings > 0:
                 r.findings.append(Finding(
                     id=f"EXEC-{sid}", sev="high", dim="analytics",
                     desc=(f"exec source reaches {ports} network endpoint(s) AND crosses "
-                          f"trust boundaries ({dict(b)}): {sid}"),
+                          f"trust boundaries on reachable paths ({dict(b)}): {sid}"),
                     evidence=[f"{src}", f"node:{sid}"],
                 ))
-            elif sum(b.values()) > 0:
+            elif crossings > 0:
                 r.findings.append(Finding(
                     id=f"EXEC-{sid}", sev="medium", dim="analytics",
-                    desc=f"exec source crosses trust boundaries ({dict(b)}): {sid}",
+                    desc=f"exec source crosses trust boundaries on reachable paths ({dict(b)}): {sid}",
                     evidence=[f"{src}", f"node:{sid}"],
                 ))
             elif any(e.get("kind") == "launchd_to_script" and e.get("to") == sid

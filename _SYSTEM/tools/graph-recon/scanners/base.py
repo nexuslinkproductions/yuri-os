@@ -11,5 +11,15 @@ class ScanResult:
     notes: str = ""
 
 class BaseScanner:
-    name: str = "base"; dim: str = "static"
-    def run(self, ctx) -> ScanResult: raise NotImplementedError
+    name: str = "base"
+    dim: str = "static"
+    # M1.5: analytics scanners REQUIRE a merged-graph input (fail-closed);
+    # filesystem scanners stay fail-open.
+    requires_graph: bool = False
+    # M1.5: layer stability for pin coverage. "stable" layers feed the pinned
+    # merged graph; "ephemeral" layers (live state) carry a freshness stamp and
+    # are excluded from the determinism pin.
+    layer_stability: str = "stable"
+
+    def run(self, ctx) -> ScanResult:
+        raise NotImplementedError

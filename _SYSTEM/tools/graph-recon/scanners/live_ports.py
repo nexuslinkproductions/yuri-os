@@ -6,6 +6,8 @@ from reconloop.model import Node, Edge
 
 class LivePortsScanner(BaseScanner):
     name = "live_ports"; dim = "live"
+    # M1.5 item 7: live state — excluded from determinism pin; carries freshness stamp
+    layer_stability = "ephemeral"
     def run(self, ctx) -> ScanResult:
         r = ScanResult()
         try:

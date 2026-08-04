@@ -1,6 +1,8 @@
+{"boundary": "lan", "evidence": ["fixture"], "from": "file:d.py", "kind": "network_conn", "props": {}, "to": "port:8080"}
 {"boundary": "lan", "evidence": ["fixture"], "from": "process:p1", "kind": "network_conn", "props": {}, "to": "port:8080"}
 {"boundary": "local", "evidence": ["fixture"], "from": "harness_config:.mcp.json", "kind": "mcp_registration", "props": {}, "to": "mcp_server:m1"}
 {"boundary": "local", "evidence": ["fixture"], "from": "launchd_agent:la1", "kind": "launchd_to_script", "props": {}, "to": "file:b.py"}
+{"boundary": "none", "evidence": ["fixture"], "from": "database:memory.db", "kind": "file_read", "props": {}, "to": "file:reader.py"}
 {"boundary": "none", "evidence": ["fixture"], "from": "file:a.py", "kind": "file_read", "props": {}, "to": "env_file:.env"}
 {"boundary": "none", "evidence": ["fixture"], "from": "file:a.py", "kind": "tests", "props": {}, "to": "file:b.py"}
 {"boundary": "none", "evidence": ["fixture"], "from": "file:b.py", "kind": "tests", "props": {}, "to": "file:c.py"}
@@ -14,6 +16,7 @@
 {"evidence": ["fixture"], "id": "file:b.py", "kind": "file", "props": {}, "src": "fixture"}
 {"evidence": ["fixture"], "id": "file:c.py", "kind": "file", "props": {}, "src": "fixture"}
 {"evidence": ["fixture"], "id": "file:d.py", "kind": "file", "props": {"exec_capable": true}, "src": "fixture"}
+{"evidence": ["fixture"], "id": "file:reader.py", "kind": "file", "props": {}, "src": "fixture"}
 {"evidence": ["fixture"], "id": "governance_organ:o1", "kind": "governance_organ", "props": {}, "src": "fixture"}
 {"evidence": ["fixture"], "id": "harness_config:.mcp.json", "kind": "harness_config", "props": {}, "src": "fixture"}
 {"evidence": ["fixture"], "id": "launchd_agent:la1", "kind": "launchd_agent", "props": {}, "src": "fixture"}

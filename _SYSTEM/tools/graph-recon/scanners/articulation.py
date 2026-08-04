@@ -105,13 +105,13 @@ def comp_sizes(adj: dict[str, Counter]) -> dict[str, int]:
 class ArticulationScanner(BaseScanner):
     name = "articulation"
     dim = "analytics"
+    requires_graph = True  # M1.5: fail-closed — merged-graph input required
 
     def run(self, ctx) -> ScanResult:
+        from reconloop.graphio import require_graph  # noqa: E402
+        require_graph(ctx)  # M1.5: fail-closed when no graph input
         r = ScanResult()
         nodes, edges, src = load_graph(ctx)
-        if not nodes:
-            r.notes = f"no graph input ({src})"
-            return r
 
         # ---- build code-subgraph adjacency (undirected, with edge counts) ----
         code_ids = {nid for nid, rec in nodes.items() if rec.get("kind") in CODE_KINDS}

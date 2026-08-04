@@ -1,0 +1,32 @@
+{
+  "title": "analysis-manifest",
+  "schema_version": 1,
+  "description": "Run metadata for a graph-recon analysis bundle (M1.5 item 6). Written by graph-recon run; excluded from the determinism pin (contains generated_at timestamp).",
+  "required": ["schema", "schema_version", "generated_at", "input_graph", "config", "scanners", "layers"],
+  "properties": {
+    "schema": { "type": "string", "const": "analysis-manifest" },
+    "schema_version": { "type": "integer" },
+    "generated_at": { "type": "string" },
+    "input_graph": {
+      "type": "object",
+      "required": ["pin16", "sha256", "label", "resolved"],
+      "properties": {
+        "pin16": { "type": "string" },
+        "sha256": { "type": "string" },
+        "label": { "type": "string" },
+        "resolved": { "type": "boolean" }
+      }
+    },
+    "config": { "type": "object" },
+    "scanners": { "type": "object", "additionalProperties": { "type": "string" } },
+    "layers": {
+      "type": "object",
+      "required": ["stability", "files", "pinned"],
+      "properties": {
+        "stability": { "type": "object", "additionalProperties": { "enum": ["stable", "ephemeral"] } },
+        "files": { "type": "object" },
+        "pinned": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

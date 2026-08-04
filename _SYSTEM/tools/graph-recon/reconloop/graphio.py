@@ -1,4 +1,4 @@
-"""Shared graph-input loading for analytics scanners (deterministic, fail-open).
+"""Shared graph-input loading for analytics scanners (deterministic; fail-closed).
 
 Analytics scanners (connected_components, articulation, cross_layer_links,
 exec_centrality) do not scan the filesystem — they consume a MERGED graph
@@ -14,8 +14,10 @@ source label `graph:<sha256-prefix-of-input>` (16 hex chars), never an
 absolute path, so scanner evidence is byte-identical across environments
 (M1 refinement, Orion verdict 2026-08-04).
 
-Fail-open: a missing/unreadable input yields empty (nodes, edges) with a note;
-it never raises, so `graph-recon run` keeps the loop alive without the artifact.
+M1.5 (fail-closed): analytics scanners require a graph input. require_graph()
+raises GraphInputRequiredError when none resolves, so a missing input is a
+loud per-scanner failure (error layer + nonzero exit) — never a silent empty
+layer. load_graph() itself stays deterministic and raises nothing.
 """
 from __future__ import annotations
 import hashlib
@@ -33,6 +35,21 @@ def resolve_graph_path(ctx) -> Path | None:
         return Path(p)
     cand = ctx.root / DEFAULT_GRAPH_REL
     return cand if cand.exists() else None
+
+
+class GraphInputRequiredError(RuntimeError):
+    """Raised when an analytics (requires_graph) scanner has no graph input."""
+
+
+def require_graph(ctx) -> Path:
+    """Fail-closed: return the resolved graph path or raise."""
+    p = resolve_graph_path(ctx)
+    if p is None or not p.exists():
+        raise GraphInputRequiredError(
+            "analytics scanner requires graph input: pass --graph-input <path>, "
+            f"set $GRAPH_RECON_GRAPH, or provide {DEFAULT_GRAPH_REL}"
+        )
+    return p
 
 
 def load_graph(ctx) -> tuple[dict, list, str]:

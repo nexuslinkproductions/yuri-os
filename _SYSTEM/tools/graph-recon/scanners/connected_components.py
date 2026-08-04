@@ -25,13 +25,13 @@ NETWORK_KINDS = {"port", "network_endpoint", "process"}
 class ConnectedComponentsScanner(BaseScanner):
     name = "connected_components"
     dim = "analytics"
+    requires_graph = True  # M1.5: fail-closed — merged-graph input required
 
     def run(self, ctx) -> ScanResult:
+        from reconloop.graphio import require_graph  # noqa: E402
+        require_graph(ctx)  # M1.5: fail-closed when no graph input
         r = ScanResult()
         nodes, edges, src = load_graph(ctx)
-        if not nodes:
-            r.notes = f"no graph input ({src})"
-            return r
 
         # ---- union-find over node ids (deterministic: sorted id iteration) ----
         parent = {nid: nid for nid in nodes}

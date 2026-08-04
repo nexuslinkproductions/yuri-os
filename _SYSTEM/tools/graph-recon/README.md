@@ -16,11 +16,27 @@
 
 ## CLI
 - `graph-recon scan` — list loaded scanners.
-- `graph-recon run` — execute all scanners → per-scanner layers → merged graph + sha256 pin.
+- `graph-recon run` — execute all scanners → per-scanner layers → merged graph + sha256 pin; findings → `findings/<scanner>.jsonl` (deduped by fingerprint); analysis-bundle manifest → `layers/analysis-manifest.json`. Scanner errors are FAIL-CLOSED: an error layer `<name>.ERROR.jsonl` is written and the run exits nonzero — never a silent empty layer.
 - `graph-recon merge` / `verify` — merge/verify layers vs pin.
+- `graph-recon verify --rerun` — re-runs the full pipeline and compares the regenerated hash against the stored pin (determinism re-check; first run sets the baseline).
 - `graph-recon ledger` — findings severity summary.
+- `graph-recon manifest --manifest <path>` — validates an analysis-manifest against the pinned schema.
 
-## Analytics scanners (graph-understanding phase, M1)
+## Stability & pin coverage (M1.5)
+- Scanners declare `layer_stability`: `stable` (default) or `ephemeral`.
+- The determinism pin covers the STABLE subset only. `live_ports` is ephemeral
+  (live lsof state): its layer is kept, carries `layers/live_ports.meta.json`
+  with a freshness stamp, and is excluded from the pinned merged graph.
+- `layers/analysis-manifest.json` records input-graph pin (content-addressed,
+  path-independent), per-scanner file hashes, run config, layer stability,
+  pinned-layer list, and `generated_at`. It is run metadata — never part of
+  the pin. Schema is pinned at `reconloop/schemas/analysis-manifest.schema.json`
+  (+ `.sha256`, asserted by tests).
+- Analytics scanners REQUIRE a merged-graph input (fail-closed): without one
+  they raise, cmd_run writes an error layer and exits 1. Base (filesystem)
+  scanners keep fail-open semantics.
+
+## Analytics scanners (graph-understanding phase, M1/M1.5)
 Four scanners consume the MERGED graph (not the filesystem) and emit analytics:
 - `connected_components` — union-find components across all layers; component
   nodes + `member_of` edges; `cc:top` ranking; findings for components mixing
@@ -33,8 +49,11 @@ Four scanners consume the MERGED graph (not the filesystem) and emit analytics:
   `query:writers`, `query:secrets`; findings for secret↔network links,
   file_write into protected/database targets, memory-bus touches.
 - `exec_centrality` — exec-capable source ranking by directed reach + weighted
-  reach score + trust-boundary crossing counts; `exec:top` ranking; findings
-  for sources reaching ports across trust boundaries.
+  reach score; `trust_crossings` counts boundary edges on REACHABLE PATHS
+  (cycle-safe BFS with visited set, deterministic sorted traversal), not
+  incident-only; `exec:top` ranking; findings for sources reaching ports
+  across trust boundaries (high) / any path crossing (medium) / launchd
+  persistence (info).
 
 Input resolution (graphio.load_graph, fail-open): `--graph-input <path>` >
 `$GRAPH_RECON_GRAPH` > `<repo>/_SYSTEM/graph-ecosystem/full-graph.jsonl`.

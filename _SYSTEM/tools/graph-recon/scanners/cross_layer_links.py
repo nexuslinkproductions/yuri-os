@@ -47,13 +47,13 @@ MEMORY_BUS_HINTS = ("memory-bus", "memory_bus", "database:memory.db")
 class CrossLayerLinksScanner(BaseScanner):
     name = "cross_layer_links"
     dim = "analytics"
+    requires_graph = True  # M1.5: fail-closed — merged-graph input required
 
     def run(self, ctx) -> ScanResult:
+        from reconloop.graphio import require_graph  # noqa: E402
+        require_graph(ctx)  # M1.5: fail-closed when no graph input
         r = ScanResult()
         nodes, edges, src = load_graph(ctx)
-        if not nodes:
-            r.notes = f"no graph input ({src})"
-            return r
 
         kind_of = {nid: rec.get("kind", "?") for nid, rec in nodes.items()}
         surface_of = {nid: KIND_TO_SURFACE.get(k, f"other:{k}") for nid, k in kind_of.items()}
@@ -84,6 +84,8 @@ class CrossLayerLinksScanner(BaseScanner):
             ))
 
         # ---- targeted queries ----
+        # M1.5 item 4: bidirectional incident computation (from AND to) for
+        # memory_bus + writers queries.
         def incident(nid: str) -> list:
             out = []
             for e in edges:
@@ -91,10 +93,13 @@ class CrossLayerLinksScanner(BaseScanner):
                     out.append(e)
             return out
 
+        def other_end(e: dict, nid: str) -> str:
+            return e["to"] if e.get("from") == nid else e["from"]
+
         # memory-bus: nodes named memory-bus / memory.db
         mb_ids = sorted(nid for nid in nodes
                         if any(h in nid for h in MEMORY_BUS_HINTS))
-        mb_touchers = sorted({e.get("from") or e.get("to") for nid in mb_ids
+        mb_touchers = sorted({other_end(e, nid) for nid in mb_ids
                               for e in incident(nid)} - set(mb_ids))
         r.nodes.append(Node(
             id="query:memory_bus",
@@ -104,14 +109,18 @@ class CrossLayerLinksScanner(BaseScanner):
             src=self.name,
         ))
 
-        # writers: nodes with outgoing file_write
-        writers = sorted({e["from"] for e in edges if e.get("kind") == "file_write"})
-        targets = sorted({e["to"] for e in edges if e.get("kind") == "file_write"})
+        # writers: bidirectional — nodes incident to file_write edges on
+        # either side (writers = from, write_targets = to, incident = both)
+        fw = [e for e in edges if e.get("kind") == "file_write"]
+        writers = sorted({e["from"] for e in fw})
+        targets = sorted({e["to"] for e in fw})
+        incident_nodes = sorted({n for e in fw for n in (e["from"], e["to"])})
         r.nodes.append(Node(
             id="query:writers",
             kind="surface_query",
-            props={"writers": writers, "write_targets": targets, "count": len(writers)},
-            evidence=[f"{src}", f"writers:{len(writers)}"],
+            props={"writers": writers, "write_targets": targets,
+                   "incident_nodes": incident_nodes, "count": len(writers)},
+            evidence=[f"{src}", f"writers:{len(writers)}", f"edges:{len(fw)}"],
             src=self.name,
         ))
 
