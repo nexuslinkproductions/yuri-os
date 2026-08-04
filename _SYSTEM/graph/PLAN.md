@@ -37,3 +37,16 @@ For the 14 native-collision projector entries (registryResolution: native-collis
    - Disabled/reference-only skills NOT eager-loaded (recallable via `skill-recall --show <id>` instead).
 4. For each of the 14 native-collision ids (hatch-pet, browser-harness, etc.), record: presence/absence in the debug output + the exact `skill-recall --show` recall path.
 5. Save the receipt at `/tmp/yuri-recon/codex-proof-receipt.txt`, sha256 it, and report to Orion for ledgering (F-039 pending) + projector --check re-run expectation: ok:true.
+
+## APPENDIX B — E12 FRESHNESS WATCHER (design, per G2 loop-extension)
+Purpose: keep the unified graph current between recon campaigns; catches drift (new procs/ports/files, HEAD moves, secret regressions) without full re-walks.
+Cadence: every 6h (launchd interval) + on git HEAD change (post-checkout hook, non-blocking).
+Checks (all read-only, cheap):
+1. `git rev-parse HEAD` vs pinned graph HEAD in _SYSTEM/graph/manifest.json — mismatch → mark graph stale, queue re-walk.
+2. `lsof -iTCP -sTCP:LISTEN` diff vs pinned port baseline → new/removed listener → update port nodes + alert on unexpected LAN bind (*).
+3. LAN probes: 8471/8472/8777/11434 curl → if a previously-flagged exposure disappears → mark F-003 node mitigated-candidate (owner confirms); if new 200 on unknown port → finding candidate.
+4. `secret-leak-scan.mjs` run → regression gate (nonzero findings = alert).
+5. whatsapp-mcp proc count diff → drift note.
+6. .agents/skills projector --check → unmanaged-overwrite guard status (F-036 re-regression).
+Output: append-only watcher log /tmp/yuri-recon/watcher.log + node freshness updates; alerts to Orion for verdict.
+Stop policy: G2 — owner interrupt at any time; watcher auto-silences after 3 consecutive clean ticks until next HEAD change.
