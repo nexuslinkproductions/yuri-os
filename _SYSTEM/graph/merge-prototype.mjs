@@ -21,12 +21,14 @@ const walkerEdges = readJsonl(path.join(GRAPH, "inputs", "edges.jsonl")).map((e)
 
 let gnStats = {};
 try { gnStats = JSON.parse(fs.readFileSync(path.join(ROOT, ".gitnexus", "meta.json"), "utf8")).stats; } catch {}
+let ygs = {}; try { const raw = JSON.parse(fs.readFileSync(path.join(ROOT, "_SYSTEM", "yuri-graph-state.json"), "utf8")); ygs = { nodes: raw.nodes?.length ?? 0, edges: raw.edges?.length ?? 0, sectors: raw.sectors?.length ?? 0, commit: raw.commit, generated: raw._generated ? true : false }; } catch {}
+let circ = "absent-skipped"; try { fs.accessSync(path.join(ROOT, "_SYSTEM", "yuri-circuitry-graph.json")); circ = "present"; } catch {}
 let yuriGraphKeys = [];
 try { yuriGraphKeys = Object.keys(JSON.parse(fs.readFileSync(path.join(ROOT, "_SYSTEM", "yuri-graph.json"), "utf8"))).slice(0, 20); } catch {}
 
 const meta = {
   generated_at: new Date().toISOString(),
-  sources: { walker: { nodes: walkerNodes.length, edges: walkerEdges.length }, gitnexus: gnStats, yuriGraphKeys, graphify: "absent-skipped" },
+  sources: { walker: { nodes: walkerNodes.length, edges: walkerEdges.length }, gitnexus: gnStats, yuriGraphKeys, graphify: "absent-skipped", yuriGraphState: ygs, circuitry: circ },
   namespaces: ["walker:", "gitnexus:", "yuri-graph:", "graphify:"],
 };
 const records = [...walkerNodes.map(JSON.stringify), ...walkerEdges.map(JSON.stringify)];

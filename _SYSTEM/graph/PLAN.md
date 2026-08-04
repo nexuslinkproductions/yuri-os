@@ -25,3 +25,15 @@
 - networkx (python) or jq-based queries over merged.jsonl; Cytoscape/Gossamer for viz (research-notes.md); Neo4j optional.
 - Hash-pinned regen test: run merge twice → identical sha256.
 9. REGEN STEP (documented): `npx gitnexus analyze --skip-agents-md` BEFORE merge (44.9s, fresh index at HEAD; verified gitignored/untracked/derived/reversible — approved re-index 2026-08-04 by Orion).
+
+## APPENDIX A — CODEX RUNTIME-PROOF RECEIPTS (procedure, owner-gated execution)
+For the 14 native-collision projector entries (registryResolution: native-collision-only-exact-path-state; runtimeProofRequired: codex-debug-prompt-input-bounded-full-description-receipt). Execution inside Marcel's live Codex session only — owner go required.
+1. In the Codex session, from repo root, run: `codex debug prompt-input` (bounded, once).
+2. Capture the full output to a file: `codex debug prompt-input > /tmp/codex-proof-prompt-input.txt`.
+3. Assert the following in the output (expected shape):
+   - No `Exceeded skills context budget` warning (2% budget respected).
+   - The 12-entry enabled projection is present with descriptions retained (activate-yuri-skills + xref/preflight/plugin-control/verification/orchestration entrypoints).
+   - Zero omitted skills among the enabled projection.
+   - Disabled/reference-only skills NOT eager-loaded (recallable via `skill-recall --show <id>` instead).
+4. For each of the 14 native-collision ids (hatch-pet, browser-harness, etc.), record: presence/absence in the debug output + the exact `skill-recall --show` recall path.
+5. Save the receipt at `/tmp/yuri-recon/codex-proof-receipt.txt`, sha256 it, and report to Orion for ledgering (F-039 pending) + projector --check re-run expectation: ok:true.
