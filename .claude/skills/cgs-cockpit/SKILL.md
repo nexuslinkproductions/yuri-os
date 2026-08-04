@@ -52,13 +52,31 @@ itself.
 
 ## RUN
 
-- **`start-lan.bat`** — the desktop-icon launcher. Binds `0.0.0.0:8000`. **Always use this one** — LAN
-  and Tailscale peer access both depend on the 0.0.0.0 bind; a localhost-only relaunch silently cuts off
-  remote access.
+- **`start-hidden.vbs`** — the current default launcher (2026-08-04). Runs the cockpit with **no console
+  window and no taskbar entry** — a `.bat` always gets a console, and `WindowStyle=minimized` still
+  occupies the taskbar; only a wscript-hosted VBS is truly invisible. It delegates the server to
+  `start-service.bat` with window style 0 (whole process tree hidden), then opens Chrome.
+  - `start-hidden.vbs /nobrowser` — start only. This is what `Startup\CGS Cockpit.lnk` runs at logon.
+  - Guards against a double start: probes `http://127.0.0.1:8000/api/health` first and skips launching
+    if the cockpit already answers, so the Startup copy and a manual click cannot fight over port 8000
+    (the loser would spin `start-service.bat`'s restart loop forever). **Any** HTTP status counts as up —
+    the endpoint answers **401** to an unauthenticated caller (auth.py gate), so a `== 200` probe never
+    succeeds.
+  - Shortcuts (all `wscript.exe` + the vbs path): `Desktop\CGS Cockpit.lnk` (with browser),
+    `Startup\CGS Cockpit.lnk` (`/nobrowser`), `Desktop\Stop CGS Cockpit.lnk` → `stop-cockpit.bat`.
+- **`stop-cockpit.bat`** → `stop-cockpit.ps1` — the way to stop a hidden cockpit (there is no window to
+  close). Kills the launcher `cmd.exe` FIRST (it is a restart loop — killing python first just respawns
+  it 10s later), then the uvicorn pythons, then verifies port 8000 is actually free. The kill logic lives
+  in the `.ps1` on purpose: cmd's `for /f` + backtick escaping silently mangles the WMI query.
+- `start-lan.bat` — the old visible-console launcher. Binds `0.0.0.0:8000`, prints the LAN URLs, opens
+  Chrome, keeps access logs on screen. Still the right one when you **want** to watch the log live.
 - `start.bat` — localhost-only (127.0.0.1:8000). Only relevant if Tailscale Serve is ever wired up
   (currently deferred — plain HTTP over the tailnet is live instead, see REMOTE ACCESS).
-- `start-service.bat` — the unattended launcher (no pip, no browser, restart loop, 0.0.0.0). Since
-  2026-07-29 it is started **as `rene` at logon** from `Startup\CGS Cockpit.lnk`, not by a task.
+- `start-service.bat` — the unattended engine (no pip, no browser, restart loop, 0.0.0.0, log to
+  `logs\cockpit.log`). Since 2026-07-29 it runs **as `rene` at logon**, not as a task; since 2026-08-04
+  it is invoked through `start-hidden.vbs` rather than directly.
+- **The 0.0.0.0 bind is load-bearing**: LAN and Tailscale peer access both depend on it. A
+  localhost-only relaunch silently cuts off remote access.
 - `install-autostart.bat` — **DO NOT RUN AS-IS.** It registers the "CGS Cockpit" task with `/ru SYSTEM`,
   which is exactly what breaks the CAM scan (see THE SYSTEM/SMB FOOTGUN below). The SYSTEM task was
   deleted 2026-07-29.
