@@ -8,6 +8,7 @@ from .context import ScanContext
 from .determinism import pin, verify, sha256_file
 from .ledger import dedup, fingerprint
 from .graphio import require_graph, resolve_graph_path
+from .merge import dedup_by_id
 from . import bundle
 
 
@@ -71,13 +72,18 @@ def cmd_run(args) -> int:
         print(f"[run] FAIL-CLOSED: {failures} scanner(s) errored; no merge/pin emitted")
         return 1
 
-    # M1.5 item 7: pin covers the STABLE subset only; ephemeral layers excluded
-    merged = []
+    # M1.5 item 7: pin covers the STABLE subset only; ephemeral layers excluded.
+    # M1.6 (F-040): dedup merged node records by id (keep-last) + dup report.
+    merged_raw = []
     for name in sorted(pinned_layers):
-        merged.extend((layers / f"{name}.jsonl").read_text().splitlines())
+        merged_raw.extend((layers / f"{name}.jsonl").read_text().splitlines())
+    merged, dup_report = dedup_by_id(merged_raw)
     graph = _P(args.graph)
     graph.write_text("\n".join(merged) + "\n")
     s = pin(graph, _P(args.pin))
+    # M1.6: write dup report next to the pin
+    (graph.parent / "graph.dedup-report.json").write_text(
+        json.dumps(dup_report, indent=2, sort_keys=True) + "\n")
     # M1.5 item 6: analysis-bundle manifest (metadata; never part of the pin)
     input_pin = ""
     input_label = ""
@@ -93,7 +99,9 @@ def cmd_run(args) -> int:
         scanners=scanners, input_pin=input_pin, input_label=input_label,
         layer_files=layer_files, stability=stability, pinned_layers=pinned_layers)
     bundle.write_manifest(layers, man)
-    print(f"[merge] {len(pinned_layers)} stable layers ({len(stability)} total) -> {len(merged)} records | sha256 {s[:16]}...")
+    print(f"[merge] {len(pinned_layers)} stable layers ({len(stability)} total) -> "
+          f"{len(merged_raw)} raw / {len(merged)} deduped records | "
+          f"sha256 {s[:16]}... | dups {dup_report['duplicates_removed']}")
     return 0
 
 
@@ -105,14 +113,18 @@ def cmd_merge(args) -> int:
     # exclude ephemeral layers by checking their .meta.json sibling
     stable = [lf for lf in stable
               if not (Path(args.layers) / f"{lf.stem}.meta.json").exists()]
-    total = 0
+    raw = []
+    for lf in sorted(stable):
+        raw.extend(lf.read_text().splitlines())
+    # M1.6 (F-040): dedup by id (keep-last), emit dup report
+    merged, dup_report = dedup_by_id([l for l in raw if l.strip()])
     with open(args.graph, "w") as out:
-        for lf in sorted(stable):
-            for line in lf.read_text().splitlines():
-                if line.strip():
-                    out.write(line + "\n"); total += 1
+        out.write("\n".join(merged) + "\n")
+    (Path(args.graph).parent / "graph.dedup-report.json").write_text(
+        json.dumps(dup_report, indent=2, sort_keys=True) + "\n")
     s = pin(Path(args.graph), Path(args.pin))
-    print(f"[merge] {len(stable)} stable layers -> {total} records | sha256 {s[:16]}...")
+    print(f"[merge] {len(stable)} stable layers -> {len(raw)} raw / {len(merged)} deduped "
+          f"records | sha256 {s[:16]}... | dups {dup_report['duplicates_removed']}")
     return 0
 
 

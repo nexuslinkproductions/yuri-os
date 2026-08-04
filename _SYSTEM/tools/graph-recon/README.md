@@ -36,6 +36,18 @@
   they raise, cmd_run writes an error layer and exits 1. Base (filesystem)
   scanners keep fail-open semantics.
 
+## Merge dedup (M1.6, F-040)
+- `cmd_merge` (and `cmd_run`'s inline merge) dedup node records by id with a
+  keep-last conflict policy (later layer wins), and emit a duplicate report
+  at `<graph-dir>/graph.dedup-report.json` (counts + per-id conflict detail).
+- The pinned v3 ecosystem graph carried 229 duplicate `file:` node records
+  (file_inventory/writers cross-layer overlap). Re-merge dedups to 6,742
+  records / 6,350 unique ids; v3 pin moved 57931c33 → f5597cc3 (expected,
+  documented). Analytics input label reports NET-NEW UNIQUE ids after
+  synthesis (`+416` for v3 = 645 synthesized − 229 dup records), not
+  endpoint events.
+- Edge records (no id) pass through untouched.
+
 ## Analytics scanners (graph-understanding phase, M1/M1.5)
 Four scanners consume the MERGED graph (not the filesystem) and emit analytics:
 - `connected_components` — union-find components across all layers; component

@@ -66,6 +66,7 @@ def load_graph(ctx) -> tuple[dict, list, str]:
         )
     nodes: dict = {}
     edges: list = []
+    raw_node_records = 0
     h = hashlib.sha256()
     try:
         raw = path.read_bytes()  # hash raw bytes => matches shasum/pin files exactly
@@ -77,6 +78,7 @@ def load_graph(ctx) -> tuple[dict, list, str]:
             if "from" in rec and "to" in rec:
                 edges.append(rec)
             elif "id" in rec:
+                raw_node_records += 1
                 nodes[rec["id"]] = rec  # last wins; file order deterministic
     except Exception as e:  # noqa: BLE001 — fail-open per contract
         return {}, [], f"graph input error: {e}"
@@ -87,7 +89,6 @@ def load_graph(ctx) -> tuple[dict, list, str]:
     # Some layers (e.g. test_wiring) emit edges whose endpoint nodes live in
     # other layers/merges. Analytics must treat edge endpoints as graph
     # citizens; synthesize minimal records so every edge endpoint is addressable.
-    synth = 0
     for e in edges:
         for eid in (e["from"], e["to"]):
             if eid not in nodes:
@@ -97,8 +98,11 @@ def load_graph(ctx) -> tuple[dict, list, str]:
                     "evidence": [f"dangling endpoint of {e['from']}->{e['to']} ({e.get('kind')})"],
                     "src": "graphio-synthetic",
                 }
-                synth += 1
-    return nodes, edges, f"graph:{pin16} (+{synth} synthesized endpoints)"
+    # M1.6 (F-040): label reports NET-NEW UNIQUE ids (post-synthesis unique
+    # minus raw input node records), not endpoint events: for v3 that is
+    # 6,995 - 6,579 = +416 (645 synthesized minus 229 duplicate records).
+    net_new_unique = len(nodes) - raw_node_records
+    return nodes, edges, f"graph:{pin16} (+{net_new_unique} net-new unique)"
 
 
 def layer_kind(rec: dict) -> str:
