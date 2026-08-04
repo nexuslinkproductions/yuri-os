@@ -1,0 +1,15 @@
+809323:+memory search "BEGIN RSA PRIVATE KEY" --string
+852823:+  --access-key-id AKIAEXPOSEDKEY123456 \
+852831:+  --lookup-attributes AttributeKey=AccessKeyId,AttributeValue=AKIAEXPOSEDKEY123456 \
+852839:+  --access-key-id AKIAEXPOSEDKEY123456
+2094726:+memory search "BEGIN RSA PRIVATE KEY" --string
+2138226:+  --access-key-id AKIAEXPOSEDKEY123456 \
+2138234:+  --lookup-attributes AttributeKey=AccessKeyId,AttributeValue=AKIAEXPOSEDKEY123456 \
+2138242:+  --access-key-id AKIAEXPOSEDKEY123456
+3393380:+memory search "BEGIN RSA PRIVATE KEY" --string
+3436880:+  --access-key-id AKIAEXPOSEDKEY123456 \
+3436888:+  --lookup-attributes AttributeKey=AccessKeyId,AttributeValue=AKIAEXPOSEDKEY123456 \
+3436896:+  --access-key-id AKIAEXPOSEDKEY123456
+4642811:+memory search "BEGIN RSA PRIVATE KEY" --string
+4678423:+  --access-key-id AKIAEXPOSEDKEY123456 \
+4678431:+  --lookup-attributes AttributeKey=AccessKeyId,AttributeValue=AKIAEXPOSEDKEY123456 \

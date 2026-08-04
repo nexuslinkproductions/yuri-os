@@ -1,0 +1,337 @@
+adw-gate.mjs: Function() constructor@26;Function() constructor@30;new Function()@26;new Function()@30
+adw-gate.test.mjs: fs write/delete call@19;fs write/delete call@25;fs write/delete call@26;fs write/delete call@30;fs write/delete call@43;fs write/delete call@50;fs write/delete call@52;fs write/delete call@80;fs write/delete call@86;fs write/delete call@87;fs write/delete call@88;fs write/delete call@89;process spawn call@20;process spawn call@72
+agent-native-bootstrap.mjs: process spawn call@25
+agent-reach.mjs: process spawn call@21
+ai-news-digest.mjs: process spawn call@34
+apply-preflight.mjs: process spawn call@81
+arch-graph-watch.test.mjs: fs write/delete call@29;fs write/delete call@67;fs write/delete call@71;fs write/delete call@83
+artifact-registry.test.mjs: process spawn call@68
+automation-kernel.mjs: process spawn call@105
+backend-cors-hardening.test.mjs: fetch()@35;fetch()@44;fetch()@50;fetch()@67;fetch()@79;process spawn call@15
+backend-data-recovery.mjs: fs write/delete call@1318;fs write/delete call@1328;fs write/delete call@1583;fs write/delete call@1588;fs write/delete call@1589;fs write/delete call@1675;fs write/delete call@1890;fs write/delete call@2354;fs write/delete call@2750;fs write/delete call@614;fs write/delete call@770;fs write/delete call@778;fs write/delete call@794;process spawn call@327
+backend-data-recovery.test.mjs: fs write/delete call@1009;fs write/delete call@1011;fs write/delete call@1148;fs write/delete call@1215;fs write/delete call@1225;fs write/delete call@1356;fs write/delete call@1442;fs write/delete call@1455;fs write/delete call@1456;fs write/delete call@1481;fs write/delete call@1483;fs write/delete call@1581;fs write/delete call@1584;fs write/delete call@1585;fs write/delete call@1586;fs write/delete call@160;fs write/delete call@161;fs write/delete call@162;fs write/delete call@1657;fs write/delete call@1842;fs write/delete call@1892;fs write/delete call@1959;fs write/delete call@1961;fs write/delete call@2046;fs write/delete call@2049;fs write/delete call@2059;fs write/delete call@2065;fs write/delete call@2066;fs write/delete call@2067;fs write/delete call@2073;fs write/delete call@2103;fs write/delete call@211;fs write/delete call@215;fs write/delete call@218;fs write/delete call@227;fs write/delete call@2385;fs write/delete call@250;fs write/delete call@251;fs write/delete call@270;fs write/delete call@2703;fs write/delete call@2744;fs write/delete call@2758;fs write/delete call@3113;fs write/delete call@3122;fs write/delete call@3133;fs write/delete call@3148;fs write/delete call@3172;fs write/delete call@3184;fs write/delete call@3218;fs write/delete call@3231;fs write/delete call@3257;fs write/delete call@3261;fs write/delete call@3277;fs write/delete call@3279;fs write/delete call@3290;fs write/delete call@3313;fs write/delete call@3332;fs write/delete call@3336;fs write/delete call@3344;fs write/delete call@3379;fs write/delete call@3380;fs write/delete call@3385;fs write/delete call@3399;fs write/delete call@3417;fs write/delete call@3418;fs write/delete call@3419;fs write/delete call@3420;fs write/delete call@3482;fs write/delete call@3500;fs write/delete call@3505;fs write/delete call@3540;fs write/delete call@3545;fs write/delete call@3558;fs write/delete call@3576;fs write/delete call@3581;fs write/delete call@3616;fs write/delete call@3620;fs write/delete call@3633;fs write/delete call@3650;fs write/delete call@3711;fs write/delete call@3730;fs write/delete call@3735;fs write/delete call@3769;fs write/delete call@3771;fs write/delete call@3805;fs write/delete call@3838;fs write/delete call@3844;fs write/delete call@3976;fs write/delete call@421;fs write/delete call@422;fs write/delete call@430;fs write/delete call@490;fs write/delete call@50;fs write/delete call@51;fs write/delete call@526;fs write/delete call@63;fs write/delete call@640;fs write/delete call@65;fs write/delete call@653;fs write/delete call@789;fs write/delete call@854;fs write/delete call@905;fs write/delete call@942;fs write/delete call@947;fs write/delete call@966;fs write/delete call@985;process spawn call@1375;process spawn call@1381;process spawn call@1443;process spawn call@1449;process spawn call@1474;process spawn call@1531;process spawn call@1560;process spawn call@1595;process spawn call@1638;process spawn call@223;process spawn call@2520;process spawn call@253;process spawn call@259;process spawn call@2700;process spawn call@2701;process spawn call@3111;process spawn call@3112;process spawn call@3129;process spawn call@3207;process spawn call@3244;process spawn call@3284;process spawn call@3294;process spawn call@3349;process spawn call@3355;process spawn call@3422;process spawn call@3426;process spawn call@3430;process spawn call@3443;process spawn call@3449;process spawn call@3461;process spawn call@3510;process spawn call@3516;process spawn call@3586;process spawn call@3592;process spawn call@3653;process spawn call@3663;process spawn call@3686;process spawn call@3692;process spawn call@3740;process spawn call@3746;process spawn call@3852;process spawn call@3896;process spawn call@3935;process spawn call@407;process spawn call@412;process spawn call@520;process spawn call@53;process spawn call@535;process spawn call@542;process spawn call@638;process spawn call@656;process spawn call@669;process spawn call@682;process spawn call@691;process spawn call@844;process spawn call@896
+backend-db-check.mjs: process spawn call@132
+backend-db-check.test.mjs: fs write/delete call@48;fs write/delete call@60;fs write/delete call@75;process spawn call@15;process spawn call@24
+backend-db-readiness-migration-status.test.mjs: fetch()@20;process spawn call@41
+backend-db-readiness-recovery-metadata.test.mjs: fs write/delete call@1141;fs write/delete call@1142;fs write/delete call@1143;fs write/delete call@1144;fs write/delete call@1193;fs write/delete call@1244;fs write/delete call@1262;fs write/delete call@1280;fs write/delete call@1299;process spawn call@1245;process spawn call@1263;process spawn call@1281;process spawn call@1300
+backend-observability-truth.test.mjs: fetch()@94;process spawn call@54
+backend-operation-lock.mjs: fs write/delete call@1320;fs write/delete call@1336;fs write/delete call@1341;fs write/delete call@1376;fs write/delete call@1401;fs write/delete call@1516;fs write/delete call@1551;fs write/delete call@1572;process spawn call@1114;process spawn call@1143;process spawn call@1352;process spawn call@1839
+backend-operation-lock.test.mjs: dynamic import()@2192;fs write/delete call@1035;fs write/delete call@1662;fs write/delete call@1670;fs write/delete call@1671;fs write/delete call@1672;fs write/delete call@1708;fs write/delete call@1751;fs write/delete call@1796;fs write/delete call@1850;fs write/delete call@233;fs write/delete call@261;fs write/delete call@279;fs write/delete call@331;fs write/delete call@42;fs write/delete call@44;fs write/delete call@679;fs write/delete call@691;fs write/delete call@692;fs write/delete call@693;fs write/delete call@720;fs write/delete call@745;fs write/delete call@750;fs write/delete call@754;fs write/delete call@755;fs write/delete call@760;fs write/delete call@761;fs write/delete call@765;fs write/delete call@766;fs write/delete call@771;fs write/delete call@772;fs write/delete call@775;fs write/delete call@780;fs write/delete call@80;fs write/delete call@836;fs write/delete call@845;fs write/delete call@846;fs write/delete call@855;fs write/delete call@86;fs write/delete call@876;fs write/delete call@877;fs write/delete call@897;fs write/delete call@898;fs write/delete call@920;fs write/delete call@966;process spawn call@1263;process spawn call@1477;process spawn call@1893;process spawn call@243;process spawn call@365;process spawn call@366;process spawn call@387;process spawn call@45;process spawn call@67;process spawn call@685;process spawn call@987
+backend-release-gate.mjs: process spawn call@106
+backend-release-gate.test.mjs: process spawn call@14;process spawn call@19;process spawn call@24;process spawn call@9
+backend-route-auth-matrix.test.mjs: fetch()@344;process spawn call@224;process spawn call@301
+backend-smoke-probe.mjs: http(s) request@117;process spawn call@208
+backend-storage-guard-legacy-v1-fixture.mjs: process spawn call@304;process spawn call@332;process spawn call@625;process spawn call@634
+backend-storage-guard-legacy-v1-fixture.test.mjs: fs write/delete call@1159;fs write/delete call@1238;fs write/delete call@1289;fs write/delete call@351;fs write/delete call@40;fs write/delete call@407;fs write/delete call@46;fs write/delete call@57;fs write/delete call@778;fs write/delete call@81;fs write/delete call@830;fs write/delete call@839;fs write/delete call@908
+backend-storage-guard.mjs: process spawn call@205;process spawn call@240
+backend-storage-guard.test.mjs: fs write/delete call@1159;fs write/delete call@1197;fs write/delete call@133;fs write/delete call@134;fs write/delete call@767;fs write/delete call@770;fs write/delete call@87;fs write/delete call@91;process spawn call@76
+backend-volume-apfs.test.mjs: fs write/delete call@1002;fs write/delete call@1003;fs write/delete call@1034;fs write/delete call@1081;fs write/delete call@1119;fs write/delete call@1120;fs write/delete call@1129;fs write/delete call@1130;fs write/delete call@1133;fs write/delete call@1181;fs write/delete call@1197;fs write/delete call@1198;fs write/delete call@1199;fs write/delete call@392;fs write/delete call@396;fs write/delete call@397;fs write/delete call@409;fs write/delete call@419;fs write/delete call@424;fs write/delete call@433;fs write/delete call@606;process spawn call@135;process spawn call@258;process spawn call@268;process spawn call@277;process spawn call@296;process spawn call@318;process spawn call@437;process spawn call@454;process spawn call@473;process spawn call@919
+backend-volume-broker.test.mjs: fs write/delete call@100;fs write/delete call@105;fs write/delete call@107;fs write/delete call@113;fs write/delete call@114;fs write/delete call@125;fs write/delete call@128;fs write/delete call@62;fs write/delete call@85;fs write/delete call@97;fs write/delete call@99;process spawn call@101;process spawn call@109;process spawn call@118;process spawn call@19;process spawn call@28;process spawn call@35;process spawn call@42;process spawn call@74;process spawn call@93
+branch-lock.mjs: fs write/delete call@43;fs write/delete call@44
+browser-harness-bridge.mjs: process spawn call@13
+cache-prefix-scan.mjs: process spawn call@109
+calibration-tracker.mjs: dynamic import()@123
+capability-scan.mjs: fs write/delete call@144;process spawn call@80;process spawn call@92
+ccr-compress.mjs: fs write/delete call@149;fs write/delete call@216;fs write/delete call@235;process spawn call@107;process spawn call@336
+ccr-compress.test.mjs: fs write/delete call@250
+circuitry-auto-register.mjs: process spawn call@116;process spawn call@117;process spawn call@82
+claim-conscience.test.mjs: fs write/delete call@12;fs write/delete call@13;fs write/delete call@15;fs write/delete call@27
+claim-cortex.test.mjs: process spawn call@651
+claim-heal.mjs: fs write/delete call@111;fs write/delete call@114;process spawn call@59
+claim-heal.test.mjs: fs write/delete call@123;fs write/delete call@168;fs write/delete call@241;fs write/delete call@242;fs write/delete call@244;fs write/delete call@263;fs write/delete call@28;fs write/delete call@36
+claim-registry.mjs: fs write/delete call@68
+claim-registry.test.mjs: fs write/delete call@34;fs write/delete call@40;fs write/delete call@46;fs write/delete call@59;fs write/delete call@60;fs write/delete call@89;fs write/delete call@90
+claim-transition-observer.mjs: fs write/delete call@96
+claim-transition-observer.test.mjs: fs write/delete call@109
+claim-verify.mjs: process spawn call@50;process spawn call@54
+claim-verify.test.mjs: fs write/delete call@138;fs write/delete call@15;fs write/delete call@16;fs write/delete call@173;fs write/delete call@183;fs write/delete call@203
+claude-memory-write.mjs: fs write/delete call@175;fs write/delete call@196;fs write/delete call@262;fs write/delete call@263
+claude-plugin-parity-check.test.mjs: fs write/delete call@33;fs write/delete call@44;fs write/delete call@60
+cline-fleet.mjs: fs write/delete call@135;fs write/delete call@156;process spawn call@119
+cloud-concurrency.mjs: dynamic import()@109;fs write/delete call@106;fs write/delete call@113;fs write/delete call@65;fs write/delete call@89;fs write/delete call@94
+cloud-concurrency.test.mjs: dynamic import()@13;fs write/delete call@16
+codex-offload-runner.mjs: process spawn call@324
+codex-offload-runner.test.mjs: fs write/delete call@107;fs write/delete call@108;fs write/delete call@115;fs write/delete call@148;fs write/delete call@153;fs write/delete call@21;process spawn call@125;process spawn call@23
+cold-acquisition-routes.test.mjs: fetch()@279;fs write/delete call@136;process spawn call@231
+context-router.test.mjs: process spawn call@11
+contract-conformance-trace.mjs: dynamic import()@101
+control-plane-plan-routes.test.mjs: fetch()@105;fs write/delete call@52;process spawn call@56
+corpus-absorb.mjs: fs write/delete call@127;fs write/delete call@154;process spawn call@144
+corpus-absorb.test.mjs: process spawn call@26
+corpus-categorize.mjs: fs write/delete call@100;fs write/delete call@129;fs write/delete call@135
+corpus-match.sqlsec.test.mjs: fs write/delete call@96;process spawn call@29
+corpus-merge-candidates.mjs: fs write/delete call@155;fs write/delete call@156;fs write/delete call@73
+corpus-mine.mjs: fs write/delete call@248;fs write/delete call@268;fs write/delete call@278
+corpus-security-scan.test.mjs: dynamic import()@347;dynamic import()@356;dynamic import()@364;dynamic import()@374;process spawn call@26;process spawn call@309;process spawn call@328
+cost-pool-admit-lease.test.mjs: fs write/delete call@19;fs write/delete call@24
+cost-reservation-pool.mjs: dynamic import()@264;fs write/delete call@414;fs write/delete call@415;fs write/delete call@428;fs write/delete call@485;fs write/delete call@486;fs write/delete call@530;fs write/delete call@536
+cost-reservation-pool.test.mjs: fs write/delete call@103;fs write/delete call@122;fs write/delete call@197;fs write/delete call@208;fs write/delete call@219;fs write/delete call@238;fs write/delete call@262;fs write/delete call@89
+cross-session-miner.mjs: process spawn call@138
+cyber-browser-replay.mjs: process spawn call@53
+cyber-skill-ingest.mjs: fetch()@91;fs write/delete call@105
+deepseek-guarded-handoff.mjs: fs write/delete call@1003;fs write/delete call@1063;fs write/delete call@1136;fs write/delete call@122;fs write/delete call@123;fs write/delete call@1329;fs write/delete call@1330;fs write/delete call@157;fs write/delete call@161;fs write/delete call@207;fs write/delete call@476;fs write/delete call@490;fs write/delete call@491;fs write/delete call@772;fs write/delete call@773;fs write/delete call@995;process spawn call@1141;process spawn call@448;process spawn call@766
+design-assistant-mcp-contract.test.mjs: fetch()@169;fs write/delete call@79;process spawn call@122;process spawn call@41
+design-assistant-routes.test.mjs: fetch()@159;fs write/delete call@108;process spawn call@112
+design-studio-routes.test.mjs: fetch()@139;fs write/delete call@87;process spawn call@91
+discovery-precision-gate.mjs: dynamic import()@129
+dream-drain.mjs: fs write/delete call@243;fs write/delete call@252;fs write/delete call@90
+dream-drain.test.mjs: fs write/delete call@17;fs write/delete call@194;fs write/delete call@198;fs write/delete call@211;fs write/delete call@22;fs write/delete call@220;fs write/delete call@226;fs write/delete call@232;fs write/delete call@254;fs write/delete call@264;fs write/delete call@299;fs write/delete call@31;fs write/delete call@329;fs write/delete call@348;fs write/delete call@358;fs write/delete call@375;fs write/delete call@38;fs write/delete call@404;fs write/delete call@414;fs write/delete call@427;fs write/delete call@80;fs write/delete call@95
+energy-observability-health.test.mjs: fs write/delete call@115;fs write/delete call@139;fs write/delete call@25
+energy-outcome-signals.mjs: process spawn call@87
+energy-tick-adapter.mjs: fs write/delete call@111;fs write/delete call@112
+energy-tick-adapter.test.mjs: fs write/delete call@118;fs write/delete call@86;process spawn call@17
+energy-tick-core.test.mjs: dynamic import()@224;dynamic import()@283;dynamic import()@284;fs write/delete call@207;fs write/delete call@251;fs write/delete call@258;fs write/delete call@278;fs write/delete call@301;fs write/delete call@322;fs write/delete call@351;fs write/delete call@386
+enforce-claude-symlink.mjs: fs write/delete call@104;fs write/delete call@96
+enforce-claude-symlink.test.mjs: fs write/delete call@136;fs write/delete call@158;fs write/delete call@23
+enrich-fleet.mjs: fs write/delete call@239;fs write/delete call@278;fs write/delete call@91;process spawn call@104
+extraction-scan.mjs: process spawn call@81
+filing-assessor.test.mjs: dynamic import()@121
+filing-autonomy.mjs: dynamic import()@243;fs write/delete call@260;fs write/delete call@305;process spawn call@172;process spawn call@205;process spawn call@210
+filing-autonomy.test.mjs: fs write/delete call@153;fs write/delete call@154;fs write/delete call@164;fs write/delete call@166;fs write/delete call@167;fs write/delete call@168;process spawn call@122
+filing-deps.mjs: process spawn call@119;process spawn call@133
+filing-mutator.mjs: fs write/delete call@123;fs write/delete call@164;fs write/delete call@173;process spawn call@172;process spawn call@43;process spawn call@72;process spawn call@73
+fingerprint-baseline.mjs: fs write/delete call@180;fs write/delete call@90
+fix-main-module-guard.mjs: fs write/delete call@75
+fleet-dispatch.mjs: fs write/delete call@188;process spawn call@110
+fleet-mlp-feedback.mjs: dynamic import()@41;dynamic import()@442;fs write/delete call@83;process spawn call@458
+fleet-mlp-shadow.test.mjs: fs write/delete call@15;fs write/delete call@20
+fleet-plumbing-smoke.mjs: process spawn call@74
+fleet-router-mlp.mjs: dynamic import()@111;dynamic import()@122;dynamic import()@123;dynamic import()@531;process spawn call@305
+folder-census.mjs: process spawn call@23;process spawn call@36
+gh-raw.mjs: fetch()@102;fetch()@66;fetch()@86
+gitnexus-block-normalize.mjs: process spawn call@22;process spawn call@55
+gitnexus-detect-changes.mjs: process spawn call@18
+gitnexus-mcp-check.mjs: process spawn call@131;process spawn call@57
+gitnexus-mcp-check.test.mjs: process spawn call@9
+gitnexus-mcp.mjs: fs write/delete call@66;process spawn call@180;process spawn call@79
+glm-fleet.mjs: fs write/delete call@248;fs write/delete call@45;process spawn call@191
+golden-path.test.mjs: dynamic import()@117;dynamic import()@124;dynamic import()@149;dynamic import()@152;dynamic import()@188;dynamic import()@279;dynamic import()@286;process spawn call@68
+gpd-confirm-matcher.mjs: fs write/delete call@149
+gpd-shadow.mjs: fs write/delete call@284
+health-status.test.mjs: process spawn call@21
+ingest-audit-trace.mjs: dynamic import()@47
+inject-worker.mjs: http(s) request@67;process spawn call@143;process spawn call@154;process spawn call@158;process spawn call@93
+install-hooks.mjs: process spawn call@11;process spawn call@20
+job-pool.mjs: dynamic import()@133;process spawn call@31
+job-pool.test.mjs: fs write/delete call@17
+kagami-event-cursor.test.mjs: dynamic import()@15;fs write/delete call@19;fs write/delete call@68;fs write/delete call@75;fs write/delete call@99
+kagami-event-rotation.test.mjs: dynamic import()@17;fs write/delete call@126;fs write/delete call@19;fs write/delete call@89
+kagami-memory-consolidator.mjs: http(s) request@342;http(s) request@53
+kagami-memory-consolidator.test.mjs: fs write/delete call@101;fs write/delete call@112;fs write/delete call@17;fs write/delete call@171;fs write/delete call@172;fs write/delete call@184;fs write/delete call@39;fs write/delete call@56;fs write/delete call@63;fs write/delete call@82;fs write/delete call@89
+kagami-memory-pipeline.mjs: http(s) request@50;process spawn call@126
+kagami-session-synthesizer.mjs: process spawn call@96
+kagami-subconscious-e2e.test.mjs: fs write/delete call@30;fs write/delete call@32;fs write/delete call@72
+kagami-swarm-supervisor.test.mjs: dynamic import()@19;dynamic import()@20;dynamic import()@21;fs write/delete call@23;fs write/delete call@33
+knowledge-scout.mjs: process spawn call@50
+lane-calibration.mjs: fs write/delete call@138
+lane-core-hooks.mjs: dynamic import()@54;fs write/delete call@36
+lane-core-hooks.test.mjs: dynamic import()@12
+lane-dispatch-outfile.test.mjs: fs write/delete call@28;fs write/delete call@65;fs write/delete call@76;fs write/delete call@88;process spawn call@47
+lane-dispatch.mjs: fs write/delete call@143;process spawn call@63
+lane-feedback-record.mjs: fs write/delete call@59;fs write/delete call@60;fs write/delete call@89
+lane-session.test.mjs: dynamic import()@8
+lane-telemetry-cockpit.test.mjs: fs write/delete call@100;fs write/delete call@105;fs write/delete call@79;fs write/delete call@83;process spawn call@86;process spawn call@87
+launch-readiness-check.mjs: process spawn call@114;process spawn call@126;process spawn call@31;process spawn call@98
+lifecycle-gap-scan.mjs: process spawn call@252
+lifecycle-gap-scan.test.mjs: process spawn call@419;process spawn call@447
+llm-compat-contract-dispatch-check.mjs: process spawn call@113;process spawn call@47;process spawn call@56;process spawn call@73;process spawn call@77;process spawn call@79;process spawn call@86
+llm-compat-contract-regression.test.mjs: process spawn call@17;process spawn call@319;process spawn call@330;process spawn call@353;process spawn call@375;process spawn call@383;process spawn call@76;process spawn call@89
+llm-compat-contract.mjs: process spawn call@1369
+llm-compat-queue.mjs: process spawn call@53
+llm-lane-transport-watchdog.test.mjs: process spawn call@31
+llm-lane.mjs: fetch()@360;fetch()@763;fs write/delete call@1117;fs write/delete call@1133;fs write/delete call@1181;fs write/delete call@1190;fs write/delete call@1210;fs write/delete call@386;fs write/delete call@401;fs write/delete call@74;http(s) request@547;http(s) request@692;http(s) request@829;process spawn call@304;process spawn call@323;process spawn call@336;process spawn call@347;process spawn call@371;process spawn call@872;process spawn call@920
+local-concurrency.mjs: dynamic import()@106;fs write/delete call@102;fs write/delete call@110;fs write/delete call@65;fs write/delete call@88;fs write/delete call@93
+local-concurrency.test.mjs: dynamic import()@16;fs write/delete call@19;fs write/delete call@71
+mcp-doctor-check.test.mjs: fs write/delete call@180;fs write/delete call@21;fs write/delete call@242;fs write/delete call@244;fs write/delete call@299;fs write/delete call@317;fs write/delete call@529;fs write/delete call@569;fs write/delete call@597;fs write/delete call@603;fs write/delete call@620;fs write/delete call@844;process spawn call@485;process spawn call@835
+mcp-health-probe.mjs: process spawn call@134
+mcs-fault-harness.test.mjs: dynamic import()@103;dynamic import()@146;fs write/delete call@106;fs write/delete call@133;fs write/delete call@172;fs write/delete call@79;process spawn call@31
+mcs-fault-injection.test.mjs: process spawn call@125;process spawn call@258;process spawn call@54
+memory-canonical-store.test.mjs: fs write/delete call@191;fs write/delete call@258;fs write/delete call@79
+memory-cold-store.mjs: process spawn call@42
+memory-proposal-autopilot.mjs: process spawn call@124;process spawn call@203;process spawn call@364;process spawn call@373;process spawn call@381;process spawn call@390;process spawn call@444;process spawn call@466
+memory-proposal-autopilot.test.mjs: process spawn call@154;process spawn call@182
+memory-relocator.mjs: fs write/delete call@159;fs write/delete call@436;fs write/delete call@437;fs write/delete call@469;fs write/delete call@491;fs write/delete call@492;fs write/delete call@496;process spawn call@185
+memory-relocator.test.mjs: fs write/delete call@13;fs write/delete call@370;fs write/delete call@91;process spawn call@80;process spawn call@84;process spawn call@93
+memory-session-write.mjs: process spawn call@33;process spawn call@54;process spawn call@60;process spawn call@66
+memory-usage.mjs: fs write/delete call@34
+memory-usage.test.mjs: fs write/delete call@39;fs write/delete call@40
+mimo.mjs: http(s) request@64;process spawn call@34
+mnemopi-canonical-bridge.mjs: process spawn call@63
+mnemopi-seed.mjs: dynamic import()@137
+mure-fleet-validate.test.mjs: dynamic import()@204;fs write/delete call@1012;fs write/delete call@1014;fs write/delete call@1015;fs write/delete call@169;fs write/delete call@179;fs write/delete call@186;fs write/delete call@192;fs write/delete call@20;fs write/delete call@225;fs write/delete call@234;fs write/delete call@251;fs write/delete call@263;fs write/delete call@277;fs write/delete call@289;fs write/delete call@301;fs write/delete call@313;fs write/delete call@327;fs write/delete call@342;fs write/delete call@355;fs write/delete call@369;fs write/delete call@386;fs write/delete call@398;fs write/delete call@41;fs write/delete call@422;fs write/delete call@441;fs write/delete call@458;fs write/delete call@47;fs write/delete call@48;fs write/delete call@480;fs write/delete call@481;fs write/delete call@490;fs write/delete call@491;fs write/delete call@503;fs write/delete call@515;fs write/delete call@526;fs write/delete call@537;fs write/delete call@548;fs write/delete call@559;fs write/delete call@570;fs write/delete call@585;fs write/delete call@597;fs write/delete call@608;fs write/delete call@61;fs write/delete call@619;fs write/delete call@631;fs write/delete call@634;fs write/delete call@653;fs write/delete call@656;fs write/delete call@685;fs write/delete call@693;fs write/delete call@841;fs write/delete call@853;fs write/delete call@867;fs write/delete call@880;fs write/delete call@893;fs write/delete call@906;fs write/delete call@907;fs write/delete call@940;fs write/delete call@952;fs write/delete call@957;fs write/delete call@972;fs write/delete call@976;fs write/delete call@991;fs write/delete call@995
+mure-omp-sync.mjs: dynamic import()@48
+mure-omp-sync.test.mjs: dynamic import()@1943;process spawn call@1576;process spawn call@89
+nano-compact-gate.test.mjs: fs write/delete call@83
+nano-dispatch-async.test.mjs: dynamic import()@15;dynamic import()@16;dynamic import()@17;dynamic import()@18;dynamic import()@19
+nano-dispatch-gated.mjs: fs write/delete call@153;fs write/delete call@57;fs write/delete call@68;process spawn call@118;process spawn call@62
+nano-dispatch.test.mjs: dynamic import()@10
+nano-doc-assembler.test.mjs: dynamic import()@13;fs write/delete call@15
+nano-external-guard.test.mjs: process spawn call@34;process spawn call@39
+nano-external.mjs: fs write/delete call@56;process spawn call@53
+nano-external.test.mjs: dynamic import()@13;dynamic import()@14;dynamic import()@15;fs write/delete call@17
+nano-lease.mjs: fs write/delete call@144;fs write/delete call@147;fs write/delete call@175;fs write/delete call@52;fs write/delete call@75;fs write/delete call@78;fs write/delete call@93;fs write/delete call@94;fs write/delete call@97
+nano-lease.test.mjs: dynamic import()@136;dynamic import()@137;dynamic import()@15;dynamic import()@171;dynamic import()@172;fs write/delete call@119;fs write/delete call@145;fs write/delete call@154;fs write/delete call@17;fs write/delete call@184;fs write/delete call@198;fs write/delete call@205;fs write/delete call@206;fs write/delete call@22;process spawn call@148;process spawn call@190
+nano-levelb-h124.test.mjs: process spawn call@23
+nano-levelb-h356.test.mjs: dynamic import()@13;dynamic import()@14;dynamic import()@15;dynamic import()@16
+nano-refresh.mjs: process spawn call@22
+nano-refresh.test.mjs: dynamic import()@15;dynamic import()@16;fs write/delete call@62
+nano-rotation-concurrency.test.mjs: dynamic import()@17;fs write/delete call@26;fs write/delete call@49;process spawn call@35;process spawn call@36
+nano-spawn.test.mjs: dynamic import()@14;dynamic import()@15;dynamic import()@16;fs write/delete call@37;fs write/delete call@39
+nano-swarm-e2e.test.mjs: dynamic import()@15;dynamic import()@16;dynamic import()@17;dynamic import()@18;dynamic import()@19;dynamic import()@20
+nano-tick-lease.test.mjs: dynamic import()@16;dynamic import()@17;dynamic import()@18;fs write/delete call@20
+nano-tick.test.mjs: dynamic import()@13;dynamic import()@14;fs write/delete call@16
+nano-tree.test.mjs: dynamic import()@12;dynamic import()@13
+needle-adapter.mjs: process spawn call@115;process spawn call@63
+neuron-loop.mjs: process spawn call@78
+nexus-company.mjs: dynamic import()@340;fs write/delete call@101;fs write/delete call@78;process spawn call@82
+nexus-guard-autowire.mjs: fs write/delete call@268;fs write/delete call@291
+nexus-guard-autowire.test.mjs: fs write/delete call@111
+obsidian-routes.test.mjs: fetch()@122;process spawn call@79
+october-capability-index.mjs: fs write/delete call@875;fs write/delete call@876;fs write/delete call@909
+october-mcp-stdio-bridge.test.mjs: process spawn call@34
+october-pi-tools.test.mjs: fs write/delete call@62;fs write/delete call@67;fs write/delete call@68;process spawn call@73
+ollama-bridge-mcp-check.mjs: process spawn call@39
+ollama-bridge-mcp-check.test.mjs: process spawn call@9
+ollama-context-bench.mjs: process spawn call@12
+ollama-fleet.mjs: fs write/delete call@220;fs write/delete call@67;process spawn call@176
+ollama-kv-config.mjs: fetch()@180;process spawn call@107;process spawn call@152;process spawn call@271
+ollama-kv-launchd.mjs: fs write/delete call@79;fs write/delete call@98;process spawn call@107;process spawn call@121;process spawn call@68
+ollama-lane.mjs: process spawn call@111
+omp-fleet-protocol.test.mjs: fs write/delete call@39
+omp-fleet-smoke.mjs: dynamic import()@78;dynamic import()@79;dynamic import()@80;fs write/delete call@251;fs write/delete call@562;fs write/delete call@65;process spawn call@276
+omp-managed-skills-sync.mjs: fs write/delete call@131
+openprocess-pool.mjs: dynamic import()@155
+pilot-feedback.mjs: process spawn call@61
+plan-review.mjs: fs write/delete call@123;fs write/delete call@124
+plan-review.test.mjs: fs write/delete call@236;fs write/delete call@252;fs write/delete call@96;process spawn call@91
+post-build-reconciliation.mjs: process spawn call@231
+prediction-outcome-resolver.mjs: process spawn call@55
+prism-source-api-check.mjs: fetch()@50
+propagation-scan.mjs: fs write/delete call@679;fs write/delete call@685;fs write/delete call@686;process spawn call@227;process spawn call@604
+prose-claim-extractor.mjs: process spawn call@140;process spawn call@317;process spawn call@323;process spawn call@346;process spawn call@456;process spawn call@476;process spawn call@492
+pulse-classify-stdin.mjs: process spawn call@8
+pulse-cortex-status.mjs: process spawn call@152
+pulse-lane-dispatch.mjs: process spawn call@39;process spawn call@80;process spawn call@96
+pulse-trace-ledger.mjs: dynamic import()@63
+regenerative-nexus-guard.mjs: fs write/delete call@523;process spawn call@363
+repo-integrity-tripwire.mjs: process spawn call@258;process spawn call@39
+rick-banner.mjs: fetch()@147
+rick-repl.mjs: dynamic import()@299;dynamic import()@561;dynamic import()@567;process spawn call@1056;process spawn call@1108
+root-architecture.test.mjs: process spawn call@13;process spawn call@25
+runFleet.mjs: dynamic import()@254;process spawn call@352;process spawn call@388
+runSwarm-lifecycle.test.mjs: fs write/delete call@18
+runSwarm.mjs: dynamic import()@164;dynamic import()@27;fs write/delete call@350;fs write/delete call@62;fs write/delete call@63
+secret-leak-scan.mjs: process spawn call@116;process spawn call@154;process spawn call@184;process spawn call@266
+secret-leak-scan.test.mjs: process spawn call@15;process spawn call@16;process spawn call@17;process spawn call@21;process spawn call@22;process spawn call@25;process spawn call@26;process spawn call@28
+session-work-logger.mjs: process spawn call@17;process spawn call@22
+site-builder-routes.test.mjs: fetch()@121;fs write/delete call@69;process spawn call@73
+skill-recall.mjs: process spawn call@106;process spawn call@70;process spawn call@77;process spawn call@97
+skill-recall.test.mjs: process spawn call@19
+skill-sync.mjs: process spawn call@76;process spawn call@94
+sonnet-enrich-fleet.mjs: fs write/delete call@105;fs write/delete call@106;fs write/delete call@221;fs write/delete call@253;fs write/delete call@277;fs write/delete call@283;process spawn call@87
+spec-archive.mjs: fs write/delete call@158
+spec-pipeline.mjs: process spawn call@240;process spawn call@253
+spreading-activation-gate.mjs: process spawn call@31
+substrate-benchmark.mjs: process spawn call@116
+swarm-convergence.mjs: dynamic import()@121;dynamic import()@122;dynamic import()@123;dynamic import()@124;dynamic import()@125;process spawn call@166
+symbiotic-pulse-launch-visual.test.mjs: dynamic import()@25
+task-queue.mjs: process spawn call@116;process spawn call@139
+token-ledger-drain-lock.test.mjs: fs write/delete call@21
+token-ledger.mjs: process spawn call@270
+token-ledger.test.mjs: fs write/delete call@120;fs write/delete call@185;fs write/delete call@189
+token-report.mjs: dynamic import()@73
+train-fleet-router-from-ledger.mjs: dynamic import()@90
+wait-for-job.test.mjs: dynamic import()@32;process spawn call@311;process spawn call@321;process spawn call@331;process spawn call@340;process spawn call@349;process spawn call@360;process spawn call@371;process spawn call@383;process spawn call@391;process spawn call@401;process spawn call@411;process spawn call@420
+work-dashboard.mjs: dynamic import()@118;dynamic import()@247
+work-ledger.mjs: process spawn call@45;process spawn call@48
+work-ledger.test.mjs: fs write/delete call@100;fs write/delete call@103;fs write/delete call@118;fs write/delete call@91;fs write/delete call@95;fs write/delete call@99
+worker-bridge.mjs: process spawn call@210;process spawn call@377
+worker-narrate.mjs: fs write/delete call@82
+worker-tmux.mjs: process spawn call@149;process spawn call@152;process spawn call@153;process spawn call@168;process spawn call@23;process spawn call@282;process spawn call@32;process spawn call@72;process spawn call@81;process spawn call@89
+xref-drift-scan.mjs: process spawn call@171;process spawn call@182;process spawn call@210
+xref-navigation.test.mjs: process spawn call@16;process spawn call@75
+xref-query.mjs: process spawn call@505
+xref-query.test.mjs: process spawn call@24
+xref-test-scratch.mjs: process spawn call@38
+xs-confirm-containment.mjs: fs write/delete call@79
+yuri-action-mode-study.mjs: fs write/delete call@115
+yuri-agent-index.test.mjs: process spawn call@142;process spawn call@163;process spawn call@167
+yuri-artifact-audit.mjs: fetch()@1339;fetch()@664;fetch()@672;fs write/delete call@1695
+yuri-artifact-audit.test.mjs: fs write/delete call@118;fs write/delete call@149;fs write/delete call@162;fs write/delete call@175;fs write/delete call@187;fs write/delete call@220;fs write/delete call@221;fs write/delete call@263;fs write/delete call@264;fs write/delete call@265;fs write/delete call@287;fs write/delete call@36;fs write/delete call@57;process spawn call@108;process spawn call@138;process spawn call@222;process spawn call@240;process spawn call@250;process spawn call@275;process spawn call@73;process spawn call@85;process spawn call@99
+yuri-autonomy-runner.mjs: process spawn call@445;process spawn call@516
+yuri-autonomy-runner.test.mjs: process spawn call@136;process spawn call@154;process spawn call@247
+yuri-canonical-memory-import.mjs: fs write/delete call@113;fs write/delete call@155;fs write/delete call@365;fs write/delete call@398;fs write/delete call@404;fs write/delete call@443;fs write/delete call@448;process spawn call@353;process spawn call@396;process spawn call@441
+yuri-canonical-memory-import.test.mjs: fs write/delete call@167;fs write/delete call@20;fs write/delete call@201;process spawn call@104;process spawn call@112;process spawn call@120;process spawn call@169;process spawn call@182;process spawn call@83;process spawn call@95
+yuri-closeout.mjs: process spawn call@149;process spawn call@246
+yuri-codex-skill-activation.mjs: process spawn call@514;process spawn call@535
+yuri-codex-skill-activation.test.mjs: process spawn call@429
+yuri-codex-skill-projector.mjs: process spawn call@102
+yuri-codex-skill-projector.test.mjs: process spawn call@37
+yuri-control-plane-schema.mjs: fs write/delete call@330
+yuri-control-server.mjs: fs write/delete call@140;fs write/delete call@141;fs write/delete call@144;fs write/delete call@151
+yuri-council-claim-evidence.mjs: fs write/delete call@189
+yuri-council-claim-evidence.test.mjs: fs write/delete call@16;fs write/delete call@58;process spawn call@38;process spawn call@53
+yuri-doctor.mjs: dynamic import()@110;dynamic import()@147;dynamic import()@247;process spawn call@50;process spawn call@564
+yuri-dream-processor.mjs: fs write/delete call@71;fs write/delete call@73;process spawn call@45
+yuri-freshness.mjs: fs write/delete call@178;fs write/delete call@189;process spawn call@105;process spawn call@44;process spawn call@50;process spawn call@55
+yuri-freshness.test.mjs: fs write/delete call@141
+yuri-git-hooks-path.mjs: process spawn call@18
+yuri-graph-unify.mjs: fs write/delete call@180
+yuri-guarded-executor.mjs: fs write/delete call@1015;fs write/delete call@1214;fs write/delete call@1289;fs write/delete call@1295;fs write/delete call@1298;process spawn call@1269;process spawn call@1702
+yuri-guide-project.mjs: fs write/delete call@89
+yuri-guide-seed.mjs: dynamic import()@35;fs write/delete call@115
+yuri-health.mjs: process spawn call@91
+yuri-hook-registry.mjs: fs write/delete call@864;process spawn call@366
+yuri-hook-registry.test.mjs: process spawn call@212
+yuri-id-bridge.mjs: dynamic import()@255
+yuri-input-genome.test.mjs: process spawn call@79;process spawn call@89
+yuri-keychain.mjs: process spawn call@40
+yuri-knowledge-graph.mjs: fs write/delete call@649
+yuri-learning-capture-smoke.mjs: process spawn call@60
+yuri-lifecycle-controller.mjs: process spawn call@68
+yuri-local-model-benchmark.mjs: fetch()@250;process spawn call@285;process spawn call@353
+yuri-local-model-policy.test.mjs: process spawn call@113;process spawn call@131;process spawn call@78;process spawn call@88
+yuri-match-global-space.mjs: dynamic import()@239;dynamic import()@240
+yuri-memory-map.mjs: process spawn call@358
+yuri-merge-settings.mjs: fs write/delete call@94
+yuri-model-ab-bench.mjs: fetch()@134;fetch()@140;fetch()@154;process spawn call@165
+yuri-navigate.test.mjs: process spawn call@144;process spawn call@146;process spawn call@148
+yuri-nerve.mjs: fs write/delete call@66
+yuri-nerve.test.mjs: fs write/delete call@10;fs write/delete call@42;fs write/delete call@45
+yuri-offload-mcp.test.mjs: process spawn call@13
+yuri-originator.mjs: process spawn call@1071;process spawn call@1099;process spawn call@1120;process spawn call@1139;process spawn call@1298;process spawn call@198;process spawn call@696
+yuri-originator.test.mjs: process spawn call@445
+yuri-persona-check.mjs: process spawn call@22
+yuri-persona-check.test.mjs: process spawn call@6
+yuri-prelaunch-attest.mjs: fs write/delete call@347;fs write/delete call@352;fs write/delete call@359;process spawn call@142
+yuri-prelaunch-attest.test.mjs: fs write/delete call@120;fs write/delete call@270;fs write/delete call@325;fs write/delete call@366;fs write/delete call@386;fs write/delete call@393;fs write/delete call@422;fs write/delete call@447;fs write/delete call@69;fs write/delete call@72;fs write/delete call@94;process spawn call@48;process spawn call@509;process spawn call@516;process spawn call@526
+yuri-protected-paths.test.mjs: fs write/delete call@58;fs write/delete call@63;fs write/delete call@69
+yuri-proving-run-repeatable.mjs: fs write/delete call@136;fs write/delete call@326;process spawn call@229;process spawn call@306
+yuri-recall.mjs: dynamic import()@99
+yuri-repl.mjs: process spawn call@344;process spawn call@350;process spawn call@739
+yuri-research-capture.mjs: fetch()@177;process spawn call@278
+yuri-sandbox-loop.mjs: fs write/delete call@356;fs write/delete call@666;fs write/delete call@838;fs write/delete call@842;process spawn call@292;process spawn call@331;process spawn call@365;process spawn call@704;process spawn call@792;process spawn call@802
+yuri-sandbox-loop.test.mjs: fs write/delete call@117;fs write/delete call@132;fs write/delete call@147;fs write/delete call@149;fs write/delete call@152;fs write/delete call@154;fs write/delete call@159;fs write/delete call@161;fs write/delete call@167;fs write/delete call@228;fs write/delete call@232;fs write/delete call@276;process spawn call@104;process spawn call@133;process spawn call@137;process spawn call@178;process spawn call@211;process spawn call@217;process spawn call@246;process spawn call@251;process spawn call@256;process spawn call@266;process spawn call@278
+yuri-search-index.mjs: dynamic import()@279;process spawn call@144;process spawn call@150;process spawn call@93
+yuri-search.mjs: process spawn call@59
+yuri-search.test.mjs: process spawn call@23;process spawn call@33;process spawn call@48
+yuri-session-launchd.mjs: fs write/delete call@625
+yuri-session-launchd.test.mjs: fs write/delete call@382;fs write/delete call@437;fs write/delete call@518;fs write/delete call@519;fs write/delete call@529;fs write/delete call@538;fs write/delete call@539;fs write/delete call@551;process spawn call@150
+yuri-session-runtime.test.mjs: fetch()@226;fs write/delete call@171;fs write/delete call@258;fs write/delete call@265;fs write/delete call@285;process spawn call@175
+yuri-skill-loader.mjs: process spawn call@252;process spawn call@280
+yuri-skill-loader.test.mjs: process spawn call@106;process spawn call@153;process spawn call@190;process spawn call@200
+yuri-slm-value-probe.mjs: process spawn call@120
+yuri-slm-worker.mjs: fetch()@213;fs write/delete call@190;fs write/delete call@191;fs write/delete call@192;fs write/delete call@199;fs write/delete call@216;fs write/delete call@72;fs write/delete call@74;fs write/delete call@75;fs write/delete call@94;process spawn call@172
+yuri-supercharge-gate.mjs: process spawn call@165
+yuri-supercharge-report.mjs: process spawn call@172
+yuri-total-recall.mjs: process spawn call@50
+yuri-total-recall.test.mjs: fs write/delete call@35;fs write/delete call@47
+yuri-truth-promotion-enforcement.mjs: fs write/delete call@225
+yuri-truth-promotion-enforcement.test.mjs: fs write/delete call@112;fs write/delete call@94;process spawn call@102;process spawn call@95
+yuri-truth-promotion-pipeline.test.mjs: process spawn call@108
+yuri-user-data-collect.test.mjs: fs write/delete call@56;fs write/delete call@72
+yuri-workcell-capture.mjs: process spawn call@152
+yuri-workcell.test.mjs: process spawn call@330;process spawn call@338;process spawn call@346
+yuri-worktree-bootstrap.mjs: fs write/delete call@244;fs write/delete call@249;fs write/delete call@257;process spawn call@1262;process spawn call@69
+yuri-worktree-bootstrap.test.mjs: fs write/delete call@104;fs write/delete call@175;fs write/delete call@178;fs write/delete call@182;fs write/delete call@200;fs write/delete call@205;fs write/delete call@206;fs write/delete call@218;fs write/delete call@219;fs write/delete call@294;fs write/delete call@382;fs write/delete call@386;fs write/delete call@491;fs write/delete call@552;fs write/delete call@57;fs write/delete call@595;fs write/delete call@615;fs write/delete call@616;fs write/delete call@647;fs write/delete call@676;fs write/delete call@700;fs write/delete call@701;fs write/delete call@720;fs write/delete call@733;fs write/delete call@734;fs write/delete call@746;fs write/delete call@747;fs write/delete call@765;fs write/delete call@766;fs write/delete call@780;fs write/delete call@781;fs write/delete call@798;fs write/delete call@799;fs write/delete call@811;fs write/delete call@812;fs write/delete call@824;fs write/delete call@840;fs write/delete call@849;fs write/delete call@858;fs write/delete call@875;fs write/delete call@888;process spawn call@270;process spawn call@53;process spawn call@54;process spawn call@55;process spawn call@58;process spawn call@59;process spawn call@60
+zai-tmux-fleet.mjs: fs write/delete call@130;fs write/delete call@328;fs write/delete call@446;fs write/delete call@528;process spawn call@149;process spawn call@163;process spawn call@280;process spawn call@398

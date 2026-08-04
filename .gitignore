@@ -505,3 +505,7 @@ _SYSTEM/state/*.err
 _SYSTEM/state/*.err.gz
 _SYSTEM/state/energy-outcome-report.txt
 _SYSTEM/state/worker-last-*.txt
+
+# Promoted graph-recon artifacts (owner-approved G1 2026-08-04) — negate the generic graph/ rule above
+!_SYSTEM/graph/
+!_SYSTEM/graph/**

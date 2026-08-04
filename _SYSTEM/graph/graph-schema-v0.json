@@ -1,0 +1,44 @@
+{
+  "schema": "yuri-unified-graph",
+  "version": "0",
+  "status": "staging-draft",
+  "source_artifacts": ["_SYSTEM/yuri-graph.json", "_SYSTEM/yuri-graph-state.json", "circuitry-auto-register.mjs output", ".gitnexus/ index", "graphify-out/ graphs"],
+  "node_kinds": {
+    "file": {}, "script": {}, "service": {}, "process": {}, "port": {}, "database": {},
+    "launchd_agent": {}, "mcp_server": {}, "harness_config": {}, "env_file": {},
+    "secret_bearing_file": {}, "git_blob": {}, "git_commit": {}, "governance_organ": {},
+    "layer": {}, "mechanism": {}, "formula_bank": {}, "test_suite": {},
+    "registry_entry": {}, "skill": {}, "network_endpoint": {}, "finding_record": {}
+  },
+  "edge_kinds": {
+    "imports": {}, "calls": {}, "spawns": {}, "executes": {},
+    "network_conn": {}, "launchd_to_script": {}, "env_to_process": {},
+    "file_read": {}, "file_write": {}, "mcp_registration": {}, "hook_to_command": {},
+    "git_history": {}, "trust_boundary_crossing": {}, "linked_to_finding": {}
+  },
+  "trust_boundaries": ["local", "lan", "browser_reachable", "external"],
+  "node_props": {
+    "exposure": "none|local|lan|browser_reachable|external",
+    "auth_status": "none|weak|strong|unknown",
+    "secret_bearing": "bool",
+    "exec_capable": "bool",
+    "freshness": "fresh|stale|unknown",
+    "scan_state": "pending|scanned|vuln|clean|blocked_owner"
+  },
+  "record_formats": {
+    "node": { "id": "str:kind:path-or-name", "kind": "node_kind", "props": {}, "evidence": ["file:line | command | hash"], "src": "source_artifact" },
+    "edge": { "from": "node_id", "to": "node_id", "kind": "edge_kind", "props": {}, "evidence": ["file:line | command | hash"], "boundary": "trust_boundary|none" }
+  },
+  "storage": {
+    "nodes": "/tmp/yuri-recon/graph/nodes.jsonl",
+    "edges": "/tmp/yuri-recon/graph/edges.jsonl",
+    "findings": "/tmp/yuri-recon/findings.jsonl",
+    "regen": "pending owner-approved plan (tracked promotion)"
+  },
+  "rules": [
+    "append-only JSONL; dedup by node id / edge from-to-kind",
+    "every finding links >=1 graph node via linked_to_finding edge",
+    "no secret VALUES in any field (hashes only)",
+    "deterministic regen + hash-pin tests required before tracked promotion"
+  ]
+}
