@@ -492,7 +492,138 @@ def _slide_top_tilt_deg(P, front_frac=0.55):
     slope = float(np.polyfit(np.array(ys), np.array(zs), 1)[0])
     return float(np.degrees(np.arctan(slope)))
 
-def compute_alignment_light(P, F):
+def _refine_light_seat(P, F, center, x_hat, y_hat, z_hat):
+    """Owner LIGHT datum (2026-08-04, STREAMLIGHT TLR-7 HL-X): level to the RAIL SEAT — the machined floor
+    of the rail channel, the surface that actually contacts the gun's rail. This is the light's analogue of
+    the gun's parting line, and the owner's stated rule ("reference the mount for level; it's always the
+    datum, like a gun's rail").
+
+    The step-2 clamp leveler takes an AREA-WEIGHTED CONSENSUS over every up-facing face within a 20deg cone
+    above the centre. That is a BLEND, not a datum: on the TLR-7 it averages the seat together with the two
+    clamp-jaw tops, the bezel deck and the rear housing deck (which sits 1.3deg off the seat), and it left
+    the rail seat **4.33deg nose-down** while every internal check passed and `aligned_ok` only tripped on an
+    unrelated verifier bug. A consensus over several non-parallel decks cannot recover any one of them.
+
+    Fix: isolate the seat by the MODE of the up-facing normals inside the channel width band, not their mean
+    — a tilted plane keeps ONE normal however tilted it is, whereas a blend of decks has none. Take every
+    up-facing face within ~2deg of that mode (this keeps the seat's parallel sub-planes together: the TLR-7's
+    242mm2 pocket floor and the 42mm2 forward pad, 2.4mm apart and parallel to 0.07deg), plane-fit them
+    area-weighted with a MAD trim, and rotate the frame so that plane's normal is exactly +Z. Yaw is
+    preserved (new_x is built from the existing y_hat), so this moves pitch + roll only.
+
+    Self-zeroing (no-op on an already-level seat, e.g. the synthetic WML whose mount face IS the consensus)
+    and GUARDED (needs a real channel-band population, a clean fit, and a correction under 8deg; otherwise
+    returns the frame untouched). Proven on the real TLR-7 mesh: seat read 4.33deg pitch / 0.09deg roll ->
+    corrected to -0.09deg / 0.04deg, corroborated by an INDEPENDENT datum the refine never sees (the bezel
+    reflector's cylinder axis, 4.57deg -> 0.17deg). Returns (x_hat, y_hat, z_hat, applied_deg)."""
+    D = np.asarray(P, dtype=np.float64) - center
+    q = np.c_[D @ x_hat, D @ y_hat, D @ z_hat]                  # current-frame coordinates
+    if F is None or len(F) == 0:
+        return x_hat, y_hat, z_hat, 0.0
+    a3, b3, c3 = q[F[:, 0]], q[F[:, 1]], q[F[:, 2]]
+    fn = np.cross(b3 - a3, c3 - a3); fa = np.linalg.norm(fn, axis=1); ok = fa > 1e-12
+    if int(ok.sum()) < 200:
+        return x_hat, y_hat, z_hat, 0.0
+    nn = fn[ok] / fa[ok][:, None]; area = 0.5 * fa[ok]; cen = ((a3 + b3 + c3) / 3.0)[ok]
+    W = _robust_extent(q[:, 0]); H = _robust_extent(q[:, 2])
+    if W < 1e-6 or H < 1e-6:
+        return x_hat, y_hat, z_hat, 0.0
+    # Restrict to the RAIL CHANNEL by what physically defines it — floor with a JAW STANDING ABOVE IT ON
+    # BOTH SIDES — not by a width fraction. Necessary, and the whole ballgame: the TLR-7's rear housing deck
+    # is 1.34deg off the seat but only 0.12mm away from its plane, so it is neither cone-separable nor
+    # offset-separable; it is separable only by the fact that it lies BEHIND the jaws. Slices with no jaws
+    # (bezel deck, rear deck) drop out here. A light with no standing jaws leaves nothing -> clean no-op.
+    L = _robust_extent(q[:, 1])
+    dy = max(1.0, 0.02 * L); lip = 0.025 * H
+    ylo, yhi = float(np.percentile(q[:, 1], 1)), float(np.percentile(q[:, 1], 99))
+    yb = np.arange(ylo, yhi + dy, dy)
+    idx = np.clip(((q[:, 1] - ylo) / dy).astype(int), 0, len(yb) - 1)
+    mid = np.abs(q[:, 0]) < 0.22 * W
+    lft = (q[:, 0] < -0.26 * W) & (q[:, 0] > -0.50 * W)
+    rgt = (q[:, 0] > 0.26 * W) & (q[:, 0] < 0.50 * W)
+    per_bin = len(q) * dy / max(L, 1e-6)                        # density-relative counts, not absolutes: a
+    n_mid = max(6, int(0.02 * per_bin)); n_side = max(4, int(0.008 * per_bin))   # coarse mesh must still gate
+    chan = np.zeros(len(yb), bool)
+    for b in range(len(yb)):
+        s_b = idx == b
+        m_b = s_b & mid; l_b = s_b & lft; r_b = s_b & rgt
+        if int(m_b.sum()) < n_mid or int(l_b.sum()) < n_side or int(r_b.sum()) < n_side:
+            continue
+        floor = float(np.percentile(q[m_b, 2], 90))
+        chan[b] = (float(q[l_b, 2].max()) > floor + lip) and (float(q[r_b, 2].max()) > floor + lip)
+    if int(chan.sum()) * dy < 0.15 * L:
+        return x_hat, y_hat, z_hat, 0.0                         # no jawed channel found -> keep the consensus
+    fidx = np.clip(((cen[:, 1] - ylo) / dy).astype(int), 0, len(yb) - 1)
+    band = (nn[:, 2] > 0.85) & (np.abs(cen[:, 0]) < 0.30 * W) & (cen[:, 2] > 0.10 * H) & chan[fidx]
+    if int(band.sum()) < 200:
+        return x_hat, y_hat, z_hat, 0.0
+    # Pick the direction that carries the MOST FACE AREA within a ~2deg cone — a raw histogram peak would
+    # not do: a scan surface's normals scatter, so a small very-flat deck (the TLR-7's rear housing, fit rms
+    # 0.016mm) concentrates into one bin and outbids the 5x-larger but rougher rail seat (rms 0.070mm). That
+    # miss is not academic: the raw-peak build under-corrected by exactly the rear deck's 1.3deg offset.
+    # Smoothing the area histogram with a box window of the cone radius restores "largest plane wins".
+    step, lim, rad = 0.005, 0.45, 7                             # 0.005 bins, +/-7 bins ~ 2deg cone
+    bins = np.arange(-lim, lim + 0.5 * step, step)
+    Hn, ex, ey = np.histogram2d(nn[band, 0], nn[band, 1], bins=[bins, bins], weights=area[band])
+    C = np.zeros((Hn.shape[0] + 1, Hn.shape[1] + 1)); C[1:, 1:] = Hn.cumsum(0).cumsum(1)   # integral image
+    nb = Hn.shape[0]
+    i0 = np.clip(np.arange(nb) - rad, 0, nb); i1 = np.clip(np.arange(nb) + rad + 1, 0, nb)
+    S = (C[np.ix_(i1, i1)] - C[np.ix_(i0, i1)] - C[np.ix_(i1, i0)] + C[np.ix_(i0, i0)])    # box-summed area
+    i, j = np.unravel_index(int(np.argmax(S)), S.shape)
+    nx0, ny0 = 0.5 * (ex[i] + ex[i + 1]), 0.5 * (ey[j] + ey[j + 1])
+    sel = band & (np.abs(nn[:, 0] - nx0) < rad * step) & (np.abs(nn[:, 1] - ny0) < rad * step)
+    if int(sel.sum()) < 150:
+        return x_hat, y_hat, z_hat, 0.0
+    # Collapse the cone to ONE coplanar SHEET before fitting. A cone alone is not enough: the TLR-7's rear
+    # housing deck sits only 1.34deg off the seat, so it lands inside any usable cone — and a single plane
+    # fit through two patches at different y AND different z is driven by the LEVER ARM between them, not by
+    # either patch's own slope (that mix read 3.13deg where the seat is 4.31deg). So iterate: fit, histogram
+    # the area-weighted residuals, keep only the dominant peak (one physical sheet), refit. Parallel
+    # sub-planes of the same datum (the TLR-7's pocket floor and forward pad, 2.4mm apart) separate here too
+    # — harmless, the larger one carries the datum and the fit is then free of any offset contamination.
+    X = cen[sel]; Wt = area[sel]
+    A = np.c_[X[:, 0], X[:, 1], np.ones(len(X))]
+    keep = np.ones(len(X), bool)
+    for it in range(4):
+        co, *_ = np.linalg.lstsq(A[keep] * np.sqrt(Wt[keep])[:, None], X[keep, 2] * np.sqrt(Wt[keep]), rcond=None)
+        r = X[:, 2] - A @ co
+        if it < 3:                                              # sheet isolation: dominant residual peak
+            lo, hi = float(np.percentile(r, 1)), float(np.percentile(r, 99))
+            if hi - lo < 1e-6:
+                break
+            nb2 = max(20, min(400, int((hi - lo) / 0.05)))
+            hr, er = np.histogram(r, bins=nb2, range=(lo, hi), weights=Wt)
+            p = int(np.argmax(hr)); c0 = 0.5 * (er[p] + er[p + 1])
+            keep2 = np.abs(r - c0) < max(0.35, 3.0 * (hi - lo) / nb2)
+            if int(keep2.sum()) < 150:
+                break
+            keep = keep2
+        else:                                                   # final MAD polish on the isolated sheet
+            med = float(np.median(r[keep])); mad = float(np.median(np.abs(r[keep] - med))) or 1e-6
+            k2 = keep & (np.abs(r - med) < 3.0 * 1.4826 * mad)
+            if int(k2.sum()) >= 150:
+                keep = k2
+    k = keep
+    if int(k.sum()) < 150 or float(Wt[k].sum()) < 0.10 * float(area[band].sum()):
+        return x_hat, y_hat, z_hat, 0.0                         # guard: no dominant seat sheet in the channel
+    co, *_ = np.linalg.lstsq(A[k] * np.sqrt(Wt[k])[:, None], X[k, 2] * np.sqrt(Wt[k]), rcond=None)
+    rms = float(np.sqrt(np.mean((X[k, 2] - A[k] @ co) ** 2)))
+    if rms > 0.02 * H:
+        return x_hat, y_hat, z_hat, 0.0                         # guard: not a real machined flat
+    n_loc = np.array([-co[0], -co[1], 1.0]); n_loc /= (np.linalg.norm(n_loc) or 1.0)
+    new_z = n_loc[0] * x_hat + n_loc[1] * y_hat + n_loc[2] * z_hat
+    new_z /= (np.linalg.norm(new_z) or 1.0)
+    ang = math.degrees(math.acos(max(-1.0, min(1.0, float(new_z @ z_hat)))))
+    if ang > 8.0:
+        return x_hat, y_hat, z_hat, 0.0                         # guard: wild correction, keep the consensus
+    new_x = np.cross(y_hat, new_z); nx_n = np.linalg.norm(new_x)
+    if nx_n < 1e-9:
+        return x_hat, y_hat, z_hat, 0.0
+    new_x /= nx_n
+    new_y = np.cross(new_z, new_x); new_y /= (np.linalg.norm(new_y) or 1.0)
+    return new_x, new_y, new_z, ang
+
+def compute_alignment_light(P, F, refine_seat=True):
     """LIGHT-canonical rigid transform (center, R) for a weapon-light STL: long axis -> Y, the RAIL
     CLAMP face -> +Z (up) and level, the BEZEL -> -Y (left); object mass-centered. Owner spec 2026-07-03
     (OLIGHT PL2 Valkyrie): "the rail clip is the reference (up + level); the bezel points left".
@@ -567,6 +698,13 @@ def compute_alignment_light(P, F):
         clamp_level_deg += dth
         if dth < 0.1: break
 
+    # ---- SEAT REFINE: re-level PITCH+ROLL to the RAIL SEAT itself (the machined channel floor). The
+    # consensus above blends the seat with the jaw tops / bezel deck / rear deck; on the TLR-7 that left the
+    # real seat 4.33deg nose-down. Self-zeroing + guarded. Owner datum: the mount is the light's rail.
+    seat_refine_deg = 0.0
+    if refine_seat:
+        x_hat, y_hat, z_hat, seat_refine_deg = _refine_light_seat(P, F, center, x_hat, y_hat, z_hat)
+
     # ---- BEZEL -> -Y: the REFLECTOR/lens end (owner cue #2). The mount POSITION is unreliable (clamp
     # vs single-screw; centered vs offset), so key off the light-emitting end itself: a concave reflector
     # BOWL (centre recessed behind the rim) with a forward-facing lens cap. Score each end by
@@ -597,6 +735,7 @@ def compute_alignment_light(P, F):
     diag = {"mode": "light", "center_mode": mode, "closed_solid": bool(closed),
             "clamp_angle_deg": round(float(best_th), 1), "clamp_flat_area": round(best_flatarea, 0),
             "clamp_complexity": round(best_cx, 3), "clamp_leveled_deg": round(float(clamp_level_deg), 2),
+            "seat_refine_deg": round(float(seat_refine_deg), 3),
             "bezel_score_front": round(sf, 0), "bezel_score_rear": round(sr, 0),
             "det_R": round(float(np.linalg.det(R)), 6)}
     return center, R, diag
@@ -660,11 +799,13 @@ def _dup(src, out_name):
 
 def align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, pitch_offset_deg=0.0,
                  roll_offset_deg=0.0, yaw_offset_deg=0.0, mode="gun", refine_parting=True, refine_sights=True,
-                 refine_roll=True):
+                 refine_roll=True, refine_seat=True):
     """Align an already-imported gun/light mesh to world XYZ, mass-centered. THE skill entry point.
 
     mode="gun"  (default) -> muzzle -Y, grip -Z, slide/rail level (gun anatomy heuristics).
     mode="light"          -> rail clamp +Z & level, bezel -Y (weapon-light heuristics; near-symmetric body).
+                             `refine_seat` re-levels pitch+roll to the RAIL SEAT itself (owner light datum,
+                             2026-08-04 TLR-7 HL-X) — self-zeroing + guarded, see _refine_light_seat.
     in_place=True  -> transform the object's own mesh (lossless rigid transform), matrix_world=identity.
     in_place=False -> leave the source untouched, write an aligned copy `<name>_ALIGNED`.
     Gun-mode datums (owner directive 2026-07-10): PITCH auto-levels to the SLIDE / parting line
@@ -678,7 +819,7 @@ def align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, 
     src = _resolve(obj_name)
     P, F = _world_arrays(src)
     if mode == "light":
-        center, R, diag = compute_alignment_light(P, F)
+        center, R, diag = compute_alignment_light(P, F, refine_seat=refine_seat)
     else:
         center, R, diag = compute_alignment(P, F, level_slide=level_slide, pitch_offset_deg=pitch_offset_deg,
                                              roll_offset_deg=roll_offset_deg, yaw_offset_deg=yaw_offset_deg,
@@ -698,9 +839,15 @@ def align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, 
     target["cgs_align_R"] = [float(v) for v in R.ravel()]  # row-major x_hat,y_hat,z_hat
 
     if mode == "light":                                    # light-specific evidence (gun verifier N/A)
-        cen2 = float(np.linalg.norm(P_new.mean(0)))
+        # Re-measure the centre the SAME WAY the aligner set it (volume centroid on a closed solid). The
+        # old check used the VERTEX MEAN, which a scan's uneven vertex density puts millimetres off the
+        # volume centroid: the TLR-7 HL-X read 2.07mm and reported `aligned_ok: false` on a mesh whose
+        # volume centroid was exactly (0,0,0) — a verifier measuring a different quantity than the aligner.
+        cen_v, _, cmode, _ = _mass_center_and_cov(P_new, F)
+        cen2 = float(np.linalg.norm(cen_v))
         dims = P_new.max(0) - P_new.min(0)
-        ver = {"center_residual_mm": round(cen2, 4),
+        ver = {"center_residual_mm": round(cen2, 4), "center_check_mode": cmode,
+               "vertex_mean_offset_mm": round(float(np.linalg.norm(P_new.mean(0))), 3),
                "dim_x": round(float(dims[0]), 2), "dim_y": round(float(dims[1]), 2),
                "dim_z": round(float(dims[2]), 2), "bezel_front_y": round(float(P_new[:, 1].min()), 2)}
         ok = cen2 < 0.05 and abs(diag["det_R"] - 1.0) < 1e-4
