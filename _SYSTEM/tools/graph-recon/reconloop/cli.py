@@ -17,7 +17,7 @@ def cmd_run(args) -> int:
     from pathlib import Path as _P
     import json as _j
     scanners = load_scanners(_P(args.scanners_dir), template_root=_P(__file__).resolve().parent.parent)
-    ctx = ScanContext(args.root)
+    ctx = ScanContext(args.root, revision=args.revision)
     layers = _P(args.layers); layers.mkdir(parents=True, exist_ok=True)
     total = 0
     for name, cls in sorted(scanners.items()):
@@ -69,7 +69,7 @@ def main() -> int:
     p = argparse.ArgumentParser(prog="graph-recon")
     sub = p.add_subparsers(dest="cmd", required=True)
     sp = sub.add_parser("scan"); sp.add_argument("--root", default="."); sp.add_argument("--scanners-dir", default="scanners")
-    sp = sub.add_parser("run"); sp.add_argument("--root", default="."); sp.add_argument("--scanners-dir", default="scanners"); sp.add_argument("--layers", required=True); sp.add_argument("--graph", required=True); sp.add_argument("--pin", required=True)
+    sp = sub.add_parser("run"); sp.add_argument("--root", default="."); sp.add_argument("--scanners-dir", default="scanners"); sp.add_argument("--layers", required=True); sp.add_argument("--graph", required=True); sp.add_argument("--pin", required=True); sp.add_argument("--revision", default="origin/main")
     sp = sub.add_parser("merge"); sp.add_argument("--layers", required=True); sp.add_argument("--graph", required=True); sp.add_argument("--pin", required=True)
     sp = sub.add_parser("verify"); sp.add_argument("--graph", required=True); sp.add_argument("--pin", required=True)
     sp = sub.add_parser("ledger"); sp.add_argument("--findings", required=True)

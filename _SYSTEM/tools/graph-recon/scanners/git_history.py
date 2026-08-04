@@ -9,9 +9,9 @@ class GitHistoryScanner(BaseScanner):
     def run(self, ctx) -> ScanResult:
         r = ScanResult()
         try:
-            n = subprocess.run(["git", "rev-list", "--all", "--count"], cwd=ctx.root, capture_output=True, text=True, timeout=60).stdout.strip()
-            r.nodes.append(Node(id="git:history", kind="git_commit", props={"commits": int(n or 0), "scan_state": "scanned"},
-                                evidence=["git rev-list --all --count"], src="git_history"))
+            n = subprocess.run(["git", "rev-list", ctx.revision, "--count"], cwd=ctx.root, capture_output=True, text=True, timeout=60).stdout.strip()
+            r.nodes.append(Node(id="git:history", kind="git_commit", props={"commits": int(n or 0), "revision": ctx.revision, "scan_state": "scanned"},
+                                evidence=[f"git rev-list {ctx.revision} --count"], src="git_history"))
         except Exception as e:
             r.notes = f"git failed: {e}"
         return r
