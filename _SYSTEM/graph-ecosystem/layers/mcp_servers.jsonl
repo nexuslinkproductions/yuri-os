@@ -1,0 +1,14 @@
+{"evidence": [".mcp.json"], "id": "mcp_server:voice", "kind": "mcp_server", "props": {"disabled": false, "scan_state": "scanned"}, "src": "mcp_servers"}
+{"evidence": [".mcp.json"], "id": "mcp_server:october", "kind": "mcp_server", "props": {"disabled": false, "scan_state": "scanned"}, "src": "mcp_servers"}
+{"evidence": [".mcp.json"], "id": "mcp_server:october-bus", "kind": "mcp_server", "props": {"disabled": false, "scan_state": "scanned"}, "src": "mcp_servers"}
+{"evidence": ["/Users/marcelspatz/.cursor/mcp.json"], "id": "mcp_server:obsidian-mcp-server", "kind": "mcp_server", "props": {"disabled": false, "scan_state": "scanned"}, "src": "mcp_servers"}
+{"evidence": ["/Users/marcelspatz/.cursor/mcp.json"], "id": "mcp_server:gitnexus", "kind": "mcp_server", "props": {"disabled": false, "scan_state": "scanned"}, "src": "mcp_servers"}
+{"evidence": ["/Users/marcelspatz/.cursor/mcp.json"], "id": "mcp_server:plan", "kind": "mcp_server", "props": {"disabled": false, "scan_state": "scanned"}, "src": "mcp_servers"}
+{"evidence": ["/Users/marcelspatz/.cursor/mcp.json"], "id": "mcp_server:whatsapp", "kind": "mcp_server", "props": {"disabled": false, "scan_state": "scanned"}, "src": "mcp_servers"}
+{"boundary": "local", "evidence": [".mcp.json"], "from": "harness_config:.mcp.json", "kind": "mcp_registration", "props": {}, "to": "mcp_server:voice"}
+{"boundary": "local", "evidence": [".mcp.json"], "from": "harness_config:.mcp.json", "kind": "mcp_registration", "props": {}, "to": "mcp_server:october"}
+{"boundary": "local", "evidence": [".mcp.json"], "from": "harness_config:.mcp.json", "kind": "mcp_registration", "props": {}, "to": "mcp_server:october-bus"}
+{"boundary": "local", "evidence": ["/Users/marcelspatz/.cursor/mcp.json"], "from": "harness_config:/Users/marcelspatz/.cursor/mcp.json", "kind": "mcp_registration", "props": {}, "to": "mcp_server:obsidian-mcp-server"}
+{"boundary": "local", "evidence": ["/Users/marcelspatz/.cursor/mcp.json"], "from": "harness_config:/Users/marcelspatz/.cursor/mcp.json", "kind": "mcp_registration", "props": {}, "to": "mcp_server:gitnexus"}
+{"boundary": "local", "evidence": ["/Users/marcelspatz/.cursor/mcp.json"], "from": "harness_config:/Users/marcelspatz/.cursor/mcp.json", "kind": "mcp_registration", "props": {}, "to": "mcp_server:plan"}
+{"boundary": "local", "evidence": ["/Users/marcelspatz/.cursor/mcp.json"], "from": "harness_config:/Users/marcelspatz/.cursor/mcp.json", "kind": "mcp_registration", "props": {}, "to": "mcp_server:whatsapp"}

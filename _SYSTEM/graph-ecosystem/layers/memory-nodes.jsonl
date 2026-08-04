@@ -1,3 +1,0 @@
-{"id":"database:memory.db","kind":"database","props":{"schema-level-only":true,"tables":17,"sample":["design_studio_*","site_builder_*","sqlite_sequence"],"scan_state":"scanned"},"evidence":["sqlite_master schema query (no content)"],"src":"E4"}
-{"id":"layer:memory-track-A","kind":"layer","props":{"path":"_SYSTEM/memory","files":14,"scan_state":"scanned"},"evidence":["E4"],"src":"E4"}
-{"id":"layer:memory-track-B","kind":"layer","props":{"path":".claude/memory","files":287,"scan_state":"scanned"},"evidence":["E4"],"src":"E4"}

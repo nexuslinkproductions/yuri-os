@@ -1,0 +1,3 @@
+{"evidence": ["sqlite_master (no content)"], "id": "database:memory.db", "kind": "database", "props": {"sample": ["site_builder_sessions", "site_builder_annotations", "sqlite_sequence", "site_builder_edit_intents", "site_builder_patch_packets"], "scan_state": "scanned", "schema_level_only": true, "tables": 13}, "src": "memory_schema"}
+{"evidence": ["E4"], "id": "layer:memory-track-A", "kind": "layer", "props": {"files": 14, "path": "_SYSTEM/memory", "scan_state": "scanned"}, "src": "memory_schema"}
+{"evidence": ["E4"], "id": "layer:memory-track-B", "kind": "layer", "props": {"files": 287, "path": ".claude/memory", "scan_state": "scanned"}, "src": "memory_schema"}

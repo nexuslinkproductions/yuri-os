@@ -1,9 +1,0 @@
-{"id":"formula_bank:labs/math","kind":"formula_bank","props":{"path":"_SYSTEM/labs/math","scan_state":"pending"},"evidence":["E6"],"src":"E6"}
-{"id":"formula_bank:Scripts/math","kind":"formula_bank","props":{"path":"_SYSTEM/Scripts/math","files":111,"scan_state":"pending"},"evidence":["E6"],"src":"E6"}
-{"id":"mcp_server:gitnexus","kind":"mcp_server","props":{"scan_state":"pending"},"evidence":["E7 mcp configs"],"src":"E7"}
-{"id":"mcp_server:obsidian-mcp-server","kind":"mcp_server","props":{"scan_state":"pending"},"evidence":["E7 mcp configs"],"src":"E7"}
-{"id":"mcp_server:october","kind":"mcp_server","props":{"scan_state":"pending"},"evidence":["E7 mcp configs"],"src":"E7"}
-{"id":"mcp_server:october-bus","kind":"mcp_server","props":{"scan_state":"pending"},"evidence":["E7 mcp configs"],"src":"E7"}
-{"id":"mcp_server:plan","kind":"mcp_server","props":{"scan_state":"pending"},"evidence":["E7 mcp configs"],"src":"E7"}
-{"id":"mcp_server:voice","kind":"mcp_server","props":{"scan_state":"pending"},"evidence":["E7 mcp configs"],"src":"E7"}
-{"id":"mcp_server:whatsapp","kind":"mcp_server","props":{"scan_state":"pending"},"evidence":["E7 mcp configs"],"src":"E7"}

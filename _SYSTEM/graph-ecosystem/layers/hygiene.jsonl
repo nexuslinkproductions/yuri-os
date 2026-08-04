@@ -1,0 +1,4 @@
+{"evidence": ["ls ~"], "id": "hygiene:dotdir:~", "kind": "file", "props": {"note": "literal dir (shell artifact)", "scan_state": "scanned"}, "src": "hygiene"}
+{"evidence": ["ls bash:cd ~"], "id": "hygiene:dotdir:bash:cd ~", "kind": "file", "props": {"note": "literal dir (shell artifact)", "scan_state": "scanned"}, "src": "hygiene"}
+{"evidence": ["lsof -U"], "id": "hygiene:unix-sockets", "kind": "layer", "props": {"count": 1, "scan_state": "scanned"}, "src": "hygiene"}
+{"evidence": [""], "id": "hygiene:symlinks", "kind": "layer", "props": {"count": 0, "scan_state": "scanned"}, "src": "hygiene"}

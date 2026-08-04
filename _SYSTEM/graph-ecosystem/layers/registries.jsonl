@@ -1,0 +1,6 @@
+{"evidence": ["_SYSTEM/capabilities.json"], "id": "registry:_SYSTEM/capabilities.json", "kind": "registry_entry", "props": {"entries": 5, "scan_state": "pending"}, "src": "registries"}
+{"evidence": ["_SYSTEM/skill-hash-registry.json"], "id": "registry:_SYSTEM/skill-hash-registry.json", "kind": "registry_entry", "props": {"entries": 513, "scan_state": "pending"}, "src": "registries"}
+{"evidence": ["_SYSTEM/config/provider-route-registry.json"], "id": "registry:_SYSTEM/config/provider-route-registry.json", "kind": "registry_entry", "props": {"entries": 4, "scan_state": "pending"}, "src": "registries"}
+{"evidence": ["_SYSTEM/config/yuri-hook-registry.json"], "id": "registry:_SYSTEM/config/yuri-hook-registry.json", "kind": "registry_entry", "props": {"entries": 9, "scan_state": "pending"}, "src": "registries"}
+{"evidence": [".agents/agent-index.json"], "id": "registry:.agents/agent-index.json", "kind": "registry_entry", "props": {"entries": 6, "scan_state": "pending"}, "src": "registries"}
+{"evidence": ["_SYSTEM/organ-guides.json"], "id": "registry:_SYSTEM/organ-guides.json", "kind": "registry_entry", "props": {"entries": 2, "scan_state": "pending"}, "src": "registries"}
