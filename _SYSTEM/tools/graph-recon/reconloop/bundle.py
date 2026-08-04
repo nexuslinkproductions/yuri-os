@@ -29,15 +29,32 @@ def build_manifest(*, template_root: Path, ctx, args, scanners: dict,
                    input_pin: str, input_label: str, layer_files: dict[str, str],
                    stability: dict[str, str], pinned_layers: list[str]) -> dict:
     """Assemble the analysis-bundle manifest dict (deterministic fields)."""
+    import subprocess
     scanner_hashes = {}
     for name in sorted(scanners):
         if name == "base":
             continue
         scanner_hashes[name] = sha256_file(Path(args.scanners_dir) / f"{name}.py")
+    # M1.5 item 8: root context — root path, root git HEAD, revision, input pin.
+    # Root-dependent scanners read the working tree, so root HEAD matters for
+    # evidence provenance (cross-env note: v2 may materialize a revision tree).
+    root_head = ""
+    try:
+        p = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ctx.root,
+                           capture_output=True, text=True, timeout=30)
+        if p.returncode == 0:
+            root_head = p.stdout.strip()
+    except Exception:
+        pass
     return {
         "schema": "analysis-manifest",
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": __import__("datetime").datetime.now().isoformat(timespec="seconds"),
+        "root": {
+            "path": str(ctx.root),
+            "git_head": root_head,
+            "revision": getattr(args, "revision", "origin/main"),
+        },
         "input_graph": {
             "pin16": input_pin[:16],
             "sha256": input_pin,
@@ -81,17 +98,23 @@ def validate_manifest(manifest: dict, schema_path: Path) -> list[str]:
     except Exception as e:
         return [f"schema unreadable: {e}"]
     violations: list[str] = []
-    for key in ("schema", "schema_version", "generated_at", "input_graph",
+    for key in ("schema", "schema_version", "generated_at", "root", "input_graph",
                 "config", "scanners", "layers"):
         if key not in manifest:
             violations.append(f"missing key: {key}")
     if manifest.get("schema") != schema.get("title", "analysis-manifest"):
         violations.append("schema title mismatch")
+    if manifest.get("schema_version") != schema.get("schema_version"):
+        violations.append("schema_version mismatch")
     if not isinstance(manifest.get("input_graph", {}).get("pin16"), str):
         violations.append("input_graph.pin16 must be str")
-    for sec in ("config", "scanners", "layers"):
+    for sec in ("config", "scanners", "layers", "root"):
         if not isinstance(manifest.get(sec), dict):
             violations.append(f"{sec} must be object")
+    root = manifest.get("root", {})
+    for key in ("path", "git_head", "revision"):
+        if not isinstance(root.get(key), str):
+            violations.append(f"root.{key} must be str")
     stab = manifest.get("layers", {}).get("stability", {})
     for name, s in stab.items():
         if s not in ("stable", "ephemeral"):
