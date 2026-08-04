@@ -1,0 +1,3 @@
+{"id":"git:history","kind":"git_commit","props":{"commits":1866,"scan_state":"scanned"},"evidence":["git rev-list --all --count"],"src":"E9"}
+{"id":"git:blob-inventory","kind":"git_blob","props":{"large_blobs_gt5MB":24,"total_known_mb":3400,"scan_state":"scanned"},"evidence":["H2.out"],"src":"E9"}
+{"id":"writer:pool","kind":"file","props":{"writers":328,"scan_state":"scanned"},"evidence":["E8: 317 scripts + 11 backend files with writeFileSync/appendFileSync/createWriteStream"],"src":"E8"}

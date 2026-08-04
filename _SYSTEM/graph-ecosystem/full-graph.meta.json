@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-08-04T08:08:59.771Z",
+  "layers": {
+    "dynamic-writers-nodes.jsonl": 216,
+    "edges.jsonl": 68,
+    "file-nodes.jsonl": 6127,
+    "formula-services-nodes.jsonl": 9,
+    "history-writers-nodes.jsonl": 3,
+    "memory-nodes.jsonl": 3,
+    "nodes.jsonl": 47,
+    "organ-nodes.jsonl": 22,
+    "skills-registry-nodes.jsonl": 33,
+    "test-wiring-edges.jsonl": 226,
+    "writer-edges.jsonl": 1
+  },
+  "total": 6755,
+  "sha256": "5d14aa4afb6211c6cb04e629345c9c9f19fba632ac7e6f5609c23d243b799377"
+}
