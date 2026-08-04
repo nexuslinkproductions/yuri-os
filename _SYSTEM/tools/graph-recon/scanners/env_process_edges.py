@@ -11,14 +11,16 @@ the consumer's directory; emit env_to_process edge env_file:X -> file:consumer
 only when X is in the tracked env-file inventory (metadata-only: env file
 VALUES are never read or emitted — ids and reference strings only).
 
-Determinism: git grep at the pinned revision (branch-independent, like
-file_inventory); sorted emission; no live state.
+Determinism: git grep + git ls-tree at the pinned revision (branch- and
+working-tree-independent, like file_inventory); sorted emission; no live
+state. (M2.2: env inventory was working-tree rglob — now revision-pinned.)
 """
 from __future__ import annotations
 import os
 import re
 import subprocess
 from .base import BaseScanner, ScanResult
+from .env_files import tracked_env_files
 from reconloop.model import Node, Edge
 
 SCRIPT_EXTS = (".sh", ".mjs", ".js", ".cjs", ".ts", ".py", ".json")
@@ -65,15 +67,12 @@ class EnvProcessEdgesScanner(BaseScanner):
         return r
 
     def _tracked_env_files(self, ctx) -> set:
-        """Env inventory mirroring env_files scanner (working tree rglob,
-        metadata-only, protected paths allowed as ids) so emitted edges connect
-        to the same env_file node ids the graph carries."""
-        out = set()
-        for p in ctx.root.rglob("*.env*"):
-            if "node_modules" in str(p) or ".venv" in str(p):
-                continue
-            out.add(str(p.relative_to(ctx.root)))
-        return out
+        """Env inventory: SAME revision-pinned inventory as the env_files
+        scanner (git ls-tree -r --name-only <rev>, *.env* glob semantics,
+        node_modules/.venv excluded) so emitted edges connect to the same
+        env_file node ids the graph carries. M2.2: was working-tree rglob;
+        now working-tree-independent like file_inventory."""
+        return set(tracked_env_files(ctx))
 
     def _git_grep_env_refs(self, ctx) -> dict[str, list]:
         out: dict[str, list] = {}
