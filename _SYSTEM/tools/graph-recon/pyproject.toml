@@ -1,0 +1,7 @@
+[project]
+name = "graph-recon"
+version = "1.0.0"
+description = "Reusable graph-engineered recon loop template (stdlib-only Python 3.11)"
+requires-python = ">=3.11"
+[project.scripts]
+graph-recon = "reconloop.cli:main"
