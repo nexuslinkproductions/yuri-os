@@ -1,5 +1,5 @@
 {
-  "commit": "3a2c59c1d",
+  "commit": "TBD-POST-COMMIT",
   "engine": {
     "__init__.py": "0980c8543c6395b1c72d90e370970346f7e537a4cc011f4368e4a0be9381e4a8",
     "bundle.py": "a4a55c836bdbc171397eb8ed60776b499cfeb39f9fcd20a7b4345e39c21ae94a",
@@ -49,9 +49,11 @@
     "protected_paths.py": "578f15c1bafae73d31a31b25124c721ecfa3a5c09f3216ed818933ae2318d77e",
     "protected_writer.py": "3227d7ae799d345ce028117fc2b751750986080040e00f07eacceb9c47d60bbf",
     "registries.py": "a93b214630dcd19008376d49f066cd1a5f0b421600ffbd6cf1251ab0462deaae",
-    "route_binding.py": "c213cadace4d0f5c013b3ad324923c16c7676cff38d7e52c264b8737a779cf0c",
+    "route_binding.py": "455fea3ec2da9270cf282041f5d50dbad5cfbd7c0a5d6de0ff0fcdc43139d935",
     "secrets_control.py": "08dd499d2f49018138e0d9ec9cc527aae0a9cd562b455fa41acf4ebb154fbe67",
+    "security_path.py": "461b00281c4e2eeefba43991adb1ce3ac1ec9a11d7c704df9519c7c16bc5350c",
     "test_wiring.py": "1168fb4b9c05d7e71ba2ac93064b545e95b4c6374603ac6290dbf6fdac70dfb4",
+    "writer_to_protected.py": "0f913f8707d6fdbe9834b373daaf70f380cebc3c8e3672154c14953b1d6d7d4b",
     "writers.py": "2f25603685492817536cf94cd5891aabf0fc1c5ff0de8ccdc25c97812b07cc53"
   },
   "schema": "hashfreeze",

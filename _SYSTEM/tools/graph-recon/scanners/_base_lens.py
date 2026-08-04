@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from .base import BaseScanner, ScanResult  # noqa: F401
 from reconloop.model import Node, Finding
 from reconloop.graphio import load_graph
+from reconloop.ledger import fingerprint
 
 
 @dataclass
@@ -45,12 +46,14 @@ class BaseLens(BaseScanner):
         canon = json.dumps({"lens": self.name, "node": sorted(node_ids),
                             "desc": desc[:200]}, sort_keys=True)
         seq = hashlib.sha256(canon.encode()).hexdigest()[:8]
-        return Finding(
+        f = Finding(
             id=f"L-{self.name}-{seq}",
             sev=sev, dim="lens",
             desc=f"[{self.name}] {desc} (nodes: {', '.join(sorted(node_ids)[:5])})",
             evidence=sorted(evidence), status="open", verified=False,
         )
+        f.fingerprint = fingerprint(f)
+        return f
 
     def finish(self, r: LensResult, *, src: str, cards: list, extra_props: dict | None = None) -> LensResult:
         """Attach the lens summary node + sort findings."""

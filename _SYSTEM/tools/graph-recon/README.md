@@ -68,6 +68,32 @@
   templates exempt; backend/.env + _SYSTEM/yuri-os/.env have no tracked
   consumer), launchd_existence 1 → 0.
 
+## M2.2 + Lens Family V1 (Orion/Marcel approved 2026-08-04)
+- M2.2 (SUB-A patch): `env_files.py` + `env_process_edges.py` rev-pinned via
+  `git ls-tree` at `ctx.revision` (branch-independent deterministic inventory;
+  untracked env files excluded from inventory); hashfreeze re-pinned;
+  `tests/test_env_revpin.py`.
+- Lens Family V1 (2 lenses + 1 v0 fix):
+  - `security_path`: untrusted-input → exec → boundary-crossing path
+    witnesses; shortest-witness BFS over FLOW_EDGE_KINDS, branch stops at
+    first boundary edge; exec waypoint strictly inside path (root excluded);
+    severity by terminal boundary class (network/internet critical, lan high,
+    local medium, other high); path-aware card id canon (ordered path,
+    collision-free).
+  - `writer_to_protected`: dynamic writers (dynamic_targets>0) with protected
+    reach card via 4 channels (flow BFS, env_consumption, literal_write,
+    location); high sev for proven literal write / writer location, medium for
+    reach-only; witness edge now included in card evidence.
+  - v0 fix: `route_binding` exempts owner-excluded identities (Marcel round-1
+    label: 2 cards rejected as noise).
+  - v0 base fix: violation cards now carry ledger fingerprint at creation.
+  - Fixture fix: writer records no longer shadowed by duplicate
+    file-inventory records.
+  - Expected frozen-snapshot (f5597cc3) outcome: both v1 lenses 0 cards (no
+    modeled untrusted→exec→boundary paths; writers have empty protected
+    reach) — proven live by negative controls + 3 metamorphic mutations each
+    + reorder/swap/schema tests.
+
 ## Merge dedup (M1.6, F-040)
 - `cmd_merge` (and `cmd_run`'s inline merge) dedup node records by id with a
   keep-last conflict policy (later layer wins), and emit a duplicate report
@@ -117,3 +143,4 @@ test_wiring, writers, git_history, secrets_control (wraps YURI control), deps_au
 network_probe (config-gated), env_files, protected_paths, hygiene.
 +
 Analytics (M1): connected_components, articulation, cross_layer_links, exec_centrality.
+Lenses V1: security_path, writer_to_protected.

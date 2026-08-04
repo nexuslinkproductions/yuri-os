@@ -15,6 +15,9 @@ from reconloop.graphio import load_graph
 
 ROUTE_REG = "_SYSTEM/config/provider-route-registry.json"
 CANARY_OK = {"canary-proven", "canary-passing", "canary-pass"}
+# Marcel round-1 label (2026-08-04): owner-excluded is a deliberate terminal
+# policy state — exempt from canary cards (was 2 noisy cards per run).
+TERMINAL_EXEMPT = {"owner-excluded", "owner-blocked"}
 
 
 class RouteBindingLens(BaseLens):
@@ -53,7 +56,7 @@ class RouteBindingLens(BaseLens):
                 cards.append(self.card(r, node_ids=[node_id], evidence=evidence,
                                        sev="medium",
                                        desc=f"wildcard/missing provider for {mid} (providers={sorted(providers)})"))
-            if not canary_ok:
+            if not canary_ok and not (statuses & TERMINAL_EXEMPT):
                 cards.append(self.card(r, node_ids=[node_id], evidence=evidence,
                                        sev="low",
                                        desc=f"no canary-passing route for {mid} (statuses={sorted(statuses)})"))
