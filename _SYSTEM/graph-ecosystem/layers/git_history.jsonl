@@ -1,1 +1,1 @@
-{"evidence": ["git rev-list --all --count"], "id": "git:history", "kind": "git_commit", "props": {"commits": 1871, "scan_state": "scanned"}, "src": "git_history"}
+{"evidence": ["git rev-list origin/main --count"], "id": "git:history", "kind": "git_commit", "props": {"commits": 1568, "revision": "origin/main", "scan_state": "scanned"}, "src": "git_history"}
