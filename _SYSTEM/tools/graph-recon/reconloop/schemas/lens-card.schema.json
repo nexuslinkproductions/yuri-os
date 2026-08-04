@@ -1,0 +1,16 @@
+{
+  "title": "lens-card",
+  "schema_version": 1,
+  "description": "M2 grammar-lens violation card shape (lens-spec.md B/D). Cards are findings with verified:false.",
+  "required": ["id", "sev", "dim", "desc", "evidence", "status", "verified", "fingerprint"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^L-[a-z_]+-[0-9a-f]{8}$" },
+    "sev": { "type": "string", "enum": ["critical", "high", "medium", "low", "info"] },
+    "dim": { "type": "string", "const": "lens" },
+    "desc": { "type": "string" },
+    "evidence": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "status": { "type": "string", "const": "open" },
+    "verified": { "type": "boolean", "const": false },
+    "fingerprint": { "type": "string" }
+  }
+}

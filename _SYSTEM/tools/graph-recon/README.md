@@ -36,6 +36,25 @@
   they raise, cmd_run writes an error layer and exits 1. Base (filesystem)
   scanners keep fail-open semantics.
 
+## M2 — grammar lenses (lens-spec.md, Marcel-approved 2026-08-04)
+- Six versioned query lenses in `scanners/` (dim=lens, requires_graph, inherit
+  `_base_lens.BaseLens`): `route_binding`, `protected_writer`, `hook_projection`,
+  `mcp_registration`, `launchd_existence`, `env_to_process`.
+- Lenses read ONLY the pinned graph input + rev-pinned registry files
+  (`git show ctx.revision:...` — same revision the file layer came from);
+  never live state.
+- Output: `lens:<name>` summary node + VIOLATION CARDS as findings
+  (verified:false, schema `reconloop/schemas/lens-card.schema.json`, pinned).
+- Negative controls + metamorphic tests per lens (tests/test_lenses.py);
+  record-reorder determinism; input-swap detection.
+- `hashfreeze.json`: pinned scanner/schema/engine/fixture hashes + input pins
+  (v3 deduped f5597cc3…, canonical deduped 148818ea…) + lens config;
+  `verify_hashfreeze` fails on any tamper (tests/test_hashfreeze.py).
+- Frozen-snapshot run (f5597cc3): 107 cards — route_binding 4, launchd 1
+  (lane-health dead loop `-l`), env_to_process 102 (graph has zero
+  env_to_process edges => modeling gap, not 102 independent violations),
+  protected_writer/hook_projection/mcp_registration 0.
+
 ## Merge dedup (M1.6, F-040)
 - `cmd_merge` (and `cmd_run`'s inline merge) dedup node records by id with a
   keep-last conflict policy (later layer wins), and emit a duplicate report

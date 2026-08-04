@@ -1,0 +1,62 @@
+{
+  "commit": "TBD-POST-COMMIT",
+  "engine": {
+    "__init__.py": "0980c8543c6395b1c72d90e370970346f7e537a4cc011f4368e4a0be9381e4a8",
+    "bundle.py": "a4a55c836bdbc171397eb8ed60776b499cfeb39f9fcd20a7b4345e39c21ae94a",
+    "cli.py": "106bd89230385163ee77eb2d2f5e9c68222609159d330c343ac0bb1d48a61350",
+    "context.py": "d6795b5a99af7e077514dc89aaa7bb22fdeb68d4c4671b4010fc480a8db23dd8",
+    "determinism.py": "c2cb21fa5b1ff01583a1980d75c202ff93b4e11e3a93e050a43cb380244ee057",
+    "graphio.py": "69fb7450cba9b499e6204de5eb6018bc59b1bf3a46f9f786a9fd9b7787bf4afd",
+    "hashfreeze.py": "067b6972140f69b5a0aac062734fcfc78452b42de339ebf235e4598979f67022",
+    "ledger.py": "db1539ab929d9183646996fbdc33bcf38b0dd6708b91613d2d575701e36c6b32",
+    "manifest.py": "7336092ad6d15d574de995d822bd34ee373119fc8e041d0b5a164aa3888bf482",
+    "merge.py": "ca88fdaf66f5933c55746d1d40633c763314c5bd0a7d70dbf16ab105f6575c00",
+    "model.py": "ec0566a93c61dccdbdc1b38a71b0d1309fe668972b6f77aa589b3e9064502d13",
+    "protected.py": "f9550c518800c2d31493e7e6ab904fc86142489624090b6fcc895bdf9630ea62",
+    "registry.py": "0728e0a4cc4240e4d9d5037555c25241628774c21f024331e894bd13bdf6288a"
+  },
+  "fixtures": {
+    "analytics_graph.jsonl": "1e5b10d5c7a77a2786464b1ee3a2d581f3acefc5bc59e91aa89b54b686960c24"
+  },
+  "input_pins": {
+    "canonical_deduped": "148818ea40d5dfa37164ad58e9bed9149e4b37d6bc7bf75509de25887cbf5da8",
+    "v3_deduped": "f5597cc33c3b0e5e93683b4af5f8265544f59d31b5055221b45889fc8f164475"
+  },
+  "lens_config_sha256": "90468c664097e791c3ef347e9cbb25bcb515486c1c746e9880b23a227fc2c06a",
+  "scanners": {
+    "articulation.py": "aa9ea1cc3d3474735d401543a21aafcdb61cebb4ea5dcbe80c06f4817ef22269",
+    "base.py": "6cd21bdf11699f5640eedded469940b477292c0c37afdee5853ac2642bc58701",
+    "connected_components.py": "5919ba72331e235b48e09fb19137c5c90d6ceebb6a76da8b763bf68e408274d5",
+    "cross_layer_links.py": "58bcfcc92dd4c8692b349271361a29f84c5692d856b9fa7502ec1804c0ff5d8b",
+    "deps_audit.py": "e9ac155d05f341faf404705403f49b0a13d6e12a498282df41fdb25628fca502",
+    "env_files.py": "9bda34fce41b52e225e657c15bb3288436d2a2b7023046e0ff4f8470d55f6771",
+    "env_to_process.py": "648339bd5a99bece5b409d391481a283189dba155777b92ae139d1a33de2d53c",
+    "exec_centrality.py": "8c83cda29014b61714c24be03db15ead46abbaf58339a21da56686771b00d21d",
+    "file_inventory.py": "ac0268fb5b321a4a948c93c3481f1a7513b7a1e87df63dfcfdd30ec959545161",
+    "formula_banks.py": "66529ae83ccb2ce2aea03ae91b26269ba86739d179176debff118206c1461463",
+    "git_history.py": "f36fdae16ff74d090ea1f3b50666db4cddcaf1665990549407b21ad9d7789755",
+    "hook_projection.py": "0963f8b3c5056c89673769ad52d41a13dc93c4c1dde1fcee73701e5593366894",
+    "hygiene.py": "c660b6dbe4ea9af2663c21a93593106b8768a805b90945ba0112a900c0e09c68",
+    "launchd.py": "f443fd98b992f2788c06969ab83f0586a74894efecf1073e7d63f0d84d9d26f4",
+    "launchd_existence.py": "955fa04539fae123f50900ad306a4b23355048a922b3de82bb437b7506d44bb6",
+    "live_ports.py": "9f16f3ff34730c3c4a2415589f19e213a0a927056f4650bd0bf7e505a9e10943",
+    "mcp_registration.py": "d5a96d8b34fd5a71f09dbcb6f47867e4d312f43c6a56da1fba662e69cacc073f",
+    "mcp_servers.py": "0f1737b370d69f7bd9bf1f9aada36432a02f46fe3f3949f20197153504f5a9d8",
+    "memory_schema.py": "34227f81c6638a785113cc0ac3e60361aca9ad111c8abe56c93630336ba11451",
+    "network_probe.py": "8d9940bd86b2d53e21128e4b16043f19a083388f7609bdfefd5fa8803955fa3b",
+    "organs.py": "05662d0cd099b884a3f43dc4ef8d8eb8300a875dd5a0a40f7794172a811e6810",
+    "protected_paths.py": "578f15c1bafae73d31a31b25124c721ecfa3a5c09f3216ed818933ae2318d77e",
+    "protected_writer.py": "3227d7ae799d345ce028117fc2b751750986080040e00f07eacceb9c47d60bbf",
+    "registries.py": "a93b214630dcd19008376d49f066cd1a5f0b421600ffbd6cf1251ab0462deaae",
+    "route_binding.py": "c213cadace4d0f5c013b3ad324923c16c7676cff38d7e52c264b8737a779cf0c",
+    "secrets_control.py": "08dd499d2f49018138e0d9ec9cc527aae0a9cd562b455fa41acf4ebb154fbe67",
+    "test_wiring.py": "1168fb4b9c05d7e71ba2ac93064b545e95b4c6374603ac6290dbf6fdac70dfb4",
+    "writers.py": "2f25603685492817536cf94cd5891aabf0fc1c5ff0de8ccdc25c97812b07cc53"
+  },
+  "schema": "hashfreeze",
+  "schemas": {
+    "analysis-manifest.schema.json": "ecb919d26adce2a61e9cd0ce9fe4afdaf47761a538283886f536f5ccbc20ec74",
+    "lens-card.schema.json": "1f41ee8aa16d49ad6fa724496c6f6886f7027fbfa12fdc938494783e9d04b2eb"
+  },
+  "version": 1
+}
