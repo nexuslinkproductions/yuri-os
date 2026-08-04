@@ -55,6 +55,19 @@
   env_to_process edges => modeling gap, not 102 independent violations),
   protected_writer/hook_projection/mcp_registration 0.
 
+## M2.1 (F-041/F-043 fixes, Orion order 2026-08-04)
+- `scanners/env_process_edges.py`: emits env_to_process edges from tracked-source
+  consumers (rev-pinned git grep for source/--env-file/env_file/dotenv refs,
+  resolved against the env inventory; metadata-only, values never read).
+- `scanners/launchd.py`: ProgramArguments parsing fix — F-041 was a scanner
+  artifact (`args[1]` grabbed `-l`; lane-health.sh EXISTS). Now resolves real
+  script paths (skips interpreters/flags, extracts from `-c` strings).
+- `scanners/env_to_process.py`: template env files (.env.example/.env.sample)
+  exempt from orphan cards (documentation, never consumed); real env files card.
+- Re-run on the M2.1 graph (pin 8f393911…): env_to_process 102 → 2 (100
+  templates exempt; backend/.env + _SYSTEM/yuri-os/.env have no tracked
+  consumer), launchd_existence 1 → 0.
+
 ## Merge dedup (M1.6, F-040)
 - `cmd_merge` (and `cmd_run`'s inline merge) dedup node records by id with a
   keep-last conflict policy (later layer wins), and emit a duplicate report

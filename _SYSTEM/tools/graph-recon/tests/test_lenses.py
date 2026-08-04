@@ -101,10 +101,10 @@ def test_metamorphic_mutations() -> None:
     # 3. env: drop one env_to_process edge => orphan env card
     nodes, edges = _load(graph_path)
     recs = [n for n in nodes.values()] + [e for e in edges if not (
-        e.get("kind") == "env_to_process" and e.get("from") == "env_file:.env.sample")]
+        e.get("kind") == "env_to_process" and e.get("from") == "env_file:backend/.env")]
     _write_graph(graph_path, recs)
     res = run_lens(EnvToProcessLens(), c)
-    assert len(res.findings) == 1 and ".env.sample" in res.findings[0].desc, res.findings
+    assert len(res.findings) == 1 and "backend/.env" in res.findings[0].desc, res.findings
 
     # 4. protected_writer: file_write into backend/.env.sample (protected) => card
     nodes, edges = _load(graph_path)
@@ -143,7 +143,7 @@ def test_record_reorder_identical_output() -> None:
     # mutate env to produce cards, then shuffle the graph file order
     nodes, edges = _load(graph_path)
     recs = [n for n in nodes.values()] + [e for e in edges if not (
-        e.get("kind") == "env_to_process" and e.get("from") == "env_file:.env.sample")]
+        e.get("kind") == "env_to_process" and e.get("from") == "env_file:backend/.env")]
     _write_graph(graph_path, recs)
     a = EnvToProcessLens().run(c)
     shuffled = list(recs)
@@ -165,7 +165,7 @@ def test_input_swap_fails_stale() -> None:
     # swap in a graph with an orphan env
     nodes, edges = _load(graph_path)
     recs = [n for n in nodes.values()] + [e for e in edges if not (
-        e.get("kind") == "env_to_process" and e.get("from") == "env_file:.env.sample")]
+        e.get("kind") == "env_to_process" and e.get("from") == "env_file:backend/.env")]
     other = Path(str(graph_path) + ".swap.jsonl")
     _write_graph(other, recs)
     c2 = ScanContext(str(repo), revision=rev, graph_input=str(other))
@@ -195,10 +195,63 @@ def test_card_schema_and_fingerprints() -> None:
     print("card schema OK")
 
 
+
+
+def test_env_process_edges_scanner() -> None:
+    """M2.1: env_process_edges scanner emits env_to_process edges from
+    tracked-source consumers (rev-pinned git grep)."""
+    import sys
+    from scanners.env_process_edges import EnvProcessEdgesScanner
+    repo, rev, graph_path = build_clean_fixture()
+    c = ScanContext(str(repo), revision=rev, graph_input=str(graph_path))
+    res = EnvProcessEdgesScanner().run(c)
+    env_edges = [e for e in res.edges if e.kind == "env_to_process"]
+    # consumer.sh sources backend/.env; service.json env_file: backend/.env
+    assert any(e.from_ == "env_file:backend/.env" and "consumer.sh" in e.to
+               for e in env_edges), [e.to_jsonl() for e in env_edges]
+    assert any(e.from_ == "env_file:backend/.env" and e.to == "file:service.json"
+               for e in env_edges), [e.to_jsonl() for e in env_edges]
+    assert all(e.boundary == "none" for e in env_edges)
+    # determinism
+    res2 = EnvProcessEdgesScanner().run(c)
+    assert [e.to_jsonl() for e in res.edges] == [e.to_jsonl() for e in res2.edges]
+    print("env_process_edges scanner OK (consumer mapping + determinism)")
+
+
+def test_env_lens_true_orphans_with_edges() -> None:
+    """M2.1: with env_to_process edges present, the lens reports TRUE orphans:
+    connected envs pass, disconnected real envs card, templates exempt."""
+    import sys
+    from scanners.env_to_process import EnvToProcessLens
+    repo, rev, graph_path = build_clean_fixture()
+    c = ScanContext(str(repo), revision=rev, graph_input=str(graph_path))
+    res = EnvToProcessLens().run(c)
+    # clean fixture: both envs connected => 0 cards
+    assert len(res.findings) == 0, [f.desc for f in res.findings]
+    summary = next(n for n in res.nodes if n.kind == "lens")
+    assert summary.props["real_env_files"] == 2
+    assert summary.props["templates_exempt"] == 0
+    # add a template + a disconnected real env => 1 card (template exempt)
+    nodes, edges = _load(graph_path)
+    recs = [n for n in nodes.values()] + edges
+    recs.append({"id": "env_file:.env.example", "kind": "env_file",
+                 "props": {}, "evidence": ["fixture"], "src": "fixture"})
+    recs.append({"id": "env_file:orphan.env", "kind": "env_file",
+                 "props": {}, "evidence": ["fixture"], "src": "fixture"})
+    _write_graph(graph_path, recs)
+    res2 = EnvToProcessLens().run(c)
+    assert len(res2.findings) == 1, [f.desc for f in res2.findings]
+    assert "orphan.env" in res2.findings[0].desc
+    summary2 = next(n for n in res2.nodes if n.kind == "lens")
+    assert summary2.props["templates_exempt"] == 1
+    print("env lens true-orphan semantics OK (template exempt, disconnected real env cards)")
+
+
 if __name__ == "__main__":
     for fn in (test_negative_controls_zero_cards, test_metamorphic_mutations,
                test_record_reorder_identical_output, test_input_swap_fails_stale,
-               test_card_schema_and_fingerprints):
+               test_card_schema_and_fingerprints, test_env_process_edges_scanner,
+               test_env_lens_true_orphans_with_edges):
         fn()
         print(f"OK {fn.__name__}")
     print("test_lenses OK (all)")

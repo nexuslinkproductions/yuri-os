@@ -80,8 +80,11 @@ def build_clean_fixture() -> tuple[Path, str, Path]:
         "_SYSTEM/Scripts/energy-tick-adapter.mjs": "export const x = 1;\n",
         "_SYSTEM/Scripts/eot-refresh.sh": "#!/bin/sh\necho ok\n",
         "_SYSTEM/Scripts/task-queue.mjs": "export const q = 1;\n",
-        ".env.sample": "KEY=value\n",
-        "_SYSTEM/backend/.env.sample": "KEY=value\n",
+        "backend/.env": "KEY=value\n",
+        "_SYSTEM/yuri-os/.env": "KEY=value\n",
+        # consumer that references backend/.env (env_process_edges scanner input)
+        "_SYSTEM/Scripts/consumer.sh": "#!/bin/sh\nsource backend/.env\n",
+        "service.json": '{"env_file": "backend/.env"}\n',
     }
     for rel, content in files.items():
         p = repo / rel
@@ -116,15 +119,15 @@ def build_clean_fixture() -> tuple[Path, str, Path]:
     recs.append(_edge("launchd_agent:com.test.queue", "file:_SYSTEM/Scripts/task-queue.mjs",
                       "launchd_to_script", boundary="local"))
     # env files all connected via env_to_process
-    recs.append(_edge("env_file:.env.sample", "process:svc@1", "env_to_process"))
-    recs.append(_edge("env_file:_SYSTEM/backend/.env.sample", "process:svc@2", "env_to_process"))
+    recs.append(_edge("env_file:backend/.env", "process:svc@1", "env_to_process"))
+    recs.append(_edge("env_file:_SYSTEM/yuri-os/.env", "process:svc@2", "env_to_process"))
     recs.append(_node("process:svc@1", "process"))
     recs.append(_node("process:svc@2", "process"))
     # file_write to non-protected target only
     recs.append(_edge("file:_SYSTEM/Scripts/task-queue.mjs", "file:/tmp/queue-state.json", "file_write"))
     # env_file nodes must exist as nodes too
-    recs.append(_node("env_file:.env.sample", "env_file"))
-    recs.append(_node("env_file:_SYSTEM/backend/.env.sample", "env_file"))
+    recs.append(_node("env_file:backend/.env", "env_file"))
+    recs.append(_node("env_file:_SYSTEM/yuri-os/.env", "env_file"))
     graph_path = Path(td) / "graph.jsonl"
     with open(graph_path, "w") as f:
         for r in sorted(recs, key=lambda r: json.dumps(r, sort_keys=True)):
