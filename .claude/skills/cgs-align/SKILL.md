@@ -52,6 +52,27 @@ Mass center           -> origin (0,0,0), all 3 axes on the volume centroid
 - **VERIFY ALL THREE ORTHO VIEWS** — side=pitch/parting, back=yaw/sights, **front=roll/slide-top**. Declaring
   "level" off only the views you checked is the skill's #1 repeat failure (2026-07-03/04/07/10/10b).
 
+## MANDATORY ON EVERY RUN — do not skip, do not hand-roll
+
+Owner directive 2026-08-05c: *"make sure in future that the alignment works correctly when I pull up
+cgs-align."* Four gun-mode misses in three days all shared one shape — the pose was declared correct off a
+metric that was never checked against the datum René actually looks at. So every gun run ends with:
+
+1. `rep = pose_report(*_world_arrays(obj))` — one call, all three datums + the sight channel. Never
+   re-derive these by hand; that is how the wrong estimator gets used again.
+2. Report the three numbers to René, plainly: **pitch (parting seam) · roll (rear-sight shoulders) ·
+   yaw (notch walls vs post flanks)**. Target |x| < 0.1°; `rep["bad"]` non-empty means say so, do not
+   quietly proceed.
+3. `pitch_deg = None` means the mesh carries **no seam** — say "pitch unverified, using the slide-top
+   proxy". It does NOT mean fine. Cause is usually a decimated mesh: **align BEFORE decimating.**
+4. Render the **three ortho views** (side = pitch/seam, front = roll/shoulders, down-the-sights = yaw)
+   against fiducial bars. A number and a picture fail differently; both, every time.
+5. Clean up after yourself — remove every fiducial and temp camera, restore `Camera`. (Two were left in
+   his scene once. He found them.)
+
+If the aligner is touched at all, run all three suites first: `verify_datums.py --poses 25` (all axes,
+real guns, random 3D scramble), `verify_align_math.py`, `verify_real_guns.py --poses 40`.
+
 ## SCOPE — alignment only
 
 Do **only** the alignment. Explicitly out of scope (cgs-mold's job): seal / island-union / voxel-remesh /
