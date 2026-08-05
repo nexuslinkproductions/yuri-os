@@ -312,12 +312,26 @@ def _refine_yaw_to_sights(P, F, center, aL, aH):
     — the fine reference the slide-SILHOUETTE PCA averages away. A 0.9mm front-sight offset over a ~130mm
     sight baseline is 0.4deg of yaw: invisible in the slide outline (which read 0.04deg 'square'), obvious
     when you look down the sights (front post sits off-centre in the rear notch). Detect the two sight
-    blades as HEIGHT SPIKES protruding above the slide-top baseline (front third + rear slide), take each
-    blade's width-centroid (the rear = the two notch posts -> notch centre), and rotate aL about the
-    vertical (aH) to zero their width difference. GUARDED: each blade must protrude a real margin (>1.5mm)
-    over a real baseline, and the correction is capped at 3deg — so it no-ops on a flat-top slide (the
-    synthetic test gun), an optic-cut slide, or a bare light. Returns corrected aL (x_hat re-derives from
-    cross(aL,aH) downstream, so only aL needs rotating)."""
+    blades as HEIGHT SPIKES protruding above the slide-top baseline (front third + rear slide), then take
+    THE RIGHT REFERENCE FROM EACH (see below) and rotate aL about the vertical (aH) to zero their width
+    difference. GUARDED: each blade must protrude a real margin (>1.5mm) over a real baseline, and the
+    correction is capped at 3deg — so it no-ops on a flat-top slide (the synthetic test gun), an optic-cut
+    slide, or a bare light. Returns corrected aL (x_hat re-derives from cross(aL,aH) downstream, so only
+    aL needs rotating).
+
+    ⚠ REBUILT 2026-08-05 (GLOCK 34). The original took each blade's width-CENTROID (`w[bl].mean()`). For
+    the FRONT post that is roughly right — it is a lone block. For the REAR sight it is WRONG: the top band
+    contains both wide shoulders (~17mm across) and their centroid is the SIGHT BODY centre, not the NOTCH
+    centre. The two differ whenever the sight body is asymmetric or drifted in its dovetail, and on the
+    Glock 34 the centroid pair said -0.07deg while the real sight picture was +0.11deg off — the post
+    sitting 0.361mm right of the notch. The owner saw it instantly down the sights; the centroid metric
+    called it square. So:
+      REAR  -> the NOTCH GAP centre: the largest empty run in the sorted widths of the top band, i.e. the
+               two facing notch walls. That is the aperture the eye actually looks through.
+      FRONT -> the post's SILHOUETTE centre (min+max)/2, not its centroid — the post is commonly WIDER than
+               the notch (4.11 vs 3.77mm here), so what the eye centres is its outline, not its mass.
+    Both are hard geometric EDGES rather than centroids of blobs, which is why they are stable: measured
+    over four independent z-bands inside the notch the corrected pose holds dx = -0.002mm (sd 0.041mm)."""
     D = P - center
     aWc = np.cross(aH, aL); aWc /= (np.linalg.norm(aWc) or 1.0)     # width axis (perp to the slide plane)
     l = D @ aL; h = D @ aH; w = D @ aWc
@@ -325,7 +339,7 @@ def _refine_yaw_to_sights(P, F, center, aL, aH):
     if L < 1e-6:
         return aL
     upper = h > np.percentile(h, 55)                               # slide band (excludes the grip)
-    def blade(lo, hi):
+    def blade(lo, hi, notch):
         m = upper & (l > lo) & (l < hi)
         if int(m.sum()) < 40:
             return None
@@ -335,9 +349,20 @@ def _refine_yaw_to_sights(P, F, center, aL, aH):
         bl = m & (h > top - 2.0)                                    # top 2mm of the blade / notch posts
         if int(bl.sum()) < 15:
             return None
-        return float(w[bl].mean()), float(l[bl].mean())
-    fs = blade(lmin + 0.02 * L, lmin + 0.42 * L)                   # front sight (forward third)
-    rs = blade(lmin + 0.60 * L, lmax - 0.02 * L)                   # rear sight (rear slide)
+        wb = w[bl]
+        if notch:
+            ws = np.sort(wb); gaps = np.diff(ws)
+            if len(gaps) == 0:
+                return None
+            i = int(np.argmax(gaps)); gw = float(gaps[i])
+            if not (0.8 < gw < 8.0):                                # no plausible notch aperture -> bail
+                return None
+            centre = 0.5 * (float(ws[i]) + float(ws[i + 1]))         # NOTCH GAP centre
+        else:
+            centre = 0.5 * (float(wb.min()) + float(wb.max()))       # post SILHOUETTE centre
+        return centre, float(l[bl].mean())
+    fs = blade(lmin + 0.02 * L, lmin + 0.42 * L, False)            # front sight (forward third)
+    rs = blade(lmin + 0.60 * L, lmax - 0.02 * L, True)             # rear sight / notch (rear slide)
     if fs is None or rs is None:
         return aL
     wf, lf = fs; wr, lr = rs

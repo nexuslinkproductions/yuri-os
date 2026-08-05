@@ -207,9 +207,18 @@ def run(path, poses, tol_deg=1.0):
         for k in ("roll", "yaw"):                       # tight: both are clean, gun-independent datums
             if d[k] is None: bad.append(k + "_nodatum")
             elif abs(d[k]) > 1.0: bad.append("%s=%.2f" % (k, d[k]))
-        # parting-edge extraction carries ~1deg of gun-to-gun bias (frame-lever contamination rearward of
-        # the dust cover), so it is a sanity band, not the verdict -- the Kabsch error above is.
-        if d["pitch"] is not None and abs(d["pitch"]) > 3.0: bad.append("pitch=%.2f" % d["pitch"])
+        # PITCH: REPORTED, NOT ASSERTED (demoted 2026-08-05, with measurement). `datum_parting` fits the
+        # slide-top SILHOUETTE edge per length-slice. On these CAD solids the slide top is a near-perfect
+        # plane with sharp edges, so a sub-degree yaw flips which side's edge wins the per-slice
+        # percentile and the fitted line jumps: perturbing the aligned pose by +-0.3deg of YAW swings this
+        # number over a 8.42deg range on the G17 and 4.18deg on the G19. It was asserted at |pitch|<3.0 and
+        # the G17 happened to sit at -2.77 -- inside the band by luck, not by correctness; a 0.06deg yaw
+        # change pushed it to -4.37 and "failed" a pose that was in fact 0.49deg from the owner's.
+        # Cross-checked with the robust detector: measure_parting is stable here (0.15deg spread over the
+        # same +-0.3deg sweep on the G19) and finds NO SEAM AT ALL on the G17 -- these repaired solids have
+        # no modelled upper/lower parting line, so there is nothing for a pitch datum to key off.
+        # This is NOT a loosened threshold: pitch is still fully covered by the PRIMARY check, the Kabsch
+        # rotation against the owner's canonical pose, which scores pitch, roll and yaw together.
         d["bad"] = bad; rows.append(d)
         if bad: fails.append(d)
     ok = len(rows) - len(fails)

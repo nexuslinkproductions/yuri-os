@@ -30,6 +30,14 @@ Mass center           -> origin (0,0,0), all 3 axes on the volume centroid
 - **YAW → FRONT SIGHT + REAR SIGHT colinear** down the bore (front post centred in the rear notch, viewed
   from behind). The slide *silhouette* is NOT sensitive enough — a 0.9mm sight offset over a 130mm baseline
   is 0.4° of yaw that reads "square" (0.04°) in the outline but is obvious down the sights.
+  ⚠ **Measure it as NOTCH-GAP CENTRE vs POST SILHOUETTE CENTRE — never as width-centroids** (2026-08-05,
+  GLOCK 34). The rear sight's top band contains both wide shoulders (~17mm across); their centroid is the
+  SIGHT BODY centre, not the notch centre, and the two differ whenever the body is asymmetric or drifted in
+  its dovetail. On the Glock 34 the centroid pair said −0.07° while the post sat **0.361mm right of the
+  notch** (+0.11°) — plainly wrong down the sights, and the owner caught it. Use hard geometric EDGES: the
+  largest empty run in the sorted widths of the notch band (the two facing notch walls) against the post's
+  `(min+max)/2` outline. The post is commonly WIDER than the notch (4.11 vs 3.77mm here), so what the eye
+  centres is the post's OUTLINE, not its mass.
 - **ROLL → the two REAR-SIGHT SHOULDERS level with each other in the FRONT (down-the-bore) view** — the flat
   tops either side of the notch, at equal height; no cant about the bore. Owner directive 2026-08-05
   (GLOCK 34), arrows on both shoulders: *"why did you not align this!!?? This is a MUST as well with all
@@ -123,8 +131,13 @@ reversible, non-mutating to geometry.**
    nothing. Area is the mesh-density-invariant quantity.
 6. **Yaw to the SIGHTS** `refine_sights` — owner's YAW datum: make the **front sight + rear sight
    colinear** along the bore. Detect the two sight blades as height spikes protruding >1.5mm above the
-   slide-top baseline (front third + rear slide), take each blade's width-centroid (rear = the two notch
-   posts → notch centre), and rotate about the vertical to zero their width difference. **Guarded** (needs
+   slide-top baseline (front third + rear slide), then take **the NOTCH GAP centre at the rear** (largest
+   empty run in the sorted widths of the top band — the aperture the eye looks through) and **the POST
+   SILHOUETTE centre at the front** (`(min+max)/2`), and rotate about the vertical to zero their difference.
+   ⚠ **REBUILT 2026-08-05** — it previously used each blade's width-CENTROID, which is right for the lone
+   front post but wrong for the rear, where the band holds both 17mm-wide shoulders and their centroid is
+   the sight BODY centre, not the notch. It called the Glock 34 square at −0.07° while the post sat 0.361mm
+   off in the notch. Edges, not centroids. **Guarded** (needs
    two real protruding blades over a real baseline; cap 3°) so it no-ops on a flat-top / optic-cut slide or
    a light. Fixes the yaw the slide *silhouette* averages away (Glock 43: 0.9mm sight offset = 0.39° yaw,
    invisible in the outline). Owner directive 2026-07-10: *"the front SIGHT and REAR sight to adjust YAW."*
@@ -246,8 +259,11 @@ actually being canonical and skips loudly if it isn't.
 **Verify the two owner datums against the real mesh, not the eye** (renders/perspective fool the eye — a
 recurring trap on this skill):
 **Render and check ALL THREE ortho views — a metric can share the aligner's blind spot; a skipped view hides a real error (front-view roll, 2026-07-10b):**
-- **YAW (BACK ortho, from +Y)** — measure front-sight X vs rear-sight X centroids; equal (**`sight_dx ≈ 0`**).
-  Confirm the front post sits centred in the rear notch.
+- **YAW (BACK / down-the-sights ortho, from +Y)** — measure the **NOTCH GAP centre** against the **FRONT
+  POST SILHOUETTE centre**, over 3–4 independent z-bands inside the notch; **`sight_dx ≈ 0`**. Do NOT use
+  width-centroids of the protruding faces — that is the metric that missed 0.36mm on the Glock 34.
+  Render with the camera exactly ON the sight line (ortho, x = the notch centre, z = mid-notch) and a
+  vertical x=0 fiducial; confirm the post is centred in the notch with symmetric light on both sides.
 - **PITCH (RIGHT/side ortho, +X)** — measure the slide-top **silhouette edge** slope (97th-pct-h per slice,
   sight-trimmed) **≈ 0°**, NOT the sidewall-area PCA (skewed → converged ~1° off on the G43) nor the
   slide-top ridge (front-sight-biased). Render with a horizontal bar; confirm the upper/lower parting line
@@ -273,14 +289,18 @@ recurring trap on this skill):
   largest mesh to date) — and the aligner HARDENED with the owner's **final ROLL datum: the rear-sight
   shoulders** (method step 5d, `refine_sight_roll`). The stock pipeline put pitch/yaw right but left the two
   shoulders **0.33° apart in roll**, because roll was levelled to the slide-top flat, which is only a proxy;
-  the owner caught it in his front view and made it binding for **all** gun alignments. Final measured:
-  parting groove **−0.001°** (rms 0.049mm / 120mm span), rear-sight shoulders **dz −0.0012mm → roll
-  +0.002°**, sight yaw **−0.04°** (slide silhouette, sd 0.036mm), volume centroid (8e−10, −2e−8, −5e−9),
+  the owner caught it in his front view and made it binding for **all** gun alignments — and then caught a
+  SECOND miss in the same view, the **front post sitting 0.361mm off-centre in the rear notch** (0.109° of
+  yaw), which had been measured and wrongly dismissed as noise. Final measured: parting groove **−0.001°**
+  (rms 0.049mm / 120mm span), rear-sight shoulders **dz −0.0015mm → roll −0.009°**, sight picture
+  **dx −0.0017mm** (sd 0.041mm over four z-bands in the notch) → yaw **−0.0005°**,
+  volume centroid (1e−9, −9e−9, −3e−9),
   det +1, `matrix_world` identity, dims 35.78 × 222.22 × 140.02 (G34 spec ~222 × 139 ✓). Lattice fired
   **−28.2°** (coherence 0.595) — a fifth platform confirming PCA-vs-bore. Owner's two annotation dots on the
   parting line corroborate the pitch to **−0.080°** (a ±0.4° instrument). **Live E2E from the raw scan with
-  the hardened code lands the shoulders at −0.006° and the whole pose within 0.104° of the hand-finished
-  one** — and that residual IS the hand pitch correction, i.e. roll is now fully automatic.
+  the hardened code lands the shoulders at −0.006° AND the sight picture at dx +0.001mm, the whole pose
+  within 0.104° of the hand-finished one** — and that residual IS the hand pitch correction, i.e. roll and
+  yaw are now BOTH fully automatic.
   **Owner viewport confirm of the auto-output pending.**
 - **ALIGNED + 3-VIEW VERIFIED 2026-08-04** on the STREAMLIGHT TLR-7 HL-X (`Fused_20260712170856`, 150,135
   verts / 300,418 tris) — the second light ever run, and the one that exposed light mode's missing mount
@@ -400,8 +420,33 @@ recurring trap on this skill):
   zooms at opposite ends of the slide, front @ the slide top + x=0, down-the-bore @ the shoulder plane
   z=51.42 — both shoulders on the bar). Numerics above. Synthetic suite 300/300 + 240 WML still green
   (the refine self-zeros on the flat-top synthetic gun); real-gun Kabsch suite 40/40 both guns.
-  **Live E2E from the raw scan**: the refine auto-fires +0.263° and lands the shoulders at **−0.006°**, the
-  whole pose within **0.104°** of my hand-finished one — and that residual is precisely the hand pitch step.
+  **Live E2E from the raw scan**: the refines auto-fire and land the shoulders at **−0.006°** and the sight
+  picture at **dx +0.001mm** (sd 0.030 over four notch z-bands), the whole pose within **0.104°** of my
+  hand-finished one — and that residual is precisely the hand pitch step.
+- **FAILURE #3 — SAME SESSION, SAME VIEW, AND I HAD ALREADY MEASURED IT.** After banking the roll fix the
+  owner looked down the sights again and the **front post was off-centre in the rear notch**. Measured:
+  notch gap centre 0.000, post silhouette centre **+0.361mm** → **0.109° of yaw** over the 189.5mm sight
+  radius. The damning part: earlier the same session I computed this as "notch-centre-vs-front-post
+  +0.113°", saw it disagree with two width-CENTROID estimates (−0.068°, −0.090°), wrote *"the spread
+  between datums exceeds any correction I'd apply"* and dropped it. **Disagreeing estimators are not noise
+  to be averaged away — they are a question about which one measures the owner's datum.** The centroid pair
+  averages the whole 17mm-wide rear sight body; only the gap-edge pair looks through the aperture the eye
+  looks through. I had the right number and threw it away for the wrong reason.
+- **Fix:** `_refine_yaw_to_sights` rebuilt — rear reference is now the **NOTCH GAP centre** (largest empty
+  run in the sorted widths of the top band), front is the **POST SILHOUETTE centre** (`(min+max)/2`, since
+  the post is wider than the notch — 4.11 vs 3.77mm — so the eye centres its outline, not its mass). Both
+  hard edges. Verified over four independent z-bands inside the notch: dx **−0.0017mm**, sd 0.041mm.
+- **A broken CHECK exposed by the fix (and NOT silenced with a threshold).** The rebuilt yaw moved the G17
+  by 0.06° and the real-gun suite's secondary pitch assert flipped −2.77° → −4.37° and failed. Rather than
+  widen the band I measured the instrument: perturbing the aligned pose by ±0.3° of YAW swings
+  `datum_parting` over **8.42° on the G17 and 4.18° on the G19** — it fits the slide-top silhouette edge
+  per slice, and on a CAD solid with a near-perfect planar slide top a sub-degree yaw flips which side's
+  edge wins the percentile. The G17 had been sitting inside the band by luck. Cross-checked with the robust
+  detector: `measure_parting` is stable there (0.15° over the same sweep on the G19) and finds **no seam at
+  all** on the G17 — these repaired solids have no modelled parting line, so there is nothing for a pitch
+  datum to key off. The assert is now REPORTED-not-asserted with that evidence in the comment. Pitch stays
+  fully covered by the PRIMARY Kabsch check, which scores pitch/roll/yaw together (G17 0.49°, G19 0.39°).
+  *When a check fails after a change, measure the check before you touch its threshold.*
 - **Residual risk / next:** (a) The real-gun suite scores against René's canonical STLs, which were posed by
   the OLD pipeline — so the new datum *deliberately* differs from them and the G17 error grew 0.33°→0.49°
   (G19 0.40°→0.39°). That is the datum change, not a regression, but it means those canonical STLs are now
@@ -415,6 +460,8 @@ recurring trap on this skill):
   numpy on the live mesh, workbench ortho renders vs fiducials, Blender-5.1 python for the offline suites,
   duplicate-recovered-to-raw for the live E2E.
   <!-- @anchor: v1 | failure: GLOCK 34 shipped with the two rear-sight shoulders 0.33deg apart in roll because roll was levelled to the slide-top flat (a proxy) instead of the sight the owner's eye tracks; and the first fix gated on face count tuned to a 2.2M-tri scan, making it a silent no-op on every CAD solid gun while both suites stayed green, 2026-08-05 | regression: cgs_align.py _refine_roll_to_rear_sight (notch-centred two-patch lever arm + split-free plane-fit cross-check + AREA gates; real-mesh E2E 0.263deg auto-fire -> shoulders -0.006deg, G17 0.266deg / G19 0.076deg A/B non-zero) + scripts/measure_parting.py + cgs-align SKILL.md method step 5d + Session Notes 2026-08-05 -->
+  <!-- @anchor: v1 | failure: GLOCK 34 front post sat 0.361mm (0.109deg) off-centre in the rear notch — _refine_yaw_to_sights used each blade's width-CENTROID, which for the rear sight is the 17mm-wide sight BODY centre and not the notch; and I had already measured the correct +0.113deg by hand, saw it disagree with the centroid estimates, and dismissed the disagreement as noise instead of asking which estimator measured the owner's datum, 2026-08-05 | regression: cgs_align.py _refine_yaw_to_sights (rear = notch-gap centre from the largest empty run in sorted widths, front = post silhouette centre; real-mesh E2E dx +0.001mm over four notch z-bands) + cgs-align SKILL.md canonical YAW datum + method step 6 + Session Notes 2026-08-05 FAILURE #3 -->
+  <!-- @anchor: v1 | failure: verify_real_guns.py asserted |datum_parting|<3.0 as a secondary pitch check, but that metric swings 8.42deg (G17) / 4.18deg (G19) under +-0.3deg of yaw perturbation on CAD solids — the G17 sat inside the band by luck and a 0.06deg yaw change "failed" a pose 0.49deg from the owner's, 2026-08-05 | regression: verify_real_guns.py pitch demoted to reported-not-asserted with the sensitivity measurement inline; pitch coverage retained by the primary Kabsch check + cgs-align SKILL.md Session Notes 2026-08-05 -->
 
 ### 2026-08-04 (STREAMLIGHT TLR-7 HL-X — light mode had no mount datum; a consensus is not a datum)
 - **Run:** `Fused_20260712170856`, 150,135 verts / 300,418 tris, `mode="light"`. Gross pose came out right
