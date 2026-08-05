@@ -17,7 +17,9 @@ absolute path, so scanner evidence is byte-identical across environments
 M1.5 (fail-closed): analytics scanners require a graph input. require_graph()
 raises GraphInputRequiredError when none resolves, so a missing input is a
 loud per-scanner failure (error layer + nonzero exit) — never a silent empty
-layer. load_graph() itself stays deterministic and raises nothing.
+layer. For malformed or unreadable graph files, load_graph() raises
+GraphInputMalformedError so analytics scanners fail closed instead of silently
+emitting an empty layer.
 """
 from __future__ import annotations
 import hashlib
@@ -39,6 +41,10 @@ def resolve_graph_path(ctx) -> Path | None:
 
 class GraphInputRequiredError(RuntimeError):
     """Raised when an analytics (requires_graph) scanner has no graph input."""
+
+
+class GraphInputMalformedError(GraphInputRequiredError):
+    """Raised when the resolved graph input is unreadable or malformed."""
 
 
 def require_graph(ctx) -> Path:
@@ -71,33 +77,57 @@ def load_graph(ctx) -> tuple[dict, list, str]:
     try:
         raw = path.read_bytes()  # hash raw bytes => matches shasum/pin files exactly
         h.update(raw)
-        for line in raw.decode("utf-8", errors="replace").splitlines():
+        for lineno, line in enumerate(raw.decode("utf-8").splitlines(), start=1):
             if not line.strip():
                 continue
             rec = json.loads(line)
-            if "from" in rec and "to" in rec:
+            if not isinstance(rec, dict):
+                raise ValueError(f"line {lineno}: record must be a JSON object")
+            if "from" in rec or "to" in rec:
+                if not all(
+                    isinstance(rec.get(field), str) and rec[field]
+                    for field in ("from", "to", "kind")
+                ):
+                    raise ValueError(
+                        f"line {lineno}: edge requires non-empty string from/to/kind"
+                    )
                 edges.append(rec)
-            elif "id" in rec:
+            elif all(
+                isinstance(rec.get(field), str) and rec[field]
+                for field in ("id", "kind")
+            ):
                 raw_node_records += 1
                 nodes[rec["id"]] = rec  # last wins; file order deterministic
-    except Exception as e:  # noqa: BLE001 — fail-open per contract
-        return {}, [], f"graph input error: {e}"
-    edges.sort(key=lambda e: (e["from"], e["to"], e.get("kind", "")))
+            else:
+                raise ValueError(
+                    f"line {lineno}: node requires non-empty string id/kind"
+                )
+        edges.sort(key=lambda e: (e["from"], e["to"], e["kind"]))
+        # ---- synthesize dangling edge endpoints (deterministic, id-prefix kind) ----
+        # Some layers (e.g. test_wiring) emit edges whose endpoint nodes live in
+        # other layers/merges. Analytics must treat edge endpoints as graph
+        # citizens; synthesize minimal records so every edge endpoint is addressable.
+        for e in edges:
+            for eid in (e["from"], e["to"]):
+                if eid not in nodes:
+                    kind = eid.split(":", 1)[0] if ":" in eid else "unknown"
+                    nodes[eid] = {
+                        "id": eid, "kind": kind, "props": {},
+                        "evidence": [f"dangling endpoint of {e['from']}->{e['to']} ({e['kind']})"],
+                        "src": "graphio-synthetic",
+                    }
+    except OSError as e:
+        raise GraphInputMalformedError(
+            f"graph input unreadable: {type(e).__name__}: {e.strerror or 'I/O error'}"
+        ) from None
+    except GraphInputMalformedError:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise GraphInputMalformedError(
+            f"graph input parse failure: {e}"
+        ) from None
     # ---- content-addressed, path-independent source label (M1 refinement) ----
     pin16 = h.hexdigest()[:16]
-    # ---- synthesize dangling edge endpoints (deterministic, id-prefix kind) ----
-    # Some layers (e.g. test_wiring) emit edges whose endpoint nodes live in
-    # other layers/merges. Analytics must treat edge endpoints as graph
-    # citizens; synthesize minimal records so every edge endpoint is addressable.
-    for e in edges:
-        for eid in (e["from"], e["to"]):
-            if eid not in nodes:
-                kind = eid.split(":", 1)[0] if ":" in eid else "unknown"
-                nodes[eid] = {
-                    "id": eid, "kind": kind, "props": {},
-                    "evidence": [f"dangling endpoint of {e['from']}->{e['to']} ({e.get('kind')})"],
-                    "src": "graphio-synthetic",
-                }
     # M1.6 (F-040): label reports NET-NEW UNIQUE ids (post-synthesis unique
     # minus raw input node records), not endpoint events: for v3 that is
     # 6,995 - 6,579 = +416 (645 synthesized minus 229 duplicate records).

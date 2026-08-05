@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT))
 
 from reconloop.cli import cmd_run, cmd_verify, cmd_manifest  # noqa: E402
 from reconloop import bundle  # noqa: E402
+from reconloop.registry import load_scanners  # noqa: E402
 
 FIXTURE = ROOT / "tests" / "fixtures" / "analytics_graph.jsonl"
 
@@ -89,6 +90,41 @@ def test_run_fail_closed_missing_graph_input() -> None:
                    for p in errs)
         assert not graph.exists() and not pin.exists(), "no merge/pin on failure"
         assert (findings / "connected_components.jsonl").exists() is False
+
+
+def test_run_fail_closed_malformed_graph_input() -> None:
+    """Malformed graph input creates error layers and blocks graph output."""
+    with tempfile.TemporaryDirectory() as td:
+        td = Path(td)
+        scanners = load_scanners(
+            ROOT / "scanners", template_root=ROOT
+        )
+        expected = sorted(
+            f"{name}.ERROR.jsonl"
+            for name, cls in scanners.items()
+            if getattr(cls, "requires_graph", False)
+        )
+        for name, payload in {
+            "syntax": b"not-json",
+            "encoding": b'{"id":"bad-utf8","kind":"file","x":"\xff"}',
+            "shape": b"{}\n",
+        }.items():
+            case = td / name
+            case.mkdir()
+            bad = case / "bad.graph.jsonl"
+            bad.write_bytes(payload)
+            rc, layers, graph, pin, findings, _ = run_once(
+                case, graph_input=str(bad)
+            )
+            assert rc == 1, (name, rc)
+            err_layers = sorted(p.name for p in layers.glob("*.ERROR.jsonl"))
+            assert err_layers == expected, (name, err_layers, expected)
+            assert not graph.exists() and not pin.exists(), (
+                name, "no merge/pin on parse failure"
+            )
+            assert not findings.exists() or not (
+                findings / "connected_components.jsonl"
+            ).exists()
 
 
 def test_run_writes_findings_deduped() -> None:
@@ -294,7 +330,9 @@ def test_core_run_clean_env_isolated() -> None:
 
 
 if __name__ == "__main__":
-    for fn in (test_run_fail_closed_missing_graph_input, test_run_writes_findings_deduped,
+    for fn in (test_run_fail_closed_missing_graph_input,
+               test_run_fail_closed_malformed_graph_input,
+               test_run_writes_findings_deduped,
                test_verify_rerun_baseline_then_match, test_analysis_manifest_written_and_valid,
                test_ephemeral_layer_excluded_from_pin, test_packs_flag_loads_pack_scanners,
                test_config_overrides_ephemeral_lens_budget, test_core_run_clean_env_isolated):
