@@ -1,0 +1,66 @@
+{"evidence": ["lsof rapportd pid=646 *:61537"], "id": "port:61537", "kind": "port", "props": {"auth_status": "unknown", "exposure": "lan", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof rapportd pid=646 *:64334"], "id": "port:64334", "kind": "port", "props": {"auth_status": "unknown", "exposure": "lan", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof rapportd pid=646 *:64335"], "id": "port:64335", "kind": "port", "props": {"auth_status": "unknown", "exposure": "lan", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof ControlCe pid=714 *:7000"], "id": "port:7000", "kind": "port", "props": {"auth_status": "unknown", "exposure": "lan", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof ControlCe pid=714 *:5000"], "id": "port:5000", "kind": "port", "props": {"auth_status": "unknown", "exposure": "lan", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof postgres pid=1143 [::1]:5432"], "id": "port:5432", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof Spotify pid=1189 *:51533"], "id": "port:51533", "kind": "port", "props": {"auth_status": "unknown", "exposure": "lan", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof Spotify pid=1189 127.0.0.1:7768"], "id": "port:7768", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof Spotify pid=1189 *:57621"], "id": "port:57621", "kind": "port", "props": {"auth_status": "unknown", "exposure": "lan", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof iCUE pid=1322 127.0.0.1:50123"], "id": "port:50123", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof iCUE pid=1322 127.0.0.1:13436"], "id": "port:13436", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof Ollama pid=1383 127.0.0.1:49289"], "id": "port:49289", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof ollama pid=1392 *:11434"], "id": "port:11434", "kind": "port", "props": {"auth_status": "unknown", "exposure": "lan", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof iCUE\\x20V pid=1452 127.0.0.1:49427"], "id": "port:49427", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof October pid=21396 127.0.0.1:59207"], "id": "port:59207", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof node pid=21467 127.0.0.1:5173"], "id": "port:5173", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof Python pid=27298 *:8471"], "id": "port:8471", "kind": "port", "props": {"auth_status": "unknown", "exposure": "lan", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof node pid=34022 *:8472"], "id": "port:8472", "kind": "port", "props": {"auth_status": "unknown", "exposure": "lan", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof codex pid=39383 127.0.0.1:55915"], "id": "port:55915", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof codex pid=39383 127.0.0.1:55916"], "id": "port:55916", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof codex pid=39383 127.0.0.1:60193"], "id": "port:60193", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof codex pid=39383 127.0.0.1:60194"], "id": "port:60194", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof codex pid=39383 127.0.0.1:59949"], "id": "port:59949", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof codex pid=39383 127.0.0.1:59950"], "id": "port:59950", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof codex pid=39383 127.0.0.1:60262"], "id": "port:60262", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof codex pid=39383 127.0.0.1:60063"], "id": "port:60063", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof codex pid=39383 127.0.0.1:60064"], "id": "port:60064", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof codex pid=39383 127.0.0.1:60263"], "id": "port:60263", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof codex pid=39383 127.0.0.1:56018"], "id": "port:56018", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof codex pid=39383 127.0.0.1:56019"], "id": "port:56019", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof codex pid=39383 127.0.0.1:57024"], "id": "port:57024", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof codex pid=39383 127.0.0.1:57025"], "id": "port:57025", "kind": "port", "props": {"auth_status": "unknown", "exposure": "local", "scan_state": "scanned"}, "src": "live_ports"}
+{"evidence": ["lsof Python pid=93145 *:8777"], "id": "port:8777", "kind": "port", "props": {"auth_status": "unknown", "exposure": "lan", "scan_state": "scanned"}, "src": "live_ports"}
+{"boundary": "lan", "evidence": ["lsof"], "from": "process:rapportd@646", "kind": "network_conn", "props": {"bind": "*:61537"}, "to": "port:61537"}
+{"boundary": "lan", "evidence": ["lsof"], "from": "process:rapportd@646", "kind": "network_conn", "props": {"bind": "*:64334"}, "to": "port:64334"}
+{"boundary": "lan", "evidence": ["lsof"], "from": "process:rapportd@646", "kind": "network_conn", "props": {"bind": "*:64335"}, "to": "port:64335"}
+{"boundary": "lan", "evidence": ["lsof"], "from": "process:ControlCe@714", "kind": "network_conn", "props": {"bind": "*:7000"}, "to": "port:7000"}
+{"boundary": "lan", "evidence": ["lsof"], "from": "process:ControlCe@714", "kind": "network_conn", "props": {"bind": "*:5000"}, "to": "port:5000"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:postgres@1143", "kind": "network_conn", "props": {"bind": "[::1]:5432"}, "to": "port:5432"}
+{"boundary": "lan", "evidence": ["lsof"], "from": "process:Spotify@1189", "kind": "network_conn", "props": {"bind": "*:51533"}, "to": "port:51533"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:Spotify@1189", "kind": "network_conn", "props": {"bind": "127.0.0.1:7768"}, "to": "port:7768"}
+{"boundary": "lan", "evidence": ["lsof"], "from": "process:Spotify@1189", "kind": "network_conn", "props": {"bind": "*:57621"}, "to": "port:57621"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:iCUE@1322", "kind": "network_conn", "props": {"bind": "127.0.0.1:50123"}, "to": "port:50123"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:iCUE@1322", "kind": "network_conn", "props": {"bind": "127.0.0.1:13436"}, "to": "port:13436"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:Ollama@1383", "kind": "network_conn", "props": {"bind": "127.0.0.1:49289"}, "to": "port:49289"}
+{"boundary": "lan", "evidence": ["lsof"], "from": "process:ollama@1392", "kind": "network_conn", "props": {"bind": "*:11434"}, "to": "port:11434"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:iCUE\\x20V@1452", "kind": "network_conn", "props": {"bind": "127.0.0.1:49427"}, "to": "port:49427"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:October@21396", "kind": "network_conn", "props": {"bind": "127.0.0.1:59207"}, "to": "port:59207"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:node@21467", "kind": "network_conn", "props": {"bind": "127.0.0.1:5173"}, "to": "port:5173"}
+{"boundary": "lan", "evidence": ["lsof"], "from": "process:Python@27298", "kind": "network_conn", "props": {"bind": "*:8471"}, "to": "port:8471"}
+{"boundary": "lan", "evidence": ["lsof"], "from": "process:node@34022", "kind": "network_conn", "props": {"bind": "*:8472"}, "to": "port:8472"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:codex@39383", "kind": "network_conn", "props": {"bind": "127.0.0.1:55915"}, "to": "port:55915"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:codex@39383", "kind": "network_conn", "props": {"bind": "127.0.0.1:55916"}, "to": "port:55916"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:codex@39383", "kind": "network_conn", "props": {"bind": "127.0.0.1:60193"}, "to": "port:60193"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:codex@39383", "kind": "network_conn", "props": {"bind": "127.0.0.1:60194"}, "to": "port:60194"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:codex@39383", "kind": "network_conn", "props": {"bind": "127.0.0.1:59949"}, "to": "port:59949"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:codex@39383", "kind": "network_conn", "props": {"bind": "127.0.0.1:59950"}, "to": "port:59950"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:codex@39383", "kind": "network_conn", "props": {"bind": "127.0.0.1:60262"}, "to": "port:60262"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:codex@39383", "kind": "network_conn", "props": {"bind": "127.0.0.1:60063"}, "to": "port:60063"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:codex@39383", "kind": "network_conn", "props": {"bind": "127.0.0.1:60064"}, "to": "port:60064"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:codex@39383", "kind": "network_conn", "props": {"bind": "127.0.0.1:60263"}, "to": "port:60263"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:codex@39383", "kind": "network_conn", "props": {"bind": "127.0.0.1:56018"}, "to": "port:56018"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:codex@39383", "kind": "network_conn", "props": {"bind": "127.0.0.1:56019"}, "to": "port:56019"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:codex@39383", "kind": "network_conn", "props": {"bind": "127.0.0.1:57024"}, "to": "port:57024"}
+{"boundary": "local", "evidence": ["lsof"], "from": "process:codex@39383", "kind": "network_conn", "props": {"bind": "127.0.0.1:57025"}, "to": "port:57025"}
+{"boundary": "lan", "evidence": ["lsof"], "from": "process:Python@93145", "kind": "network_conn", "props": {"bind": "*:8777"}, "to": "port:8777"}
