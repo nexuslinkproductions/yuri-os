@@ -25,7 +25,7 @@ The engine is a **template, not a dependency**: vendor it into your repo
       context.py                #   ScanContext: root, revision, read guards
       registry.py               #   scanner auto-discovery + packs
       config.py                 #   reconproject.json loader + root discovery
-      protected.py              #   protected-surface catalog (metadata + content-hash prefix — hash only)
+      protected.py              #   protected-surface catalog (metadata-only)
       determinism.py            #   sha256 pin / verify / regen
       graphio.py                #   merged-graph input loading (analytics/lenses)
       ledger.py                 #   findings fingerprint / dedup / severity
@@ -86,9 +86,7 @@ missing or malformed config degrades to defaults.
 | section | shape | meaning |
 |---|---|---|
 | `root.markers` | `["pyproject.toml", ...]` | project-root discovery markers, used when `--root` is not passed (`discover_root` walks up from CWD) |
-| `protected.patterns` | `[regex, ...]` | protected-path catalog. **Default-if-absent**: the built-in heritage catalog in `reconloop/protected.py`. `ctx.read_text()` returns `None` for protected paths (fail-closed); `ctx.meta_only()` returns metadata + content-hash prefix (first 1MiB, sha256-16) — hash only, values never emitted |
-| `protected.hash_content` | bool (default `true`) | hash gate: `false` ⇒ `meta_only()` never opens protected files (stat only; `content_sha256_prefix` empty). Owner-authorized: a sha256-16 prefix is a hash, not a value (rails: location/type/context/hash only) |
-| `protected.hash_bytes` | int (default `1048576`) | leading content bytes fed to the hash (the "first 1MiB" window) |
+| `protected.patterns` | `[regex, ...]` | protected-path catalog. **Default-if-absent**: the built-in heritage catalog in `reconloop/protected.py`. `ctx.read_text()` returns `None` for protected paths (fail-closed); `ctx.meta_only()` returns metadata only |
 | `ephemeral.layers` | `{"<layer>": "ephemeral"}` | per-layer stability override. Ephemeral layers are freshness-stamped (`layers/<name>.meta.json`) and **excluded from the determinism pin**. Mark every layer that reads live state (ports, crontab, wall clock) ephemeral |
 | `lenses.enabled` | `["lens_a", ...]` | non-empty list = allowlist: only these lenses run. Empty = all lenses run |
 | `lenses.disabled` | `["lens_b", ...]` | exclusion list (applied after `enabled`) |
@@ -180,7 +178,7 @@ ctx.revision      # pinned git revision (default "origin/main") — scan THIS, n
 ctx.graph_input   # merged-graph input path (analytics/lenses)
 ctx.abs(rel)      # root-relative Path
 ctx.is_protected(rel)   # protected-catalog classification
-ctx.meta_only(rel)      # metadata + content-hash prefix (first 1MiB, sha256-16) — hash only, values never emitted; gate protected.hash_content=false => stat only, file never opened
+ctx.meta_only(rel)      # stat metadata only (path/size/mtime/perm/sha256-prefix)
 ctx.read_text(rel)      # file content — returns None for protected paths (fail-closed)
 ```
 
@@ -197,8 +195,7 @@ Behavioral rules that bind every scanner:
   in record ids or props that affect output. Read filesystem state at
   `ctx.revision` (rev-pinning, §2.5), not from the live worktree.
 - **No secret VALUES.** Location/type/context/hash only. `props` carries
-  metadata + content-hash prefixes, never key material or values;
-  `ctx.read_text()` refuses protected paths.
+  metadata, never key material; `ctx.read_text()` refuses protected paths.
 - **Findings start unverified.** Every finding is created with
   `verified=False`, `status="open"`; fingerprints are assigned by the engine
   at write time (`sha256({sev, dim, desc[:200]})[:16]`), then findings are
@@ -259,10 +256,7 @@ The active catalog is `reconproject.json → protected.patterns` (each string
 is a regex, matched against slash-normalized relative paths); when absent,
 the built-in heritage catalog in `reconloop/protected.py` applies
 (default-if-absent). `protected_paths` scanner emits `protected_path:` nodes
-(metadata + content-hash prefix — first 1MiB, sha256-16 — hash only, values
-never emitted; gate `protected.hash_content`, default `true`, off ⇒ stat
-only, file never opened). Each node records `hash_content` and `hash_bytes`.
-For a new project, put your patterns in the config, not in
+(metadata only). For a new project, put your patterns in the config, not in
 `protected.py`.
 
 ### 2.7 Fail-closed
@@ -568,10 +562,8 @@ Analytics also emit query tables as nodes (`query:<name>`, kind
 - **No egress** — network is disallowed unless a scanner is explicitly
   network-gated (shipped example: `deps_audit` behind
   `GRAPH_RECON_NET_AUDIT=1`).
-- Protected surfaces: `ctx.meta_only()` returns metadata + content-hash
-  prefix (first 1MiB, sha256-16) — hash only, values never emitted (gate
-  `protected.hash_content`, default `true`; `false` ⇒ stat only, file never
-  opened). `ctx.read_text()` returns `None` for protected paths (fail-closed).
+- Protected surfaces: metadata-only via `ctx.meta_only()`; `ctx.read_text()`
+  returns `None` for protected paths (fail-closed).
 - Deterministic outputs: sorted emission, no timestamps/PIDs in ids,
   rev-pinned reads, content-addressed evidence.
 - Tracked promotion via PRs only.

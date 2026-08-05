@@ -139,8 +139,7 @@ def test_init_refuses_nonempty_unrelated_dir() -> None:
         (target / "README.md").write_text("keep me")
         proc = run_init(target)
         assert proc.returncode == 1 and "REFUSE" in proc.stdout
-
-
+        assert (target / "README.md").read_text() == "keep me"
 
 
 def test_template_root_resolution_prefers_data_files() -> None:
@@ -280,96 +279,13 @@ def test_wheel_layout_ships_complete_template() -> None:
     print("wheel-layout: static data-files assertion OK (no build backend)")
 
 
-
-def test_init_refuses_template_tree_targets() -> None:
-    """M5-W3 (defect 6): a target that equals or CONTAINS the template root
-    is refused with ScaffoldSafetyError (CLI rc 2), --force does not
-    override it, and an unrelated dir still scaffolds fine."""
-    import reconloop.scaffold as sc
-    tpl = Path(sc.__file__).resolve().parent.parent  # dir containing reconloop/
-    assert (tpl / "reconloop").is_dir(), "template root must contain reconloop/"
-    # equality: target == template root (with and without --force)
-    for force in (False, True):
-        try:
-            sc.scaffold_project(str(tpl), force=force)
-            raise AssertionError(f"expected ScaffoldSafetyError (force={force})")
-        except sc.ScaffoldSafetyError:
-            pass
-        except sc.ScaffoldError:
-            raise AssertionError("safety refusal must be ScaffoldSafetyError, "
-                                 "not the plain non-empty refusal") from None
-    # containment: target is an ancestor of the template root
-    try:
-        sc.scaffold_project(str(tpl.parent), force=True)
-        raise AssertionError("expected ScaffoldSafetyError for ancestor target")
-    except sc.ScaffoldSafetyError:
-        pass
-    # CLI: rc 2 with an explicit error, --force does not override
-    p = subprocess.run([sys.executable, "-m", "reconloop.cli", "init",
-                        str(tpl), "--force"], cwd=str(ROOT), capture_output=True,
-                       text=True, timeout=180, env=_env())
-    assert p.returncode == 2, p.stdout + p.stderr
-    assert "REFUSE" in p.stdout and "template" in p.stdout.lower(), p.stdout
-    # the template tree is untouched
-    assert (tpl / "reconloop" / "cli.py").exists()
-    # unrelated dir is still allowed
-    with tempfile.TemporaryDirectory() as td:
-        target = Path(td) / "proj"
-        res = sc.scaffold_project(str(target))
-        assert (target / "reconloop" / "cli.py").exists()
-        assert res["target"] == str(target.resolve())
-        assert (target / "reconproject.json").exists()
-
-
 if __name__ == "__main__":
     for fn in (test_init_scaffolds_project_files,
                test_init_run_works_on_scaffold,
                test_init_idempotent_refuse_then_force,
                test_init_refuses_nonempty_unrelated_dir,
                test_template_root_resolution_prefers_data_files,
-               test_init_refuses_template_tree_targets,
                test_wheel_layout_ships_complete_template):
         fn()
         print(f"OK {fn.__name__}")
     print("test_init OK (all)")
-
- 
- 
-def test_init_refuses_template_tree_targets() -> None:
-    """M5-W3 (defect 6): a target that equals or CONTAINS the template root
-    is refused with ScaffoldSafetyError (CLI rc 2), --force does not
-    override it, and an unrelated dir still scaffolds fine."""
-    import reconloop.scaffold as sc
-    tpl = Path(sc.__file__).resolve().parent.parent  # dir containing reconloop/
-    assert (tpl / "reconloop").is_dir(), "template root must contain reconloop/"
-    # equality: target == template root (with and without --force)
-    for force in (False, True):
-        try:
-            sc.scaffold_project(str(tpl), force=force)
-            raise AssertionError(f"expected ScaffoldSafetyError (force={force})")
-        except sc.ScaffoldSafetyError:
-            pass
-        except sc.ScaffoldError:
-            raise AssertionError("safety refusal must be ScaffoldSafetyError, "
-                                 "not the plain non-empty refusal") from None
-    # containment: target is an ancestor of the template root
-    try:
-        sc.scaffold_project(str(tpl.parent), force=True)
-        raise AssertionError("expected ScaffoldSafetyError for ancestor target")
-    except sc.ScaffoldSafetyError:
-        pass
-    # CLI: rc 2 with an explicit error, --force does not override
-    p = subprocess.run([sys.executable, "-m", "reconloop.cli", "init",
-                        str(tpl), "--force"], cwd=str(ROOT), capture_output=True,
-                       text=True, timeout=180, env=_env())
-    assert p.returncode == 2, p.stdout + p.stderr
-    assert "REFUSE" in p.stdout and "template" in p.stdout.lower(), p.stdout
-    # the template tree is untouched
-    assert (tpl / "reconloop" / "cli.py").exists()
-    # unrelated dir is still allowed
-    with tempfile.TemporaryDirectory() as td:
-        target = Path(td) / "proj"
-        res = sc.scaffold_project(str(target))
-        assert (target / "reconloop" / "cli.py").exists()
-        assert res["target"] == str(target.resolve())
-        assert (target / "reconproject.json").exists()

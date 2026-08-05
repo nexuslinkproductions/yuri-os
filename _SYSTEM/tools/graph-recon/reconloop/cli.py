@@ -2,7 +2,7 @@
 from __future__ import annotations
 import argparse, json, sys
 from pathlib import Path
-from .registry import load_scanners
+from .registry import load_scanners, import_failures
 from pathlib import Path as _P
 from .context import ScanContext
 from .determinism import pin, verify, sha256_file
@@ -48,6 +48,38 @@ def _write_error_layer(layers: Path, name: str, err: Exception) -> None:
     ).to_jsonl() + "\n")
 
 
+def _write_import_error_layer(layers: Path, fail: dict) -> None:
+    """M5-W3 (defect 4): scanner import failure -> <name>.ERROR.jsonl so the
+    missing scanner is visible in the layer dir, never a silent skip."""
+    from .model import Node
+    stem = fail["file"][:-3] if fail["file"].endswith(".py") else fail["file"]
+    (layers / f"{stem}.ERROR.jsonl").write_text(Node(
+        id=f"error:{stem}",
+        kind="error",
+        props={"error": fail["error"][:500], "type": fail["type"],
+               "module": fail["module"]},
+        evidence=["registry import fail-closed (M5-W3)"],
+        src="cli",
+    ).to_jsonl() + "\n")
+
+
+def _write_config_error_layer(layers: Path, errors: list) -> None:
+    """M5-W3 (defect 7): invalid configured regex -> config.ERROR.jsonl with
+    each bad pattern named; the run fails closed (rc 1)."""
+    from .model import Node
+    lines = []
+    for e in errors:
+        lines.append(Node(
+            id="error:config",
+            kind="error",
+            props={"error": e["error"][:500], "pattern": e["pattern"][:200],
+                   "type": "re.error", "source": "protected.patterns"},
+            evidence=["config validation fail-closed (M5-W3)"],
+            src="cli",
+        ).to_jsonl())
+    (layers / "config.ERROR.jsonl").write_text("\n".join(lines) + "\n")
+
+
 def cmd_run(args) -> int:
     cfg = _load_config()
     packs = _resolve_packs(args)
@@ -57,6 +89,33 @@ def cmd_run(args) -> int:
     ctx = ScanContext(args.root, revision=args.revision, graph_input=args.graph_input)
     layers = _P(args.layers); layers.mkdir(parents=True, exist_ok=True)
     findings_dir = _P(args.findings_dir); findings_dir.mkdir(parents=True, exist_ok=True)
+    # M5-W3 (defect 7): invalid configured regex -> config error record + rc 1,
+    # never a crash mid-import (protected.py compiles per-pattern, records
+    # errors, and the run fails closed naming the bad pattern).
+    from . import protected as _protected  # noqa: E402
+    ce = _protected.config_errors()
+    if ce:
+        _write_config_error_layer(layers, ce)
+        pats = ", ".join(repr(e.get("pattern", "?")) for e in ce)
+        print(f"[run] CONFIG FAIL-CLOSED: invalid protected.patterns regex(es): "
+              f"{pats}; no merge/pin emitted")
+        return 1
+    # M5-W3 (defect 4): scanner import failures -> <name>.ERROR.jsonl + rc 1
+    # (fail-closed); --tolerate-import-errors opts out (layers still written,
+    # failures reported in the run summary).
+    imp_failures = import_failures()
+    tolerate = bool(getattr(args, "tolerate_import_errors", False))
+    if imp_failures:
+        for f in imp_failures:
+            _write_import_error_layer(layers, f)
+            print(f"[run] IMPORT FAIL: {f['file']}: {f['error']}")
+        if not tolerate:
+            print(f"[run] IMPORT FAIL-CLOSED: {len(imp_failures)} scanner(s) failed "
+                  f"to import; no merge/pin emitted "
+                  f"(--tolerate-import-errors to override)")
+            return 1
+        print(f"[run] IMPORT FAIL tolerated: {len(imp_failures)} scanner(s) missing "
+              f"from the registry (ERROR layers written)")
     # M4-W1 config: per-layer stability overrides + lens gates + review budget
     ephem_ovr = cfg.get("ephemeral", {}).get("layers", {}) or {}
     lens_cfg = cfg.get("lenses", {}) or {}
@@ -136,6 +195,11 @@ def cmd_run(args) -> int:
     # M1.6: write dup report next to the pin
     (graph.parent / "graph.dedup-report.json").write_text(
         json.dumps(dup_report, indent=2, sort_keys=True) + "\n")
+    # M5-W3 (defect 4): tolerated import failures are reported in the run
+    # summary (fail-closed default already returned above).
+    imp_tail = ""
+    if imp_failures:
+        imp_tail = f" | imports: {len(imp_failures)} failure(s) tolerated (ERROR layers written)"
     # M1.5 item 6: analysis-bundle manifest (metadata; never part of the pin)
     input_pin = ""
     input_label = ""
@@ -154,7 +218,7 @@ def cmd_run(args) -> int:
     bundle.write_manifest(layers, man)
     print(f"[merge] {len(pinned_layers)} stable layers ({len(stability)} total) -> "
           f"{len(merged_raw)} raw / {len(merged)} deduped records | "
-          f"sha256 {s[:16]}... | dups {dup_report['duplicates_removed']}")
+          f"sha256 {s[:16]}... | dups {dup_report['duplicates_removed']}{imp_tail}")
     return 0
 
 
@@ -236,9 +300,12 @@ def cmd_init(args) -> int:
     Idempotent: refuses to overwrite a non-empty target unless --force;
     prints first-run instructions on success.
     """
-    from .scaffold import scaffold_project, ScaffoldError  # noqa: E402
+    from .scaffold import scaffold_project, ScaffoldError, ScaffoldSafetyError  # noqa: E402
     try:
         info = scaffold_project(args.target, force=args.force)
+    except ScaffoldSafetyError as e:
+        print(f"[init] REFUSE (safety): {e}")
+        return 2
     except ScaffoldError as e:
         print(f"[init] REFUSE: {e}")
         return 1
@@ -271,11 +338,17 @@ def _verb_args(args) -> dict:
 def cmd_query(args) -> int:
     """M4-W2: read-only queries over a merged graph JSONL (deterministic
     JSONL to stdout). Data records first (sorted), then one terminal status
-    record. rc: 0 = ran (ok/not_found/unreachable), 1 = input error,
-    2 = unknown verb."""
-    from .query import load_graph, VERBS, QueryError  # noqa: E402
+    record. rc: 0 = ran (ok/not_found/unreachable), 1 = input error
+    (missing/unreadable graph), 2 = structurally invalid record(s) (the
+    error record lists the offending line numbers) or unknown verb."""
+    from .query import load_graph, VERBS, QueryError, InvalidRecordError  # noqa: E402
     try:
         nodes, edges = load_graph(args.graph)
+    except InvalidRecordError as e:
+        print(json.dumps({"query": getattr(args, "verb", None),
+                          "status": "error", "error": str(e),
+                          "lines": e.lines}, sort_keys=True))
+        return 2
     except QueryError as e:
         print(json.dumps({"query": getattr(args, "verb", None),
                           "status": "error", "error": str(e)}, sort_keys=True))
@@ -296,9 +369,9 @@ def main() -> int:
     p = argparse.ArgumentParser(prog="graph-recon")
     sub = p.add_subparsers(dest="cmd", required=True)
     sp = sub.add_parser("scan"); sp.add_argument("--root", default=None); sp.add_argument("--scanners-dir", default="scanners"); sp.add_argument("--packs", default="", help="comma/space-separated optional scanner packs (e.g. yuri)")
-    sp = sub.add_parser("run"); sp.add_argument("--root", default=None); sp.add_argument("--scanners-dir", default="scanners"); sp.add_argument("--layers", required=True); sp.add_argument("--graph", required=True); sp.add_argument("--pin", required=True); sp.add_argument("--findings-dir", default="findings"); sp.add_argument("--revision", default="origin/main"); sp.add_argument("--graph-input", default=""); sp.add_argument("--packs", default="", help="comma/space-separated optional scanner packs (e.g. yuri)")
+    sp = sub.add_parser("run"); sp.add_argument("--root", default=None); sp.add_argument("--scanners-dir", default="scanners"); sp.add_argument("--layers", required=True); sp.add_argument("--graph", required=True); sp.add_argument("--pin", required=True); sp.add_argument("--findings-dir", default="findings"); sp.add_argument("--revision", default="origin/main"); sp.add_argument("--graph-input", default=""); sp.add_argument("--packs", default="", help="comma/space-separated optional scanner packs (e.g. yuri)"); sp.add_argument("--tolerate-import-errors", action="store_true", help="continue (rc 0) when a scanner file fails to import; ERROR layers are still written and reported")
     sp = sub.add_parser("merge"); sp.add_argument("--layers", required=True); sp.add_argument("--graph", required=True); sp.add_argument("--pin", required=True)
-    sp = sub.add_parser("verify"); sp.add_argument("--graph", required=True); sp.add_argument("--pin", required=True); sp.add_argument("--rerun", action="store_true"); sp.add_argument("--root", default=None); sp.add_argument("--scanners-dir", default="scanners"); sp.add_argument("--layers", default=None); sp.add_argument("--findings-dir", default="findings"); sp.add_argument("--revision", default="origin/main"); sp.add_argument("--graph-input", default=""); sp.add_argument("--packs", default="", help="comma/space-separated optional scanner packs (e.g. yuri)")
+    sp = sub.add_parser("verify"); sp.add_argument("--graph", required=True); sp.add_argument("--pin", required=True); sp.add_argument("--rerun", action="store_true"); sp.add_argument("--root", default=None); sp.add_argument("--scanners-dir", default="scanners"); sp.add_argument("--layers", default=None); sp.add_argument("--findings-dir", default="findings"); sp.add_argument("--revision", default="origin/main"); sp.add_argument("--graph-input", default=""); sp.add_argument("--packs", default="", help="comma/space-separated optional scanner packs (e.g. yuri)"); sp.add_argument("--tolerate-import-errors", action="store_true", help="continue (rc 0) when a scanner file fails to import (verify --rerun forwards to run)")
     sp = sub.add_parser("ledger"); sp.add_argument("--findings", required=True)
     sp = sub.add_parser("manifest"); sp.add_argument("--manifest", required=True)
     sp = sub.add_parser("init", help="scaffold a NEW graph-recon project at <target> (idempotent; --force to regenerate)")
@@ -329,6 +402,20 @@ def cmd_scan(args) -> int:
     args.root = _resolve_root(args)
     ctx = ScanContext(args.root)
     print(f"[scan] {len(scanners)} scanners loaded: {', '.join(sorted(scanners))}")
+    # M5-W3 (defect 4/7): scan is a validation surface too — a broken scanner
+    # import or an invalid configured regex must not be a silent no-op.
+    fails = import_failures()
+    if fails:
+        for f in fails:
+            print(f"[scan] IMPORT FAIL: {f['file']}: {f['error']}")
+        print(f"[scan] IMPORT FAIL-CLOSED: {len(fails)} scanner(s) failed to import")
+        return 1
+    from . import protected as _protected  # noqa: E402
+    ce = _protected.config_errors()
+    if ce:
+        print("[scan] CONFIG FAIL-CLOSED: invalid protected.patterns regex(es): "
+              + ", ".join(repr(e.get("pattern", "?")) for e in ce))
+        return 1
     return 0
 
 

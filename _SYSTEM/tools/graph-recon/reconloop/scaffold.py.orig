@@ -23,13 +23,6 @@ non-empty target unless force=True (returns/raises rather than clobbering);
 with force=True the managed files are regenerated deterministically. The
 target directory itself is created if missing.
 
-M5-W3 (Athena blocker 6): the template's own tree is NEVER a valid target.
-When the resolved target equals the template root (the dir containing
-reconloop/) or contains it (target is an ancestor), scaffold_project raises
-ScaffoldSafetyError (CLI rc 2) before touching anything — --force does not
-override this guard, because force-regeneration would rmtree the engine's
-own reconloop/scanners/packs.
-
 All content is deterministic: no timestamps, no PIDs, sorted key JSON.
 """
 from __future__ import annotations
@@ -83,11 +76,6 @@ _GENERATED = ("reconproject.json", ".gitignore")
 
 class ScaffoldError(RuntimeError):
     """Refusal: target exists non-empty and force=False."""
-
-
-class ScaffoldSafetyError(ScaffoldError):
-    """Refusal: target equals or contains the template root — destructive
-    even with --force (would overwrite the engine's own tree). CLI rc 2."""
 
 
 def _ignore_pycache(directory: str, names: list) -> set:
@@ -159,20 +147,6 @@ def scaffold_project(target: str | Path, force: bool = False,
     if template_root is None:
         template_root = resolve_template_root(Path(__file__).resolve(),
                                               Path(sys.prefix))
-    template_root = template_root.resolve()
-
-    # M5-W3 (defect 6): equality/containment safety guard — scaffold must
-    # never target the template's own tree. Checked BEFORE the force logic:
-    # --force must not override this (regeneration would rmtree the engine's
-    # own reconloop/). A descendant target (new project inside the template
-    # dir) is allowed.
-    if target == template_root or template_root.is_relative_to(target):
-        raise ScaffoldSafetyError(
-            f"refusing to scaffold into the template's own tree: target "
-            f"{target} equals or contains the template root {template_root} "
-            f"(init would overwrite the engine's reconloop/scanners/packs) — "
-            f"choose a target outside the template; --force does not override "
-            f"this guard")
 
     if target.exists() and not target.is_dir():
         raise ScaffoldError(f"refusing to scaffold: {target} exists and is not a directory")

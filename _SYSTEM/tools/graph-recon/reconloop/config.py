@@ -7,6 +7,12 @@ stock template behaves exactly like the pre-config engine):
   protected — path patterns for the protected catalog. Default-if-absent:
               when the file or this section is missing/empty, reconloop/
               protected.py falls back to its built-in heritage catalog.
+              hash_content (bool, default true): content-hash prefix on/off.
+              Owner-authorized: hashing is allowed by the rails (location/
+              type/context/hash only — a sha256 prefix is a hash, never a
+              value). When false, meta_only() skips opening protected files
+              entirely (stat only). hash_bytes (int, default 1048576):
+              number of leading content bytes fed to the hash.
   ephemeral — per-layer stability overrides ("ephemeral" | "stable"); keys are
               scanner layer names, values override the scanner-declared
               layer_stability (ephemeral layers are excluded from the
@@ -35,7 +41,9 @@ from pathlib import Path
 DEFAULTS: dict = {
     "root": {"markers": ["pyproject.toml", "package.json", "go.mod",
                           "Cargo.toml", "Gopkg.toml", "build.gradle", ".git"]},
-    "protected": {"patterns": []},   # empty => heritage catalog fallback
+    "protected": {"patterns": [],     # empty => heritage catalog fallback
+                   "hash_content": True,   # content-hash prefix on/off (owner-authorized)
+                   "hash_bytes": 1048576}, # leading bytes hashed (first 1MiB)
     "ephemeral": {"layers": {}},
     "lenses": {"enabled": [], "disabled": [], "admission": {}},
     "review": {"max_findings_per_layer": 100},

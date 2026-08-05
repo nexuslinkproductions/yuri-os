@@ -12,6 +12,13 @@
      `node_modules`, private keys, runtime data dirs, agent runtime dirs. When
      the config or its `protected` section is absent, the built-in heritage
      catalog in `reconloop/protected.py` is used (default-if-absent).
+   - `protected.hash_content` (bool, default `true`): metadata + content-hash
+     prefix (first `protected.hash_bytes` bytes, default 1048576 = first 1MiB,
+     sha256-16) — hash only, values never emitted (owner-authorized: location/
+     type/context/hash only). Set `false` to skip hashing entirely: protected
+     files are then stat-only and never opened.
+   - `protected.hash_bytes` (int, default 1048576): leading bytes fed to the
+     hash; tune down to shrink the hashing window (smallest legal value 1).
    - `lenses.enabled` (non-empty = allowlist) / `lenses.disabled` /
      `lenses.admission` (per-lens threshold overrides).
    - `ephemeral.layers`: mark extra layers ephemeral (excluded from the
@@ -49,7 +56,7 @@
 ## Rails (binding)
 - Read-only scans. NO secret VALUES in output (location/type/context/hash only). NO egress.
 - Keychain = NODE-ONLY (zero access).
-- Protected surfaces (protected.py catalog): metadata-only via `ctx.meta_only()` — path/size/mtime/perm/sha256-prefix. `ctx.read_text()` returns None for protected paths (fail-closed).
+- Protected surfaces (protected.py catalog): `ctx.meta_only()` returns metadata + content-hash prefix (first 1MiB, sha256-16) — hash only, values never emitted (owner-authorized; `protected.hash_content: false` ⇒ stat only, file never opened). `ctx.read_text()` returns None for protected paths (fail-closed).
 - Tracked promotion via PRs only.
 
 ## CLI

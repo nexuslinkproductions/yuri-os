@@ -1,4 +1,4 @@
-"""Protected-surface catalog (metadata + content-hash prefix — hash only).
+"""Protected-surface catalog (metadata-only classification).
 
 Config-driven since M4-W1: patterns come from reconproject.json
 (`protected.patterns`) when present; otherwise the built-in heritage catalog
@@ -109,64 +109,17 @@ def is_protected(rel_path: str) -> bool:
     return any(r.search(p) for r in CATALOG)
 
 
-def meta_only(path: Path, hash_content: bool | None = None,
-              hash_bytes: int | None = None) -> dict:
-    """Protected-file inspection: metadata + content-hash prefix — hash only,
-    values never emitted.
-
-    Reads stat metadata (path/size/mtime/perm) and, when hashing is enabled,
-    opens the file and hashes the first `hash_bytes` bytes (default 1MiB) to
-    a sha256-16 prefix. A hash prefix is not a value (owner rails: location/
-    type/context/hash only), so this is authorized. When the config gate
-    `protected.hash_content` is false, content is NEVER opened: stat only,
-    and `content_sha256_prefix` is empty.
-
-    Explicit args override the config gate; otherwise the gate is read from
-    reconproject.json at call time (env override first, engine config second).
-    Returns None (via "exists": false) when the path is missing; hash errors
-    degrade to an empty prefix, never to an exception.
-    """
-    if hash_content is None or hash_bytes is None:
-        gate_content, gate_bytes = _hash_gate()
-        if hash_content is None:
-            hash_content = gate_content
-        if hash_bytes is None:
-            hash_bytes = gate_bytes
+def meta_only(path: Path) -> dict:
+    """Metadata-only stat: never opens content. Returns hash of content bytes
+    (a hash is not a value — safe for evidence), or None when unreadable."""
     try:
         st = path.stat()
         sha = None
-        if hash_content:
-            try:
-                import hashlib
-                with path.open("rb") as f:
-                    sha = hashlib.sha256(f.read(hash_bytes)).hexdigest()
-            except Exception:
-                sha = None
+        try:
+            import hashlib
+            with open(path, "rb") as f: sha = hashlib.sha256(f.read(1 << 20)).hexdigest()  # first 1MiB only
+        except Exception: sha = None
         return {"path": str(path), "exists": True, "size": st.st_size,
-                "mtime": st.st_mtime, "perm_octal": oct(st.st_mode & 0o777),
-                "hash_content": bool(hash_content), "hash_bytes": hash_bytes,
-                "content_sha256_prefix": (sha or "")[:16]}
+                "mtime": st.st_mtime, "perm_octal": oct(st.st_mode & 0o777), "content_sha256_prefix": (sha or "")[:16]}
     except FileNotFoundError:
         return {"path": str(path), "exists": False}
-
-
-def _hash_gate() -> tuple[bool, int]:
-    """reconproject.json protected.hash_content / protected.hash_bytes.
-
-    Fail-open: missing/malformed config or wrong types => defaults
-    (hash_content True, hash_bytes 1048576).
-    """
-    cfg_path = _resolve(None)
-    hash_content, hash_bytes = True, 1 << 20
-    if cfg_path is not None and cfg_path.exists():
-        try:
-            from .config import load_reconproject
-            prot = load_reconproject(cfg_path).get("protected") or {}
-            if isinstance(prot.get("hash_content"), bool):
-                hash_content = prot["hash_content"]
-            hb = prot.get("hash_bytes")
-            if isinstance(hb, int) and hb > 0:
-                hash_bytes = hb
-        except Exception:
-            pass
-    return hash_content, hash_bytes

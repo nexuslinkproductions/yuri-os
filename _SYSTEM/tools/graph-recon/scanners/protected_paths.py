@@ -1,4 +1,4 @@
-"""Protected surfaces -> protected_path nodes (read-only, metadata-only).
+"""Protected surfaces -> protected_path nodes (read-only; metadata + content-hash prefix — hash only, values never emitted).
 
 Config-driven since M4-W1: the catalog is the active pattern set from
 reconproject.json `protected.patterns` (with the built-in heritage catalog as
@@ -9,8 +9,12 @@ always agree.
 Walk is bounded and deterministic: the tree is walked in sorted order,
 protected directories are surfaced but never descended into (node_modules,
 .git, secrets dirs stay shallow), and records are emitted sorted by id.
-Content is never opened — stat metadata only (hash prefix is a hash, not a
-value; safe for evidence).
+Protected content is handled via ctx.meta_only(): metadata + content-hash
+prefix (first 1MiB, sha256-16) — hash only, values never emitted. The
+reconproject.json gate protected.hash_content (default true) switches
+hashing off; when false, meta_only() never opens the file (stat only) and
+each node records hash_content:false. Every node records hash_content and
+hash_bytes so consumers can see exactly what was touched.
 """
 from __future__ import annotations
 from .base import BaseScanner, ScanResult
@@ -39,6 +43,7 @@ class ProtectedPathsScanner(BaseScanner):
                     meta = ctx.meta_only(rel) if p.exists() else {"path": rel, "exists": False}
                     meta["surface"] = "protected"
                     meta["scan_state"] = "scanned"
+                    meta.setdefault("hash_content", False)  # missing file: nothing hashed
                     nid = f"protected_path:{rel}"
                     if nid not in seen:
                         seen.add(nid)

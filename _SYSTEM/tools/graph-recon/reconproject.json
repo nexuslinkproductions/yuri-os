@@ -16,7 +16,9 @@
       "id_rsa$|id_ed25519$|id_dsa$|id_ecdsa$|\\.pem$|\\.key$|\\.p12$|\\.pfx$",
       "(^|/)(data|runtime|\\.cache)(/|$)",
       "(^|/)(\\.claude|\\.codex|\\.cursor|\\.pi|\\.omp|\\.smart-env)(/|$)"
-    ]
+    ],
+    "hash_content": true,
+    "hash_bytes": 1048576
   },
   "ephemeral": {
     "layers": {

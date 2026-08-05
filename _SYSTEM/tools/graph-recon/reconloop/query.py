@@ -9,6 +9,14 @@ set (cycle-safe); no timestamps/PIDs anywhere. Fail-closed on input
 problems: QueryError is raised and the CLI emits a single `status:error`
 record with a nonzero exit — never a partial answer.
 
+M5-W3 (Athena blocker 5): strict per-line record validation. Every line
+must be a JSON object that is either a node (`id` + `kind`, non-empty
+strings) or an edge (`from` + `to` + `kind`, non-empty strings); anything
+else (arrays, scalars, unknown shapes, missing fields, unparseable JSON)
+raises InvalidRecordError with the offending line numbers and the CLI exits
+rc 2. exec-path reconstructs edges strictly within EXEC_PATH_KINDS — a
+parallel edge with an excluded kind is never emitted.
+
 Verbs (implemented in the CLI as `query --graph <file> <verb> [args]`):
 
   touchers <node-id>  — distinct nodes connected to <node-id> by ANY edge
@@ -54,12 +62,29 @@ class QueryError(RuntimeError):
     """Input-level failure (missing/unreadable graph). Fail-closed."""
 
 
+class InvalidRecordError(QueryError):
+    """Structurally invalid record(s) at known line numbers (CLI rc 2).
+
+    Carries `lines`: the 1-based line numbers of every offending record,
+    so the CLI can report exactly which lines failed validation.
+    """
+    def __init__(self, message: str, lines: list[int]):
+        super().__init__(message)
+        self.lines = sorted(lines)
+
+
 def load_graph(path: str | Path) -> tuple[dict, list]:
     """Return (nodes_by_id, edges_sorted). Raises QueryError on any problem.
 
     nodes: {id: record} (last record wins, file order preserved); edges:
     list sorted by (from, to, kind) — the same canonical order graphio uses,
     so parallel edges tie-break stably.
+
+    Strict per-line validation (M5-W3): each non-empty line must parse as a
+    JSON object with either node shape (id + kind) or edge shape (from + to
+    + kind), all non-empty strings. Violations raise InvalidRecordError
+    (rc 2 at the CLI) listing the offending line numbers; the file is
+    rejected wholesale — no partial answer.
     """
     p = Path(path)
     if not p.exists():
@@ -67,19 +92,44 @@ def load_graph(path: str | Path) -> tuple[dict, list]:
     nodes: dict = {}
     edges: list = []
     try:
-        for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
-            if not line.strip():
-                continue
-            rec = json.loads(line)
-            if not isinstance(rec, dict):
-                continue
-            if "from" in rec and "to" in rec:
-                edges.append(rec)
-            elif "id" in rec:
-                nodes[rec["id"]] = rec
-    except Exception as e:  # noqa: BLE001 — fail-closed contract
+        text = p.read_text(encoding="utf-8", errors="replace")
+    except OSError as e:
         raise QueryError(f"graph unreadable: {e}") from None
-    edges.sort(key=lambda e: (e["from"], e["to"], e.get("kind", "")))
+    bad: list[tuple[int, str]] = []
+    for lineno, line in enumerate(text.splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            rec = json.loads(line)
+        except Exception as e:  # noqa: BLE001 — invalid JSON line
+            bad.append((lineno, f"invalid JSON: {e}"))
+            continue
+        if not isinstance(rec, dict):
+            bad.append((lineno, f"record is {type(rec).__name__}, expected object"))
+            continue
+        if "from" in rec or "to" in rec:
+            ok = (isinstance(rec.get("from"), str) and rec.get("from") != ""
+                  and isinstance(rec.get("to"), str) and rec.get("to") != ""
+                  and isinstance(rec.get("kind"), str) and rec.get("kind") != "")
+            if not ok:
+                bad.append((lineno, "edge record needs string from/to/kind"))
+                continue
+            edges.append(rec)
+        elif "id" in rec:
+            ok = (isinstance(rec.get("id"), str) and rec.get("id") != ""
+                  and isinstance(rec.get("kind"), str) and rec.get("kind") != "")
+            if not ok:
+                bad.append((lineno, "node record needs string id/kind"))
+                continue
+            nodes[rec["id"]] = rec
+        else:
+            bad.append((lineno, "unknown record shape (neither node nor edge)"))
+    if bad:
+        detail = "; ".join(f"line {n}: {m}" for n, m in bad)
+        raise InvalidRecordError(
+            f"{len(bad)} structurally invalid record(s): {detail}",
+            [n for n, _ in bad])
+    edges.sort(key=lambda e: (e["from"], e["to"], e["kind"]))
     return nodes, edges
 
 
@@ -176,8 +226,10 @@ def exec_path(nodes: dict, edges: list, from_id: str, to_id: str
                 path_ids.reverse()
                 recs = [_node_record(nodes, path_ids[0])]
                 for a, b in zip(path_ids, path_ids[1:]):
-                    cands = [e for e in edges if e["from"] == a and e["to"] == b]
-                    cands.sort(key=lambda e: (e.get("kind", ""),))
+                    cands = [e for e in edges
+                             if e["from"] == a and e["to"] == b
+                             and e["kind"] in EXEC_PATH_KINDS]
+                    cands.sort(key=lambda e: (e["kind"],))
                     recs.append(cands[0])
                     recs.append(_node_record(nodes, b))
                 return ("ok", recs,

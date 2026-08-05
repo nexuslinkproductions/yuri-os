@@ -8,6 +8,11 @@ project-agnostic and YURI-specific scanners ship as an optional pack.
 Each load_scanners call resets the registry and returns exactly the scanners
 from the requested dir(s) + packs — deterministic, no cross-call bleed.
 
+M5-W3 (Athena blocker 4): a scanner file that fails to import is NEVER a
+silent skip. The failure is recorded (import_failures()) with module/file/
+error, the run CLI writes <name>.ERROR.jsonl for each failed file and fails
+closed (rc 1) unless --tolerate-import-errors is given.
+
 Pack scanner modules use absolute imports (e.g. `from scanners.base import
 BaseScanner`) since they do not live inside the core scanners package.
 """
@@ -16,6 +21,7 @@ import importlib.util, inspect, sys, types
 from pathlib import Path
 
 _REGISTRY: dict = {}
+_FAILURES: list[dict] = []  # import failures of the most recent load call
 
 
 def _load_module(f: Path, pkg_dir: Path, modname: str) -> None:
@@ -34,6 +40,10 @@ def _load_module(f: Path, pkg_dir: Path, modname: str) -> None:
             if hasattr(cls, "name") and hasattr(cls, "run") and cls.__module__ == modname:
                 _REGISTRY[cls.name] = cls
     except Exception as e:
+        # M5-W3 (defect 4): record the failure — the run CLI turns this into
+        # <name>.ERROR.jsonl + rc 1 (fail-closed), never a silent skip.
+        _FAILURES.append({"module": modname, "file": f.name,
+                          "error": str(e)[:500], "type": type(e).__name__})
         print(f"[registry] skip {f.name}: {e}")
 
 
@@ -48,6 +58,16 @@ def _config_packs(template_root: Path | str | None) -> list[str]:
         return []
     from .config import load_reconproject
     return list(load_reconproject(Path(template_root) / "reconproject.json").get("packs") or [])
+
+
+def import_failures() -> list[dict]:
+    """Import failures recorded by the most recent load_scanners call.
+
+    Same module-state discipline as _REGISTRY: every load_scanners call
+    resets the list, so callers read it immediately after loading. Each
+    entry: {"module", "file", "error", "type"}.
+    """
+    return [dict(f) for f in _FAILURES]
 
 
 def load_scanners(scanners_dir: Path | str, template_root: Path | str | None = None,
@@ -69,6 +89,7 @@ def load_scanners(scanners_dir: Path | str, template_root: Path | str | None = N
     if str(scanners_dir.parent) not in sys.path:
         sys.path.insert(0, str(scanners_dir.parent))
     _REGISTRY.clear()  # deterministic: each call returns exactly its own set
+    _FAILURES.clear()  # ditto: import_failures() reflects only the last load
     if packs is None:
         packs = _config_packs(template_root)
     for f in sorted(scanners_dir.glob("*.py")):

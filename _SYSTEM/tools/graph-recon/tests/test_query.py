@@ -42,6 +42,10 @@ EDGES = [
     {"from": "env_file:.env", "to": "file:main.py", "kind": "env_to_process", "props": {}, "evidence": ["fixture"], "boundary": "none"},
     {"from": "service:svc", "to": "host:db", "kind": "network_conn", "props": {}, "evidence": ["fixture"], "boundary": "lan"},
     {"from": "service:svc", "to": "protected_path:.env", "kind": "spawns", "props": {}, "evidence": ["fixture"], "boundary": "none"},
+    # M5-W3 (defect 5): parallel non-exec edge on an exec-family hop — sorts
+    # before 'exec' but must NEVER be emitted by exec-path (strict kind
+    # filter on reconstruction), though it counts as a graph edge.
+    {"from": "script:run.sh", "to": "process:p1", "kind": "calls", "props": {}, "evidence": ["fixture"], "boundary": "none"},
 ]
 
 
@@ -52,7 +56,7 @@ def write_graph() -> Path:
     p = Path(td) / "graph.jsonl"
     lines = [json.dumps(n, sort_keys=True) for n in NODES]
     edges_shuffled = [EDGES[2], EDGES[9], EDGES[0], EDGES[5], EDGES[1],
-                      EDGES[7], EDGES[3], EDGES[8], EDGES[4], EDGES[6]]
+                      EDGES[7], EDGES[3], EDGES[8], EDGES[4], EDGES[6], EDGES[10]]
     lines += [json.dumps(e, sort_keys=True) for e in edges_shuffled]
     p.write_text("\n".join(lines) + "\n")
     return p
@@ -206,19 +210,67 @@ def test_query_protected_kind_filter() -> None:
     assert lines[-1] == {"query": "protected", "status": "ok", "count": 2}
 
 
+def test_query_exec_path_never_emits_excluded_parallel_kind() -> None:
+    """M5-W3 (defect 5): a parallel edge whose kind is outside the exec
+    vocabulary (calls — sorts before exec) must never be emitted on an
+    exec-path route; reconstruction filters strictly to EXEC_PATH_KINDS."""
+    p = write_graph()
+    rc, lines = run_query(p, "exec-path", from_id="script:run.sh",
+                          to_id="process:p1")
+    assert rc == 0
+    assert lines[-1] == {"query": "exec-path", "status": "ok",
+                         "from": "script:run.sh", "to": "process:p1",
+                         "hops": 1, "visited": 3}
+    # the emitted hop edge is the exec edge, NOT the parallel calls edge
+    assert lines[1] == edge("script:run.sh", "process:p1", "exec")
+    # contract: every emitted edge record's kind is inside the exec vocabulary
+    allowed = {"exec", "executes", "spawns", "network", "network_conn"}
+    for r in lines[:-1]:
+        if "from" in r and "to" in r:
+            assert r["kind"] in allowed, r
+
+
+def test_query_invalid_records_status_error_rc2() -> None:
+    """M5-W3 (defect 5): '[]', '{"foo":1}' and other structurally invalid
+    lines => a single status:error record listing the offending line numbers
+    with rc 2 — never a silent ok with a partial answer."""
+    td = Path(tempfile.mkdtemp(prefix="query_bad_"))
+    g = td / "bad.jsonl"
+    g.write_text('{"id":"a:1","kind":"node","props":{},"evidence":[],"src":"q"}\n'
+                 '[]\n'
+                 '{"foo":1}\n'
+                 '{"id":"no-kind"}\n'
+                 '{"from":"a:1","to":"b:2"}\n'
+                 'not json at all\n'
+                 '{"id":"b:2","kind":"node","props":{},"evidence":[],"src":"q"}\n')
+    rc, lines = run_query(g, "counts")
+    assert rc == 2
+    assert len(lines) == 1, lines
+    assert lines[0]["status"] == "error"
+    assert lines[0]["lines"] == [2, 3, 4, 5, 6], lines[0]
+    assert "line 2" in lines[0]["error"] and "line 6" in lines[0]["error"]
+    # same record rejected for every verb (validation happens at load)
+    rc2, lines2 = run_query(g, "touchers", node="a:1")
+    assert rc2 == 2 and lines2[0]["lines"] == [2, 3, 4, 5, 6]
+    # a valid graph still answers normally
+    p = write_graph()
+    rc, lines = run_query(p, "counts")
+    assert rc == 0 and lines[-1]["status"] == "ok"
+
+
 def test_query_counts_per_kind() -> None:
     p = write_graph()
     rc, lines = run_query(p, "counts")
     assert rc == 0
     data, summary = lines[:-1], lines[-1]
     assert summary == {"query": "counts", "status": "ok",
-                       "nodes": 10, "edges": 10}
+                       "nodes": 10, "edges": 11}
     by_key = {(d["record"], d["kind"]): d["count"] for d in data}
     assert by_key == {
         ("node", "env_file"): 1, ("node", "file"): 3, ("node", "port"): 1,
         ("node", "process"): 1, ("node", "protected_path"): 2,
         ("node", "script"): 1, ("node", "service"): 1,
-        ("edge", "calls"): 1, ("edge", "env_to_process"): 1,
+        ("edge", "calls"): 2, ("edge", "env_to_process"): 1,
         ("edge", "exec"): 1, ("edge", "executes"): 1,
         ("edge", "file_write"): 1, ("edge", "network"): 1,
         ("edge", "network_conn"): 2, ("edge", "spawns"): 2,
@@ -252,7 +304,7 @@ def test_query_cli_subprocess_smoke() -> None:
     assert proc.returncode == 0, proc.stderr
     lines = [json.loads(l) for l in proc.stdout.splitlines() if l.strip()]
     assert lines[-1] == {"query": "counts", "status": "ok",
-                         "nodes": 10, "edges": 10}
+                         "nodes": 10, "edges": 11}
 
 
 if __name__ == "__main__":
@@ -262,6 +314,8 @@ if __name__ == "__main__":
                test_query_exec_path_shortest_two_hop,
                test_query_exec_path_deterministic_tie_break,
                test_query_exec_path_negative_controls,
+               test_query_exec_path_never_emits_excluded_parallel_kind,
+               test_query_invalid_records_status_error_rc2,
                test_query_protected_kind_filter,
                test_query_counts_per_kind,
                test_query_missing_graph_file_fails_closed,

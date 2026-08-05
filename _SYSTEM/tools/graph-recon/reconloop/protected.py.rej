@@ -1,0 +1,13 @@
+@@ -9,6 +9,12 @@
+ .git, CI secrets, cloud configs, credentials, secrets dirs, node_modules,
+ runtime data dirs, agent runtime dirs). New projects edit their config file
+ instead of this module.
++
++Hashing gate: `protected.hash_content` (default true, owner-authorized — a
++sha256-16 prefix is a hash, never a value) controls whether meta_only()
++opens protected files to compute the content-hash prefix; false => stat
++only, content never opened. `protected.hash_bytes` (default 1048576) sets
++the hashing window.
+ """
+ from __future__ import annotations
+ import re
