@@ -66,6 +66,27 @@ source of truth for rebuilding `cgs_mold.py`. Owner method = **gun dip**, NOT th
    with `sweep_dip` from GUN_SOLID.
    <!-- @anchor: v1 | failure: cgs-mold sweep — G17 2026-07-01 stepped array + SIG1911 2026-07-02 attempts 1(array-steps)+2(classification-comb), owner-corrected twice "sweep is incomplete"/"must run muzzle all the way to the end" | regression: sweep_dip() log-doubling voxel-union; owner-confirmed "now it is correct" 2026-07-02 -->
 
+4b. **Pinhole repair — MANDATORY after every voxel remesh (`repair_pits`), VALIDATED 2026-08-03b.**
+   ★ FAILURE ANCHOR (René 2026-08-03b, Glock 45 + TLR-7 X): "Mold has little holes everywhere,
+   unacceptable!" — the v1 export shipped with ~90 visible black pinholes. Measured per stage
+   (`d = (mean₂ᵣᵢₙ𝗀 − v)·n`, `d > 0.3`): sealed scan `GUN_SOLID` **0** defects → after `sweep_dip`
+   **324**, max **1.40 mm deep on a 0.4 mm voxel**. The VOXEL REMESH manufactures them; the scan is
+   innocent. `smooth_mold` cannot fix it (1.40 → 1.28 over the whole 4-pass stage) — Taubin averages a
+   vertex with its neighbours, and a needle's neighbours sit on the crater wall.
+   **Rule of thumb that would have caught it at v1:** the dip is a MAX envelope, so it can only ADD
+   material — **any concavity on a swept flank did not come from the gun.** A speck field in a render
+   is a defect until measured otherwise, never "scan detail".
+   **THE FIX:** detect `|d| > thr`, cluster by edge adjacency, repair only **COMPACT** clusters
+   (bbox diag ≤ 2.5 mm) with a local umbrella Laplacian + 2-ring halo. A real crease/groove/serration
+   is an EXTENDED cluster → rejected untouched (proven live: the sharp cut corner registered
+   `dmin −4.53` and was correctly skipped). Threshold: `thr ≥ 0.25` → all clusters compact
+   (diag_max 2.07, extended 0); `thr 0.20` → real linear features enter (diag_max 23.6). **0.25 is the
+   boundary.** ⚠ An "isolated single vertex" guard was tried FIRST and FAILED (140 of 324 fixed,
+   dmax still 1.24) — a 1.3 mm crater has neighbours on its cone walls. **Compactness, not isolation.**
+   Cost: 324 → 15 → 0 in 3 rounds, 4,473 of 749,908 verts moved (0.6 %), mean 0.15 mm, manifold 0/0.
+   Run it on the swept solid, again after the booleans, and again after `smooth_mold`.
+   <!-- @anchor: v1 | failure: cgs-mold shipped a mold with ~90 voxel-remesh craters up to 1.4mm deep from a 0-defect scan; smooth_mold does not remove them; the dark specks were misread as scan detail in every render (René 2026-08-03b "little holes everywhere, unacceptable") | regression: repair_pits() in scripts/cgs_mold.py, compact-cluster discriminator, thr 0.25; pipeline step 2b in SKILL.md -->
+
 5. **Grip cut — VALIDATED & RE-VERIFIED 2026-06-29 (clean diagonal, manifold 0/0)** — diagonal cut,
    done as a **BOOLEAN DIFFERENCE with a separate CUBE cutter** (NOT bisect — bisect+holes_fill tore it).
    ★ PRECONDITION (the real one): the mold must be a **FILLED SOLID** (see ROOT CAUSE below), NOT a
@@ -108,6 +129,27 @@ source of truth for rebuilding `cgs_mold.py`. Owner method = **gun dip**, NOT th
    4. **crease re-straighten** — repeat (2) lightly after the deburr nudges.
    Result on HK45: max vert move ~1.4mm (worst tooth only), mean ~0.02mm, manifold 0/0.
    Auto-smooth-by-angle 30° for shading crispness (geometry already carries the edges).
+7b. **Regional ripple denoise — VALIDATED 2026-07-03 (`denoise_region`), OPTIONAL** — the default
+   `smooth_mold` deburr pass can still leave a fine "ripple" staircase noise on an otherwise-smooth
+   curved surface (e.g. the frame boss between grip checkering and the slide) that only shows under
+   raking/matcap light, not flat light — and it is NOT a design feature: real creases (rail grooves,
+   panel borders, checkering) carry genuine face-angle breaks, the ripple does not.
+   ★ FAILURE ANCHOR (René 2026-07-03, SIG P226 XFIVE LEGION): owner circled the rippled boss area in
+   a render screenshot after the build. Diagnosed via grid-binned Laplacian-magnitude clustering.
+   A vertex-color heatmap render was tried FIRST to visualize it and FAILED SILENTLY in headless
+   blender-mcp — solid red vertex colors never appeared in the opengl render output; that path is a
+   dead end, don't retry it. **THE FIX** mirrors `remove_overhang`'s box-restriction +
+   ring-expansion, but freezes real creases via `_feature`'s sharp-edge test (face-angle > 35°)
+   instead of a magnitude threshold — magnitude-gating was tried FIRST and was too conservative: a
+   threshold high enough to spare real edges left the ripple untouched, low enough to catch the
+   ripple ate real edges. Box-restrict spatially (Y/Z, optional X), freeze verts on a sharp edge,
+   ring-expand the box 2x so the fix blends without a seam, then run N Taubin pairs (λ0.5/μ-0.53) on
+   everything else in the box. Applied to `CGS_MOLD_SMOOTH` pre-decimate, then re-decimated,
+   re-exported. Evidence: target 21728 verts, max_disp 1.43mm (worst ripple crest), mean_disp
+   0.0084mm (confirms fine noise, not a real feature), manifold 0/0 preserved throughout.
+   **Owner's-eye-triggered, NOT automatic** — run only when a render shows ripple on an
+   otherwise-smooth region, between `smooth_mold` and `decimate_mold`.
+   <!-- @anchor: v1 | failure: cgs-mold voxel-remesh ripple survived smooth_mold's deburr on the SIG P226 XFIVE LEGION frame boss, visible only under raking/matcap light (René 2026-07-03); vertex-color heatmap diagnostic failed silently in headless blender-mcp | regression: denoise_region() in scripts/cgs_mold.py (box+sharp-freeze Taubin); VALIDATED live 2026-07-03, max_disp 1.43mm / mean_disp 0.0084mm, manifold 0/0 -->
 8. **Overhang cleanup — VALIDATED** (`remove_overhang`) — the boolean+voxel can leave a thin
    flap/hook "hanging over" the cut edge (HK45: a lip at the rear-top beavertail remnant,
    ~X14-15/Y87.5/Z7-14). A flap does NOT respond to gentle Laplacian (its verts average with

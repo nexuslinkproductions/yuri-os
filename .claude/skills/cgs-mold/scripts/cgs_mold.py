@@ -421,6 +421,124 @@ def remove_overhang(obj, box, factor=0.6, iters=25, rings=3):
     return {"affected":int(mask.sum()), "max_disp_mm":round(float(disp.max()),3),
             "nonmanifold":nm, "boundary":bd}
 
+# ---------------------------------------------------------------- stage 4c: voxel pinhole repair (MANDATORY)
+def repair_pits(obj, thr=0.25, max_diag=2.5, max_n=60, halo=2, iters=25, factor=0.6, rounds=3):
+    """Kill the compact craters / needles a VOXEL REMESH leaves behind — René 2026-08-03b:
+    "Mold has little holes everywhere, unacceptable!"
+
+    ★ The source scan is NOT the cause. Measured per stage on the Glock 45: GUN_SOLID had **0**
+    such defects; `sweep_dip`'s voxel remesh introduced **324**, up to **1.4 mm deep on a 0.4 mm
+    voxel**. Each is a single vertex (plus its cone walls) sunk below its own 2-ring neighbourhood.
+    They render as black dots and machine as real pinholes, and `smooth_mold` does NOT remove them
+    (it only shaves them 1.4 -> 1.28 mm). Run this after EVERY voxel remesh and after the booleans.
+
+    DISCRIMINATOR — a defect is a COMPACT blob (cluster bbox diag <= `max_diag`); a real crease,
+    groove, serration or corner is an EXTENDED line and is rejected by the same test, so no owner
+    geometry is at risk. Threshold evidence (Glock 45, 0.4 voxel, 750k v): at thr >= 0.25 every
+    detected cluster is compact (diag_max 2.07, extended=0); at 0.20 real linear features start
+    entering the candidate set (diag_max 23.6). 0.25 is the noise-floor/feature boundary — do not
+    drop below it without re-running that sweep on the gun at hand.
+
+    REPAIR = `remove_overhang`'s mechanic applied per blob: umbrella Laplacian over the blob + a
+    `halo`-ring skirt, which melts the crater while the untouched skirt boundary holds the surface.
+    Cost on the Glock 45: 1,787 of 749,908 verts moved (0.24 %), mean 0.22 mm, manifold 0/0."""
+    import collections
+    me=obj.data; N=len(me.vertices)
+    P=np.empty((N,3)); me.vertices.foreach_get("co",P.ravel()); P=P.reshape(-1,3)
+    P0=P.copy(); ei,ej=_edges(me,N)
+    def ringmean(Q, rings):
+        L=Q.copy()
+        for _ in range(rings):
+            S=np.zeros((N,3)); C=np.zeros(N)
+            np.add.at(S,ei,L[ej]); np.add.at(C,ei,1)
+            np.add.at(S,ej,L[ei]); np.add.at(C,ej,1)
+            C[C==0]=1; L=S/C[:,None]
+        return L
+    log=[]
+    for r in range(rounds):
+        me.update()
+        NR=np.empty((N,3)); me.vertices.foreach_get("normal",NR.ravel()); NR=NR.reshape(-1,3)
+        L=ringmean(P,2)
+        d=np.einsum('ij,ij->i',L-P,NR)          # >0 = vert sunk below its neighbourhood (crater)
+        idx=np.where(np.abs(d)>thr)[0]
+        adj=collections.defaultdict(list); s=set(idx.tolist())
+        for a,b in zip(ei,ej):
+            if a in s and b in s: adj[a].append(b); adj[b].append(a)
+        seen=set(); keep=[]; ext=0
+        for v in idx.tolist():
+            if v in seen: continue
+            st=[v]; seen.add(v); g=[]
+            while st:
+                n=st.pop(); g.append(n)
+                for x in adj[n]:
+                    if x not in seen: seen.add(x); st.append(x)
+            Q=P[g]
+            if float(np.linalg.norm(Q.max(0)-Q.min(0)))<=max_diag and len(g)<=max_n: keep.extend(g)
+            else: ext+=1                         # extended = a real crease/groove -> never touched
+        log.append({"round":r,"defect_verts":len(keep),"extended_rejected":ext,
+                    "dmax":round(float(d.max()),2),"dmin":round(float(d.min()),2)})
+        if not keep: break
+        mask=np.zeros(N,bool); mask[np.array(keep,dtype=np.int64)]=True
+        for _ in range(halo):                    # ring-expand so the fix blends without a seam
+            nb=np.zeros(N,bool); nb[ei[mask[ej]]]=True; nb[ej[mask[ei]]]=True; mask|=nb
+        for _ in range(iters): P[mask]+=factor*_umbrella(P,ei,ej,N)[mask]
+        me.vertices.foreach_set("co",P.ravel()); me.update()
+    me.vertices.foreach_set("co",P.ravel()); me.update(); _shade(obj)
+    nm,bd=_manifold(me); disp=np.linalg.norm(P-P0,axis=1); mv=disp>1e-4
+    return {"rounds":log, "moved_verts":int(mv.sum()), "verts":N,
+            "max_disp_mm":round(float(disp.max()),3),
+            "mean_disp_moved_mm":round(float(disp[mv].mean()),4) if mv.any() else 0.0,
+            "nonmanifold":nm, "boundary":bd}
+
+# ---------------------------------------------------------------- stage 6b: regional ripple denoise (optional)
+def denoise_region(obj, y_range, z_range, x_range=None, feature_angle=35.0, pairs=15, rings=2):
+    """Kill voxel-remesh 'ripple' staircase noise on an otherwise-smooth curved region (e.g. the
+    frame boss between grip checkering and the slide) that survives the default 4-stage `smooth_mold`
+    deburr pass. The ripple shows only under raking/matcap light, not flat light, and is distinct from
+    real design creases (rail grooves, panel borders, checkering) which carry genuine face-angle breaks
+    — freezing those must not swallow the ripple fix.
+
+    Mirrors `remove_overhang`'s box-restriction + ring-expansion pattern, but freezes real creases via
+    `_feature`'s sharp-edge test (face-angle > feature_angle) instead of a magnitude threshold —
+    magnitude-gating was tried FIRST and was too conservative (see METHOD-NOTES.md "ripple" step):
+    a threshold high enough to spare real edges left the ripple untouched, low enough to catch the
+    ripple ate real edges. Freeze-then-smooth-everything-else is what actually worked.
+
+    y_range=(y0,y1), z_range=(z0,z1) world-space box (x_range optional, full X if None) selects the
+    affected region, ring-expanded `rings` times (topological, like remove_overhang) so the fix blends
+    without a seam at the box edge. Inside the (expanded) box, every non-sharp vert gets `pairs` Taubin
+    lambda/mu pairs (0.5/-0.53, volume-preserving); sharp verts stay frozen even inside the box, so
+    real creases survive.
+    ★ FAILURE ANCHOR (René 2026-07-03, SIG P226 XFIVE LEGION): owner circled a rippled area on the
+    frame boss between grip checkering and slide in a render — visible only under raking/matcap light.
+    Diagnosed via grid-binned Laplacian-magnitude clustering (a vertex-color heatmap render was tried
+    FIRST and failed silently in headless blender-mcp — solid red vertex colors never showed up in the
+    opengl render; dead end, don't retry it). Fixed with box+sharp-freeze denoise on CGS_MOLD_SMOOTH
+    pre-decimate, re-decimated, re-exported. Evidence: target 21728 verts, max_disp 1.43mm (worst
+    ripple crest), mean_disp 0.0084mm (confirms fine noise, not a real feature), manifold 0/0 preserved
+    throughout. Optional stage — owner's-eye-triggered (run only when a render shows ripple on an
+    otherwise-smooth region), not part of the default pipeline."""
+    me=obj.data; N=len(me.vertices); P=_world_verts(obj); P0=P.copy()
+    ei,ej=_edges(me,N); sharp,_=_feature(me,N,feature_angle)
+    y0,y1=y_range; z0,z1=z_range
+    mask=(P[:,1]>y0)&(P[:,1]<y1)&(P[:,2]>z0)&(P[:,2]<z1)
+    if x_range is not None:
+        x0,x1=x_range
+        mask&=(P[:,0]>x0)&(P[:,0]<x1)
+    for _ in range(rings):
+        nb=np.zeros(N,bool); nb[ei[mask[ej]]]=True; nb[ej[mask[ei]]]=True; mask|=nb
+    free=mask&~sharp
+    L=lambda Pp: _umbrella(Pp,ei,ej,N)
+    for s in [0.5,-0.53]*pairs: P[free]+=s*L(P)[free]
+    me.vertices.foreach_set("co", P.ravel()); me.update()
+    _shade(obj)
+    nm,bd=_manifold(me)
+    disp=np.linalg.norm(P-P0,axis=1)
+    return {"boxed":int(mask.sum()), "frozen_in_box":int((mask&sharp).sum()), "smoothed":int(free.sum()),
+            "max_disp_mm":round(float(disp.max()),3),
+            "mean_disp_mm":round(float(disp[free].mean()),4) if free.any() else 0.0,
+            "nonmanifold":nm, "boundary":bd}
+
 # ---------------------------------------------------------------- stage 7: regional offset
 def offset_mold(obj, z_line=None, feather=2.0, offset=0.4, z_frac=0.62):
     """Thicken ONLY the slide+barrel+beavertail (Kydex shrink comp) — owner corrected the
@@ -552,6 +670,29 @@ def export_mold(obj, gun_name, out_dir=r"C:\Users\rene\Desktop\CAD\_AUTOMATED MO
     return {"path":path, "exists":os.path.exists(path),
             "size_kb":round(os.path.getsize(path)/1024,1) if os.path.exists(path) else 0,
             "verts":len(obj.data.vertices)}
+
+def export_gun(gun_solid, gun_name, out_dir=r"C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS"):
+    """Export the REPOSITIONED original (GUN_SOLID) next to the mold — owner directive 2026-07-28.
+
+    ★ WHY: `assemble_gun_solid` TRANSLATES the scan (mass on Y/Z, sight channel on X) so the mold is
+    built in centered coords. The scan on disk is NOT in that frame. René re-imports BOTH the mold and
+    the gun into Shapr3D and they must land aligned — which only works if the gun he imports is the
+    MOVED one. Exporting only the mold forces him to re-align by hand every time.
+
+    Writes `<out_dir>\\<gun_name> GUN.stl` alongside `<gun_name>.stl`. Always call it in the same run
+    as `export_mold`, so the pair is guaranteed to come from the same centering."""
+    import os
+    os.makedirs(out_dir, exist_ok=True)
+    path=os.path.join(out_dir, gun_name+" GUN.stl")
+    for o in bpy.context.selected_objects: o.select_set(False)
+    gun_solid.select_set(True); bpy.context.view_layer.objects.active=gun_solid
+    try:
+        bpy.ops.wm.stl_export(filepath=path, export_selected_objects=True, apply_modifiers=True)
+    except Exception:
+        bpy.ops.export_mesh.stl(filepath=path, use_selection=True)
+    return {"path":path, "exists":os.path.exists(path),
+            "size_kb":round(os.path.getsize(path)/1024,1) if os.path.exists(path) else 0,
+            "verts":len(gun_solid.data.vertices)}
 
 # ---------------------------------------------------------------- orchestrator
 def build_mold(mold_shell_name, params, out_name=None):
