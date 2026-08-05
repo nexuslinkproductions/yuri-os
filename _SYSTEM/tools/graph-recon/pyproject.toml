@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "graphrecon"
 version = "1.1.0"
@@ -5,3 +9,15 @@ description = "Reusable graph-engineered recon loop template (stdlib-only Python
 requires-python = ">=3.11"
 [project.scripts]
 graph-recon = "reconloop.cli:main"
+
+[tool.setuptools]
+packages = ["reconloop"]
+
+[tool.setuptools.package-data]
+reconloop = ["schemas/*.json", "schemas/*.sha256"]
+
+# scaffold template sources — shipped so `graph-recon init` from an installed
+# wheel produces a complete project (scanners/ + packs/ + pyproject).
+[tool.setuptools.data-files]
+"graphrecon-template/scanners" = ["scanners/*.py"]
+"graphrecon-template/packs/yuri" = ["packs/yuri/*.py", "packs/yuri/*.json", "packs/yuri/*.md"]

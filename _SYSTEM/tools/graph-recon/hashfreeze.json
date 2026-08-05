@@ -1,5 +1,5 @@
 {
-  "commit": "0a0be336a",
+  "commit": "TBD",
   "engine": {
     "__init__.py": "0980c8543c6395b1c72d90e370970346f7e537a4cc011f4368e4a0be9381e4a8",
     "bundle.py": "af37fbd51520516a6e21ede0bcda2c64c29d2879afb703ec57cdae714181d2b0",
@@ -15,8 +15,8 @@
     "model.py": "ec0566a93c61dccdbdc1b38a71b0d1309fe668972b6f77aa589b3e9064502d13",
     "protected.py": "40fedb7dca673c97add365b2161da8c6a42b4dfccd95e2020671540766fb1856",
     "query.py": "e4d3f3b5709b41a25832fc01fe476cf465b593c71df7c9471e33b7bb53b6f889",
-    "registry.py": "5b6a43b7eb9ea2f7a6c2b149279f6185a0997ebe55c9e8029ba965cf2b57bcd4",
-    "scaffold.py": "75e99b9c66530958820e6abce6bf43daf31e19c33197d0d6164b1dae8573a597"
+    "registry.py": "63eb9dce5f158398dd253d9145e75b496ec905680ea16e95302dd9dd5ef379ce",
+    "scaffold.py": "1efb4bce94ae6331b0241fcbd505bb10c3f5e828be4726dc192903580da576df"
   },
   "fixtures": {
     "analytics_graph.jsonl": "1e5b10d5c7a77a2786464b1ee3a2d581f3acefc5bc59e91aa89b54b686960c24"

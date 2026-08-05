@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: graphrecon
+Version: 1.1.0
+Summary: Reusable graph-engineered recon loop template (stdlib-only Python 3.11)
+Requires-Python: >=3.11

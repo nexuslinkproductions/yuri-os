@@ -1,0 +1,175 @@
+# graph-recon PR gate — build the graph, prove regen determinism, gate lens cards.
+#
+# Copy this file into your own repo:  <repo>/.github/workflows/graph-recon.yml
+# (the workflow lives in the template's .github/ so every project that vendors
+# the template via `graph-recon init` can copy it verbatim).
+#
+# What it does, in one pass over the PR head revision:
+#   1. run            — all scanners/lenses -> out/layers -> merged graph + sha256 pin
+#   2. verify --rerun — re-run the pipeline and compare the regenerated pin:
+#                       same revision must produce the same graph (determinism gate)
+#   3. lens gate      — enumerate lens cards (findings with dim=lens) and fail the
+#                       build when any card is at or above GRAPH_RECON_CI_MAX_SEVERITY
+#                       (repo variable, default high)
+#   4. artifacts      — out/ + findings/ uploaded even when the gate fails
+#
+# Full contract, tuning and the pin determinism argument: docs/ci.md in the template.
+
+name: graph-recon
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  # Scanned revision: the PR head (or the pushed commit on main). The checkout
+  # is pinned to the SAME sha so rev-pinned reads (git ls-tree / git show at
+  # ctx.revision) see exactly the state under review.
+  REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  graph-recon:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # full history: git ls-tree/show at REVISION + the base branch's
+          # committed graph (previous iteration) as the graph input
+          fetch-depth: 0
+          ref: ${{ env.REVISION }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Resolve template dir
+        shell: bash
+        run: |
+          # The template repo itself has reconloop/ + pyproject.toml at the
+          # checkout root; a project that vendored the template (e.g. at
+          # tools/graph-recon per the SDK anatomy) points GRAPH_RECON_TEMPLATE_DIR
+          # at the vendored dir (repo variable, default tools/graph-recon).
+          if [ -f reconloop/cli.py ] && [ -f pyproject.toml ]; then
+            tpl="$GITHUB_WORKSPACE"
+          else
+            tpl="$GITHUB_WORKSPACE/${{ vars.GRAPH_RECON_TEMPLATE_DIR || 'tools/graph-recon' }}"
+          fi
+          test -f "$tpl/reconloop/cli.py" || {
+            echo "::error::graph-recon template not found at $tpl (set the GRAPH_RECON_TEMPLATE_DIR repo variable)"; exit 1; }
+          echo "TEMPLATE_DIR=$tpl" >> "$GITHUB_ENV"
+          echo "template dir: $tpl"
+
+      - name: Install template
+        shell: bash
+        run: python3 -m pip install --disable-pip-version-check "$TEMPLATE_DIR"
+
+      - name: Resolve graph input
+        shell: bash
+        env:
+          GRAPH_RECON_GRAPH_INPUT: ${{ vars.GRAPH_RECON_GRAPH_INPUT || '' }}
+        run: |
+          # Resolution: repo variable override -> base branch's committed
+          # graph (git show, rev-pinned -> deterministic previous iteration)
+          # -> engine default chain (fails closed on analytics if nothing
+          # resolves; that is the documented first-run behavior).
+          input=""
+          if [ -n "${GRAPH_RECON_GRAPH_INPUT:-}" ]; then
+            input="$GRAPH_RECON_GRAPH_INPUT"
+          else
+            base_ref="${GITHUB_BASE_REF:-main}"
+            if git show "origin/${base_ref}:out/graph.jsonl" > /tmp/graph-recon-base-graph.jsonl 2>/dev/null; then
+              input="/tmp/graph-recon-base-graph.jsonl"
+            fi
+          fi
+          echo "GRAPH_INPUT=$input" >> "$GITHUB_ENV"
+          echo "graph input: ${input:-<engine default chain (fail-closed if absent)>}"
+
+      - name: Run graph-recon
+        shell: bash
+        env:
+          # Explicit config path: with a non-editable pip install the engine
+          # resolves template_root to site-packages, so point config
+          # discovery at the on-disk template's reconproject.json.
+          GRAPH_RECON_CONFIG: ${{ env.TEMPLATE_DIR }}/reconproject.json
+        run: |
+          graph-recon run \
+            --root "$GITHUB_WORKSPACE" \
+            --scanners-dir "$TEMPLATE_DIR/scanners" \
+            --revision "$REVISION" \
+            --layers out/layers \
+            --graph out/graph.jsonl \
+            --pin out/graph.sha256 \
+            --findings-dir findings \
+            ${GRAPH_INPUT:+--graph-input "$GRAPH_INPUT"}
+
+      - name: Verify regen determinism
+        shell: bash
+        env:
+          GRAPH_RECON_CONFIG: ${{ env.TEMPLATE_DIR }}/reconproject.json
+        run: |
+          # Same args as the run above; verify --rerun re-runs the pipeline
+          # and fails unless the regenerated graph hashes to the stored pin.
+          graph-recon verify --rerun \
+            --root "$GITHUB_WORKSPACE" \
+            --scanners-dir "$TEMPLATE_DIR/scanners" \
+            --revision "$REVISION" \
+            --layers out/layers \
+            --graph out/graph.jsonl \
+            --pin out/graph.sha256 \
+            --findings-dir findings \
+            ${GRAPH_INPUT:+--graph-input "$GRAPH_INPUT"}
+
+      - name: Lens-card severity gate
+        shell: bash
+        env:
+          # Repo variable (Settings -> Secrets and variables -> Actions ->
+          # Variables). Severity order: critical > high > medium > low > info.
+          # The build fails when any lens card is AT or ABOVE this severity.
+          GRAPH_RECON_CI_MAX_SEVERITY: ${{ vars.GRAPH_RECON_CI_MAX_SEVERITY || 'high' }}
+        run: |
+          python3 - <<'PY'
+          import glob, json, os, sys
+          order = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
+          threshold = os.environ.get("GRAPH_RECON_CI_MAX_SEVERITY", "high").strip().lower()
+          if threshold not in order:
+              print(f"::error::unknown GRAPH_RECON_CI_MAX_SEVERITY {threshold!r} "
+                    f"(critical|high|medium|low|info)")
+              sys.exit(1)
+          cards = []
+          for f in sorted(glob.glob("findings/*.jsonl")):
+              for line in open(f, encoding="utf-8"):
+                  line = line.strip()
+                  if not line:
+                      continue
+                  rec = json.loads(line)
+                  if rec.get("dim") == "lens":
+                      cards.append(rec)
+          cards.sort(key=lambda c: (order.get(c.get("sev"), 9), c.get("id", "")))
+          print(f"lens cards: {len(cards)} (threshold {threshold})")
+          for c in cards:
+              print(f"  {c.get('sev', '?'):8s} {c.get('id', '?'):44s} {c.get('desc', '')[:90]}")
+          limit = order[threshold]
+          fail = any(order.get(c.get("sev"), 9) <= limit for c in cards)
+          if fail:
+              worst = min((order.get(c.get("sev"), 9) for c in cards), default=9)
+              worst_sev = [k for k, v in order.items() if v == worst][0]
+              print(f"::error::lens gate FAIL: {len(cards)} card(s), worst severity "
+                    f"{worst_sev} at or above threshold {threshold}")
+          else:
+              print(f"lens gate PASS: no cards at or above severity {threshold}")
+          sys.exit(1 if fail else 0)
+          PY
+
+      - name: Upload graph + findings artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: graph-recon-${{ github.run_id }}
+          path: |
+            out/
+            findings/
+          if-no-files-found: ignore
