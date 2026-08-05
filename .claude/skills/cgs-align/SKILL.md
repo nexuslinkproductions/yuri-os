@@ -26,7 +26,9 @@ Mass center           -> origin (0,0,0), all 3 axes on the volume centroid
 **The definitive gun datums (owner directive 2026-07-10, GLOCK 43) — reference these, not proxies:**
 - **PITCH → the SLIDE**, specifically the straight **UPPER/LOWER parting line** (slide-bottom / frame-top,
   dead straight & bore-parallel). NOT the picatinny rail / frame underside — those aren't bore-parallel on
-  every gun (a Glock 43 has no rail; the PDP rail sits 3° off the slide).
+  every gun (a Glock 43 has no rail; the PDP rail sits 3° off the slide). The seam is now MEASURED and
+  levelled to directly (`refine_seam`, method step 5b-2) on a dense mesh; the slide-top silhouette edge
+  (`refine_parting`) is only its proxy and is ~0.1–0.17° off it, and is what remains on a decimated mesh.
 - **YAW → FRONT SIGHT + REAR SIGHT colinear** down the bore (front post centred in the rear notch, viewed
   from behind). The slide *silhouette* is NOT sensitive enough — a 0.9mm sight offset over a 130mm baseline
   is 0.4° of yaw that reads "square" (0.04°) in the outline but is obvious down the sights.
@@ -103,6 +105,24 @@ reversible, non-mutating to geometry.**
    auto-corrects step 5's misses: **Glock 43** (no rail → frame flats, 2.2°) and **PDP** (rail 3° off slide).
    Owner directive 2026-07-10: *"Always align PITCH referencing the SLIDE… the distinct line between the
    UPPER and LOWER parts."*
+5b-2. **Slide level PITCH — refine to the MEASURED PARTING SEAM** `refine_seam` — the FINAL pitch datum
+   (2026-08-05). Step 5b levels the slide-top SILHOUETTE EDGE as a *proxy* for the parting line; the two
+   disagree by **0.10°** (Glock 34) and **0.17°** (Echelon), and on both guns that residual had to be
+   hand-corrected after the aligner declared itself finished. This step measures the seam ITSELF and
+   levels to it. The seam is FOUND, not assumed: sweep candidate heights across the upper height extent,
+   fit both geometry classes (GROOVE = interior local min of the per-slice half-width, Echelon/G34; STEP =
+   sharpest downward step, Sphinx) and keep the best by fit rms with a span floor.
+   ⚠ **It needs a DENSE mesh and that is not fixable by tuning.** One fine setting only — 0.25mm z-bins, a
+   2.5mm slab, ≥150 points per slice. Adapting those to mesh density so the datum would survive on a
+   decimated gun does not make it survive, it makes it get INVENTED: the coarsened sweep reported a
+   **1.53° "seam" on the G17**, which has no modelled parting line at all, and moved the G19's measured
+   pitch by 0.2°. Ranking candidates by rms ACROSS density settings is invalid anyway — coarser bins
+   mechanically lower rms. When no seam is found the step no-ops and pitch keeps the proxy, which is
+   honest and about 0.1° coarser.
+   ⚠ **Anti-quantization guard.** Callers rank by fit rms, and a DEGENERATE fit wins outright: if every
+   slice's argmin lands in the same z-bin the line is perfectly flat and rms comes out at ~1e-14mm. Real
+   geometry always carries per-slice noise (the G34 scan's true seam fits at 0.049mm), so an rms below
+   mesh precision — or fitted heights with almost no distinct values — is rejected as an artifact.
 5c. **Slide level ROLL (front view)** `refine_roll` — owner's ROLL datum (2026-07-10b): the slide-top must be
    horizontal in the FRONT / down-the-bore view (no cant). Take the slide-top up-faces' AREA-weighted
    consensus normal and rotate about the bore (aL) so it points straight up (+Z) — zero its width-component.
@@ -200,7 +220,10 @@ obj, s = import_and_align(r"C:\Users\rene\Desktop\CAD\...\scan.stl")
 
 print(s)   # aligned_ok, det_R (==1.0), center_residual_mm (~0), R_offdiag_max (~0), dims (Y>=Z>=X),
            # front_y (muzzle, min), grip_is_down, lattice_pitch_deg, slide_leveled_deg,
-           # parting_refine_deg, roll_refine_deg, sight_roll_deg, sight_yaw_deg
+           # parting_refine_deg, seam_refine_deg, roll_refine_deg, sight_roll_deg, sight_yaw_deg
+
+rep = pose_report(*_world_arrays(obj))      # INDEPENDENT all-axes verifier + sight channel
+print(rep["pitch_deg"], rep["roll_deg"], rep["yaw_deg"], rep["bad"], rep["sight_channel"])
 ```
 
 - `align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, pitch_offset_deg=0.0, roll_offset_deg=0.0, yaw_offset_deg=0.0, mode="gun", refine_parting=True, refine_sights=True, refine_roll=True, refine_seat=True, refine_sight_roll=True)` — entry point. Gun mode auto-levels PITCH to the slide/parting line (`refine_parting`), ROLL to the slide-top flat (`refine_roll`) and then to the REAR-SIGHT SHOULDERS (`refine_sight_roll`, the owner's final roll datum — overrides the slide top), and YAW to the sights (`refine_sights`); the three `*_offset_deg` knobs are the owner's eye-tweaks. `mode="light"` for weapon-lights, where `refine_seat` levels PITCH+ROLL to the rail seat (light mode has no `*_offset_deg` knobs — apply an eye-tweak as a rigid rotation and compose it into `cgs_align_R`).
@@ -208,6 +231,32 @@ print(s)   # aligned_ok, det_R (==1.0), center_residual_mm (~0), R_offdiag_max (
 - `unalign_object(name)` — reverse a prior align from the stored transform.
 
 ## Verify (do this on every real run)
+
+**Run `pose_report` first — it measures all three axes plus the sight channel in one call, independently.**
+It re-derives every quantity from the mesh and shares no state with the aligner; that separation is
+load-bearing, because this skill's recurring failure is a verifier that shares the aligner's basis and
+rubber-stamps a wrong pose (2026-07-03, again 2026-07-10b). It returns `pitch_deg` (the measured parting
+seam), `roll_deg` (rear-sight shoulders), `yaw_deg` (notch walls vs post flanks), `bad` (every datum
+outside tolerance, or missing), and `sight_channel` — slide-top plane and area, both blades' width and
+protrusion, notch width, post width, sight radius. A `pitch_deg` of `None` means the mesh carries **no
+modelled seam** (a repaired or decimated solid often does not); that axis is then unverified, not fine.
+It is not a substitute for the renders — a number and a picture fail differently.
+
+**Regression suites — run all three when you touch the aligner:**
+
+```bash
+"C:/Program Files/Blender Foundation/Blender 5.1/5.1/python/bin/python.exe" scripts/verify_datums.py --poses 25
+```
+
+`verify_datums.py` is the ALL-AXES one (added 2026-08-05 on the owner's *"pitch, yaw and roll across all
+axis"* directive): it scrambles each real gun by a random full 3D rotation, re-aligns, and asserts every
+physical datum via `pose_report`. Because it scores against the DATUMS and not against a reference pose,
+any gun STL can be dropped into `GUNS` — unlike `verify_real_guns.py`, which needs a canonical pose per
+gun and, worse, gets a WORSE score whenever a datum is genuinely corrected (the G19's own canonical STL is
+0.11° off in pitch). Current: **G19 25/25 · G17 25/25 · G34 25/25**, worst |pitch| 0.004° |roll| 0.008°
+|yaw| 0.002°. A gun whose native mesh lacks a datum is reported **PARTIAL** with the unchecked axis named
+— never a silent pass, never a bogus fail.
+
 
 Confirm the returned evidence (gun): `det_R == 1.0`, `center_residual_mm < 0.05`, `dims_ordered_yzx`,
 `grip_is_down == True`, muzzle at `front_y` (min Y). (`aligned_ok` reads **false** whenever a manual
@@ -285,6 +334,18 @@ recurring trap on this skill):
 
 ## Status / scope
 
+- **HARDENED ACROSS ALL THREE AXES 2026-08-05b** (owner directive: *"Not only alignment horizontal but
+  also pitch, yaw and roll across all axis and also check gun sights / sight channel"*). Three changes and
+  a new suite: (1) **`refine_seam`** levels PITCH to the MEASURED parting seam instead of the slide-top
+  proxy — the last hand step is gone (method step 5b-2); (2) the YAW estimator was rebuilt a THIRD time,
+  to the **notch/post WALL PLANES**, after the vertex-gap version proved to be a dense-mesh-only method
+  that read **−1.83° on René's own canonical G17** (physically impossible at a 165mm radius); (3)
+  **`pose_report`** — one independent call measuring all three datums plus the full sight channel; and
+  (4) **`scripts/verify_datums.py`**, an all-axes regression that scrambles real guns in 3D and asserts
+  the physical datums, so it needs no reference pose and any gun STL can join the roster.
+  Live E2E on René's own (now decimated, 56,484-vert) GLOCK 34, raw → aligned with **zero manual input**:
+  **pitch −0.026° · roll −0.006° · yaw −0.0001°**, landing **0.042°** from the hand-finished pose. Suites:
+  datum 25/25 × 3 guns · synthetic 300/300 + 240 WML · real-gun Kabsch 40/40 × 2.
 - **ALIGNED + 3-VIEW VERIFIED 2026-08-05** on the GLOCK 34 (`GLOCK 34`, 1,129,765 verts / 2,259,538 tris —
   largest mesh to date) — and the aligner HARDENED with the owner's **final ROLL datum: the rear-sight
   shoulders** (method step 5d, `refine_sight_roll`). The stock pipeline put pitch/yaw right but left the two
@@ -378,6 +439,61 @@ recurring trap on this skill):
 - Depends on **blender-mcp** live on :9876.
 
 ## Session Notes
+
+### 2026-08-05b (HARDEN ALL THREE AXES — owner: *"pitch, yaw and roll across all axis"*)
+- **Scope:** close the last hand step (pitch), make every datum survive a mesh that is not a 2.2M-tri scan,
+  and give the skill one independent all-axes verifier instead of a fresh hand-rolled measurement each run.
+- **PITCH — `refine_seam` (method step 5b-2).** The aligner now measures the parting seam and levels to it
+  rather than to the slide-top silhouette proxy. Validated where it counts: on the G19 it moves the
+  measured seam from **−0.303° → −0.005°**, which is *better than René's own canonical STL* for that gun
+  (−0.112°). That is also why `verify_real_guns` scores the G19 WORSE afterwards (0.39° → 0.61°) — the
+  Kabsch reference is the old-pipeline pose, so a genuine correction reads as drift. **A suite that scores
+  against a past pose cannot adjudicate an improvement to the datum.** That is precisely why
+  `verify_datums.py` exists.
+- **YAW — rebuilt a THIRD time, to WALL PLANES.** Yesterday's notch-gap-vs-post-silhouette fix was correct
+  on the 2.2M-tri scan and **garbage on a CAD solid**: on René's canonical G17 it read **−1.83°**, which at
+  a 165mm sight radius is 5.3mm of offset — physically impossible, and the give-away I should have looked
+  for immediately. A thin z-band of a 114k-tri mesh holds too few vertices for "largest gap" to find the
+  aperture. Replaced with the area-weighted mean width of the two facing NOTCH walls against the two POST
+  flanks — area-weighting makes it density-invariant. Calibrated against ground truth, since a canonical
+  STL must read zero: **G17 −1.831 → −0.020 · G19 +0.007 → +0.007 · G34 scan −0.000 → −0.015**. Only the
+  wall-plane version is right on all three, across a 20× density range.
+- **PLANARITY, NOT AREA, is the right gate** (same shape as yesterday's face-count lesson). The G17 carries
+  the front post's right flank in just **0.605mm²** and a 1.0mm² floor silently voided the whole yaw datum
+  on that gun. A machined flank is a PLANE, so its area-weighted mean width is unbiased at ANY coverage;
+  what would bias it is sampling a CURVED surface, and that shows up as spread. So gate on spread (<0.35mm)
+  and let the area floor drop to 0.25mm².
+- **Two things I tried that were WRONG, kept here because both were seductive:**
+  (a) *Adapting the seam detector's bin size to mesh density* so pitch would survive on a decimated gun.
+  It does not survive — it gets **invented**. The coarsened sweep reported a **1.53° "seam" on the G17**,
+  which has none at all, and shifted the G19 by 0.2°. Reverted to one fine setting; when no seam exists the
+  step no-ops and pitch keeps the proxy. **A detector that answers anyway is worse than one that says
+  NO_DATUM.**
+  (b) *Ranking seam candidates by fit rms across those density settings.* Invalid on its face — coarser
+  bins mechanically lower rms, so rms is comparable only WITHIN one setting.
+- **Anti-quantization guard (found by the above, and it was latent in the shipped code).** Ranking by rms is
+  won outright by a DEGENERATE fit: if every slice's argmin lands in the same z-bin the "line" is perfectly
+  flat and rms is **~1e-14mm**. That is not a good measurement, it is no measurement. Real geometry always
+  carries per-slice noise (the G34 scan's true seam fits at 0.049mm), so an rms below mesh precision, or
+  fitted heights with almost no distinct values, is now rejected. *An impossibly good fit is a bug report.*
+- **`pose_report` + `verify_datums.py`.** One independent call for all three datums and the sight channel;
+  one suite that scrambles real guns in 3D and asserts those datums. Datum-scored means no reference pose
+  is needed, so the roster can finally grow. A gun whose native mesh lacks a datum reports **PARTIAL** with
+  the axis named — "0/25 PASS, pitch=NO_DATUM" reads as broken and "25/25 PASS" hides an unchecked axis;
+  both are lies of a different kind.
+- **Verified:** datum suite **25/25 on all three guns** (worst |pitch| 0.004° |roll| 0.008° |yaw| 0.002°);
+  synthetic 300/300 + 240 WML; real-gun Kabsch 40/40 × 2. Live E2E on René's GLOCK 34 from the raw pose
+  with zero manual input: **pitch −0.026° · roll −0.006° · yaw −0.0001°**, 0.042° from the hand-finished
+  pose. Sight channel measured: notch 4.23mm, post 4.01mm, radius 189.6mm, front sight 5.12mm proud, rear
+  4.45mm proud, shoulders 42.1/42.9mm².
+- **Residual risk:** (a) **The seam datum needs a dense mesh.** René decimated the G34 to 56,484 verts
+  mid-session (his working mesh for the mold), and at that density seam detection is MARGINAL — present on
+  the live Blender mesh, absent on the decimated STL on disk. Pitch then falls back to the ~0.1°-coarser
+  proxy. Align BEFORE decimating. (b) The G17 solid has no modelled seam at all, so its pitch axis is
+  unverified by any suite — only the Kabsch check covers it. (c) `verify_real_guns`' canonical STLs are
+  old-pipeline poses and are now 0.11° (G19 pitch) / 0.27–0.38° (G17 roll) off the current datums; they
+  should be re-aligned before being trusted as references again.
+  <!-- @anchor: v1 | failure: the notch-gap yaw estimator shipped 2026-08-05 was a dense-mesh-only method and read -1.83deg on René's own canonical G17 (5.3mm at a 165mm radius, physically impossible); a 1.0mm2 area floor silently voided the yaw datum on that gun; the seam-candidate sweep ranked by fit rms could be won by a degenerate quantized fit at ~1e-14mm; and adapting seam bin size to mesh density INVENTED a 1.53deg seam on a gun with none, 2026-08-05b | regression: cgs_align.py _refine_yaw_to_sights (wall planes, calibrated G17/G19/G34 natives) + planarity gate + _seam_line anti-quantization guard + single fine seam setting + pose_report + scripts/verify_datums.py (25/25 x 3 guns, random 3D scramble) -->
 
 ### 2026-08-05 (GLOCK 34 — the roll datum is the REAR-SIGHT SHOULDERS; the slide top is only a proxy)
 - **Run:** `GLOCK 34`, 1,129,765 verts / 2,259,538 tris, gun mode. Owner supplied two annotation dots on the

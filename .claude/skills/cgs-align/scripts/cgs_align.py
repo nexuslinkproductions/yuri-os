@@ -195,6 +195,142 @@ def _refine_pitch_to_slide(P, F, center, aL, aH, aW):
     aH2 = -math.sin(th) * aL + math.cos(th) * aH
     return aL2, aH2
 
+# THE SEAM NEEDS A DENSE MESH, AND THAT IS NOT FIXABLE BY TUNING. One fine setting, deliberately:
+# 0.25mm z-bins, a 2.5mm slab, >=150 points per slice. I tried adapting these to mesh density so the datum
+# would survive on René's decimated working meshes (~56k verts). It does not survive -- it gets INVENTED.
+# Coarsening the bins let the sweep report a 1.53deg "seam" on the G17, which has no modelled parting line
+# at all, and moved the G19's measured pitch by 0.2deg. On a coarse mesh the parting line is simply not
+# identifiable by an unsupervised sweep, and a detector that answers anyway is worse than one that says
+# NO_DATUM: pitch then falls back to the slide-top silhouette proxy, which is honest and ~0.1deg coarser.
+_SEAM_MIN_PTS = 150
+
+def _seam_line(l, h, w, ylo, yhi, zc, half_band, mode, dz=0.25, step=2.0, slab=2.5,
+               min_strength=0.10, min_slices=8, smooth=3, min_pts=150, rms_floor=0.004):
+    """Fit the UPPER/LOWER PARTING SEAM over a length window. Returns (slope, rms, n, span) or None.
+
+    Shared kernel behind `_refine_pitch_to_parting_seam`; the standalone measurement tool
+    `scripts/measure_parting.py` documents the derivation and the traps at length. Two geometry classes:
+      GROOVE  the seam is a recess -> interior LOCAL MINIMUM of the per-slice half-width max|w|(h).
+      STEP    the seam is a plain shoulder -> sharpest DOWNWARD STEP in max|w|(h).
+    Encoded traps: -inf (never NaN) init for maximum.at; EDGE-replicated smoothing (zero-padding dips the
+    ends and sends argmin to an edge in every slice); reject edge hits; MAD-trim the fit.
+    """
+    zlo, zhi = zc - half_band, zc + half_band
+    nb = int(round((zhi - zlo) / dz))
+    if nb < 8:
+        return None
+    kern = np.ones(smooth) / float(smooth); pad = smooth // 2
+    rows = []
+    for y0 in np.arange(ylo, yhi, step):
+        m = (l >= y0) & (l < y0 + slab) & (h > zlo) & (h < zhi)
+        if int(m.sum()) < min_pts:
+            continue
+        idx = np.clip(((h[m] - zlo) / dz).astype(int), 0, nb - 1)
+        prof = np.full(nb, -np.inf)
+        np.maximum.at(prof, idx, np.abs(w[m]))
+        ok = np.isfinite(prof)
+        if ok.mean() < 0.6:
+            continue
+        zs = zlo + (np.arange(nb) + 0.5) * dz
+        v = np.interp(zs, zs[ok], prof[ok])
+        v = np.convolve(np.pad(v, pad, mode="edge"), kern, mode="valid")[:nb]
+        if mode == "groove":
+            i = int(np.argmin(v))
+            if i < 2 or i > nb - 3:
+                continue
+            strength = min(v[:i].max(), v[i + 1:].max()) - v[i]
+            if strength < min_strength:
+                continue
+            d0, d1, d2 = v[i - 1], v[i], v[i + 1]; den = d0 - 2 * d1 + d2
+            zhit = zs[i] + (0.5 * (d0 - d2) / den if abs(den) > 1e-12 else 0.0) * dz
+        else:
+            g = np.diff(v); i = int(np.argmin(g))
+            if i < 2 or i > nb - 4:
+                continue
+            strength = v[max(0, i - 4):i + 1].max() - v[i + 1:i + 6].min()
+            if strength < 2.0 * min_strength:
+                continue
+            d0, d1, d2 = g[i - 1], g[i], g[i + 1]; den = d0 - 2 * d1 + d2
+            zhit = zs[i] + (0.5 + (0.5 * (d0 - d2) / den if abs(den) > 1e-12 else 0.0)) * dz
+        rows.append((y0 + slab / 2.0, zhit))
+    if len(rows) < min_slices:
+        return None
+    R = np.asarray(rows)
+    p = np.polyfit(R[:, 0], R[:, 1], 1); res = R[:, 1] - np.polyval(p, R[:, 0])
+    med = float(np.median(res)); mad = float(np.median(np.abs(res - med))) + 1e-12
+    keep = np.abs(res - med) < 3 * 1.4826 * mad
+    if int(keep.sum()) < min_slices:
+        keep = np.ones(len(R), bool)
+    p = np.polyfit(R[keep, 0], R[keep, 1], 1); res = R[keep, 1] - np.polyval(p, R[keep, 0])
+    rms = float(np.sqrt((res ** 2).mean()))
+    # ANTI-QUANTIZATION GUARD. Callers rank candidates by fit rms, which a DEGENERATE fit wins outright:
+    # if every slice's argmin lands in the same z-bin the "line" is perfectly flat and the rms comes out at
+    # ~1e-14mm. That is not a good measurement, it is no measurement -- and on a decimated mesh the coarse
+    # binning that causes it is exactly what a density-adaptive sweep reaches for. Real geometry always
+    # carries per-slice noise (the Glock 34 scan's genuine seam fits at 0.049mm), so an rms far below mesh
+    # precision, or a set of fitted heights with almost no distinct values, is an artifact. Reject both.
+    if rms < rms_floor or len(np.unique(np.round(R[keep, 1], 4))) < 5:
+        return None
+    return (float(p[0]), rms, int(keep.sum()),
+            float(R[keep, 0].max() - R[keep, 0].min()))
+
+def _refine_pitch_to_parting_seam(P, F, center, aL, aH, aW):
+    """Owner PITCH datum, FINAL (2026-08-05): level to the UPPER/LOWER PARTING SEAM ITSELF, measured, rather
+    than to the slide-top SILHOUETTE EDGE that `_refine_pitch_to_slide` uses as a proxy for it.
+
+    The proxy is close but not the datum: the slide top is not exactly parallel to the parting line on every
+    gun. Measured disagreement — Springfield Echelon 4.5 **0.17deg**, Glock 34 **0.10deg**. Both had to be
+    hand-corrected after the aligner declared itself done, which is precisely the residual the owner keeps
+    catching. Runs AFTER the silhouette refine and overrides it whenever a real seam is found.
+
+    The seam is found, not assumed: sweep candidate heights across the upper part of the height extent,
+    fit both geometry classes at each, and keep the best by fit rms with a span floor. Two properties make
+    that sweep honest rather than a fishing expedition:
+      * the seam sits HIGH in the height extent (0.81 on the Glock 34) because the grip drags the extent
+        down -- a lower-half sweep never visits it;
+      * a tight rms over a SHORT span is a small local feature, not a parting line, so span is gated first
+        and rms only ranks what survives.
+    Fit over the SLIDE SPAN ONLY. Behind the slide the same detector locks onto the frame/beavertail
+    shoulder, a different feature several mm lower, and a full-length fit reads -1.51deg where the truth is
+    -0.010deg (Sphinx SDP). A MAD trim does NOT save you there: the contaminants are a coherent second
+    population, not outliers.
+
+    Self-zeroing + GUARDED — needs >=10 slices over >=35% of the slide span at rms <= 0.25mm and a
+    correction under 3deg, so it no-ops on a flat-top synthetic gun and on a repaired CAD solid with no
+    modelled seam (René's own G17 has none; the G19 does). Returns corrected (aL, aH)."""
+    D = P - center
+    l = D @ aL; h = D @ aH
+    aWc = np.cross(aH, aL); aWc /= (np.linalg.norm(aWc) or 1.0)
+    w = D @ aWc
+    lmin, lmax = float(np.percentile(l, 1)), float(np.percentile(l, 99)); Ll = lmax - lmin
+    hmin, hmax = float(np.percentile(h, 0.5)), float(np.percentile(h, 99.5)); Hh = hmax - hmin
+    if Ll < 1e-6 or Hh < 1e-6:
+        return aL, aH
+    ylo, yhi = lmin + 0.12 * Ll, lmin + 0.72 * Ll               # slide span (same window as the proxy)
+    span_min = 0.35 * (yhi - ylo)
+    half_band = max(2.0, 0.025 * Hh)
+    best = None
+    for f in np.linspace(0.55, 0.95, 17):                       # the seam sits HIGH in the height extent
+        zc = hmin + f * Hh
+        for mode in ("groove", "step"):
+            r = _seam_line(l, h, w, ylo, yhi, zc, half_band, mode, min_pts=_SEAM_MIN_PTS)
+            if r is None:
+                continue
+            slope, rms, n, span = r
+            if n < 10 or span < span_min or rms > 0.25:
+                continue
+            if best is None or rms < best[1]:
+                best = r
+    if best is None:
+        return aL, aH                                            # no measurable seam -> keep the proxy
+    ang = math.degrees(math.atan(best[0]))
+    if abs(ang) > 3.0:
+        return aL, aH                                            # guard: the proxy already got us close
+    th = math.radians(ang)
+    aL2 = math.cos(th) * aL + math.sin(th) * aH
+    aH2 = -math.sin(th) * aL + math.cos(th) * aH
+    return aL2, aH2
+
 def _refine_roll_to_slide_top(P, F, center, aL, aH, aW):
     """Owner ROLL datum (added 2026-07-10b, GLOCK 43): in the FRONT view (down the bore) the SLIDE-TOP FLAT
     must be horizontal — no cant about the bore. The auto pose left the Glock 43 rolled ~0.8deg (owner caught
@@ -309,74 +445,99 @@ def _refine_roll_to_rear_sight(P, F, center, aL, aH, aW):
 
 def _refine_yaw_to_sights(P, F, center, aL, aH):
     """Owner YAW datum (2026-07-10, GLOCK 43): make the FRONT SIGHT and REAR SIGHT colinear along the bore
-    — the fine reference the slide-SILHOUETTE PCA averages away. A 0.9mm front-sight offset over a ~130mm
-    sight baseline is 0.4deg of yaw: invisible in the slide outline (which read 0.04deg 'square'), obvious
-    when you look down the sights (front post sits off-centre in the rear notch). Detect the two sight
-    blades as HEIGHT SPIKES protruding above the slide-top baseline (front third + rear slide), then take
-    THE RIGHT REFERENCE FROM EACH (see below) and rotate aL about the vertical (aH) to zero their width
-    difference. GUARDED: each blade must protrude a real margin (>1.5mm) over a real baseline, and the
-    correction is capped at 3deg — so it no-ops on a flat-top slide (the synthetic test gun), an optic-cut
-    slide, or a bare light. Returns corrected aL (x_hat re-derives from cross(aL,aH) downstream, so only
-    aL needs rotating).
+    — front post centred in the rear notch, viewed from behind. The slide SILHOUETTE is not sensitive
+    enough: a 0.9mm sight offset over a ~130mm baseline is 0.4deg of yaw that reads "square" (0.04deg) in
+    the outline and is obvious down the sights. Rotates aL about the vertical (aH) to zero the difference.
+    Returns corrected aL (x_hat re-derives from cross(aL,aH) downstream, so only aL needs rotating).
 
-    ⚠ REBUILT 2026-08-05 (GLOCK 34). The original took each blade's width-CENTROID (`w[bl].mean()`). For
-    the FRONT post that is roughly right — it is a lone block. For the REAR sight it is WRONG: the top band
-    contains both wide shoulders (~17mm across) and their centroid is the SIGHT BODY centre, not the NOTCH
-    centre. The two differ whenever the sight body is asymmetric or drifted in its dovetail, and on the
-    Glock 34 the centroid pair said -0.07deg while the real sight picture was +0.11deg off — the post
-    sitting 0.361mm right of the notch. The owner saw it instantly down the sights; the centroid metric
-    called it square. So:
-      REAR  -> the NOTCH GAP centre: the largest empty run in the sorted widths of the top band, i.e. the
-               two facing notch walls. That is the aperture the eye actually looks through.
-      FRONT -> the post's SILHOUETTE centre (min+max)/2, not its centroid — the post is commonly WIDER than
-               the notch (4.11 vs 3.77mm here), so what the eye centres is its outline, not its mass.
-    Both are hard geometric EDGES rather than centroids of blobs, which is why they are stable: measured
-    over four independent z-bands inside the notch the corrected pose holds dx = -0.002mm (sd 0.041mm)."""
-    D = P - center
-    aWc = np.cross(aH, aL); aWc /= (np.linalg.norm(aWc) or 1.0)     # width axis (perp to the slide plane)
-    l = D @ aL; h = D @ aH; w = D @ aWc
+    HOW THE REFERENCE IS TAKEN — three generations, each killed by a measurement:
+      v1  each blade's width-CENTROID. Wrong at the rear: that band holds both ~17mm shoulders, so their
+          centroid is the SIGHT BODY centre, not the notch. Called the Glock 34 square at -0.07deg while
+          the post sat 0.361mm (0.109deg) off in the notch.                              (owner-caught)
+      v2  NOTCH GAP centre from the largest empty run in the sorted vertex widths, vs the post's vertex
+          silhouette. Correct on a 2.2M-tri scan, GARBAGE on a CAD solid: on René's own canonical G17 it
+          read -1.83deg of yaw, which at a 165mm sight radius is 5.3mm — physically impossible. A thin
+          z-band of a 114k-tri mesh holds too few vertices for "largest gap" to find the aperture.
+      v3  (current) the two facing WALL PLANES: area-weighted mean width of the NOTCH inner walls, against
+          the same for the FRONT POST flanks. Area-weighting makes it MESH-DENSITY-INVARIANT, which is
+          exactly what v2 was not. Calibrated against ground truth — René's canonical STLs, which are by
+          definition correctly yawed, must read zero:
+              G17 native  v2 -1.831deg   v3 -0.020deg
+              G19 native  v2 +0.007deg   v3 +0.007deg
+              G34 scan    v2 -0.000deg   v3 -0.015deg
+          v3 is the only one right on all three, across a 20x range of mesh density.
+    GUARDED: both walls of both features need real area, notch and post widths must be plausible
+    (1.5-8mm), and the correction is capped at 3deg — so it no-ops on a flat-top slide (the synthetic test
+    gun), an optic-cut slide, or a bare light."""
+    if F is None or len(F) == 0:
+        return aL
+    a, b, c = P[F[:, 0]], P[F[:, 1]], P[F[:, 2]]
+    fn = np.cross(b - a, c - a); fa = np.linalg.norm(fn, axis=1); ok = fa > 1e-12
+    if int(ok.sum()) < 50:
+        return aL
+    nn = fn[ok] / fa[ok][:, None]; ar = 0.5 * fa[ok]
+    aWc = np.cross(aH, aL); aWc /= (np.linalg.norm(aWc) or 1.0)
+    cen = ((a + b + c) / 3.0)[ok] - center
+    l = cen @ aL; h = cen @ aH; w = cen @ aWc
+    nH = nn @ aH; nW = nn @ aWc
     lmin, lmax = float(np.percentile(l, 1)), float(np.percentile(l, 99)); L = lmax - lmin
     if L < 1e-6:
         return aL
-    upper = h > np.percentile(h, 55)                               # slide band (excludes the grip)
-    def blade(lo, hi, notch):
-        m = upper & (l > lo) & (l < hi)
-        if int(m.sum()) < 40:
-            return None
-        base = float(np.percentile(h[m], 50)); top = float(h[m].max())
-        if top - base < 1.5:                                       # no real protrusion -> not a sight
-            return None
-        bl = m & (h > top - 2.0)                                    # top 2mm of the blade / notch posts
-        if int(bl.sum()) < 15:
-            return None
-        wb = w[bl]
-        if notch:
-            ws = np.sort(wb); gaps = np.diff(ws)
-            if len(gaps) == 0:
-                return None
-            i = int(np.argmax(gaps)); gw = float(gaps[i])
-            if not (0.8 < gw < 8.0):                                # no plausible notch aperture -> bail
-                return None
-            centre = 0.5 * (float(ws[i]) + float(ws[i + 1]))         # NOTCH GAP centre
-        else:
-            centre = 0.5 * (float(wb.min()) + float(wb.max()))       # post SILHOUETTE centre
-        return centre, float(l[bl].mean())
-    fs = blade(lmin + 0.02 * L, lmin + 0.42 * L, False)            # front sight (forward third)
-    rs = blade(lmin + 0.60 * L, lmax - 0.02 * L, True)             # rear sight / notch (rear slide)
-    if fs is None or rs is None:
+    # slide-top plane: the area-dominant up-facing flat
+    up = (nH > 0.97) & (h > float(np.percentile(h, 55)))
+    if int(up.sum()) < 20:
         return aL
-    wf, lf = fs; wr, lr = rs
-    if abs(lf - lr) < 0.3 * L:                                     # need a real baseline
+    hist, edges = np.histogram(h[up], bins=200, weights=ar[up])
+    ZT = float(edges[int(hist.argmax())])
+    # the two blades, as area bands protruding above that plane
+    prot = (h > ZT + 1.5) & (nH > 0.0)
+    if int(prot.sum()) < 20:
         return aL
-    phi = math.atan((wf - wr) / (lf - lr))                        # small yaw that zeroes the width diff
+    hy, ey = np.histogram(l[prot], bins=120, weights=ar[prot])
+    mid = 0.5 * (lmin + lmax)
+    fb = [ey[i] for i in range(120) if hy[i] > 0.5 and ey[i] < mid]
+    rb = [ey[i] for i in range(120) if hy[i] > 0.5 and ey[i] > mid]
+    if not fb or not rb:
+        return aL
+    fy0, fy1 = fb[0] - 2.0, fb[-1] + 2.0
+    ry0, ry1 = rb[0] - 2.0, rb[-1] + 2.0
+    rad = abs(0.5 * (ry0 + ry1) - 0.5 * (fy0 + fy1))
+    if rad < 0.3 * L:                                        # need a real sight baseline
+        return aL
+    side = np.abs(nW) > 0.85                                 # faces whose normal points across the bore
+    def walls(y0, y1, inner):
+        # GATE ON PLANARITY, NOT ON RAW AREA. A machined flank is a PLANE, so its area-weighted mean width
+        # is unbiased at ANY coverage -- partial coverage of a plane still gives the plane's position. What
+        # WOULD bias it is sampling a CURVED surface, and that shows up as spread. So require small spread
+        # and let the area floor be low: René's canonical G17 carries the front post's right flank in just
+        # 0.605mm2, and a 1.0mm2 floor silently voided the entire yaw datum on that gun.
+        m = side & (l > y0) & (l < y1) & (h > ZT + 1.5)
+        if inner:
+            m = m & (np.abs(w) < 6.0)                        # notch walls only, not the shoulders' flanks
+        Lm, Rm = m & (w < 0), m & (w > 0)
+        al_, ar_ = float(ar[Lm].sum()), float(ar[Rm].sum())
+        if al_ < 0.25 or ar_ < 0.25 or int(Lm.sum()) < 3 or int(Rm.sum()) < 3:
+            return None
+        xl = float((w[Lm] * ar[Lm]).sum() / al_); xr = float((w[Rm] * ar[Rm]).sum() / ar_)
+        sl = math.sqrt(max(0.0, float((ar[Lm] * (w[Lm] - xl) ** 2).sum() / al_)))
+        sr = math.sqrt(max(0.0, float((ar[Rm] * (w[Rm] - xr) ** 2).sum() / ar_)))
+        if sl > 0.35 or sr > 0.35:                           # not flat walls -> not a machined flank
+            return None
+        return 0.5 * (xl + xr), xr - xl
+    nw = walls(ry0, ry1, True); pw = walls(fy0, fy1, False)
+    if nw is None or pw is None:
+        return aL
+    if not (1.5 < nw[1] < 8.0) or not (1.5 < pw[1] < 8.0):   # implausible aperture / blade -> not sights
+        return aL
+    phi = math.atan2(pw[0] - nw[0], rad)                     # yaw that centres the post in the notch
     if abs(math.degrees(phi)) > 3.0:
-        return aL                                                  # guard: cap at 3deg
-    aL2 = math.cos(phi) * aL + math.sin(phi) * aWc
+        return aL                                            # guard: cap at 3deg
+    aL2 = math.cos(phi) * aL - math.sin(phi) * aWc
     return aL2 / (np.linalg.norm(aL2) or 1.0)
 
 def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0, roll_offset_deg=0.0,
                       yaw_offset_deg=0.0, refine_parting=True, refine_sights=True, refine_roll=True,
-                      refine_sight_roll=True):
+                      refine_sight_roll=True, refine_seam=True):
     """Gun-canonical rigid transform (center, R): the SLIDE axis -> world Y and horizontal, muzzle at
     -Y, WIDTH -> X, GRIP -> -Z (down); object mass-centered. Owner canonical pose (2026-07-03):
     "muzzle to the left in the X-view, leveled along the slide, grip pointing down".
@@ -523,6 +684,14 @@ def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0, roll_offset_
         aL0 = aL.copy(); aL, aH = _refine_pitch_to_slide(P, F, center, aL, aH, aW)
         parting_refine_deg = math.degrees(math.acos(max(-1.0, min(1.0, float(np.dot(aL0, aL))))))
         l = D @ aL; h = D @ aH
+    # REFINE PITCH again, to the MEASURED PARTING SEAM (owner datum, final — 2026-08-05). The silhouette
+    # edge above is a proxy and disagrees with the real seam by 0.10deg (G34) / 0.17deg (Echelon); both
+    # needed a hand pitch step afterwards. Overrides the proxy when a seam is actually found; self-zeroing.
+    seam_refine_deg = 0.0
+    if level_slide and refine_seam and F is not None and len(F):
+        aL0 = aL.copy(); aL, aH = _refine_pitch_to_parting_seam(P, F, center, aL, aH, aW)
+        seam_refine_deg = math.degrees(math.acos(max(-1.0, min(1.0, float(np.dot(aL0, aL))))))
+        l = D @ aL; h = D @ aH
     # REFINE ROLL to the SLIDE-TOP FLAT (owner datum 2026-07-10b): the slide top must be horizontal in the
     # FRONT view — no cant about the bore. The pitch/yaw refines don't touch roll; a decimated scan's WIDTH
     # axis alone left the Glock 43 ~0.8deg rolled (owner caught it in Front-Ortho). Self-zeroing + guarded.
@@ -586,6 +755,7 @@ def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0, roll_offset_
         "lattice_ok": bool(lattice_coh >= 0.15),
         "slide_leveled_deg": round(float(slide_tilt_deg), 2),   # pitch correction applied to reach level
         "parting_refine_deg": round(float(parting_refine_deg), 2),   # extra pitch to the slide/parting line
+        "seam_refine_deg": round(float(seam_refine_deg), 3),    # pitch applied to level the MEASURED parting seam
         "roll_refine_deg": round(float(roll_refine_deg), 2),         # roll applied to level the slide-top flat
         "sight_roll_deg": round(float(sight_roll_deg), 3),      # roll applied to level the REAR-SIGHT SHOULDERS
         "sight_yaw_deg": round(float(sight_yaw_deg), 2),        # yaw applied to colinear the sights
@@ -860,13 +1030,168 @@ def compute_alignment_light(P, F, refine_seat=True):
             "det_R": round(float(np.linalg.det(R)), 6)}
     return center, R, diag
 
+def pose_report(P, F, tol_deg=0.30):
+    """Measure ALL THREE gun datums + the SIGHT CHANNEL on an ALREADY-ALIGNED (P,F). Owner directive
+    2026-08-05: *"Not only alignment horizontal but also pitch, yaw and roll across all axis and also check
+    gun sights / sight channel."*
+
+    This is the INDEPENDENT verifier: every quantity is re-derived from the mesh, none is carried over from
+    `compute_alignment`. That separation is the whole point — this skill's recurring failure is a verifier
+    that shares the aligner's basis and rubber-stamps a wrong pose (2026-07-03, again 2026-07-10b). It is
+    still not a substitute for rendering the three ortho views; a number and a picture fail differently.
+
+    Returns a dict. The three datums, each measured the way the owner's eye reads it:
+      pitch_deg   the UPPER/LOWER PARTING SEAM, measured (groove or step), NOT the slide-top proxy.
+      roll_deg    the two REAR-SIGHT SHOULDERS, area-weighted mean height each, across their lever arm.
+      yaw_deg     the SIGHT PICTURE: notch-gap centre vs front-post silhouette centre, over 4 z-bands.
+    Plus `sight_channel` (slide-top plane, both blades, notch width, post width, protrusions, sight radius)
+    and `ok` / `bad` — `bad` lists every datum outside tol_deg, or missing.
+    """
+    out = {"n_verts": int(len(P))}
+    a, b, c = P[F[:, 0]], P[F[:, 1]], P[F[:, 2]]
+    fn = np.cross(b - a, c - a); fa = np.linalg.norm(fn, axis=1); ok = fa > 1e-12
+    nn = fn[ok] / fa[ok][:, None]; ar = 0.5 * fa[ok]; cen = ((a + b + c) / 3.0)[ok]
+    x, y, z = P[:, 0], P[:, 1], P[:, 2]
+    zmax = float(z.max())
+
+    # --- slide-top flat: the area-dominant up-facing plane (NOT a percentile of a height band, which
+    #     swallows the whole upper slide and makes the front sight look like a 74mm rib -- Echelon 2026-07-27)
+    up = (nn[:, 2] > 0.97) & (cen[:, 2] > zmax - 25.0)
+    ZT = None
+    if int(up.sum()) > 20:
+        hh, ee = np.histogram(cen[up, 2], bins=200, weights=ar[up])
+        ZT = float(ee[int(hh.argmax())])
+        sel = up & (np.abs(cen[:, 2] - ZT) < 0.6)
+        N = (nn[sel] * ar[sel][:, None]).sum(0); N /= (np.linalg.norm(N) or 1.0)
+        out["slide_top_z"] = ZT
+        out["slide_top_area_mm2"] = float(ar[sel].sum())
+        out["slide_top_roll_deg"] = float(math.degrees(math.asin(max(-1.0, min(1.0, N[0])))))
+        out["slide_top_pitch_deg"] = float(math.degrees(math.asin(max(-1.0, min(1.0, -N[1])))))
+
+    # --- PITCH: the measured parting seam ---
+    lmin, lmax = float(np.percentile(y, 1)), float(np.percentile(y, 99)); Ll = lmax - lmin
+    hmin, hmax = float(np.percentile(z, 0.5)), float(np.percentile(z, 99.5)); Hh = hmax - hmin
+    best = None
+    if Ll > 1e-6 and Hh > 1e-6:
+        ylo, yhi = lmin + 0.12 * Ll, lmin + 0.72 * Ll
+        span_min = 0.35 * (yhi - ylo); hb = max(2.0, 0.025 * Hh)
+        for f in np.linspace(0.55, 0.95, 17):
+            for mode in ("groove", "step"):
+                r = _seam_line(y, z, x, ylo, yhi, hmin + f * Hh, hb, mode, min_pts=_SEAM_MIN_PTS)
+                if r is None:
+                    continue
+                slope, rms, n, span = r
+                if n >= 10 and span >= span_min and rms <= 0.25 and (best is None or rms < best[1]):
+                    best = (slope, rms, n, span, mode, hmin + f * Hh)
+    if best is not None:
+        out["pitch_deg"] = float(math.degrees(math.atan(best[0])))
+        out["pitch_rms_mm"] = float(best[1]); out["pitch_n"] = int(best[2])
+        out["pitch_span_mm"] = float(best[3]); out["pitch_mode"] = best[4]
+        out["pitch_seam_z"] = float(best[5])
+    else:
+        out["pitch_deg"] = None                                  # no modelled seam (e.g. a repaired solid)
+
+    # --- rear sight band, then ROLL + YAW + the sight channel ---
+    ch = {}
+    if ZT is not None:
+        prot = (cen[:, 2] > ZT + 1.5) & (nn[:, 2] > 0.0)
+        if int(prot.sum()) > 20:
+            hy, ey = np.histogram(cen[prot, 1], bins=120, weights=ar[prot])
+            mid = 0.5 * (lmin + lmax)
+            fb = [(ey[i], hy[i]) for i in range(120) if hy[i] > 0.5 and ey[i] < mid]
+            rb = [(ey[i], hy[i]) for i in range(120) if hy[i] > 0.5 and ey[i] > mid]
+            if fb and rb:
+                fy0, fy1 = fb[0][0] - 2.0, fb[-1][0] + 2.0
+                ry0, ry1 = rb[0][0] - 2.0, rb[-1][0] + 2.0
+                ch["front_y"] = [float(fy0), float(fy1)]; ch["rear_y"] = [float(ry0), float(ry1)]
+                # ROLL: the two rear-sight shoulders
+                rs = (cen[:, 1] > ry0) & (cen[:, 1] < ry1)
+                if int(rs.sum()) > 20:
+                    htop = float(cen[rs, 2].max())
+                    top = rs & (nn[:, 2] > math.cos(math.radians(25))) & (cen[:, 2] > htop - 1.2)
+                    Lm, Rm = top & (cen[:, 0] < 0), top & (cen[:, 0] > 0)
+                    if int(Lm.sum()) >= 6 and int(Rm.sum()) >= 6 and ar[Lm].sum() > 1 and ar[Rm].sum() > 1:
+                        hl = float((cen[Lm, 2] * ar[Lm]).sum() / ar[Lm].sum())
+                        hr = float((cen[Rm, 2] * ar[Rm]).sum() / ar[Rm].sum())
+                        wl = float((cen[Lm, 0] * ar[Lm]).sum() / ar[Lm].sum())
+                        wr = float((cen[Rm, 0] * ar[Rm]).sum() / ar[Rm].sum())
+                        out["roll_deg"] = float(math.degrees(math.atan2(hr - hl, wr - wl)))
+                        out["roll_shoulder_dz_mm"] = float(hr - hl)
+                        ch["shoulder_area_mm2"] = [float(ar[Lm].sum()), float(ar[Rm].sum())]
+                # YAW (PRIMARY): the two facing WALL PLANES -- notch inner walls vs front-post flanks,
+                # area-weighted so it is MESH-DENSITY-INVARIANT. Calibrated on the owner's canonical STLs,
+                # which must read zero: G17 -0.020, G19 +0.007, G34 scan -0.015.
+                fyc = 0.5 * (fy0 + fy1); ryc = 0.5 * (ry0 + ry1); rad = abs(ryc - fyc)
+                ch["sight_radius_mm"] = float(rad)
+                side = np.abs(nn[:, 0]) > 0.85
+                def _walls(y0v, y1v, inner):
+                    m = side & (cen[:, 1] > y0v) & (cen[:, 1] < y1v) & (cen[:, 2] > ZT + 1.5)
+                    if inner:
+                        m = m & (np.abs(cen[:, 0]) < 6.0)
+                    Lm, Rm = m & (cen[:, 0] < 0), m & (cen[:, 0] > 0)
+                    al_, ar_ = float(ar[Lm].sum()), float(ar[Rm].sum())
+                    if al_ < 0.25 or ar_ < 0.25 or int(Lm.sum()) < 3 or int(Rm.sum()) < 3:
+                        return None
+                    xl = float((cen[Lm, 0] * ar[Lm]).sum() / al_)
+                    xr = float((cen[Rm, 0] * ar[Rm]).sum() / ar_)
+                    sl = math.sqrt(max(0.0, float((ar[Lm] * (cen[Lm, 0] - xl) ** 2).sum() / al_)))
+                    sr = math.sqrt(max(0.0, float((ar[Rm] * (cen[Rm, 0] - xr) ** 2).sum() / ar_)))
+                    if sl > 0.35 or sr > 0.35:               # planarity gate, see _refine_yaw_to_sights
+                        return None
+                    return 0.5 * (xl + xr), xr - xl
+                nwl = _walls(ry0, ry1, True); pwl = _walls(fy0, fy1, False)
+                if nwl and pwl and rad > 1.0:
+                    out["yaw_deg"] = float(math.degrees(math.atan2(pwl[0] - nwl[0], rad)))
+                    out["yaw_post_offset_mm"] = float(pwl[0] - nwl[0])
+                    ch["notch_width_mm"] = float(nwl[1]); ch["post_width_mm"] = float(pwl[1])
+                    ch["post_wider_than_notch"] = bool(pwl[1] > nwl[1])
+                # SECONDARY, informational: the vertex-gap sight picture. Reliable only on a DENSE mesh
+                # (it read -1.83deg on the 114k-tri G17 native, where the truth is ~0), so it is reported
+                # and never asserted -- a disagreement with yaw_deg means the mesh is too coarse for it.
+                dxs = []
+                for d0, d1 in ((2.0, 3.0), (2.5, 3.5), (3.0, 4.0), (3.5, 4.5)):
+                    v = P[(y > ry0) & (y < ry1) & (z > ZT + d0) & (z < ZT + d1) & (np.abs(x) < 9.0)]
+                    u = P[(y > fy0) & (y < fy1) & (z > ZT + d0) & (z < ZT + d1)]
+                    if len(v) < 40 or len(u) < 20:
+                        continue
+                    xs = np.sort(v[:, 0]); g = np.diff(xs)
+                    if not len(g):
+                        continue
+                    i = int(np.argmax(g))
+                    if not (0.8 < float(g[i]) < 8.0):
+                        continue
+                    dxs.append(0.5 * (float(u[:, 0].min()) + float(u[:, 0].max()))
+                               - 0.5 * (float(xs[i]) + float(xs[i + 1])))
+                if dxs:
+                    out["yaw_vertexgap_deg"] = float(math.degrees(math.atan2(float(np.mean(dxs)),
+                                                                             rad or 1.0)))
+                    out["yaw_sight_dx_mm"] = float(np.mean(dxs))
+                    out["yaw_sight_dx_sd_mm"] = float(np.std(dxs))
+                    ch["n_bands"] = len(dxs)
+                for tag, y0v, y1v in (("front_sight", fy0, fy1), ("rear_sight", ry0, ry1)):
+                    v = P[(y > y0v) & (y < y1v) & (z > ZT + 0.5)]
+                    if len(v) > 20:
+                        ch[tag + "_proud_mm"] = float(v[:, 2].max() - ZT)
+                        ch[tag + "_width_mm"] = float(v[:, 0].max() - v[:, 0].min())
+    out["sight_channel"] = ch
+
+    bad = []
+    for k in ("pitch_deg", "roll_deg", "yaw_deg"):
+        v = out.get(k)
+        if v is None:
+            bad.append(k.replace("_deg", "") + "=NO_DATUM")
+        elif abs(v) > tol_deg:
+            bad.append("%s=%.3f" % (k.replace("_deg", ""), v))
+    out["bad"] = bad; out["ok"] = not bad; out["tol_deg"] = tol_deg
+    return out
+
 def verify_alignment(P_new, F):
     """Adversarial self-check on the ALIGNED cloud (gun-canonical pose). All must be ~ideal:
       center_residual ~ 0 ; R_new ~ identity ; dims Y>=Z>=X ; muzzle at -Y ; GRIP at bottom-rear
       (min-Z vert sits at +Y and below center) ; slide level (|slide_top_tilt| small)."""
     P_new = np.asarray(P_new, dtype=np.float64)
     cen2, R2, d2 = compute_alignment(P_new, F, refine_parting=False, refine_sights=False, refine_roll=False,
-                                     refine_sight_roll=False)  # pure axis/sign recheck
+                                     refine_sight_roll=False, refine_seam=False)  # pure axis/sign recheck
     dims = P_new.max(0) - P_new.min(0)                       # bbox extents X,Y,Z
     off = float(np.abs(R2 - np.eye(3)).max())
     low_i = int(np.argmin(P_new[:, 2]))                     # the lowest vert = the grip toe
@@ -920,7 +1245,7 @@ def _dup(src, out_name):
 
 def align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, pitch_offset_deg=0.0,
                  roll_offset_deg=0.0, yaw_offset_deg=0.0, mode="gun", refine_parting=True, refine_sights=True,
-                 refine_roll=True, refine_seat=True, refine_sight_roll=True):
+                 refine_roll=True, refine_seat=True, refine_sight_roll=True, refine_seam=True):
     """Align an already-imported gun/light mesh to world XYZ, mass-centered. THE skill entry point.
 
     mode="gun"  (default) -> muzzle -Y, grip -Z, slide/rail level (gun anatomy heuristics).
@@ -945,7 +1270,8 @@ def align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, 
         center, R, diag = compute_alignment(P, F, level_slide=level_slide, pitch_offset_deg=pitch_offset_deg,
                                              roll_offset_deg=roll_offset_deg, yaw_offset_deg=yaw_offset_deg,
                                              refine_parting=refine_parting, refine_sights=refine_sights,
-                                             refine_roll=refine_roll, refine_sight_roll=refine_sight_roll)
+                                             refine_roll=refine_roll, refine_sight_roll=refine_sight_roll,
+                                             refine_seam=refine_seam)
     P_new = apply_alignment(P, center, R)
 
     target = src if in_place else _dup(src, out_name or (src.name + "_ALIGNED"))
