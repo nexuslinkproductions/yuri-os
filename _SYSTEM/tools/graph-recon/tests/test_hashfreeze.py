@@ -153,14 +153,19 @@ def test_hashfreeze_all_zeros_commit_flagged() -> None:
 
 def test_hashfreeze_provenance_skipped_outside_repo() -> None:
     # graceful skip: not a repo => no git-object check (format still enforced)
-    freeze = build_hashfreeze(template_root=ROOT, commit=REAL_COMMIT)
-    bad = dict(freeze)
-    bad["commit"] = "1" * 40  # 40-hex, but no repo to check against
-    v = verify_hashfreeze(ROOT, bad)
-    assert not any("git object" in x for x in v), v
-    bad["commit"] = "89676dceb"  # abbreviated sha: format violation
-    v = verify_hashfreeze(ROOT, bad)
-    assert any("40-hex" in x for x in v), v
+    # use a temp copy WITHOUT .git so the skip path is exercised regardless of
+    # whether the template ROOT lives inside a git worktree (test robustness).
+    with tempfile.TemporaryDirectory(prefix="hf-norepo-") as td:
+        t = _copy_tree(Path(td))
+        assert not (t / ".git").exists(), "fixture must be a non-repo dir"
+        freeze = build_hashfreeze(template_root=t, commit=REAL_COMMIT)
+        bad = dict(freeze)
+        bad["commit"] = "1" * 40  # 40-hex, but no repo to check against
+        v = verify_hashfreeze(t, bad)
+        assert not any("git object" in x for x in v), v
+        bad["commit"] = "89676dceb"  # abbreviated sha: format violation
+        v = verify_hashfreeze(t, bad)
+        assert any("40-hex" in x for x in v), v
     print("provenance non-repo skip OK")
 
 
