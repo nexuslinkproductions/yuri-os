@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS Link · Gespräch mit Atilla · Recap</title>
+<style>
+  :root{
+    --bg:#0a0d14; --surf:#141a27; --surf2:#18202f; --line:#232c3d; --line2:#2c3750;
+    --tx:#eaf0f7; --tx-mut:#98a6ba; --tx-dim:#6c7a90;
+    --acc:#7dffb3; --acc2:#6ea8fe; --warn:#ffcf70; --defer:#8a97ad; --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    background:
+      radial-gradient(1100px 600px at 82% -8%,rgba(125,255,179,.10),transparent 60%),
+      radial-gradient(900px 620px at 8% 8%,rgba(110,168,254,.10),transparent 58%),
+      var(--bg);
+    color:var(--tx); line-height:1.62; letter-spacing:.1px; -webkit-font-smoothing:antialiased;
+    padding:0 20px 90px;
+  }
+  .wrap{max-width:1000px;margin:0 auto}
+  header{padding:60px 0 28px;border-bottom:1px solid var(--line);margin-bottom:40px}
+  .brandrow{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+  .logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--acc),var(--acc2));
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:#04121b;font-size:20px;
+    box-shadow:0 8px 30px rgba(125,255,179,.25)}
+  .brand{font-weight:700;font-size:19px;letter-spacing:.3px}
+  .brand .thin{color:var(--tx-mut);font-weight:500}
+  h1{font-size:40px;line-height:1.12;font-weight:800;letter-spacing:-.5px;margin-bottom:14px}
+  h1 .g{background:linear-gradient(120deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .sub{font-size:17px;color:var(--tx-mut);max-width:660px}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+  .chip{font-size:13px;color:var(--tx-mut);background:var(--surf);border:1px solid var(--line);padding:7px 13px;border-radius:999px}
+  .chip b{color:var(--tx)}
+  section{margin:48px 0}
+  .kicker{font-size:12.5px;letter-spacing:2.4px;text-transform:uppercase;color:var(--acc);font-weight:700;margin-bottom:12px}
+  h2{font-size:26px;font-weight:750;letter-spacing:-.3px;margin-bottom:8px}
+  .lead{color:var(--tx-mut);font-size:16px;max-width:760px;margin-bottom:24px}
+  .tldr{background:linear-gradient(180deg,var(--surf),var(--surf2));border:1px solid var(--line2);border-radius:var(--radius);padding:28px 30px}
+  .tldr h2{margin-bottom:16px}
+  .tldr .big{font-size:19px;color:#fff;font-weight:650;margin-bottom:16px;line-height:1.5}
+  .tldr .big b{color:var(--acc)}
+  .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 28px}
+  .spt{display:flex;gap:12px;align-items:flex-start}
+  .spt .dot{width:9px;height:9px;border-radius:50%;background:var(--acc);margin-top:9px;flex:0 0 auto;box-shadow:0 0 12px var(--acc)}
+  .spt p{font-size:15px;color:#d6deeb}
+  .spt b{color:#fff}
+  /* timeline */
+  .tl{position:relative;padding-left:8px}
+  .tl:before{content:"";position:absolute;left:19px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,var(--acc),var(--acc2),transparent)}
+  .step{position:relative;display:grid;grid-template-columns:40px 1fr;gap:18px;padding:9px 0}
+  .node{width:38px;height:38px;border-radius:11px;background:var(--surf2);border:1px solid var(--line2);
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--acc);font-size:14px;z-index:1}
+  .stepbody{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:15px 19px}
+  .stepbody h3{font-size:16px;font-weight:700;margin-bottom:4px}
+  .stepbody p{font-size:14.3px;color:var(--tx-mut)}
+  .stepbody .who{font-size:12px;color:var(--acc2);font-weight:600}
+  /* decision cards */
+  .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+  .dcard{background:var(--surf);border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:12px;padding:18px 20px}
+  .dcard.defer{border-left-color:var(--defer)}
+  .dcard.watch{border-left-color:var(--warn)}
+  .dcard .dt{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
+  .dcard h3{font-size:16px;font-weight:700}
+  .dcard p{font-size:14px;color:var(--tx-mut)}
+  .tag{font-size:11px;font-weight:700;letter-spacing:.4px;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .t-go{color:#04140c;background:var(--acc)} .t-def{color:#0b0f18;background:var(--defer)} .t-watch{color:#1c1400;background:var(--warn)}
+  .owner{font-size:12px;color:var(--tx-dim);margin-top:8px}
+  .owner b{color:var(--acc2)}
+  /* two-col tasks */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .panel{background:var(--surf);border:1px solid var(--line);border-radius:var(--radius);padding:24px}
+  .panel h3{font-size:17px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .panel h3 .badge{font-size:11.5px;font-weight:700;color:var(--acc);background:rgba(125,255,179,.1);border:1px solid rgba(125,255,179,.25);padding:3px 9px;border-radius:999px}
+  .plist{list-style:none;display:flex;flex-direction:column;gap:10px}
+  .plist li{display:flex;gap:10px;font-size:14.5px;color:#d3dbe8}
+  .plist .k{color:var(--acc);font-weight:800;flex:0 0 auto}
+  .callout{margin-top:16px;padding:14px 16px;border-radius:12px;background:rgba(255,207,112,.08);border:1px solid rgba(255,207,112,.28);font-size:14px;color:#f0e0bf}
+  .callout b{color:var(--warn)}
+  .next{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+  .ncard{background:linear-gradient(180deg,var(--surf),var(--surf2));border:1px solid var(--line2);border-radius:var(--radius);padding:20px}
+  .ncard .n{font-size:12.5px;font-weight:800;color:var(--acc2);margin-bottom:9px;letter-spacing:.5px}
+  .ncard h4{font-size:15px;margin-bottom:6px}
+  .ncard p{font-size:13.6px;color:var(--tx-mut)}
+  footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--line);color:var(--tx-dim);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .note{font-size:12.5px;color:var(--tx-dim);margin-top:14px;font-style:italic}
+  @media(max-width:720px){h1{font-size:31px}.sgrid,.dgrid,.split,.next{grid-template-columns:1fr}body{padding:0 16px 60px}}
+  @media print{body{background:#fff;color:#0d1420;padding:0}.dcard,.panel,.tldr,.stepbody,.ncard{background:#fff;border-color:#d5dce6;box-shadow:none}
+    h1 .g,.kicker,.plist .k{-webkit-text-fill-color:initial;color:#0a7d4e}.spt .dot,.logo{box-shadow:none}section{margin:24px 0;break-inside:avoid}.step,.dcard,.panel{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brandrow"><div class="logo">N</div><div class="brand">NEXUS Link <span class="thin">· Prime State</span></div></div>
+    <h1>Recap: Gespräch mit <span class="g">Atilla</span></h1>
+    <p class="sub">Zusammenfassung des Calls, die getroffenen Entscheidungen und die Aufgabenverteilung. Die Kernentscheidung ist ein klarer Fokuswechsel.</p>
+    <div class="meta">
+      <span class="chip">Datum: <b>7. Juli 2026</b></span>
+      <span class="chip">Teilnehmer: <b>Marcel &amp; Atilla</b></span>
+      <span class="chip">Dauer: <b>ca. 45 Min.</b></span>
+      <span class="chip">Medium: <b>Riverside-Call in Comet</b></span>
+    </div>
+  </header>
+
+  <section class="tldr">
+    <div class="kicker">Kernaussage</div>
+    <h2>Der Fokuswechsel</h2>
+    <p class="big"><b>Zuerst Akademie und eine High-End-Website mit Lead-Funnel.</b> Das volle CRM, Google- und Meta-Ads sowie die Meta-Registrierung werden bewusst nach hinten geschoben. Clicktools bleibt vorerst das Werkzeug fürs Lead-Sammeln. Ziel: schnell Vertrauen und Umsatz, damit der Vertrieb Futter hat.</p>
+    <div class="sgrid">
+      <div class="spt"><span class="dot"></span><p><b>Warum:</b> Der Vertrieb braucht sofort Leads. Vertrauen entsteht über eine sichtbare, hochwertige Akademie und Website, nicht über ein volles CRM.</p></div>
+      <div class="spt"><span class="dot"></span><p><b>Was schon läuft:</b> Datenbank, Web-Frontend, Microsoft-365-Kalender-Sync und ein Sicherheitsfundament mit Verschlüsselung stehen.</p></div>
+      <div class="spt"><span class="dot"></span><p><b>Zeitdruck:</b> Atilla ist gut vernetzt (Bürgermeister, vermögende Kreise). Es geht schneller als gedacht, daher jetzt Tempo auf sichtbaren Output.</p></div>
+      <div class="spt"><span class="dot"></span><p><b>Offen:</b> Modellwahl fürs Chatmodul (EU/DSGVO) und die Datenschutzfrage beim Website-Tracking.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Gesprächsverlauf</div>
+    <h2>Worüber gesprochen wurde</h2>
+    <p class="lead">Grob chronologisch, gefiltert auf das Wesentliche.</p>
+    <div class="tl">
+      <div class="step"><div class="node">01</div><div class="stepbody"><h3>Start und Aufnahme</h3><p>Setup und Bestätigung, dass alles aufnimmt. Kurzer Hinweis: die Audioqualität war zu Beginn etwas schwach.</p></div></div>
+      <div class="step"><div class="node">02</div><div class="stepbody"><h3>Produkt-Demo (Marcel)</h3><p>Komplette Datenbank plus Web-Frontend gezeigt. Der Microsoft-365-Kalender synchronisiert bereits live. Dazu ein stabiles Sicherheitsfundament mit Verschlüsselung, weil es um schützenswerte Kundendaten geht (Sandbox pro Kunde).</p></div></div>
+      <div class="step"><div class="node">03</div><div class="stepbody"><h3>Idee: eingebauter Chat</h3><p>Ein simples Chatfenster mit festem, günstigem Modell, über uns geroutet. Die Nutzer brauchen kein eigenes Abo. Grobrechnung: über 200 Leute für etwa 200 Euro im Monat.</p></div></div>
+      <div class="step"><div class="node">04</div><div class="stepbody"><h3>Brauchen wir jetzt ein volles CRM?</h3><p>Marcels Frage: vorerst nur Kommunikation und Website-Analytik statt volles CRM mit Ads. Grund: die Meta- und Instagram-Registrierung ist ein Prozess von etwa 4 bis 8 Wochen.</p></div></div>
+      <div class="step"><div class="node">05</div><div class="stepbody"><h3>Atillas Geschäftslogik</h3><p>Die Vertriebler verkaufen, brauchen aber Futter (Leads). Vertrauen entsteht über eine hochwertige Akademie und Website. Kurzfristig zählt Umsatz. Insta und Co. sind erst mal zweitrangig.</p></div></div>
+      <div class="step"><div class="node">06</div><div class="stepbody"><h3>Der Funnel und Lead-Fluss</h3><p>Instagram-Link, Weiterleitung auf die Website, Registrierungs-Popup (Name, E-Mail, idealerweise Telefon). Der Kontakt landet als Lead-Liste beim Vertrieb.</p></div></div>
+      <div class="step"><div class="node">07</div><div class="stepbody"><h3>Design-Latte</h3><p>High-End und High-Resolution. Atilla zeigte eine Referenzseite (Wien/Dubai-Umfeld). Die Akademie soll im selben Look sein. Visuell Vertrauen schaffen.</p></div></div>
+      <div class="step"><div class="node">08</div><div class="stepbody"><h3>Coaching-Philosophie (kurz)</h3><p>High-Class-Kunden statt Masse. Es geht um Mindset, vor allem aber um Ausführung und Disziplin. Atilla mahnte Marcel auch, auf seine Gesundheit zu achten.</p></div></div>
+      <div class="step"><div class="node">09</div><div class="stepbody"><h3>Abschluss und Updates (Marcel)</h3><p>Marcels weitere Arbeit: das Sprach-Setup (aktuell etwa 65 Prozent) und der CGS-Workflow mit Jürgen. Termin beim AMS am 24. zur Förderung, 48-seitiger Businessplan liegt vor. Dazu ein möglicher Investorenkontakt.</p></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Das Wichtigste</div>
+    <h2>Finale Entscheidungen</h2>
+    <p class="lead">Die konkreten Beschlüsse, gefällt gegen Ende des Gesprächs.</p>
+    <div class="dgrid">
+      <div class="dcard"><div class="dt"><h3>1. Fokus: Akademie + Website</h3><span class="tag t-go">jetzt</span></div><p>Zuerst die Akademie und eine High-End-Landingpage mit Funnels bauen, dann expandieren. Main Focus zuerst nur darauf.</p><div class="owner">Verantwortlich: <b>Marcel &amp; Atilla</b></div></div>
+      <div class="dcard defer"><div class="dt"><h3>2. CRM &amp; Ads aufgeschoben</h3><span class="tag t-def">später</span></div><p>Volles CRM, Google- und Meta-Ads sowie die 4 bis 8 Wochen dauernde Meta/Instagram-Registrierung kommen bewusst nach hinten.</p><div class="owner">Verantwortlich: <b>Marcel</b></div></div>
+      <div class="dcard"><div class="dt"><h3>3. Clicktools vorerst behalten</h3><span class="tag t-go">jetzt</span></div><p>Atilla nutzt Clicktools weiter fürs Lead-Sammeln und fragt dort eine kurzfristige Expansion an. Marcels System läuft parallel weiter.</p><div class="owner">Verantwortlich: <b>Atilla</b></div></div>
+      <div class="dcard"><div class="dt"><h3>4. Lead-Funnel definiert</h3><span class="tag t-go">jetzt</span></div><p>Instagram-Link, Website, Registrierungs-Popup mit Name, E-Mail und möglichst Telefon. Ergebnis: eine Lead-Liste für den Vertrieb.</p><div class="owner">Verantwortlich: <b>beide</b></div></div>
+      <div class="dcard"><div class="dt"><h3>5. High-End-Design</h3><span class="tag t-go">jetzt</span></div><p>Website und Akademie im gleichen, hochwertigen High-Resolution-Look wie die Referenzseite. Vertrauen visuell schaffen.</p><div class="owner">Verantwortlich: <b>Marcel</b> (Design), Input <b>Atilla</b></div></div>
+      <div class="dcard watch"><div class="dt"><h3>6. Chatmodul: festes Modell</h3><span class="tag t-watch">zu klären</span></div><p>Ein festes, günstiges Modell über uns geroutet, ohne Abo für die Nutzer. Offen: das anvisierte Modell ist chinesisch, daher EU/DSGVO bis August prüfen und ggf. ein europäisches Modell wählen.</p><div class="owner">Verantwortlich: <b>Marcel</b></div></div>
+    </div>
+    <p class="note">Zu klären bleibt zudem die Datenschutzfrage: dürfen Website-Besucher getrackt werden, und wie wird die Einwilligung eingeholt.</p>
+  </section>
+
+  <section>
+    <div class="kicker">Aufgabenverteilung</div>
+    <h2>Wer macht was</h2>
+    <div class="split">
+      <div class="panel">
+        <h3>Atilla <span class="badge">Business &amp; Content</span></h3>
+        <ul class="plist">
+          <li><span class="k">1</span><span>Output-Liste senden: Websites und die einzelnen Module (was in jedes Modul gehört).</span></li>
+          <li><span class="k">2</span><span>Grobe Skizze / Rough Layout der Akademie-Module.</span></li>
+          <li><span class="k">3</span><span>Input zu den Funnels liefern.</span></li>
+          <li><span class="k">4</span><span>Clicktools zu einer kurzfristigen Expansion befragen.</span></li>
+          <li><span class="k">5</span><span>Vertriebsteam aktivieren: Kevin (plus Freundin), Chris T. (Deutschland), Mike.</span></li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Marcel <span class="badge">Build &amp; Tech</span></h3>
+        <ul class="plist">
+          <li><span class="k">1</span><span>Website-Design starten, aus Atillas Material, ggf. mit Figma.</span></li>
+          <li><span class="k">2</span><span>Mit Mike das Startvorgehen besprechen, dann auf Atillas Feedback aufsetzen.</span></li>
+          <li><span class="k">3</span><span>Akademie-Module und Landingpage mit Funnels umsetzen.</span></li>
+          <li><span class="k">4</span><span>Modellwahl fürs Chatmodul klären, inklusive EU/DSGVO.</span></li>
+          <li><span class="k">5</span><span>Tracking und Datenschutz sauber aufsetzen.</span></li>
+        </ul>
+        <div class="callout"><b>Fundament steht bereits:</b> Datenbank, Microsoft-365-Kalender-Sync und die Sicherheitsschicht sind gebaut. Der nächste Schritt ist die sichtbare Akademie plus Website.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Nächste Schritte</div>
+    <h2>Fahrplan</h2>
+    <div class="next">
+      <div class="ncard"><div class="n">SOFORT</div><h4>Material und Design</h4><p>Atilla liefert Modul-Liste und Skizze. Marcel startet Website-Design und den Sync mit Mike.</p></div>
+      <div class="ncard"><div class="n">DER 24.</div><h4>AMS-Fördertermin</h4><p>Marcels nächster AMS-Fördertermin am 24. (Monat im Gespräch nicht genannt). Der 48-seitige Businessplan liegt bereit.</p></div>
+      <div class="ncard"><div class="n">PARALLEL</div><h4>Vertrieb &amp; Kapital</h4><p>Clicktools-Anfrage, Vertriebsteam startklar, Investorenkontakt weiterverfolgen. Ziel: erste 3 High-Class-Kunden, um die Kosten zu decken.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>NEXUS Link · Recap Gespräch Atilla · intern</span>
+    <span>Aufnahme + Transkript archiviert · 7. Juli 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>
