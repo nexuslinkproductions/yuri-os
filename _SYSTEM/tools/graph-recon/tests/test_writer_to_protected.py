@@ -143,17 +143,19 @@ def test_metamorphic_mutations() -> None:
     assert len(res.findings) == 0, [f.desc for f in res.findings]
 
     # ---- W-M3: flow reach (spawns + file_write) to a protected path ----
+    # M4-W1: target moved from _SYSTEM/OS_KERNEL/memory.db (heritage catalog)
+    # to backend/data/flow.json — protected under the neutral config patterns.
     _write_graph(graph_path, base + [
         _edge("file:_SYSTEM/Scripts/writer-b.mjs",
               "file:_SYSTEM/Scripts/helper.mjs", "spawns"),
         _edge("file:_SYSTEM/Scripts/helper.mjs",
-              "file:_SYSTEM/OS_KERNEL/memory.db", "file_write")])
+              "file:backend/data/flow.json", "file_write")])
     res = _run(repo, rev, graph_path)
     assert len(res.findings) == 1, [f.desc for f in res.findings]
     f = res.findings[0]
     assert f.sev == "medium", f.sev
     assert "flow" in f.desc, f.desc
-    assert "writer-b.mjs" in f.desc and "memory.db" in f.desc, f.desc
+    assert "writer-b.mjs" in f.desc and "flow.json" in f.desc, f.desc
     print("metamorphic OK (W-M1=1 medium env_consumption / sub 0, "
           "W-M2=1 high literal_write / sub 0, W-M3=1 medium flow)")
 

@@ -1,19 +1,20 @@
 {
-  "commit": "79a114980",
+  "commit": "m4-fix-local",
   "engine": {
     "__init__.py": "0980c8543c6395b1c72d90e370970346f7e537a4cc011f4368e4a0be9381e4a8",
-    "bundle.py": "a4a55c836bdbc171397eb8ed60776b499cfeb39f9fcd20a7b4345e39c21ae94a",
-    "cli.py": "106bd89230385163ee77eb2d2f5e9c68222609159d330c343ac0bb1d48a61350",
+    "bundle.py": "af37fbd51520516a6e21ede0bcda2c64c29d2879afb703ec57cdae714181d2b0",
+    "cli.py": "a77fd6fec5fe405924544aacd5ccaf36aab37911a41cbd4ab457629fb0857c69",
+    "config.py": "8d8f22c35727aeff7138c2281bbafe9e61c0e80fd6da39b437a6d2118351df43",
     "context.py": "d6795b5a99af7e077514dc89aaa7bb22fdeb68d4c4671b4010fc480a8db23dd8",
     "determinism.py": "c2cb21fa5b1ff01583a1980d75c202ff93b4e11e3a93e050a43cb380244ee057",
     "graphio.py": "69fb7450cba9b499e6204de5eb6018bc59b1bf3a46f9f786a9fd9b7787bf4afd",
-    "hashfreeze.py": "067b6972140f69b5a0aac062734fcfc78452b42de339ebf235e4598979f67022",
+    "hashfreeze.py": "65387e26b189823a6bf1e0b68ab2ee0206c0fde3d1d7aa87a07071154d4d9a28",
     "ledger.py": "db1539ab929d9183646996fbdc33bcf38b0dd6708b91613d2d575701e36c6b32",
     "manifest.py": "7336092ad6d15d574de995d822bd34ee373119fc8e041d0b5a164aa3888bf482",
     "merge.py": "ca88fdaf66f5933c55746d1d40633c763314c5bd0a7d70dbf16ab105f6575c00",
     "model.py": "ec0566a93c61dccdbdc1b38a71b0d1309fe668972b6f77aa589b3e9064502d13",
-    "protected.py": "f9550c518800c2d31493e7e6ab904fc86142489624090b6fcc895bdf9630ea62",
-    "registry.py": "0728e0a4cc4240e4d9d5037555c25241628774c21f024331e894bd13bdf6288a"
+    "protected.py": "40fedb7dca673c97add365b2161da8c6a42b4dfccd95e2020671540766fb1856",
+    "registry.py": "9460610f2e3e9f971a38406e809e6fe4b10607af448aa76db9643905b745bd5e"
   },
   "fixtures": {
     "analytics_graph.jsonl": "1e5b10d5c7a77a2786464b1ee3a2d581f3acefc5bc59e91aa89b54b686960c24"
@@ -23,6 +24,16 @@
     "v3_deduped": "f5597cc33c3b0e5e93683b4af5f8265544f59d31b5055221b45889fc8f164475"
   },
   "lens_config_sha256": "90468c664097e791c3ef347e9cbb25bcb515486c1c746e9880b23a227fc2c06a",
+  "packs": {
+    "yuri": {
+      "README.md": "311116330054510b5a7caae09b09ca821a13b21fb7e4cd3e96325106dd050487",
+      "formula_banks.py": "d278debba60434bf603e4ef947e8f35070cdf2f0f189061a24382de2d5f0d6e7",
+      "manifest.json": "8e93a622457c8402b722aaf421cbcf62dec695677af87fe3ce2c7c1b47efbd35",
+      "memory_schema.py": "43945f8914bdeacf9ffd50d6fb396dcf053c7a5cfa6e6a5c9513fbd78e68e80c",
+      "organs.py": "7cb7c59ad4b00ad244f7a8f8e0ee1ce217636f5a98c09b4ad92cdb7f6ae07103",
+      "registries.py": "ca41dba48e16d467047c3973d7b59aa0ee46376d92a731892f7425d790e545f8"
+    }
+  },
   "scanners": {
     "articulation.py": "aa9ea1cc3d3474735d401543a21aafcdb61cebb4ea5dcbe80c06f4817ef22269",
     "base.py": "6cd21bdf11699f5640eedded469940b477292c0c37afdee5853ac2642bc58701",
@@ -34,7 +45,6 @@
     "env_to_process.py": "c4988abfd49671bf33633ec2e69296d6c6c4300851158736d1b3d7617f5714cc",
     "exec_centrality.py": "8c83cda29014b61714c24be03db15ead46abbaf58339a21da56686771b00d21d",
     "file_inventory.py": "ac0268fb5b321a4a948c93c3481f1a7513b7a1e87df63dfcfdd30ec959545161",
-    "formula_banks.py": "66529ae83ccb2ce2aea03ae91b26269ba86739d179176debff118206c1461463",
     "git_history.py": "f36fdae16ff74d090ea1f3b50666db4cddcaf1665990549407b21ad9d7789755",
     "hook_projection.py": "0963f8b3c5056c89673769ad52d41a13dc93c4c1dde1fcee73701e5593366894",
     "hygiene.py": "c660b6dbe4ea9af2663c21a93593106b8768a805b90945ba0112a900c0e09c68",
@@ -43,12 +53,9 @@
     "live_ports.py": "9f16f3ff34730c3c4a2415589f19e213a0a927056f4650bd0bf7e505a9e10943",
     "mcp_registration.py": "d5a96d8b34fd5a71f09dbcb6f47867e4d312f43c6a56da1fba662e69cacc073f",
     "mcp_servers.py": "0f1737b370d69f7bd9bf1f9aada36432a02f46fe3f3949f20197153504f5a9d8",
-    "memory_schema.py": "34227f81c6638a785113cc0ac3e60361aca9ad111c8abe56c93630336ba11451",
     "network_probe.py": "8d9940bd86b2d53e21128e4b16043f19a083388f7609bdfefd5fa8803955fa3b",
-    "organs.py": "05662d0cd099b884a3f43dc4ef8d8eb8300a875dd5a0a40f7794172a811e6810",
-    "protected_paths.py": "578f15c1bafae73d31a31b25124c721ecfa3a5c09f3216ed818933ae2318d77e",
+    "protected_paths.py": "343efcf5a284917b1f5fbdb5355e34ccf2a325a1d9c588ef5ad5d8c53bac71c3",
     "protected_writer.py": "3227d7ae799d345ce028117fc2b751750986080040e00f07eacceb9c47d60bbf",
-    "registries.py": "a93b214630dcd19008376d49f066cd1a5f0b421600ffbd6cf1251ab0462deaae",
     "route_binding.py": "455fea3ec2da9270cf282041f5d50dbad5cfbd7c0a5d6de0ff0fcdc43139d935",
     "secrets_control.py": "08dd499d2f49018138e0d9ec9cc527aae0a9cd562b455fa41acf4ebb154fbe67",
     "security_path.py": "461b00281c4e2eeefba43991adb1ce3ac1ec9a11d7c704df9519c7c16bc5350c",

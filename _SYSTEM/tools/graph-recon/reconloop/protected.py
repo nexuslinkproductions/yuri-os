@@ -1,9 +1,25 @@
-"""Protected-surface catalog (metadata-only classification)."""
+"""Protected-surface catalog (metadata-only classification).
+
+Config-driven since M4-W1: patterns come from reconproject.json
+(`protected.patterns`) when present; otherwise the built-in heritage catalog
+below is used (default-if-absent), so a stock template behaves exactly like
+the original YURI catalog until a new project overrides it.
+
+The shipped reconproject.json carries the generalized defaults (.env*,
+.git, CI secrets, cloud configs, credentials, secrets dirs, node_modules,
+runtime data dirs, agent runtime dirs). New projects edit their config file
+instead of this module.
+"""
 from __future__ import annotations
 import re
 from pathlib import Path
 
-CATALOG = [
+from .config import _resolve
+
+# Built-in heritage catalog (YURI-specific) — ONLY used when reconproject.json
+# is absent or declares no protected.patterns. Do not extend this list for new
+# projects; put patterns in reconproject.json instead.
+HERITAGE_CATALOG = [
     re.compile(r"\.env($|\.|/)|\.env\.local|secrets\.env"),            # env/secret files
     re.compile(r"\.claude/(state|history|file-history|projects)(/|$)"),  # claude protected surfaces
     re.compile(r"backend/data(/|$)"),                                 # backend runtime data
@@ -17,9 +33,44 @@ CATALOG = [
     re.compile(r"Application Support/October/(?!worktrees/)[^/]+\.(db|sqlite|sqlite3)"),  # October app DBs (worktrees stay readable)
 ]
 
+
+def load_catalog(config_path: Path | None = None) -> list[re.Pattern]:
+    """Active pattern list.
+
+    - config_path given and readable with non-empty `protected.patterns`
+      -> those patterns (each string compiled as a regex)
+    - otherwise -> the built-in heritage catalog (default-if-absent).
+    """
+    if config_path is None:
+        config_path = _resolve(None)
+    if config_path is not None and config_path.exists():
+        from .config import load_reconproject
+        cfg = load_reconproject(config_path)
+        pats = (cfg.get("protected") or {}).get("patterns") or []
+        compiled = []
+        for p in pats:
+            if isinstance(p, str) and p.strip():
+                compiled.append(re.compile(p))
+        if compiled:
+            return compiled
+    return list(HERITAGE_CATALOG)
+
+
+# Module-level active catalog, built once at import from discovered config.
+CATALOG = load_catalog()
+
+
+def reload_catalog(config_path: Path | None = None) -> list[re.Pattern]:
+    """Rebuild the active catalog (tests / config edited at runtime)."""
+    global CATALOG
+    CATALOG = load_catalog(config_path)
+    return CATALOG
+
+
 def is_protected(rel_path: str) -> bool:
     p = rel_path.replace("\\", "/")
     return any(r.search(p) for r in CATALOG)
+
 
 def meta_only(path: Path) -> dict:
     """Metadata-only stat: never opens content. Returns hash of content bytes

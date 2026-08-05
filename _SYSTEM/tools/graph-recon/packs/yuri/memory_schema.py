@@ -1,7 +1,8 @@
-"""P2 port: memory.db schema-level + Track A/B counts (E4 logic, metadata-only)."""
+# M4-W1: moved to packs/yuri/ — YURI-OS-specific scanner, loaded via
+# --packs yuri or "packs": ["yuri"] in reconproject.json (absolute imports).
 from __future__ import annotations
 import subprocess
-from .base import BaseScanner, ScanResult
+from scanners.base import BaseScanner, ScanResult
 from reconloop.model import Node
 
 class MemorySchemaScanner(BaseScanner):

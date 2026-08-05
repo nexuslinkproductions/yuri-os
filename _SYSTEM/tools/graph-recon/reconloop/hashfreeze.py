@@ -74,6 +74,14 @@ def build_hashfreeze(*, template_root: Path, commit: str) -> dict:
     for p in sorted((template_root / "tests" / "fixtures").rglob("*")):
         if p.is_file() and not p.name.endswith((".sha256", ".md")):
             fixtures[str(p.relative_to(template_root / "tests" / "fixtures"))] = sha256_file(p)
+    packs = {}
+    for pdir in sorted((template_root / "packs").glob("*")):
+        if not pdir.is_dir():
+            continue
+        packs[pdir.name] = {}
+        for f in sorted(pdir.rglob("*")):
+            if f.is_file() and not f.name.startswith("."):
+                packs[pdir.name][str(f.relative_to(pdir))] = sha256_file(f)
     engine = {}
     for p in sorted((template_root / "reconloop").glob("*.py")):
         engine[p.name] = sha256_file(p)
@@ -86,6 +94,7 @@ def build_hashfreeze(*, template_root: Path, commit: str) -> dict:
         "scanners": scanners,
         "schemas": schemas,
         "engine": engine,
+        "packs": packs,
         "fixtures": fixtures,
     }
 
@@ -109,7 +118,7 @@ def verify_hashfreeze(template_root: Path, freeze: dict | None = None) -> list[s
             return [f"hashfreeze.json unreadable: {e}"]
     cur = build_hashfreeze(template_root=template_root, commit=freeze.get("commit", ""))
     v = []
-    for sec in ("scanners", "schemas", "engine", "fixtures"):
+    for sec in ("scanners", "schemas", "engine", "packs", "fixtures"):
         for name, expected in freeze.get(sec, {}).items():
             got = cur[sec].get(name)
             if got != expected:

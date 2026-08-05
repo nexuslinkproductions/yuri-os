@@ -9,7 +9,30 @@ from .determinism import pin, verify, sha256_file
 from .ledger import dedup, fingerprint
 from .graphio import require_graph, resolve_graph_path
 from .merge import dedup_by_id
+from .config import load_reconproject, discover_root
 from . import bundle
+
+
+def _load_config() -> dict:
+    """reconproject.json (env override / engine root). Never raises."""
+    return load_reconproject()
+
+
+def _resolve_packs(args) -> list[str]:
+    """Config packs ∪ CLI --packs flag (both opt-in; union)."""
+    cfg = _load_config()
+    cfg_packs = list(cfg.get("packs") or [])
+    cli_packs = [p for p in (getattr(args, "packs", "") or "").replace(",", " ").split() if p]
+    return sorted(set(cfg_packs) | set(cli_packs))
+
+
+def _resolve_root(args) -> str:
+    """Explicit --root wins; else project root discovered via config markers."""
+    root = getattr(args, "root", None)
+    if root:
+        return root
+    cfg = _load_config()
+    return str(discover_root(start=".", markers=cfg.get("root", {}).get("markers")))
 
 
 def _write_error_layer(layers: Path, name: str, err: Exception) -> None:
@@ -26,10 +49,21 @@ def _write_error_layer(layers: Path, name: str, err: Exception) -> None:
 
 
 def cmd_run(args) -> int:
-    scanners = load_scanners(_P(args.scanners_dir), template_root=_P(__file__).resolve().parent.parent)
+    cfg = _load_config()
+    packs = _resolve_packs(args)
+    scanners = load_scanners(_P(args.scanners_dir), template_root=_P(__file__).resolve().parent.parent,
+                             packs=packs)
+    args.root = _resolve_root(args)  # record resolved root (config markers) in manifest
     ctx = ScanContext(args.root, revision=args.revision, graph_input=args.graph_input)
     layers = _P(args.layers); layers.mkdir(parents=True, exist_ok=True)
     findings_dir = _P(args.findings_dir); findings_dir.mkdir(parents=True, exist_ok=True)
+    # M4-W1 config: per-layer stability overrides + lens gates + review budget
+    ephem_ovr = cfg.get("ephemeral", {}).get("layers", {}) or {}
+    lens_cfg = cfg.get("lenses", {}) or {}
+    lens_allow = lens_cfg.get("enabled") or []
+    lens_deny = set(lens_cfg.get("disabled") or [])
+    lens_admission = lens_cfg.get("admission") or {}
+    budget = int(cfg.get("review", {}).get("max_findings_per_layer", 100) or 100)
     total = 0
     failures = 0
     stability: dict[str, str] = {}
@@ -38,9 +72,20 @@ def cmd_run(args) -> int:
     for name, cls in sorted(scanners.items()):
         if name == "base":
             continue
-        stability[name] = cls.layer_stability
+        if cls.dim == "lens":  # config gates: enable/disable lenses
+            if lens_allow and name not in lens_allow:
+                print(f"[run] {name}: lens disabled by config (lenses.enabled allowlist)")
+                continue
+            if name in lens_deny:
+                print(f"[run] {name}: lens disabled by config (lenses.disabled)")
+                continue
+        stability[name] = ephem_ovr.get(name, cls.layer_stability)
         try:
-            res = cls().run(ctx)
+            inst = cls()
+            adv = lens_admission.get(name)
+            if adv and hasattr(inst, "admission"):  # config admission threshold override
+                inst.admission = str(adv)
+            res = inst.run(ctx)
         except Exception as e:
             # M1.5 item 1 + 3: fail-closed — error layer + nonzero exit
             _write_error_layer(layers, name, e)
@@ -51,10 +96,10 @@ def cmd_run(args) -> int:
         lf = layers / f"{name}.jsonl"
         lf.write_text("".join(x.to_jsonl() + "\n" for x in recs))
         layer_files[name] = lf.name
-        if cls.layer_stability == "stable":
+        if stability[name] == "stable":
             pinned_layers.append(name)
         # M1.5 item 7: ephemeral layers carry a freshness stamp
-        if cls.layer_stability == "ephemeral":
+        if stability[name] == "ephemeral":
             (layers / f"{name}.meta.json").write_text(json.dumps({
                 "layer": name, "stability": "ephemeral", "pinned": False,
                 "freshness": __import__("datetime").datetime.now().isoformat(timespec="seconds"),
@@ -64,6 +109,13 @@ def cmd_run(args) -> int:
             for f in res.findings:
                 f.fingerprint = fingerprint(f)
             deduped = dedup(res.findings)
+            # M4-W1 config: review budget — cap findings per layer, report truncation
+            if len(deduped) > budget:
+                (findings_dir / f"{name}.review.json").write_text(json.dumps({
+                    "layer": name, "budget": budget, "total": len(deduped),
+                    "truncated": len(deduped) - budget,
+                }, indent=2, sort_keys=True) + "\n")
+                deduped = deduped[:budget]
             (findings_dir / f"{name}.jsonl").write_text(
                 "".join(f.to_jsonl() + "\n" for f in deduped))
         total += len(recs)
@@ -97,7 +149,8 @@ def cmd_run(args) -> int:
     man = bundle.build_manifest(
         template_root=_P(__file__).resolve().parent.parent, ctx=ctx, args=args,
         scanners=scanners, input_pin=input_pin, input_label=input_label,
-        layer_files=layer_files, stability=stability, pinned_layers=pinned_layers)
+        layer_files=layer_files, stability=stability, pinned_layers=pinned_layers,
+        packs=packs)
     bundle.write_manifest(layers, man)
     print(f"[merge] {len(pinned_layers)} stable layers ({len(stability)} total) -> "
           f"{len(merged_raw)} raw / {len(merged)} deduped records | "
@@ -180,10 +233,10 @@ def cmd_manifest(args) -> int:
 def main() -> int:
     p = argparse.ArgumentParser(prog="graph-recon")
     sub = p.add_subparsers(dest="cmd", required=True)
-    sp = sub.add_parser("scan"); sp.add_argument("--root", default="."); sp.add_argument("--scanners-dir", default="scanners")
-    sp = sub.add_parser("run"); sp.add_argument("--root", default="."); sp.add_argument("--scanners-dir", default="scanners"); sp.add_argument("--layers", required=True); sp.add_argument("--graph", required=True); sp.add_argument("--pin", required=True); sp.add_argument("--findings-dir", default="findings"); sp.add_argument("--revision", default="origin/main"); sp.add_argument("--graph-input", default="")
+    sp = sub.add_parser("scan"); sp.add_argument("--root", default=None); sp.add_argument("--scanners-dir", default="scanners"); sp.add_argument("--packs", default="", help="comma/space-separated optional scanner packs (e.g. yuri)")
+    sp = sub.add_parser("run"); sp.add_argument("--root", default=None); sp.add_argument("--scanners-dir", default="scanners"); sp.add_argument("--layers", required=True); sp.add_argument("--graph", required=True); sp.add_argument("--pin", required=True); sp.add_argument("--findings-dir", default="findings"); sp.add_argument("--revision", default="origin/main"); sp.add_argument("--graph-input", default=""); sp.add_argument("--packs", default="", help="comma/space-separated optional scanner packs (e.g. yuri)")
     sp = sub.add_parser("merge"); sp.add_argument("--layers", required=True); sp.add_argument("--graph", required=True); sp.add_argument("--pin", required=True)
-    sp = sub.add_parser("verify"); sp.add_argument("--graph", required=True); sp.add_argument("--pin", required=True); sp.add_argument("--rerun", action="store_true"); sp.add_argument("--root", default="."); sp.add_argument("--scanners-dir", default="scanners"); sp.add_argument("--layers", default=None); sp.add_argument("--findings-dir", default="findings"); sp.add_argument("--revision", default="origin/main"); sp.add_argument("--graph-input", default="")
+    sp = sub.add_parser("verify"); sp.add_argument("--graph", required=True); sp.add_argument("--pin", required=True); sp.add_argument("--rerun", action="store_true"); sp.add_argument("--root", default=None); sp.add_argument("--scanners-dir", default="scanners"); sp.add_argument("--layers", default=None); sp.add_argument("--findings-dir", default="findings"); sp.add_argument("--revision", default="origin/main"); sp.add_argument("--graph-input", default=""); sp.add_argument("--packs", default="", help="comma/space-separated optional scanner packs (e.g. yuri)")
     sp = sub.add_parser("ledger"); sp.add_argument("--findings", required=True)
     sp = sub.add_parser("manifest"); sp.add_argument("--manifest", required=True)
     args = p.parse_args()
@@ -194,7 +247,9 @@ def main() -> int:
 
 
 def cmd_scan(args) -> int:
-    scanners = load_scanners(_P(args.scanners_dir), template_root=_P(__file__).resolve().parent.parent)
+    scanners = load_scanners(_P(args.scanners_dir), template_root=_P(__file__).resolve().parent.parent,
+                             packs=_resolve_packs(args))
+    args.root = _resolve_root(args)
     ctx = ScanContext(args.root)
     print(f"[scan] {len(scanners)} scanners loaded: {', '.join(sorted(scanners))}")
     return 0

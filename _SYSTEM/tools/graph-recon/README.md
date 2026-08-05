@@ -1,5 +1,43 @@
 # graph-recon — reusable graph-engineered recon loop (Python 3.11+, stdlib-only)
 
+## New project in 10 minutes
+1. **Copy the template into your repo** (vendor it — the engine is a template,
+   not a dependency):
+   `cp -r <template>/* <your-project>/tools/graph-recon/` — you need
+   `reconloop/`, `scanners/`, `reconproject.json`, `pyproject.toml`.
+2. **Edit `reconproject.json`** — the per-project config:
+   - `protected.patterns`: your protected paths. Shipped defaults cover `.env*`,
+     `.git`, CI secret dirs (`.github`/`.gitlab`/`.circleci`), cloud configs
+     (`.aws`/`.azure`/`.gcloud`/`.kube`), credentials/auth files, secrets dirs,
+     `node_modules`, private keys, runtime data dirs, agent runtime dirs. When
+     the config or its `protected` section is absent, the built-in heritage
+     catalog in `reconloop/protected.py` is used (default-if-absent).
+   - `lenses.enabled` (non-empty = allowlist) / `lenses.disabled` /
+     `lenses.admission` (per-lens threshold overrides).
+   - `ephemeral.layers`: mark extra layers ephemeral (excluded from the
+     determinism pin, freshness-stamped).
+   - `review.max_findings_per_layer`: findings budget (excess is truncated and
+     reported in `findings/<layer>.review.json`).
+   - `root.markers`: project-root discovery markers (used when `--root` is not
+     passed).
+   - `packs`: optional scanner packs to auto-load (see step 6).
+3. **First run** (from the project root):
+   `python3 -m reconloop.cli run --root . --scanners-dir scanners --layers out/layers --graph out/graph.jsonl --pin out/graph.sha256`
+   Stable layers merge into `out/graph.jsonl` + sha256 pin; findings land in
+   `findings/<scanner>.jsonl`; run metadata in `out/layers/analysis-manifest.json`.
+4. **Inspect**: `python3 -m reconloop.cli scan --root .` (list loaded scanners),
+   `... ledger --findings findings` (severity summary),
+   `... verify --graph out/graph.jsonl --pin out/graph.sha256` (pin check),
+   `... verify --rerun ... --layers out/layers` (determinism re-check).
+5. **Add a scanner**: drop `scanners/<name>.py` defining a `BaseScanner`
+   subclass with `name`, `dim`, `run(ctx) -> ScanResult` — see "The extension
+   contract" below. Auto-discovered on the next run; no registration needed.
+6. **YURI-specific scanners are an optional pack**: `packs/yuri/` contains
+   organs/registries/memory_schema/formula_banks. Registry auto-discovery
+   loads `scanners/` (core) only — packs load via `--packs yuri` on the CLI
+   or `"packs": ["yuri"]` in `reconproject.json`. To ship your own pack:
+   `packs/<name>/*.py` + `packs/<name>/manifest.json`.
+
 ## The extension contract ("add code to the loop")
 1. Drop a file in `scanners/` (or register via `@scanner` — any module defining a `BaseScanner` subclass).
 2. Class `XScanner(BaseScanner)` with `name`, `dim`, `run(ctx) -> ScanResult`.
