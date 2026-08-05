@@ -1,0 +1,4 @@
+# Raw call audio stays local (large binaries + third-party voice) — never commit
+recordings/*.wav
+recordings/*.json
+.last-stamp
