@@ -125,11 +125,13 @@ Four scanners consume the MERGED graph (not the filesystem) and emit analytics:
   across trust boundaries (high) / any path crossing (medium) / launchd
   persistence (info).
 
-Input resolution (graphio.load_graph, fail-open): `--graph-input <path>` >
+Input resolution (`graphio`): `--graph-input <path>` >
 `$GRAPH_RECON_GRAPH` > `<repo>/_SYSTEM/graph-ecosystem/full-graph.jsonl`.
 Dangling edge endpoints (e.g. test_suite nodes emitted only as edge endpoints)
 are synthesized as minimal node records, deterministically, so every edge
-endpoint is addressable. Missing input => empty result + note, never a crash.
+endpoint is addressable. A bare `load_graph` with no resolved input returns an
+empty result and note. A resolved but unreadable or malformed input raises
+`GraphInputMalformedError`; `requires_graph` scanners therefore fail closed.
 
 Evidence labels are PATH-INDEPENDENT (M1 refinement, Orion verdict
 2026-08-04): the source evidence item is `graph:<sha256-prefix-of-input>`

@@ -9,6 +9,7 @@ output (determinism), sorted emission, and non-empty evidence on every record.
 import hashlib
 import json
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -241,10 +242,34 @@ def test_real_input_pin_matches_ecosystem_sha256() -> None:
         assert src.startswith(f"graph:{expected}"), (src, expected)
 
 
+def test_load_graph_malformed_is_not_silent() -> None:
+    """Syntax, encoding, and semantic-shape failures never become empty graphs."""
+    from reconloop.graphio import GraphInputMalformedError, load_graph
+
+    with tempfile.TemporaryDirectory() as td:
+        cases = {
+            "syntax": b"not-json",
+            "encoding": b'{"id":"bad-utf8","kind":"file","x":"\xff"}',
+            "empty-object": b"{}\n",
+            "incomplete-edge": b'{"from":"file:a","kind":"tests"}\n',
+        }
+        for name, payload in cases.items():
+            bad = Path(td) / f"{name}.graph.jsonl"
+            bad.write_bytes(payload)
+            ctx = ScanContext(str(ROOT), graph_input=str(bad))
+            try:
+                load_graph(ctx)
+                raise AssertionError(f"expected {name} graph input to raise")
+            except GraphInputMalformedError as exc:
+                assert "parse failure" in str(exc), (name, str(exc))
+                assert str(bad) not in str(exc), "errors must be path-independent"
+
+
 if __name__ == "__main__":
     for fn in (test_fixture_rev_pinned, test_connected_components, test_articulation,
                test_cross_layer_links, test_exec_centrality, test_fail_closed_requires_graph,
                test_evidence_pin_path_independent,
+               test_load_graph_malformed_is_not_silent,
                test_real_input_pin_matches_ecosystem_sha256):
         fn()
         print(f"OK {fn.__name__}")

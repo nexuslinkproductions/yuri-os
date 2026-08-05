@@ -24,7 +24,7 @@ from reconloop.context import ScanContext  # noqa: E402
 from scanners.env_files import EnvFilesScanner, tracked_env_files  # noqa: E402
 from scanners.env_process_edges import EnvProcessEdgesScanner  # noqa: E402
 
-SECRET = "TOP-SECRET-TOKEN=do-not-emit-me-please\n"
+FIXTURE_PAYLOAD = "SENTINEL_VALUE=do-not-emit-me-please\n"
 
 
 def git(repo: Path, *args: str) -> None:
@@ -41,7 +41,7 @@ def build_fixture() -> tuple[Path, str, str]:
     git(repo, "config", "user.email", "t@t")
     git(repo, "config", "user.name", "t")
     files = {
-        ".env": SECRET + "OTHER=x\n",
+        ".env": FIXTURE_PAYLOAD + "OTHER=x\n",
         "backend/.env": "BACKEND_KEY=1\n",
         "backend/.env.local": "DB_URL=postgres://localhost:5432/x\n",
         ".env.example": "# template\nFOO=\n",
@@ -135,8 +135,8 @@ def test_metadata_from_blobs_hash_only() -> None:
     c = ScanContext(str(w), revision=rev1)
     nodes = {n.id: n for n in EnvFilesScanner().run(c).nodes}
     assert len(nodes) == 5, sorted(nodes)
-    assert nodes["env_file:.env"].props["size"] == len(SECRET) + len("OTHER=x\n")
-    assert nodes["env_file:.env"].props["content_sha256_prefix"] == "ebcf619e98d4707c", \
+    assert nodes["env_file:.env"].props["size"] == len(FIXTURE_PAYLOAD) + len("OTHER=x\n")
+    assert nodes["env_file:.env"].props["content_sha256_prefix"] == "248f147e07510870", \
         nodes["env_file:.env"].props["content_sha256_prefix"]
     assert nodes["env_file:.env"].props["mtime"] is None
     assert nodes["env_file:.env"].props["perm"] is None
@@ -147,8 +147,8 @@ def test_metadata_from_blobs_hash_only() -> None:
     assert all(len(n.props["content_sha256_prefix"]) == 16 for n in nodes.values())
     # hash-only: no secret VALUE anywhere in emitted records
     blob = "\n".join(n.to_jsonl() for n in nodes.values())
-    assert SECRET.strip() not in blob and "do-not-emit-me" not in blob
-    assert "TOP-SECRET-TOKEN" not in blob and "DB_URL" not in blob
+    assert FIXTURE_PAYLOAD.strip() not in blob and "do-not-emit-me" not in blob
+    assert "SENTINEL_VALUE" not in blob and "DB_URL" not in blob
     print("  metadata from git blobs: size + 16-hex sha256 prefix, mtime/perm null, no values")
 
 
