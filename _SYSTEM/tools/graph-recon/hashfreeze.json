@@ -1,22 +1,22 @@
 {
-  "commit": "20ce550502401d0ef23e90b8e386f254a78e6177",
+  "commit": "REPIN-PENDING",
   "engine": {
     "__init__.py": "0980c8543c6395b1c72d90e370970346f7e537a4cc011f4368e4a0be9381e4a8",
     "bundle.py": "af37fbd51520516a6e21ede0bcda2c64c29d2879afb703ec57cdae714181d2b0",
-    "cli.py": "d787712d190ca10a7e87a943319480a2d2163b61b3597aa4ddb12b228bc581d5",
+    "cli.py": "5363ce4dbeed61e52d6b7df734422d207fba03c1355d64555c61c4f7f65416fb",
     "config.py": "fb481ac0281ed7f45622393d0ea5f294d358ebfb940193ff0df518d27f148753",
     "context.py": "d6795b5a99af7e077514dc89aaa7bb22fdeb68d4c4671b4010fc480a8db23dd8",
     "determinism.py": "c2cb21fa5b1ff01583a1980d75c202ff93b4e11e3a93e050a43cb380244ee057",
     "graphio.py": "69fb7450cba9b499e6204de5eb6018bc59b1bf3a46f9f786a9fd9b7787bf4afd",
-    "hashfreeze.py": "911f4a8818ecffe52871580aa0ec2443f156ce35739f48178bd37a7043ecbc3e",
+    "hashfreeze.py": "143f309f107eb4bc6cb1505373c2570ea129c6734f0ecbb3f1440b509241c4f3",
     "ledger.py": "db1539ab929d9183646996fbdc33bcf38b0dd6708b91613d2d575701e36c6b32",
     "manifest.py": "7336092ad6d15d574de995d822bd34ee373119fc8e041d0b5a164aa3888bf482",
     "merge.py": "ca88fdaf66f5933c55746d1d40633c763314c5bd0a7d70dbf16ab105f6575c00",
     "model.py": "ec0566a93c61dccdbdc1b38a71b0d1309fe668972b6f77aa589b3e9064502d13",
-    "protected.py": "4a54d3707657ae43d7502755f4bc844e833b3bfe01397a36cca72c080c6366ab",
-    "query.py": "e4d3f3b5709b41a25832fc01fe476cf465b593c71df7c9471e33b7bb53b6f889",
-    "registry.py": "63eb9dce5f158398dd253d9145e75b496ec905680ea16e95302dd9dd5ef379ce",
-    "scaffold.py": "1efb4bce94ae6331b0241fcbd505bb10c3f5e828be4726dc192903580da576df"
+    "protected.py": "3e7a6a3a7094452e12c3047b95742ef4aeb818cae6c0bbae8fd4275e31c70cff",
+    "query.py": "15ef87c87518eb7b0c21a1be4fab4ccfed927ca1a834909e445ab704649c613f",
+    "registry.py": "079021633b7bc3c863140ce80984a60f9d468935b47ab774fe93de2c97bc8321",
+    "scaffold.py": "48bb8fd159eca6002487364a524c76c48a23d3165e35f56faadcb20c1ece2735"
   },
   "fixtures": {
     "analytics_graph.jsonl": "1e5b10d5c7a77a2786464b1ee3a2d581f3acefc5bc59e91aa89b54b686960c24"
