@@ -15,8 +15,8 @@ def load_scanners(scanners_dir: Path, template_root: Path | None = None) -> dict
         try: _il.import_module(scanners_dir.name)  # register parent package for relative imports
         except Exception: pass
         src = f.read_text(encoding="utf-8")
-        if "BaseScanner" not in src:
-            continue  # not a scanner module — silently skip (info)
+        if "BaseScanner" not in src and "BaseLens" not in src:
+            continue  # not a scanner/lens module — silently skip (info)
         mod = types.ModuleType(f"scanners_{f.stem}")
         mod.__file__ = str(f)
         mod.__package__ = scanners_dir.name
