@@ -109,7 +109,7 @@ for (const file of activePromptFiles) {
 assertIncludes('CLAUDE.md', 'Claude-facing adapter for YURI OS / MUSUBI.');
 assertIncludes('CLAUDE.md', 'It does not make Claude the control-plane owner.');
 assertIncludes('CLAUDE.md', 'one real interactive Claude Code session');
-assertIncludes('CLAUDE.md', 'optional external clarification check');
+assertIncludes('CLAUDE.md', 'An independent verifier checks the committed diff');
 assertIncludes('CLAUDE.md', 'Protected Paths');
 
 const rationale = read('_SYSTEM/yuri-cognitive-persona-rationale.md');

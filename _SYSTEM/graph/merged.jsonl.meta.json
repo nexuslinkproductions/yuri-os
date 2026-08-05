@@ -1,0 +1,38 @@
+{
+  "generated_at": "2026-08-04T07:51:28.024Z",
+  "sources": {
+    "walker": {
+      "nodes": 47,
+      "edges": 68
+    },
+    "gitnexus": {
+      "files": 3664,
+      "nodes": 85152,
+      "edges": 123559,
+      "communities": 1683,
+      "processes": 300,
+      "embeddings": 0
+    },
+    "yuriGraphKeys": [
+      "schema",
+      "generatedAt",
+      "note",
+      "flowMeta",
+      "mechMeta",
+      "flowOrder",
+      "mechOrder",
+      "flowTopKeys",
+      "mechTopKeys",
+      "nodes",
+      "edges",
+      "_guidesSeededNote"
+    ],
+    "graphify": "absent-skipped"
+  },
+  "namespaces": [
+    "walker:",
+    "gitnexus:",
+    "yuri-graph:",
+    "graphify:"
+  ]
+}

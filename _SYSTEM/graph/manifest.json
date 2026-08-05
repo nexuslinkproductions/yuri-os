@@ -1,0 +1,214 @@
+{
+  "name": "yuri-security-recon-loop",
+  "version": 1,
+  "convergence": {
+    "requiredCleanCycles": 2,
+    "cleanCycles": 2,
+    "lastCycle": "cycle-3",
+    "notes": "drift re-walk: zero new findings; port baseline stable; whatsapp procs 7->18 (F-025 evidence updated); skill projections churn (21 files, generated metadata, no executable changed)",
+    "status": "CANDIDATE-CONFIRMED",
+    "candidateAt": "2026-08-04",
+    "cycle3": {
+      "clean": true,
+      "at": "2026-08-04",
+      "listeners": 41,
+      "nonEphemeralDiff": 0,
+      "lan": "4x200-unchanged",
+      "s5": "green",
+      "gitnexus": "reindexed 0158a8f"
+    }
+  },
+  "items": [
+    {
+      "id": "S1",
+      "dim": "static",
+      "desc": "AST scan ALL _SYSTEM/Scripts/*.mjs (named)",
+      "status": "done"
+    },
+    {
+      "id": "S2",
+      "dim": "static",
+      "desc": "AST scan backend src + agent-native TS",
+      "status": "done"
+    },
+    {
+      "id": "S3",
+      "dim": "static",
+      "desc": "ast-bash over all non-venv .sh",
+      "status": "done"
+    },
+    {
+      "id": "S5",
+      "dim": "static",
+      "desc": "secret-leak-scan.mjs (existing control)",
+      "status": "done"
+    },
+    {
+      "id": "S7",
+      "dim": "static",
+      "desc": "Python voice surface scan",
+      "status": "done"
+    },
+    {
+      "id": "S8",
+      "dim": "static",
+      "desc": "Path-traversal grep backend routes/services",
+      "status": "done"
+    },
+    {
+      "id": "S9",
+      "dim": "static",
+      "desc": "eval/exec in dist + dist-observatory",
+      "status": "done"
+    },
+    {
+      "id": "S10",
+      "dim": "static",
+      "desc": "full npm scripts audit all package.jsons",
+      "status": "done"
+    },
+    {
+      "id": "H1",
+      "dim": "history",
+      "desc": "full-history secret pattern scan",
+      "status": "done"
+    },
+    {
+      "id": "H2",
+      "dim": "history",
+      "desc": "all blobs >5MB inventory + intro commits",
+      "status": "done"
+    },
+    {
+      "id": "H4",
+      "dim": "history",
+      "desc": "reflog/stash/branches scan",
+      "status": "done"
+    },
+    {
+      "id": "L1",
+      "dim": "live",
+      "desc": "baseline ports/procs dump",
+      "status": "done"
+    },
+    {
+      "id": "L2",
+      "dim": "live",
+      "desc": "launchd plists full audit",
+      "status": "done"
+    },
+    {
+      "id": "L6",
+      "dim": "live",
+      "desc": "file-perm sweep protected-adjacent dirs",
+      "status": "done",
+      "evidence": [
+        "/tmp/yuri-recon/L6 perms: 224166 rw-r--r--, 74608 rw-------, 527 r--------, 4 r--r--r--, 1 rw-rw-rw- (venv .lock); world-writable: 2 venv .lock only"
+      ]
+    },
+    {
+      "id": "L7",
+      "dim": "live",
+      "desc": "/tmp predictable artifacts",
+      "status": "done"
+    },
+    {
+      "id": "D1",
+      "dim": "deps",
+      "desc": "npm audit online (root/backend/agent-native)",
+      "status": "done",
+      "note": "orion: npm audit all trees; root 27 (3crit/17high), backend 13 (10high), nexus-rs/opencode 0, framer-mcp low; F-023/F-024"
+    },
+    {
+      "id": "D2",
+      "dim": "deps",
+      "desc": "OSV snapshot age vs deps",
+      "status": "done",
+      "note": "orion: OSV queries (axios 23 CVE-2025-62718 et al; ws 2; multer 4 CVE-2025-47935; vite@5.4.21 3; swiper@11.2.10 1 CVE-2026-27212); version-precise counts via npm audit F-023/F-024"
+    },
+    {
+      "id": "D4",
+      "dim": "deps",
+      "desc": "node_modules direct-dep postinstall scan",
+      "status": "done"
+    },
+    {
+      "id": "C1",
+      "dim": "config",
+      "desc": "worktree .mcp.json drift/absolute-path check",
+      "status": "done"
+    },
+    {
+      "id": "C2",
+      "dim": "config",
+      "desc": "agent-native nitro auth/routes audit",
+      "status": "done"
+    },
+    {
+      "id": "C4",
+      "dim": "config",
+      "desc": "docker-compose + kong full port/route audit",
+      "status": "done"
+    },
+    {
+      "id": "F3",
+      "dim": "findings",
+      "desc": "nexus policy.mjs deep read",
+      "status": "done"
+    },
+    {
+      "id": "F4",
+      "dim": "findings",
+      "desc": "design-assistant bridge auth audit",
+      "status": "done"
+    },
+    {
+      "id": "F5",
+      "dim": "findings",
+      "desc": "memory-bus writer data audit",
+      "status": "done"
+    },
+    {
+      "id": "F7",
+      "dim": "findings",
+      "desc": "z-brain tool surface inventory",
+      "status": "done"
+    },
+    {
+      "id": "F8",
+      "dim": "findings",
+      "desc": "october bridge HTTP auth audit",
+      "status": "done"
+    },
+    {
+      "id": "F9",
+      "dim": "findings",
+      "desc": "vite/observatory proxy targets",
+      "status": "done"
+    },
+    {
+      "id": "F10",
+      "dim": "findings",
+      "desc": "remaining backend route files auth check",
+      "status": "done"
+    },
+    {
+      "id": "W1",
+      "dim": "findings",
+      "desc": "whatsapp-mcp audit (F-025)",
+      "status": "done"
+    },
+    {
+      "id": "T1",
+      "dim": "graph",
+      "desc": "merge prototype (Orion order 5)",
+      "status": "done"
+    },
+    {
+      "id": "CYC2",
+      "dim": "cycle2",
+      "desc": "cycle-2 pass 1 re-walk + drift",
+      "status": "done"
+    }
+  ]
+}
