@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    ignore:
+      # Archive: 04_ARCHIVE/nisaba-legacy/08_INGESTION/skool - legacy ingest tool, not built/shipped
+      # Dependabot alerts: 30 (qs), 31 (body-parser)
+      - dependency-name: "*"
+        scope: "04_ARCHIVE/nisaba-legacy/08_INGESTION/skool"
