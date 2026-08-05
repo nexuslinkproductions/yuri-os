@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from reconloop.cli import cmd_run, cmd_verify, cmd_manifest  # noqa: E402
+from reconloop.cli import cmd_run, cmd_verify, cmd_manifest, cmd_scan  # noqa: E402
 from reconloop import bundle  # noqa: E402
 from reconloop.registry import load_scanners  # noqa: E402
 
@@ -127,6 +127,22 @@ def test_run_fail_closed_malformed_graph_input() -> None:
             ).exists()
 
 
+def test_scan_config_state_valid_invalid_valid() -> None:
+    """scan validates the freshly bound snapshot, never import-time state."""
+    with tempfile.TemporaryDirectory() as td:
+        cfg = Path(td) / "reconproject.json"
+        args = Args()
+        cfg.write_text(json.dumps({"protected": {"patterns": [r"\.env$"]}}))
+        with _ConfigScope(cfg):
+            assert cmd_scan(args) == 0
+        cfg.write_text(json.dumps({"protected": {"patterns": ["(bad["]}}))
+        with _ConfigScope(cfg):
+            assert cmd_scan(args) == 1
+        cfg.write_text(json.dumps({"protected": {"patterns": [r"\.env$"]}}))
+        with _ConfigScope(cfg):
+            assert cmd_scan(args) == 0
+
+
 def test_run_writes_findings_deduped() -> None:
     """M1.5 item 1: findings written to findings/<scanner>.jsonl, dedup by fingerprint."""
     with tempfile.TemporaryDirectory() as td:
@@ -193,6 +209,11 @@ def test_analysis_manifest_written_and_valid() -> None:
             # .git => git_head empty; documented skip, fresh-checkout parity kept
             print("SKIP git_head assertion (root not inside a git repo)")
         assert man["root"]["revision"] == "origin/main"
+        catalog = man["protected_catalog"]
+        assert catalog["mode"] in ("configured", "heritage")
+        assert len(catalog["catalog_sha256"]) == 64
+        assert len(catalog["config_sha256"]) == 64
+        assert catalog["pattern_count"] > 0
         assert "connected_components" in man["scanners"]
         assert len(man["scanners"]["connected_components"]) == 64
         # CLI manifest validator agrees
@@ -266,6 +287,7 @@ def test_config_overrides_ephemeral_lens_budget() -> None:
     had = "GRAPH_RECON_CONFIG" in os.environ
     prior = os.environ.get("GRAPH_RECON_CONFIG")
     cfg = {
+        "protected": {"mode": "configured", "patterns": [r"\.env$"]},
         "ephemeral": {"layers": {"file_inventory": "ephemeral"}},
         "lenses": {"enabled": [], "disabled": ["env_to_process"], "admission": {}},
         "review": {"max_findings_per_layer": 1},
@@ -282,6 +304,10 @@ def test_config_overrides_ephemeral_lens_budget() -> None:
         assert meta.exists(), "config-ephemeral layer must carry freshness stamp"
         assert json.loads(meta.read_text())["stability"] == "ephemeral"
         man = json.loads((layers / "analysis-manifest.json").read_text())
+        import hashlib
+        assert man["protected_catalog"]["config_sha256"] == hashlib.sha256(
+            cfgp.read_bytes()).hexdigest()
+        assert man["protected_catalog"]["pattern_count"] == 1
         assert man["layers"]["stability"]["file_inventory"] == "ephemeral"
         assert "file_inventory" not in man["layers"]["pinned"]
         # lens disabled by config: no layer, no error
@@ -332,6 +358,7 @@ def test_core_run_clean_env_isolated() -> None:
 if __name__ == "__main__":
     for fn in (test_run_fail_closed_missing_graph_input,
                test_run_fail_closed_malformed_graph_input,
+               test_scan_config_state_valid_invalid_valid,
                test_run_writes_findings_deduped,
                test_verify_rerun_baseline_then_match, test_analysis_manifest_written_and_valid,
                test_ephemeral_layer_excluded_from_pin, test_packs_flag_loads_pack_scanners,

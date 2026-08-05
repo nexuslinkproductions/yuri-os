@@ -67,7 +67,7 @@ def build_manifest(*, template_root: Path, ctx, args, scanners: dict,
         pass
     return {
         "schema": "analysis-manifest",
-        "schema_version": 2,
+        "schema_version": 3,
         "generated_at": __import__("datetime").datetime.now().isoformat(timespec="seconds"),
         "root": {
             "path": str(ctx.root),
@@ -80,6 +80,7 @@ def build_manifest(*, template_root: Path, ctx, args, scanners: dict,
             "label": input_label,  # graph:<pin16>, path-independent
             "resolved": bool(input_pin),
         },
+        "protected_catalog": ctx.catalog.provenance(),
         "config": {
             "root": args.root,
             "revision": getattr(args, "revision", "origin/main"),
@@ -119,7 +120,7 @@ def validate_manifest(manifest: dict, schema_path: Path) -> list[str]:
         return [f"schema unreadable: {e}"]
     violations: list[str] = []
     for key in ("schema", "schema_version", "generated_at", "root", "input_graph",
-                "config", "scanners", "layers"):
+                "config", "protected_catalog", "scanners", "layers"):
         if key not in manifest:
             violations.append(f"missing key: {key}")
     if manifest.get("schema") != schema.get("title", "analysis-manifest"):
@@ -131,6 +132,12 @@ def validate_manifest(manifest: dict, schema_path: Path) -> list[str]:
     for sec in ("config", "scanners", "layers", "root"):
         if not isinstance(manifest.get(sec), dict):
             violations.append(f"{sec} must be object")
+    catalog = manifest.get("protected_catalog", {})
+    for key in ("mode", "source", "config_sha256", "catalog_sha256"):
+        if not isinstance(catalog.get(key), str):
+            violations.append(f"protected_catalog.{key} must be str")
+    if not isinstance(catalog.get("pattern_count"), int):
+        violations.append("protected_catalog.pattern_count must be int")
     root = manifest.get("root", {})
     for key in ("path", "git_head", "revision"):
         if not isinstance(root.get(key), str):

@@ -16,10 +16,13 @@ crashes import. Each pattern compiles in isolation; failures are recorded
 config error record + rc 1 (fail-closed). The valid remainder stays active.
 """
 from __future__ import annotations
+from dataclasses import dataclass
+import hashlib
+import json
 import re
 from pathlib import Path
 
-from .config import _resolve
+from .config import ConfigSnapshot, load_config_snapshot
 
 # Built-in heritage catalog (YURI-specific) — ONLY used when reconproject.json
 # is absent or declares no protected.patterns. Do not extend this list for new
@@ -57,6 +60,87 @@ def _compile_patterns(patterns: list) -> tuple[list[re.Pattern], list[dict]]:
     return compiled, errors
 
 
+@dataclass(frozen=True)
+class ProtectedCatalog:
+    """Immutable protected-path policy bound to one scan context."""
+
+    patterns: tuple[re.Pattern, ...]
+    errors: tuple[tuple[str, str], ...]
+    mode: str
+    source: str
+    config_sha256: str
+    catalog_sha256: str
+    hash_content: bool
+    hash_bytes: int
+
+    @property
+    def pattern_count(self) -> int:
+        return len(self.patterns)
+
+    def matches(self, rel_path: str) -> bool:
+        p = rel_path.replace("\\", "/")
+        return any(r.search(p) for r in self.patterns)
+
+    def error_records(self) -> list[dict]:
+        return [{"pattern": p, "error": e} for p, e in self.errors]
+
+    def provenance(self) -> dict:
+        return {
+            "mode": self.mode,
+            "source": self.source,
+            "config_sha256": self.config_sha256,
+            "catalog_sha256": self.catalog_sha256,
+            "pattern_count": self.pattern_count,
+            "hash_content": self.hash_content,
+            "hash_bytes": self.hash_bytes,
+        }
+
+
+def build_catalog(config: ConfigSnapshot | Path | None = None) -> ProtectedCatalog:
+    """Build a path-independent, immutable catalog snapshot.
+
+    The resolved config is read exactly once.  Empty/missing configured
+    patterns and explicit ``mode=heritage`` select the built-in YURI policy.
+    Invalid regexes are retained as errors so callers can fail closed.
+    """
+    snapshot = config if isinstance(config, ConfigSnapshot) else load_config_snapshot(config)
+    cfg = snapshot.as_dict()
+    protected = cfg.get("protected") or {}
+    requested_mode = protected.get("mode", "configured")
+    raw_patterns = protected.get("patterns") or []
+    compiled, errors = _compile_patterns(raw_patterns)
+    use_heritage = requested_mode == "heritage" or not compiled
+    patterns = tuple(HERITAGE_CATALOG if use_heritage else compiled)
+    mode = "heritage" if use_heritage else "configured"
+    source = "built-in-heritage" if use_heritage else "reconproject.json"
+    config_sha = snapshot.sha256
+    hash_content = protected.get("hash_content")
+    if not isinstance(hash_content, bool):
+        hash_content = True
+    hash_bytes = protected.get("hash_bytes")
+    if not isinstance(hash_bytes, int) or hash_bytes <= 0:
+        hash_bytes = 1 << 20
+    catalog_payload = {
+        "mode": mode,
+        "patterns": [p.pattern for p in patterns],
+        "hash_content": hash_content,
+        "hash_bytes": hash_bytes,
+    }
+    catalog_sha = hashlib.sha256(
+        json.dumps(catalog_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    return ProtectedCatalog(
+        patterns=patterns,
+        errors=tuple((e["pattern"], e["error"]) for e in errors),
+        mode=mode,
+        source=source,
+        config_sha256=config_sha,
+        catalog_sha256=catalog_sha,
+        hash_content=hash_content,
+        hash_bytes=hash_bytes,
+    )
+
+
 # Pattern-compilation errors from the most recent load/reload (M5-W3).
 CATALOG_ERRORS: list[dict] = []
 
@@ -80,17 +164,9 @@ def load_catalog(config_path: Path | None = None) -> list[re.Pattern]:
     """
     global CATALOG_ERRORS
     CATALOG_ERRORS = []  # reset: a load without config problems clears prior errors
-    if config_path is None:
-        config_path = _resolve(None)
-    if config_path is not None and config_path.exists():
-        from .config import load_reconproject
-        cfg = load_reconproject(config_path)
-        pats = (cfg.get("protected") or {}).get("patterns") or []
-        compiled, errors = _compile_patterns(pats)
-        CATALOG_ERRORS = errors
-        if compiled:
-            return compiled
-    return list(HERITAGE_CATALOG)
+    snapshot = build_catalog(config_path)
+    CATALOG_ERRORS = snapshot.error_records()
+    return list(snapshot.patterns)
 
 
 # Module-level active catalog, built once at import from discovered config.
@@ -156,17 +232,12 @@ def _hash_gate() -> tuple[bool, int]:
     Fail-open: missing/malformed config or wrong types => defaults
     (hash_content True, hash_bytes 1048576).
     """
-    cfg_path = _resolve(None)
+    snapshot = load_config_snapshot()
     hash_content, hash_bytes = True, 1 << 20
-    if cfg_path is not None and cfg_path.exists():
-        try:
-            from .config import load_reconproject
-            prot = load_reconproject(cfg_path).get("protected") or {}
-            if isinstance(prot.get("hash_content"), bool):
-                hash_content = prot["hash_content"]
-            hb = prot.get("hash_bytes")
-            if isinstance(hb, int) and hb > 0:
-                hash_bytes = hb
-        except Exception:
-            pass
+    prot = snapshot.as_dict().get("protected") or {}
+    if isinstance(prot.get("hash_content"), bool):
+        hash_content = prot["hash_content"]
+    hb = prot.get("hash_bytes")
+    if isinstance(hb, int) and hb > 0:
+        hash_bytes = hb
     return hash_content, hash_bytes

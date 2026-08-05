@@ -9,7 +9,7 @@ from .determinism import pin, verify, sha256_file
 from .ledger import dedup, fingerprint
 from .graphio import require_graph, resolve_graph_path
 from .merge import dedup_by_id
-from .config import load_reconproject, discover_root
+from .config import load_reconproject, load_config_snapshot, discover_root
 from . import bundle
 
 
@@ -18,20 +18,20 @@ def _load_config() -> dict:
     return load_reconproject()
 
 
-def _resolve_packs(args) -> list[str]:
+def _resolve_packs(args, cfg: dict | None = None) -> list[str]:
     """Config packs ∪ CLI --packs flag (both opt-in; union)."""
-    cfg = _load_config()
+    cfg = _load_config() if cfg is None else cfg
     cfg_packs = list(cfg.get("packs") or [])
     cli_packs = [p for p in (getattr(args, "packs", "") or "").replace(",", " ").split() if p]
     return sorted(set(cfg_packs) | set(cli_packs))
 
 
-def _resolve_root(args) -> str:
+def _resolve_root(args, cfg: dict | None = None) -> str:
     """Explicit --root wins; else project root discovered via config markers."""
     root = getattr(args, "root", None)
     if root:
         return root
-    cfg = _load_config()
+    cfg = _load_config() if cfg is None else cfg
     return str(discover_root(start=".", markers=cfg.get("root", {}).get("markers")))
 
 
@@ -81,19 +81,20 @@ def _write_config_error_layer(layers: Path, errors: list) -> None:
 
 
 def cmd_run(args) -> int:
-    cfg = _load_config()
-    packs = _resolve_packs(args)
+    config_snapshot = load_config_snapshot()
+    cfg = config_snapshot.as_dict()
+    packs = _resolve_packs(args, cfg)
     scanners = load_scanners(_P(args.scanners_dir), template_root=_P(__file__).resolve().parent.parent,
                              packs=packs)
-    args.root = _resolve_root(args)  # record resolved root (config markers) in manifest
-    ctx = ScanContext(args.root, revision=args.revision, graph_input=args.graph_input)
+    args.root = _resolve_root(args, cfg)  # record resolved root (config markers) in manifest
+    ctx = ScanContext(args.root, revision=args.revision, graph_input=args.graph_input,
+                      config_snapshot=config_snapshot)
     layers = _P(args.layers); layers.mkdir(parents=True, exist_ok=True)
     findings_dir = _P(args.findings_dir); findings_dir.mkdir(parents=True, exist_ok=True)
     # M5-W3 (defect 7): invalid configured regex -> config error record + rc 1,
     # never a crash mid-import (protected.py compiles per-pattern, records
     # errors, and the run fails closed naming the bad pattern).
-    from . import protected as _protected  # noqa: E402
-    ce = _protected.config_errors()
+    ce = ctx.catalog.error_records()
     if ce:
         _write_config_error_layer(layers, ce)
         pats = ", ".join(repr(e.get("pattern", "?")) for e in ce)
@@ -397,10 +398,12 @@ def main() -> int:
 
 
 def cmd_scan(args) -> int:
+    config_snapshot = load_config_snapshot()
+    cfg = config_snapshot.as_dict()
     scanners = load_scanners(_P(args.scanners_dir), template_root=_P(__file__).resolve().parent.parent,
-                             packs=_resolve_packs(args))
-    args.root = _resolve_root(args)
-    ctx = ScanContext(args.root)
+                             packs=_resolve_packs(args, cfg))
+    args.root = _resolve_root(args, cfg)
+    ctx = ScanContext(args.root, config_snapshot=config_snapshot)
     print(f"[scan] {len(scanners)} scanners loaded: {', '.join(sorted(scanners))}")
     # M5-W3 (defect 4/7): scan is a validation surface too — a broken scanner
     # import or an invalid configured regex must not be a silent no-op.
@@ -410,8 +413,7 @@ def cmd_scan(args) -> int:
             print(f"[scan] IMPORT FAIL: {f['file']}: {f['error']}")
         print(f"[scan] IMPORT FAIL-CLOSED: {len(fails)} scanner(s) failed to import")
         return 1
-    from . import protected as _protected  # noqa: E402
-    ce = _protected.config_errors()
+    ce = ctx.catalog.error_records()
     if ce:
         print("[scan] CONFIG FAIL-CLOSED: invalid protected.patterns regex(es): "
               + ", ".join(repr(e.get("pattern", "?")) for e in ce))

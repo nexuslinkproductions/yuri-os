@@ -7,6 +7,8 @@ stock template behaves exactly like the pre-config engine):
   protected — path patterns for the protected catalog. Default-if-absent:
               when the file or this section is missing/empty, reconloop/
               protected.py falls back to its built-in heritage catalog.
+              mode ("configured" | "heritage", default "configured"):
+              selects configured patterns or the built-in YURI heritage set.
               hash_content (bool, default true): content-hash prefix on/off.
               Owner-authorized: hashing is allowed by the rails (location/
               type/context/hash only — a sha256 prefix is a hash, never a
@@ -34,6 +36,8 @@ a config typo (protected classification then falls back to the heritage
 catalog).
 """
 from __future__ import annotations
+from dataclasses import dataclass
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -42,6 +46,7 @@ DEFAULTS: dict = {
     "root": {"markers": ["pyproject.toml", "package.json", "go.mod",
                           "Cargo.toml", "Gopkg.toml", "build.gradle", ".git"]},
     "protected": {"patterns": [],     # empty => heritage catalog fallback
+                   "mode": "configured",
                    "hash_content": True,   # content-hash prefix on/off (owner-authorized)
                    "hash_bytes": 1048576}, # leading bytes hashed (first 1MiB)
     "ephemeral": {"layers": {}},
@@ -70,17 +75,16 @@ def _resolve(path: str | Path | None) -> Path | None:
     return None
 
 
-def load_reconproject(path: str | Path | None = None) -> dict:
-    """Load + shallow-validate reconproject.json. Never raises."""
-    resolved = _resolve(path)
-    data: dict = {}
-    if resolved is not None and resolved.exists():
-        try:
-            raw = json.loads(resolved.read_text(encoding="utf-8"))
-            if isinstance(raw, dict):
-                data = raw
-        except Exception:
-            data = {}
+def resolve_reconproject(path: str | Path | None = None) -> Path | None:
+    """Resolve the effective config path without loading it.
+
+    Public so one run can bind configuration once and pass the same resolved
+    file to every consumer instead of re-reading ambient environment state.
+    """
+    return _resolve(path)
+
+
+def _normalize(data: dict) -> dict:
     out: dict = {}
     for key, default in DEFAULTS.items():
         v = data.get(key, default)
@@ -91,6 +95,48 @@ def load_reconproject(path: str | Path | None = None) -> dict:
         else:
             out[key] = v
     return out
+
+
+@dataclass(frozen=True)
+class ConfigSnapshot:
+    """One immutable read of the effective reconproject configuration."""
+
+    path: Path | None
+    normalized_json: str
+    sha256: str
+
+    def as_dict(self) -> dict:
+        """Return a fresh copy so consumers cannot mutate retained state."""
+        return json.loads(self.normalized_json)
+
+
+def load_config_snapshot(path: str | Path | None = None) -> ConfigSnapshot:
+    """Resolve, read, normalize, and hash config exactly once."""
+    resolved = resolve_reconproject(path)
+    data: dict = {}
+    raw_bytes = b""
+    if resolved is not None and resolved.exists():
+        try:
+            raw_bytes = resolved.read_bytes()
+            raw = json.loads(raw_bytes.decode("utf-8"))
+            if isinstance(raw, dict):
+                data = raw
+        except Exception:
+            data = {}
+    normalized_json = json.dumps(
+        _normalize(data), sort_keys=True, separators=(",", ":")
+    )
+    digest_bytes = raw_bytes or normalized_json.encode("utf-8")
+    return ConfigSnapshot(
+        path=resolved,
+        normalized_json=normalized_json,
+        sha256=hashlib.sha256(digest_bytes).hexdigest(),
+    )
+
+
+def load_reconproject(path: str | Path | None = None) -> dict:
+    """Load + shallow-validate reconproject.json. Never raises."""
+    return load_config_snapshot(path).as_dict()
 
 
 def discover_root(start: str | Path = ".", markers: list[str] | None = None) -> Path:

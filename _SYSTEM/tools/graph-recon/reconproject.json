@@ -5,6 +5,7 @@
     "markers": ["pyproject.toml", "package.json", "go.mod", "Cargo.toml", "Gopkg.toml", "build.gradle", ".git"]
   },
   "protected": {
+    "mode": "configured",
     "patterns": [
       "\\.env($|\\.|/)|secrets\\.env",
       "(^|/)\\.git(/|$)",
@@ -14,7 +15,7 @@
       "(^|/)secrets(/|$)|(^|/)\\.secrets(/|$)",
       "(^|/)node_modules(/|$)",
       "id_rsa$|id_ed25519$|id_dsa$|id_ecdsa$|\\.pem$|\\.key$|\\.p12$|\\.pfx$",
-      "(^|/)(data|runtime|\\.cache)(/|$)",
+      "^(data|runtime|\\.cache)(/|$)",
       "(^|/)(\\.claude|\\.codex|\\.cursor|\\.pi|\\.omp|\\.smart-env)(/|$)"
     ],
     "hash_content": true,

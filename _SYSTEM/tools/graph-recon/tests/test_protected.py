@@ -47,7 +47,8 @@ def test_config_driven_generic_patterns() -> None:
     assert is_protected("secrets/prod.key") and is_protected(".secrets/token")
     assert is_protected("node_modules/pkg/index.js")
     assert is_protected("id_rsa") and is_protected("certs/server.pem")
-    assert is_protected("backend/data/db.sqlite") and is_protected("runtime/state.db")
+    assert is_protected("data/db.sqlite") and is_protected("runtime/state.db")
+    assert not is_protected("_SYSTEM/runtime/yuri-runtimed.mjs")
     assert is_protected(".claude/state/x.json") and is_protected(".codex/sessions/y.json")
     # generic surface must NOT classify ordinary project files
     assert not is_protected("_SYSTEM/Scripts/x.mjs")
@@ -70,6 +71,36 @@ def test_context_read_guard_and_meta_only() -> None:
         assert meta["exists"] is True
         assert "content_sha256_prefix" in meta and meta["content_sha256_prefix"]
         assert "size" in meta and meta["size"] == len("TOKEN=x\n")
+
+
+def test_context_catalog_isolation_generic_heritage_generic() -> None:
+    """Each context keeps the catalog it was created with (no global leak)."""
+    runtime_sources = [
+        "_SYSTEM/runtime/usage-meters.mjs",
+        "_SYSTEM/runtime/yuri-repl.mjs",
+        "_SYSTEM/runtime/morning-brief.mjs",
+        "_SYSTEM/runtime/overnight-runner.mjs",
+        "_SYSTEM/runtime/session-conductor.mjs",
+        "_SYSTEM/runtime/yuri-runtimed.mjs",
+    ]
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        generic = root / "generic.json"
+        heritage = root / "heritage.json"
+        generic.write_text(json.dumps({"protected": {
+            "mode": "configured", "patterns": [r"(^|/)runtime(/|$)"]}}))
+        heritage.write_text(json.dumps({"protected": {
+            "mode": "heritage", "patterns": []}}))
+        a = ScanContext(str(root), config_path=generic)
+        b = ScanContext(str(root), config_path=heritage)
+        c = ScanContext(str(root), config_path=generic)
+        assert sum(a.is_protected(p) for p in runtime_sources) == 6
+        assert sum(b.is_protected(p) for p in runtime_sources) == 0
+        assert sum(c.is_protected(p) for p in runtime_sources) == 6
+        assert a.catalog.catalog_sha256 == c.catalog.catalog_sha256
+        assert a.catalog.catalog_sha256 != b.catalog.catalog_sha256
+        assert a.catalog.provenance()["pattern_count"] == 1
+        assert b.is_protected("backend/data/db.sqlite")
 
 
 def test_heritage_fallback_default_if_absent() -> None:
@@ -295,7 +326,8 @@ def test_scanner_records_hash_content_per_node() -> None:
                                                 "hash_bytes": 1048576}}))
         os.environ["GRAPH_RECON_CONFIG"] = str(cfg)
         try:
-            nodes_off = ProtectedPathsScanner().run(ctx).nodes
+            ctx_off = ScanContext(str(root), config_path=cfg)
+            nodes_off = ProtectedPathsScanner().run(ctx_off).nodes
         finally:
             os.environ.pop("GRAPH_RECON_CONFIG", None)
         env_off = [n for n in nodes_off if n.id == "protected_path:.env"]

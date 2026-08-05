@@ -50,6 +50,7 @@ def test_hashfreeze_write_verify_roundtrip() -> None:
     assert "route_binding.py" in freeze["scanners"]
     assert "analysis-manifest.schema.json" in freeze["schemas"]
     assert "lens-card.schema.json" in freeze["schemas"]
+    assert freeze["configs"].get("reconproject.json")
     v = verify_hashfreeze(ROOT, freeze)
     assert v == [], v
 
@@ -62,7 +63,7 @@ def test_hashfreeze_on_disk_freeze_green() -> None:
 
 def test_hashfreeze_tamper_detected() -> None:
     freeze = build_hashfreeze(template_root=ROOT, commit=REAL_COMMIT)
-    for sec in ("scanners", "schemas", "engine"):
+    for sec in ("scanners", "schemas", "engine", "configs"):
         name = next(iter(freeze[sec]))
         bad = dict(freeze)
         bad[sec] = dict(freeze[sec])
@@ -84,6 +85,17 @@ def test_hashfreeze_tamper_detected() -> None:
     bad["fixtures"][fname] = "0" * 64
     assert any(fname in x for x in verify_hashfreeze(ROOT, bad))
     print("tamper detection OK")
+
+
+def test_hashfreeze_config_file_tamper_detected() -> None:
+    with tempfile.TemporaryDirectory(prefix="hf-config-") as td:
+        t = _copy_tree(Path(td))
+        freeze = build_hashfreeze(template_root=t, commit=REAL_COMMIT)
+        cfg = json.loads((t / "reconproject.json").read_text())
+        cfg["protected"]["patterns"][0] = "tampered-runtime-pattern"
+        (t / "reconproject.json").write_text(json.dumps(cfg, sort_keys=True) + "\n")
+        v = verify_hashfreeze(t, freeze)
+        assert any("configs/reconproject.json" in x for x in v), v
 
 
 def test_hashfreeze_new_file_flagged() -> None:
@@ -208,6 +220,7 @@ if __name__ == "__main__":
     for fn in (test_hashfreeze_write_verify_roundtrip,
                test_hashfreeze_on_disk_freeze_green,
                test_hashfreeze_tamper_detected,
+               test_hashfreeze_config_file_tamper_detected,
                test_hashfreeze_new_file_flagged,
                test_hashfreeze_deleted_file_flagged,
                test_hashfreeze_provenance_git_object,

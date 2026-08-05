@@ -51,6 +51,12 @@ LENS_CONFIG = {
         {"name": "protected_writer", "scope": "file_write edges + protected catalog",
          "invariant": "file_write targets under protected paths must pass a gate",
          "admission": "file_write -> protected path without gate evidence"},
+        {"name": "security_path", "scope": "source-to-sink paths over executable graph edges",
+         "invariant": "security-sensitive paths require reviewable bounded witnesses",
+         "admission": "source reaches security-sensitive sink"},
+        {"name": "writer_to_protected", "scope": "dynamic writers + protected reach channels",
+         "invariant": "dynamic writers must not reach protected paths",
+         "admission": "dynamic writer with protected reach"},
         {"name": "hook_projection", "scope": "hook registry coreEntrypoint + file layer",
          "invariant": "registered hook commands resolve to existing files",
          "admission": "coreEntrypoint missing from file layer"},
@@ -104,6 +110,10 @@ def build_hashfreeze(*, template_root: Path, commit: str) -> dict:
     engine = {}
     for p in sorted((template_root / "reconloop").glob("*.py")):
         engine[p.name] = sha256_file(p)
+    configs = {}
+    config_file = template_root / "reconproject.json"
+    if config_file.is_file():
+        configs[config_file.name] = sha256_file(config_file)
     return {
         "schema": "hashfreeze",
         "version": 1,
@@ -113,6 +123,7 @@ def build_hashfreeze(*, template_root: Path, commit: str) -> dict:
         "scanners": scanners,
         "schemas": schemas,
         "engine": engine,
+        "configs": configs,
         "packs": packs,
         "fixtures": fixtures,
     }
@@ -204,7 +215,7 @@ def verify_hashfreeze(template_root: Path, freeze: dict | None = None, *,
         v.extend(_verify_commit_provenance(template_root, freeze.get("commit", "")))
     cur = build_hashfreeze(template_root=template_root, commit=freeze.get("commit", ""))
     # (1) membership closure + hash comparison (flat sections)
-    for sec in ("scanners", "schemas", "engine", "fixtures"):
+    for sec in ("scanners", "schemas", "engine", "configs", "fixtures"):
         frozen = freeze.get(sec, {})
         current = cur.get(sec, {})
         if check_membership:

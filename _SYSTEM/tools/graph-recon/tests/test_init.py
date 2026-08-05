@@ -84,6 +84,13 @@ def test_init_scaffolds_project_files() -> None:
                     "out/", "__pycache__/"):
             assert pat in gi, f".gitignore missing {pat!r}"
         assert not list(target.rglob("__pycache__")), "no pycache in scaffold"
+        # The generated scaffold changes only root discovery markers; its
+        # effective protected catalog must match the source template.
+        from reconloop.context import ScanContext  # noqa: E402
+        source_ctx = ScanContext(str(ROOT), config_path=ROOT / "reconproject.json")
+        scaffold_ctx = ScanContext(str(target), config_path=target / "reconproject.json")
+        assert source_ctx.catalog.catalog_sha256 == scaffold_ctx.catalog.catalog_sha256
+        assert source_ctx.catalog.mode == scaffold_ctx.catalog.mode == "configured"
         # root markers make the scaffold self-discoverable
         from reconloop.config import discover_root  # noqa: E402
         found = discover_root(start=target / "out",
@@ -170,6 +177,7 @@ def test_template_root_resolution_prefers_data_files() -> None:
         (fake / "pyproject.toml").write_text(
             '[project]\nname = "graph-recon"\n[project.scripts]\n'
             'graph-recon = "reconloop.cli:main"\n')
+        (fake / "reconproject.json").write_bytes((ROOT / "reconproject.json").read_bytes())
         # installed layout: module inside the data-files dir, prefix=td -> the
         # source-checkout candidate is invalid, data-files dir resolves
         here = fake / "reconloop" / "scaffold.py"
@@ -187,8 +195,13 @@ def test_template_root_resolution_prefers_data_files() -> None:
         for rel in ("reconloop/cli.py", "reconloop/query.py",
                     "reconloop/schemas/lens-card.schema.json",
                     "reconloop/schemas/lens-card.schema.sha256",
-                    "scanners/base.py", "packs/yuri/manifest.json"):
+                    "scanners/base.py", "packs/yuri/manifest.json",
+                    "reconproject.json"):
             assert (target / rel).exists(), rel
+        from reconloop.context import ScanContext  # noqa: E402
+        source_ctx = ScanContext(str(ROOT), config_path=ROOT / "reconproject.json")
+        installed_ctx = ScanContext(str(target), config_path=target / "reconproject.json")
+        assert source_ctx.catalog.catalog_sha256 == installed_ctx.catalog.catalog_sha256
         assert "graph-recon" in (target / "pyproject.toml").read_text()
         assert not list(target.rglob("__pycache__")), "no pycache in scaffold"
     print("template-root data-files resolution OK")
@@ -220,7 +233,7 @@ def test_wheel_layout_ships_complete_template() -> None:
             "reconloop/schemas/lens-card.schema.json",
             "reconloop/schemas/lens-card.schema.sha256",
             "scanners/base.py", "packs/yuri/manifest.json",
-            "pyproject.toml") if data + rel not in names]
+            "pyproject.toml", "reconproject.json") if data + rel not in names]
         assert not missing, \
             f"wheel data-files missing {missing}: " \
             f"{sorted(n for n in names if 'graphrecon-template' in n)}"
@@ -277,6 +290,7 @@ def test_wheel_layout_ships_complete_template() -> None:
                    "reconloop/schemas/*.json", "reconloop/schemas/*.sha256",
                    '"graphrecon-template"', "template/pyproject.toml"):
         assert needle in txt, f"pyproject data-files missing {needle!r}"
+    assert "reconproject.json" in txt
     print("wheel-layout: static data-files assertion OK (no build backend)")
 
 

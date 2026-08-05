@@ -12,6 +12,9 @@
      `node_modules`, private keys, runtime data dirs, agent runtime dirs. When
      the config or its `protected` section is absent, the built-in heritage
      catalog in `reconloop/protected.py` is used (default-if-absent).
+   - `protected.mode`: `configured` (use `protected.patterns`) or `heritage`
+     (use the built-in YURI catalog). One immutable effective catalog is bound
+     to each run and recorded by digest in the analysis manifest.
    - `protected.hash_content` (bool, default `true`): metadata + content-hash
      prefix (first `protected.hash_bytes` bytes, default 1048576 = first 1MiB,
      sha256-16) — hash only, values never emitted (owner-authorized: location/
@@ -80,8 +83,9 @@
   (live lsof state): its layer is kept, carries `layers/live_ports.meta.json`
   with a freshness stamp, and is excluded from the pinned merged graph.
 - `layers/analysis-manifest.json` records input-graph pin (content-addressed,
-  path-independent), per-scanner file hashes, run config, layer stability,
-  pinned-layer list, and `generated_at`. It is run metadata — never part of
+  path-independent), per-scanner file hashes, effective config/catalog hashes,
+  catalog mode + pattern count, run config, layer stability, pinned-layer
+  list, and `generated_at`. It is run metadata — never part of
   the pin. Schema is pinned at `reconloop/schemas/analysis-manifest.schema.json`
   (+ `.sha256`, asserted by tests).
 - Analytics scanners REQUIRE a merged-graph input (fail-closed): without one
@@ -89,9 +93,10 @@
   scanners keep fail-open semantics.
 
 ## M2 — grammar lenses (lens-spec.md, Marcel-approved 2026-08-04)
-- Six versioned query lenses in `scanners/` (dim=lens, requires_graph, inherit
+- Eight versioned query lenses in `scanners/` (dim=lens, requires_graph, inherit
   `_base_lens.BaseLens`): `route_binding`, `protected_writer`, `hook_projection`,
-  `mcp_registration`, `launchd_existence`, `env_to_process`.
+  `mcp_registration`, `launchd_existence`, `env_to_process`, `security_path`,
+  and `writer_to_protected`.
 - Lenses read ONLY the pinned graph input + rev-pinned registry files
   (`git show ctx.revision:...` — same revision the file layer came from);
   never live state.
@@ -99,13 +104,16 @@
   (verified:false, schema `reconloop/schemas/lens-card.schema.json`, pinned).
 - Negative controls + metamorphic tests per lens (tests/test_lenses.py);
   record-reorder determinism; input-swap detection.
-- `hashfreeze.json`: pinned scanner/schema/engine/fixture hashes + input pins
+- `hashfreeze.json`: pinned scanner/schema/engine/config/fixture hashes + input pins
   (v3 deduped f5597cc3…, canonical deduped 148818ea…) + lens config;
   `verify_hashfreeze` fails on any tamper (tests/test_hashfreeze.py).
-- Frozen-snapshot run (f5597cc3): 107 cards — route_binding 4, launchd 1
+- Historical six-lens frozen-snapshot run (f5597cc3): 107 cards — route_binding 4, launchd 1
   (lane-health dead loop `-l`), env_to_process 102 (graph has zero
   env_to_process edges => modeling gap, not 102 independent violations),
   protected_writer/hook_projection/mcp_registration 0.
+- V1 calibration on the same frozen input is review-gated: `security_path` 0,
+  `writer_to_protected` 0 after catalog binding/calibration, and
+  `route_binding` 2 deferred. Unverified calibration artifacts are not labels.
 
 ## M2.1 (F-041/F-043 fixes, Orion order 2026-08-04)
 - `scanners/env_process_edges.py`: emits env_to_process edges from tracked-source

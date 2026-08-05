@@ -19,7 +19,6 @@ hash_bytes so consumers can see exactly what was touched.
 from __future__ import annotations
 from .base import BaseScanner, ScanResult
 from reconloop.model import Node
-from reconloop.protected import is_protected
 
 
 class ProtectedPathsScanner(BaseScanner):
@@ -39,7 +38,7 @@ class ProtectedPathsScanner(BaseScanner):
                     rel = p.relative_to(ctx.root).as_posix()
                 except ValueError:
                     continue
-                if is_protected(rel):
+                if ctx.is_protected(rel):
                     meta = ctx.meta_only(rel) if p.exists() else {"path": rel, "exists": False}
                     meta["surface"] = "protected"
                     meta["scan_state"] = "scanned"
@@ -49,7 +48,7 @@ class ProtectedPathsScanner(BaseScanner):
                         seen.add(nid)
                         r.nodes.append(Node(
                             id=nid, kind="protected_path", props=meta,
-                            evidence=["catalog: reconproject.json protected.patterns (fallback: built-in)"],
+                            evidence=[f"catalog:{ctx.catalog.catalog_sha256[:16]}"],
                             src="protected_paths"))
                     continue  # never descend into protected dirs
                 if p.is_dir() and not p.is_symlink():
