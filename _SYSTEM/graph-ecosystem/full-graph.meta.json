@@ -13,6 +13,11 @@
     "test-wiring-edges.jsonl": 226,
     "writer-edges.jsonl": 1
   },
-  "total": 6755,
-  "sha256": "5d14aa4afb6211c6cb04e629345c9c9f19fba632ac7e6f5609c23d243b799377"
+  "regenerated": "2026-08-05 (deduped engine, current graphrecon core)",
+  "sha256": "dd47cfea340e8ec3978e82aab7f757c3239d1e8ccc94736ff3f16534a873365d",
+  "supersedes": {
+    "148818ea": "canonical deduped at M1.6 (pre-M2.2/M5 engine)",
+    "57931c33": "pre-dedup v3 6971 recs"
+  },
+  "total": 20828
 }

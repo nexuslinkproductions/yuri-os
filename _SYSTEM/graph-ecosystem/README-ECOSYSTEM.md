@@ -20,7 +20,14 @@ The G2 loop-extension deliverable: the unified graph covering the ENTIRE YURI ec
 | dynamic-writers-nodes.jsonl | 216 | E8 dynamic write targets (~99.6% of write surface — hardening signal) |
 
 ## Pins
-- full-graph.jsonl sha256: 5d14aa4afb6211c6… (promoted regen, alphabetical layer order — deterministic) (determinism: two runs identical — verified by Orion)
+- **CURRENT (M4 repin, 2026-08-05)**: full-graph.jsonl = canonical deduped run
+  (current graphrecon engine, revision origin/main, v3 deduped f5597cc3 as
+  analytics graph-input) — 20,828 records, pin `dd47cfea340e8ec3…`, double-run
+  identical. Supersedes: pre-dedup v3 `57931c33…` (6,971 records, dedup removed
+  229 duplicate node records) and the M1.6 canonical `148818ea…` (20,690 — the
+  same run before the M2.2 rev-pin of env_files 102→4 and the M5 config-driven
+  protected catalog 15→274; deltas are engine evolution, not drift).
+- full-graph.jsonl sha256 (historical v3): 5d14aa4afb6211c6… (promoted regen, alphabetical layer order — deterministic) (determinism: two runs identical — verified by Orion)
 - Security layer pin (PR #45): e461ad0c… (unchanged — layer isolation holds)
 
 ## Regen contract
