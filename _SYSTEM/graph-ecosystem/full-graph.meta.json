@@ -1,23 +1,29 @@
 {
-  "generated_at": "2026-08-04T08:08:59.771Z",
+  "generated_at": "2026-08-05T04:10:19.774Z",
   "layers": {
-    "dynamic-writers-nodes.jsonl": 216,
-    "edges.jsonl": 68,
-    "file-nodes.jsonl": 6127,
-    "formula-services-nodes.jsonl": 9,
-    "history-writers-nodes.jsonl": 3,
-    "memory-nodes.jsonl": 3,
-    "nodes.jsonl": 47,
-    "organ-nodes.jsonl": 22,
-    "skills-registry-nodes.jsonl": 33,
-    "test-wiring-edges.jsonl": 226,
-    "writer-edges.jsonl": 1
+    "deps_audit.jsonl": 0,
+    "env_files.jsonl": 102,
+    "file_inventory.jsonl": 6127,
+    "formula_banks.jsonl": 2,
+    "git_history.jsonl": 1,
+    "hygiene.jsonl": 4,
+    "launchd.jsonl": 26,
+    "live_ports.jsonl": 66,
+    "mcp_servers.jsonl": 14,
+    "memory_schema.jsonl": 3,
+    "network_probe.jsonl": 0,
+    "organs.jsonl": 21,
+    "protected_paths.jsonl": 15,
+    "registries.jsonl": 6,
+    "secrets_control.jsonl": 0,
+    "test_wiring.jsonl": 338,
+    "writers.jsonl": 246
   },
-  "regenerated": "2026-08-05 (deduped engine, current graphrecon core)",
-  "sha256": "dd47cfea340e8ec3978e82aab7f757c3239d1e8ccc94736ff3f16534a873365d",
-  "supersedes": {
-    "148818ea": "canonical deduped at M1.6 (pre-M2.2/M5 engine)",
-    "57931c33": "pre-dedup v3 6971 recs"
-  },
-  "total": 20828
+  "total": 6742,
+  "sha256": "f5597cc33c3b0e5e93683b4af5f8265544f59d31b5055221b45889fc8f164475",
+  "duplicates_removed": 229,
+  "dedup_policy": "last",
+  "duplicate_report": "full-graph.dedup-report.json",
+  "edges_without_id": 392,
+  "unique_node_ids": 6350
 }

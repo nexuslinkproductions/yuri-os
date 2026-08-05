@@ -1,42 +1,37 @@
-# YURI FULL-ECOSYSTEM GRAPH — PR #2 (feat/yuri-ecosystem-graph-v1)
+# YURI FULL-ECOSYSTEM GRAPH — PR #46 (feat/yuri-ecosystem-graph-v1)
 
 ## What & why
-The G2 loop-extension deliverable: the unified graph covering the ENTIRE YURI ecosystem, not just security. Merges 11 layers from the E1-E12 sequence (owner ruling 2026-08-04, Orion-verified depth pass) into one deterministically-regenerable graph. Kept SEPARATE from PR #45 (security-only) so Marcel reviews the two deliverables independently.
+The G2 loop-extension deliverable: the unified graph covering the ENTIRE YURI ecosystem. This remains the v3 artifact: 6,971 raw node/edge records reduced by deterministic keep-last dedup to 6,742 total records (6,350 unique node IDs and 392 edges), with graph pin `f5597cc33c3b0e5e93683b4af5f8265544f59d31b5055221b45889fc8f164475`.
 
-## Layer table (11 layers, 6,755 records)
+## Layer table (17 layers, 6,971 records)
 
 | Layer file | Records | Source |
 |---|---|---|
-| nodes.jsonl | 47 | security walker (ports/launchd/processes/files/mcp) |
-| edges.jsonl | 68 | security walker edges |
-| file-nodes.jsonl | 6,127 | E1 tracked-file inventory |
-| organ-nodes.jsonl | 22 | E2 governance organs (OS_KERNEL + launchd/script) |
-| skills-registry-nodes.jsonl | 33 | E3 registries/capabilities/skills counts |
-| memory-nodes.jsonl | 3 | E4 memory surfaces (schema-level) |
-| formula-services-nodes.jsonl | 9 | E6 formula banks + E7 MCP servers (7 incl obsidian-mcp, plan) |
-| history-writers-nodes.jsonl | 3 | E9 git history (1,866 commits, 24 large blobs) |
-| test-wiring-edges.jsonl | 226 | E5 R/G/G test-suite wiring |
-| writer-edges.jsonl | 1 | E8 literal write target (browser-harness-bridge → /tmp/harness-last-result.json) |
-| dynamic-writers-nodes.jsonl | 216 | E8 dynamic write targets (~99.6% of write surface — hardening signal) |
+| deps_audit.jsonl | 0 | v3 dependency/audit layer |
+| env_files.jsonl | 102 | environment-file inventory |
+| file_inventory.jsonl | 6,127 | repository file inventory |
+| formula_banks.jsonl | 2 | formula bank nodes |
+| git_history.jsonl | 1 | repo-history seed node |
+| hygiene.jsonl | 4 | hygiene indicators |
+| launchd.jsonl | 26 | launchd/job nodes |
+| live_ports.jsonl | 66 | live listener metadata |
+| mcp_servers.jsonl | 14 | MCP server inventory |
+| memory_schema.jsonl | 3 | memory schema nodes |
+| network_probe.jsonl | 0 | network probe layer |
+| organs.jsonl | 21 | governance organs |
+| protected_paths.jsonl | 15 | protected paths inventory |
+| registries.jsonl | 6 | registry metadata |
+| secrets_control.jsonl | 0 | secrets-control inventory |
+| test_wiring.jsonl | 338 | test-wire routing |
+| writers.jsonl | 246 | writer and edge records |
 
-## Pins
-- **CURRENT (M4 repin, 2026-08-05)**: full-graph.jsonl = canonical deduped run
-  (current graphrecon engine, revision origin/main, v3 deduped f5597cc3 as
-  analytics graph-input) — 20,828 records, pin `dd47cfea340e8ec3…`, double-run
-  identical. Supersedes: pre-dedup v3 `57931c33…` (6,971 records, dedup removed
-  229 duplicate node records) and the M1.6 canonical `148818ea…` (20,690 — the
-  same run before the M2.2 rev-pin of env_files 102→4 and the M5 config-driven
-  protected catalog 15→274; deltas are engine evolution, not drift).
-- full-graph.jsonl sha256 (historical v3): 5d14aa4afb6211c6… (promoted regen, alphabetical layer order — deterministic) (determinism: two runs identical — verified by Orion)
-- Security layer pin (PR #45): e461ad0c… (unchanged — layer isolation holds)
+## Pin
+- full-graph.jsonl sha256: f5597cc33c3b0e5e93683b4af5f8265544f59d31b5055221b45889fc8f164475
 
 ## Regen contract
-1. `node _SYSTEM/graph-ecosystem/merge-full.mjs` (reads layers/ — repo-relative, deterministic)
-2. Run twice → identical full-graph.sha256 (fails otherwise)
-3. New layer files → drop into layers/ → re-run → new pin
+1. `cd _SYSTEM/graph-ecosystem && node merge-full.mjs`
+2. Re-run the command; both `full-graph.sha256` and `full-graph.dedup-report.json` must be byte-identical.
+3. New layer files → drop into `layers/` → re-run → new pin.
 
 ## Freshness watcher (E12)
-See WATCHER.md — 6h launchd cadence + HEAD-change trigger, 6 read-only checks, alerts to Orion, auto-silence after 3 clean ticks.
-
-## Codex runtime-proof receipts (pending owner go)
-See PLAN.md Appendix A (PR #45) — 14 native-collision entries need codex debug prompt-input receipts; execution only on Marcel's explicit go in his live Codex session.
+See WATCHER.md.
