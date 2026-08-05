@@ -224,6 +224,89 @@ def _refine_roll_to_slide_top(P, F, center, aL, aH, aW):
     aH2 = aH2 / (np.linalg.norm(aH2) or 1.0)
     return aL, aH2
 
+def _refine_roll_to_rear_sight(P, F, center, aL, aH, aW):
+    """Owner ROLL datum, FINAL (2026-08-05, GLOCK 34): the two REAR-SIGHT SHOULDERS — the flat tops either
+    side of the notch — must sit at the SAME height in the FRONT / down-the-bore view. This is what the eye
+    actually reads when it looks at the gun; the slide-top flat is only a proxy for it, and on the Glock 34
+    the two disagreed by 0.33deg (slide top -0.074deg, shoulders +0.258deg). Owner directive: *"why did you
+    not align this!!?? This is a MUST as well with all alignments of guns"*, pointing at both shoulders.
+
+    Runs AFTER `_refine_roll_to_slide_top` and OVERRIDES it when a real rear sight is found — sight first,
+    slide top as the fallback. Method: isolate the up-facing faces on the rear-sight top (a narrow height
+    band under the sight's own top), split them by width sign into the left and right shoulder, and rotate
+    aH about the bore (aL) until their AREA-WEIGHTED MEAN heights match.
+
+    Why the mean of two patches and not a plane fit or a consensus normal: each shoulder is a small
+    (~43mm^2), scan-rough patch — its own normal reads +-0.5deg of noise (the Glock 34's individual
+    shoulders fitted -0.14deg and +0.97deg against a true +0.26deg). But the MEAN height of 2,000+ faces is
+    determined to ~0.001mm, so the LEVER ARM between the two shoulder centroids (~9.5mm) resolves the roll
+    to ~0.01deg. Same lesson as the TLR-7 seat, inverted: there the lever arm between two patches was the
+    trap, here it is the instrument — because these two patches are at the same length and nominal height
+    and differ ONLY in width, which is exactly the axis being measured.
+
+    GUARDED + self-zeroing: needs two real shoulders of comparable area straddling the notch, roughly
+    symmetric about the centreline, and a correction under 3deg — so it no-ops on an optic-cut slide, a
+    flat-top synthetic gun, a single-blade sight, or a light. Returns corrected (aL, aH)."""
+    if F is None or len(F) == 0:
+        return aL, aH
+    a, b, c = P[F[:, 0]], P[F[:, 1]], P[F[:, 2]]
+    fn = np.cross(b - a, c - a); fa = np.linalg.norm(fn, axis=1); ok = fa > 1e-12
+    if int(ok.sum()) < 50:
+        return aL, aH
+    nn = fn[ok] / fa[ok][:, None]; area = 0.5 * fa[ok]
+    cen = ((a + b + c) / 3.0)[ok] - center
+    l = cen @ aL; h = cen @ aH; w = cen @ aW
+    nH = nn @ aH
+    lmin, lmax = float(np.percentile(l, 1)), float(np.percentile(l, 99)); L = lmax - lmin
+    if L < 1e-6:
+        return aL, aH
+    rear = (l > lmin + 0.60 * L) & (l < lmax)              # rear slide only (front sight excluded)
+    if int(rear.sum()) < 100:
+        return aL, aH
+    htop = float(h[rear].max())
+    top = rear & (nH > math.cos(math.radians(25))) & (h > htop - 1.2)   # the sight's own top flats
+    wt, ht, at = w[top], h[top], area[top]
+    # GATE ON AREA, NOT FACE COUNT. René's CAD solids carry the same shoulder in ~30 large triangles where
+    # a scan carries it in ~2,200 tiny ones; a face-count floor tuned to the scan silently no-ops on every
+    # solid (G17 66 faces, G19 102 -> both rejected by a 200-face minimum, 2026-08-05). Area is the
+    # mesh-density-invariant quantity, so gate on that and keep only a tiny count floor for fit sanity.
+    if int(top.sum()) < 16 or float(at.sum()) < 8.0:
+        return aL, aH
+    # Split into the two shoulders about the NOTCH CENTRE, not about w=0 — a laterally drifted rear sight
+    # (real windage, see the 2026-07-27 Echelon note) would otherwise sample the two shoulders unevenly and
+    # leak yaw/windage into the roll estimate. One refinement pass is enough.
+    split = 0.0
+    for _ in range(2):
+        left, right = wt < split, wt > split
+        if int(left.sum()) < 6 or int(right.sum()) < 6:
+            return aL, aH                                   # need a real notch with a shoulder either side
+        alA, arA = float(at[left].sum()), float(at[right].sum())
+        if min(alA, arA) < 3.0 or min(alA, arA) / max(alA, arA) < 0.5:
+            return aL, aH                                   # lopsided -> not two shoulders of one sight
+        wl = float((wt[left] * at[left]).sum() / alA); wr = float((wt[right] * at[right]).sum() / arA)
+        split = 0.5 * (wl + wr)
+    hl = float((ht[left] * at[left]).sum() / alA); hr = float((ht[right] * at[right]).sum() / arA)
+    if (wr - wl) < 2.0 or min(abs(wl - split), abs(wr - split)) / max(abs(wl - split), abs(wr - split)) < 0.6:
+        return aL, aH                                       # too narrow / not symmetric about the notch
+    theta = math.atan2(hr - hl, wr - wl)                    # shoulder-plane cant about the bore
+    # CROSS-CHECK with an area-weighted plane fit h = alpha*w + beta over ALL the top faces. It uses every
+    # face and needs no split, but unlike the two-patch lever arm it is sensitive to asymmetric extent and
+    # to doming. The two are independent enough that agreement is real evidence — on the Glock 34 they read
+    # +0.258 and +0.266. Disagreement means the "shoulders" aren't one flat plane: bail rather than guess.
+    Wm = float((wt * at).sum() / at.sum()); Hm = float((ht * at).sum() / at.sum())
+    var = float((at * (wt - Wm) ** 2).sum())
+    if var < 1e-9:
+        return aL, aH
+    theta_fit = math.atan(float((at * (wt - Wm) * (ht - Hm)).sum()) / var)
+    if abs(math.degrees(theta - theta_fit)) > 0.15:
+        return aL, aH                                       # guard: the two estimators disagree
+    theta = 0.5 * (theta + theta_fit)
+    if abs(math.degrees(theta)) > 3.0:
+        return aL, aH                                       # guard: cap at 3deg
+    aH2 = math.cos(theta) * aH - math.sin(theta) * aW       # tilt 'up' onto the shoulder-plane normal
+    aH2 = aH2 / (np.linalg.norm(aH2) or 1.0)
+    return aL, aH2
+
 def _refine_yaw_to_sights(P, F, center, aL, aH):
     """Owner YAW datum (2026-07-10, GLOCK 43): make the FRONT SIGHT and REAR SIGHT colinear along the bore
     — the fine reference the slide-SILHOUETTE PCA averages away. A 0.9mm front-sight offset over a ~130mm
@@ -267,7 +350,8 @@ def _refine_yaw_to_sights(P, F, center, aL, aH):
     return aL2 / (np.linalg.norm(aL2) or 1.0)
 
 def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0, roll_offset_deg=0.0,
-                      yaw_offset_deg=0.0, refine_parting=True, refine_sights=True, refine_roll=True):
+                      yaw_offset_deg=0.0, refine_parting=True, refine_sights=True, refine_roll=True,
+                      refine_sight_roll=True):
     """Gun-canonical rigid transform (center, R): the SLIDE axis -> world Y and horizontal, muzzle at
     -Y, WIDTH -> X, GRIP -> -Z (down); object mass-centered. Owner canonical pose (2026-07-03):
     "muzzle to the left in the X-view, leveled along the slide, grip pointing down".
@@ -422,6 +506,16 @@ def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0, roll_offset_
         aH0 = aH.copy(); aL, aH = _refine_roll_to_slide_top(P, F, center, aL, aH, aW)
         roll_refine_deg = math.degrees(math.acos(max(-1.0, min(1.0, float(np.dot(aH0, aH))))))
         l = D @ aL; h = D @ aH
+    # REFINE ROLL again, to the REAR-SIGHT SHOULDERS (owner datum 2026-08-05, GLOCK 34) — the FINAL roll
+    # reference. The slide-top flat above is only a proxy for it and read 0.33deg off on the Glock 34.
+    # Overrides the slide-top result whenever a real two-shouldered rear sight is present; self-zeroing.
+    sight_roll_deg = 0.0
+    if level_slide and refine_sight_roll and F is not None and len(F):
+        aH1 = aH.copy()
+        aWc = np.cross(aL, aH); aWc /= (np.linalg.norm(aWc) or 1.0)
+        aL, aH = _refine_roll_to_rear_sight(P, F, center, aL, aH, aWc)
+        sight_roll_deg = math.degrees(math.acos(max(-1.0, min(1.0, float(np.dot(aH1, aH))))))
+        l = D @ aL; h = D @ aH
     # REFINE YAW to the SIGHTS (owner datum 2026-07-10): front + rear sight colinear along the bore.
     sight_yaw_deg = 0.0
     if refine_sights and F is not None and len(F):
@@ -468,6 +562,7 @@ def compute_alignment(P, F, level_slide=True, pitch_offset_deg=0.0, roll_offset_
         "slide_leveled_deg": round(float(slide_tilt_deg), 2),   # pitch correction applied to reach level
         "parting_refine_deg": round(float(parting_refine_deg), 2),   # extra pitch to the slide/parting line
         "roll_refine_deg": round(float(roll_refine_deg), 2),         # roll applied to level the slide-top flat
+        "sight_roll_deg": round(float(sight_roll_deg), 3),      # roll applied to level the REAR-SIGHT SHOULDERS
         "sight_yaw_deg": round(float(sight_yaw_deg), 2),        # yaw applied to colinear the sights
         "det_R": round(float(np.linalg.det(R)), 6),             # must be +1.0
     }
@@ -745,7 +840,8 @@ def verify_alignment(P_new, F):
       center_residual ~ 0 ; R_new ~ identity ; dims Y>=Z>=X ; muzzle at -Y ; GRIP at bottom-rear
       (min-Z vert sits at +Y and below center) ; slide level (|slide_top_tilt| small)."""
     P_new = np.asarray(P_new, dtype=np.float64)
-    cen2, R2, d2 = compute_alignment(P_new, F, refine_parting=False, refine_sights=False, refine_roll=False)  # pure axis/sign recheck
+    cen2, R2, d2 = compute_alignment(P_new, F, refine_parting=False, refine_sights=False, refine_roll=False,
+                                     refine_sight_roll=False)  # pure axis/sign recheck
     dims = P_new.max(0) - P_new.min(0)                       # bbox extents X,Y,Z
     off = float(np.abs(R2 - np.eye(3)).max())
     low_i = int(np.argmin(P_new[:, 2]))                     # the lowest vert = the grip toe
@@ -799,7 +895,7 @@ def _dup(src, out_name):
 
 def align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, pitch_offset_deg=0.0,
                  roll_offset_deg=0.0, yaw_offset_deg=0.0, mode="gun", refine_parting=True, refine_sights=True,
-                 refine_roll=True, refine_seat=True):
+                 refine_roll=True, refine_seat=True, refine_sight_roll=True):
     """Align an already-imported gun/light mesh to world XYZ, mass-centered. THE skill entry point.
 
     mode="gun"  (default) -> muzzle -Y, grip -Z, slide/rail level (gun anatomy heuristics).
@@ -824,7 +920,7 @@ def align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, 
         center, R, diag = compute_alignment(P, F, level_slide=level_slide, pitch_offset_deg=pitch_offset_deg,
                                              roll_offset_deg=roll_offset_deg, yaw_offset_deg=yaw_offset_deg,
                                              refine_parting=refine_parting, refine_sights=refine_sights,
-                                             refine_roll=refine_roll)
+                                             refine_roll=refine_roll, refine_sight_roll=refine_sight_roll)
     P_new = apply_alignment(P, center, R)
 
     target = src if in_place else _dup(src, out_name or (src.name + "_ALIGNED"))

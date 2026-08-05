@@ -24,7 +24,7 @@ sys.path.insert(0, HERE)
 exec(open(os.path.join(HERE, "cgs_align.py")).read(), globals())
 
 GUNS = [
-    r"C:\Users\rene\Desktop\CAD\GLOCK\GLOCK 19 GEN5\G19_GEN5_SOLID GUN.stl",
+    r"C:\Users\rene\Desktop\CAD\GLOCK\GLOCK 19 GEN5\Glock 19 Gen5 GUN.stl",
     r"C:\Users\rene\Desktop\CAD\GLOCK\GLOCK 17 GEN 5\G17 - GEN5 - SOLID GUN.stl",
 ]
 

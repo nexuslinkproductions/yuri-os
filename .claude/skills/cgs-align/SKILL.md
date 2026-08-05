@@ -30,11 +30,15 @@ Mass center           -> origin (0,0,0), all 3 axes on the volume centroid
 - **YAW → FRONT SIGHT + REAR SIGHT colinear** down the bore (front post centred in the rear notch, viewed
   from behind). The slide *silhouette* is NOT sensitive enough — a 0.9mm sight offset over a 130mm baseline
   is 0.4° of yaw that reads "square" (0.04°) in the outline but is obvious down the sights.
-- **ROLL → the SLIDE-TOP FLAT horizontal in the FRONT (down-the-bore) view** — no cant about the bore.
-  Auto-leveled by `refine_roll` (slide-top up-face consensus normal → +Z). The raw pose left the Glock 43
-  ~0.8° rolled (invisible in the side/back views — a THIRD view, the front-ortho, is mandatory; owner caught
-  it there, 2026-07-10b). Final sub-degree still → owner's eye via `roll_offset_deg` (a decimated scan won't
-  nail <0.5° from geometry alone).
+- **ROLL → the two REAR-SIGHT SHOULDERS level with each other in the FRONT (down-the-bore) view** — the flat
+  tops either side of the notch, at equal height; no cant about the bore. Owner directive 2026-08-05
+  (GLOCK 34), arrows on both shoulders: *"why did you not align this!!?? This is a MUST as well with all
+  alignments of guns"*. Auto-leveled by **`refine_sight_roll`** (method step 5d). ⚠ The **slide-top flat is
+  only a PROXY** for this and is not good enough on its own — on the Glock 34 the two disagreed by **0.33°**
+  (slide top −0.074°, shoulders +0.258°). `refine_roll` (slide-top normal → +Z) still runs first as the
+  gross leveler and remains the fallback on an optic-cut / flat-top slide with no two-shouldered sight.
+  Roll is invisible in the side/back views — a THIRD view, the front-ortho, is mandatory (owner caught the
+  Glock 43 0.8° rolled there, 2026-07-10b). Final sub-degree → owner's eye via `roll_offset_deg`.
 - **VERIFY ALL THREE ORTHO VIEWS** — side=pitch/parting, back=yaw/sights, **front=roll/slide-top**. Declaring
   "level" off only the views you checked is the skill's #1 repeat failure (2026-07-03/04/07/10/10b).
 
@@ -97,6 +101,26 @@ reversible, non-mutating to geometry.**
    **Self-zeroing + guarded** (min faces, cap 8°). Pitch/yaw refines don't touch roll and a decimated scan's
    principal WIDTH axis alone left the Glock 43 ~0.8° rolled — **invisible in the side/back views**, caught
    only in the front-ortho (owner hand-fixed +0.8° Ry; the refine now auto-lands it, +0.58° → −0.09°).
+5d. **Slide level ROLL — refine to the REAR-SIGHT SHOULDERS** `refine_sight_roll` — the owner's FINAL roll
+   datum (2026-08-05, GLOCK 34): the two flat tops either side of the rear notch must sit at the SAME height
+   in the front view. Step 5c's slide-top flat is a PROXY for this and read **0.33° off** on the Glock 34.
+   Isolate the up-faces on the rear-sight top (a 1.2mm band under the sight's own apex, rear slide only),
+   split them into the left and right shoulder **about the NOTCH CENTRE** (not about x=0 — a windage-drifted
+   sight would otherwise leak yaw into the roll), and rotate about the bore until their AREA-WEIGHTED MEAN
+   heights match. **Overrides 5c** whenever a real two-shouldered sight is found; **self-zeroing + guarded**
+   (cap 3°, needs two comparable shoulders straddling the notch).
+   ★ Why the mean of two patches, not a normal or a plane fit: each shoulder is a small (~43mm²), scan-rough
+   patch — its own fitted slope is ±0.5° of noise (the Glock 34's individual shoulders read −0.14° and
+   +0.97° against a true +0.26°). But the MEAN height of thousands of faces is pinned to ~0.001mm, so the
+   **LEVER ARM** between the two shoulder centroids (~9.5mm) resolves roll to ~0.01°. This is the TLR-7 seat
+   lesson inverted: there a lever arm between two patches was the trap, here it is the instrument — because
+   these two patches sit at the same length and nominal height and differ ONLY in width, the axis measured.
+   A second, split-free area-weighted plane fit runs as an independent cross-check (they agreed +0.258° vs
+   +0.266° on the Glock 34); a disagreement >0.15° means the "shoulders" aren't one plane, and it bails.
+   ⚠ **Gate on AREA, never on face count.** René's CAD solids carry a shoulder in ~30 large triangles where
+   a 2.2M-tri scan carries it in ~2,200 tiny ones. The first build used a 200-face floor tuned to the scan
+   and silently no-opped on **every** solid gun (G17 66 faces, G19 102) — it passed both suites while doing
+   nothing. Area is the mesh-density-invariant quantity.
 6. **Yaw to the SIGHTS** `refine_sights` — owner's YAW datum: make the **front sight + rear sight
    colinear** along the bore. Detect the two sight blades as height spikes protruding >1.5mm above the
    slide-top baseline (front third + rear slide), take each blade's width-centroid (rear = the two notch
@@ -163,10 +187,10 @@ obj, s = import_and_align(r"C:\Users\rene\Desktop\CAD\...\scan.stl")
 
 print(s)   # aligned_ok, det_R (==1.0), center_residual_mm (~0), R_offdiag_max (~0), dims (Y>=Z>=X),
            # front_y (muzzle, min), grip_is_down, lattice_pitch_deg, slide_leveled_deg,
-           # parting_refine_deg, roll_refine_deg, sight_yaw_deg
+           # parting_refine_deg, roll_refine_deg, sight_roll_deg, sight_yaw_deg
 ```
 
-- `align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, pitch_offset_deg=0.0, roll_offset_deg=0.0, yaw_offset_deg=0.0, mode="gun", refine_parting=True, refine_sights=True, refine_roll=True, refine_seat=True)` — entry point. Gun mode auto-levels PITCH to the slide/parting line (`refine_parting`), ROLL to the slide-top flat / front view (`refine_roll`), and YAW to the sights (`refine_sights`); the three `*_offset_deg` knobs are the owner's eye-tweaks. `mode="light"` for weapon-lights, where `refine_seat` levels PITCH+ROLL to the rail seat (light mode has no `*_offset_deg` knobs — apply an eye-tweak as a rigid rotation and compose it into `cgs_align_R`).
+- `align_object(obj_name=None, in_place=True, out_name=None, level_slide=True, pitch_offset_deg=0.0, roll_offset_deg=0.0, yaw_offset_deg=0.0, mode="gun", refine_parting=True, refine_sights=True, refine_roll=True, refine_seat=True, refine_sight_roll=True)` — entry point. Gun mode auto-levels PITCH to the slide/parting line (`refine_parting`), ROLL to the slide-top flat (`refine_roll`) and then to the REAR-SIGHT SHOULDERS (`refine_sight_roll`, the owner's final roll datum — overrides the slide top), and YAW to the sights (`refine_sights`); the three `*_offset_deg` knobs are the owner's eye-tweaks. `mode="light"` for weapon-lights, where `refine_seat` levels PITCH+ROLL to the rail seat (light mode has no `*_offset_deg` knobs — apply an eye-tweak as a rigid rotation and compose it into `cgs_align_R`).
 - `import_and_align(path, in_place=True)` — import STL then align (gun mode).
 - `unalign_object(name)` — reverse a prior align from the stored transform.
 
@@ -202,6 +226,16 @@ green straight through the G19 failure; a box gun does not reproduce a real scan
 "C:/Program Files/Blender Foundation/Blender 5.1/5.1/python/bin/python.exe" scripts/verify_real_guns.py --poses 40
 ```
 
+**Measuring the PITCH datum directly** (rather than trusting `refine_parting`'s slide-top-silhouette proxy):
+`scripts/measure_parting.py` — `measure_parting(co, ylo, yhi, zc)` handles BOTH parting-line geometry
+classes (GROOVE = interior local min of `max|x|(z)`, Echelon / Glock 34; STEP = sharpest downward step,
+Sphinx) — `mode="auto"` picks between them by fit rms — and encodes the traps that cost a session each:
+the NaN-init `np.maximum.at` silent-reject, the zero-padded-`convolve` edge dip, the seam-sits-high z
+range, the keep-the-z-band-tight rule, the fit-the-slide-span-only rule, rejection-count reporting, and
+the probe-the-sign-before-baking rule. `scan_bands()` finds the seam height when you don't know it —
+on the Glock 34 it recovers z≈23–27 / **+0.02°** with no hint, matching the hand measurement to 0.02°,
+and correctly labels the slide top (z=45.2) as a STEP.
+
 It loads René's own production `*SOLID GUN.stl` files — which ship **already in his canonical pose**, so
 they *are* ground truth — applies random rotations, re-aligns, and scores the recovered pose by **Kabsch
 rotation back to the owner's pose**. One number that catches pitch, roll, yaw, end-flips and mirrors at
@@ -218,10 +252,12 @@ recurring trap on this skill):
   sight-trimmed) **≈ 0°**, NOT the sidewall-area PCA (skewed → converged ~1° off on the G43) nor the
   slide-top ridge (front-sight-biased). Render with a horizontal bar; confirm the upper/lower parting line
   is parallel to it.
-- **ROLL (FRONT ortho, down the bore)** — measure the slide-top up-face consensus normal's X-component
-  (**`nx ≈ 0`**, roll ≈ 0°). Render with a horizontal bar across the slide top; confirm the slide top is
-  level, no cant. ⚠ **Never skip this view** — roll is invisible in the side/back views (the G43 was 0.8°
-  rolled and read perfect on the other two).
+- **ROLL (FRONT ortho, down the bore)** — measure the **REAR-SIGHT SHOULDERS**: the area-weighted mean
+  height of the left and right shoulder must match (**`shoulder_dz ≈ 0`**, roll ≈ 0°). Render with a
+  horizontal bar at the shoulder height and confirm BOTH shoulders touch it. The slide-top normal's
+  X-component (`nx ≈ 0`) is a secondary check only — it read 0.33° off the shoulders on the Glock 34, and
+  the owner's eye follows the sight, not the slide. ⚠ **Never skip this view** — roll is invisible in the
+  side/back views (the G43 was 0.8° rolled and read perfect on the other two).
 - If the owner's eye wants the last sub-degree, set `pitch_offset_deg` / `roll_offset_deg` / `yaw_offset_deg`.
   On a light, also confirm the **bezel points −Y**.
 
@@ -233,6 +269,19 @@ recurring trap on this skill):
 
 ## Status / scope
 
+- **ALIGNED + 3-VIEW VERIFIED 2026-08-05** on the GLOCK 34 (`GLOCK 34`, 1,129,765 verts / 2,259,538 tris —
+  largest mesh to date) — and the aligner HARDENED with the owner's **final ROLL datum: the rear-sight
+  shoulders** (method step 5d, `refine_sight_roll`). The stock pipeline put pitch/yaw right but left the two
+  shoulders **0.33° apart in roll**, because roll was levelled to the slide-top flat, which is only a proxy;
+  the owner caught it in his front view and made it binding for **all** gun alignments. Final measured:
+  parting groove **−0.001°** (rms 0.049mm / 120mm span), rear-sight shoulders **dz −0.0012mm → roll
+  +0.002°**, sight yaw **−0.04°** (slide silhouette, sd 0.036mm), volume centroid (8e−10, −2e−8, −5e−9),
+  det +1, `matrix_world` identity, dims 35.78 × 222.22 × 140.02 (G34 spec ~222 × 139 ✓). Lattice fired
+  **−28.2°** (coherence 0.595) — a fifth platform confirming PCA-vs-bore. Owner's two annotation dots on the
+  parting line corroborate the pitch to **−0.080°** (a ±0.4° instrument). **Live E2E from the raw scan with
+  the hardened code lands the shoulders at −0.006° and the whole pose within 0.104° of the hand-finished
+  one** — and that residual IS the hand pitch correction, i.e. roll is now fully automatic.
+  **Owner viewport confirm of the auto-output pending.**
 - **ALIGNED + 3-VIEW VERIFIED 2026-08-04** on the STREAMLIGHT TLR-7 HL-X (`Fused_20260712170856`, 150,135
   verts / 300,418 tris) — the second light ever run, and the one that exposed light mode's missing mount
   datum. The stock light pipeline put bezel −Y and channel +Z correctly but left the **rail seat 4.33°
@@ -309,6 +358,63 @@ recurring trap on this skill):
 - Depends on **blender-mcp** live on :9876.
 
 ## Session Notes
+
+### 2026-08-05 (GLOCK 34 — the roll datum is the REAR-SIGHT SHOULDERS; the slide top is only a proxy)
+- **Run:** `GLOCK 34`, 1,129,765 verts / 2,259,538 tris, gun mode. Owner supplied two annotation dots on the
+  parting line (X=0 → drawn in a side ortho, so PITCH only, no yaw info; they read +0.169° pre-align).
+- **Auto-align gross-clean.** Lattice −28.2° (coherence 0.595, `lattice_ok`) — fifth platform, and the first
+  Glock 34, confirming PCA sits ~30° off the bore on real scans. Refines: slide-level 4.82°, parting +2.46°,
+  roll +0.32°, sight-yaw +0.06°. `aligned_ok:false` with no manual offset (R_offdiag 0.043 from the roll
+  refine) — benign, same class as a manual offset.
+- **FAILURE (the real one, owner-caught):** the pose shipped with the **two rear-sight shoulders 0.33° apart
+  in roll**, and I declared it verified. Root cause: I levelled roll to the **slide-top flat** — a 3,236mm²
+  area-weighted consensus, statistically beautiful and *the wrong surface*. The owner looks at the SIGHT.
+  He sent a front view with an arrow on each shoulder: *"why did you not align this!!?? This is a MUST as
+  well with all alignments of guns."* Measured: slide top **−0.074°**, rear-sight shoulders **+0.258°**,
+  front-sight top +0.106°. Same class as the PDP's rail-vs-slide miss (2026-07-04) and the TLR-7's
+  consensus-vs-seat miss (2026-08-04): **a big well-behaved surface is not automatically the datum.** Three
+  times now the fix has been "find the surface the owner's eye actually tracks, not the one that fits best."
+- **Fix — `refine_sight_roll`** (method step 5d), and the statistics are the interesting part. Each shoulder
+  is ~43mm² of scan-rough polymer: its OWN fitted slope is ±0.5° of noise (the two read −0.14° and +0.97°
+  against a true +0.26° — individually useless). But the area-weighted MEAN height of 2,198 and 2,176 faces
+  is pinned to ~0.001mm, so the **lever arm** between the two shoulder centroids (9.455mm) resolves roll to
+  ~0.01°. Exactly inverted from the TLR-7 lesson, where a lever arm between two patches was the trap: there
+  the patches differed in length AND height, here they differ ONLY in width — the axis being measured.
+  Split about the **notch centre** (2 passes), not x=0, so a windage-drifted sight can't leak yaw into roll.
+  A split-free area-weighted plane fit runs as an independent cross-check (+0.258 vs +0.266) and the refine
+  bails if the two estimators disagree by >0.15°.
+- **FAILURE #2 (mine, caught by my own A/B and worth more than the fix):** the first build of the refine
+  gated on **face count** (200 top faces, 60 per side) — numbers read off the 2.2M-tri scan. Both regression
+  suites went green and the G17/G19 A/B delta was **0.0000°**: it was doing *nothing* on every CAD solid,
+  because René's solids carry the same shoulder in ~30 large triangles (G17 66 faces, G19 102). A guard
+  calibrated on one mesh density is a silent no-op on another. **Gate on AREA** — the density-invariant
+  quantity — with only a tiny count floor for fit sanity. After the fix the refine fires 0.266° (G17) and
+  0.076° (G19). *A green suite plus a zero A/B delta is the signature of a feature that never ran.*
+- **Also rebuilt the PITCH measurement.** This gun's parting line is a **GROOVE** (0.40mm deep interior recess
+  in `max|x|(z)`, like the Echelon; the Sphinx's was a step). My first detector returned "no feature" on
+  every single slice with **no error** — `np.maximum.at()` into a `np.nan`-initialised array leaves NaN, so
+  the fill test rejected everything. Same shape as the Sphinx's silent `n=0`, third time this class has bitten
+  → the whole detector is now a reusable, documented `scripts/measure_parting.py` handling groove AND step.
+  Measured +0.104° over 134mm, applied it as a probe-verified −0.104° Rx → **−0.001°**, rms 0.049mm/120mm.
+- **Verified:** all three ortho views against fiducial bars (side @ the parting groove z=25.31 plus two
+  zooms at opposite ends of the slide, front @ the slide top + x=0, down-the-bore @ the shoulder plane
+  z=51.42 — both shoulders on the bar). Numerics above. Synthetic suite 300/300 + 240 WML still green
+  (the refine self-zeros on the flat-top synthetic gun); real-gun Kabsch suite 40/40 both guns.
+  **Live E2E from the raw scan**: the refine auto-fires +0.263° and lands the shoulders at **−0.006°**, the
+  whole pose within **0.104°** of my hand-finished one — and that residual is precisely the hand pitch step.
+- **Residual risk / next:** (a) The real-gun suite scores against René's canonical STLs, which were posed by
+  the OLD pipeline — so the new datum *deliberately* differs from them and the G17 error grew 0.33°→0.49°
+  (G19 0.40°→0.39°). That is the datum change, not a regression, but it means those canonical STLs are now
+  0.27° / 0.08° off the current roll datum and should be re-aligned before they are trusted as ground truth
+  again. (b) `refine_parting` still levels the slide-top SILHOUETTE proxy, not the groove — worth 0.10° on
+  this gun and 0.17° on the Echelon; folding `measure_parting` into it is the obvious next step, blocked
+  only on generalising the z band. (c) The G19 entry in `verify_real_guns.py` had gone stale (file renamed
+  to `Glock 19 Gen5 GUN.stl`) and the suite had been **silently skipping it** — path fixed; a SKIP is not a
+  PASS and the suite should probably fail loudly on a missing roster entry.
+- Tools: blender-mcp (`execute_blender_code` — stdout is NOT returned, redirect to a file and Read it),
+  numpy on the live mesh, workbench ortho renders vs fiducials, Blender-5.1 python for the offline suites,
+  duplicate-recovered-to-raw for the live E2E.
+  <!-- @anchor: v1 | failure: GLOCK 34 shipped with the two rear-sight shoulders 0.33deg apart in roll because roll was levelled to the slide-top flat (a proxy) instead of the sight the owner's eye tracks; and the first fix gated on face count tuned to a 2.2M-tri scan, making it a silent no-op on every CAD solid gun while both suites stayed green, 2026-08-05 | regression: cgs_align.py _refine_roll_to_rear_sight (notch-centred two-patch lever arm + split-free plane-fit cross-check + AREA gates; real-mesh E2E 0.263deg auto-fire -> shoulders -0.006deg, G17 0.266deg / G19 0.076deg A/B non-zero) + scripts/measure_parting.py + cgs-align SKILL.md method step 5d + Session Notes 2026-08-05 -->
 
 ### 2026-08-04 (STREAMLIGHT TLR-7 HL-X — light mode had no mount datum; a consensus is not a datum)
 - **Run:** `Fused_20260712170856`, 150,135 verts / 300,418 tris, `mode="light"`. Gross pose came out right
