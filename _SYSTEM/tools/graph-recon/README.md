@@ -1,5 +1,53 @@
 # graph-recon — reusable graph-engineered recon loop (Python 3.11+, stdlib-only)
 
+## New project in 10 minutes
+1. **Copy the template into your repo** (vendor it — the engine is a template,
+   not a dependency):
+   `cp -r <template>/* <your-project>/tools/graph-recon/` — you need
+   `reconloop/`, `scanners/`, `reconproject.json`, `pyproject.toml`.
+2. **Edit `reconproject.json`** — the per-project config:
+   - `protected.patterns`: your protected paths. Shipped defaults cover `.env*`,
+     `.git`, CI secret dirs (`.github`/`.gitlab`/`.circleci`), cloud configs
+     (`.aws`/`.azure`/`.gcloud`/`.kube`), credentials/auth files, secrets dirs,
+     `node_modules`, private keys, runtime data dirs, agent runtime dirs. When
+     the config or its `protected` section is absent, the built-in heritage
+     catalog in `reconloop/protected.py` is used (default-if-absent).
+   - `protected.mode`: `configured` (use `protected.patterns`) or `heritage`
+     (use the built-in YURI catalog). One immutable effective catalog is bound
+     to each run and recorded by digest in the analysis manifest.
+   - `protected.hash_content` (bool, default `true`): metadata + content-hash
+     prefix (first `protected.hash_bytes` bytes, default 1048576 = first 1MiB,
+     sha256-16) — hash only, values never emitted (owner-authorized: location/
+     type/context/hash only). Set `false` to skip hashing entirely: protected
+     files are then stat-only and never opened.
+   - `protected.hash_bytes` (int, default 1048576): leading bytes fed to the
+     hash; tune down to shrink the hashing window (smallest legal value 1).
+   - `lenses.enabled` (non-empty = allowlist) / `lenses.disabled` /
+     `lenses.admission` (per-lens threshold overrides).
+   - `ephemeral.layers`: mark extra layers ephemeral (excluded from the
+     determinism pin, freshness-stamped).
+   - `review.max_findings_per_layer`: findings budget (excess is truncated and
+     reported in `findings/<layer>.review.json`).
+   - `root.markers`: project-root discovery markers (used when `--root` is not
+     passed).
+   - `packs`: optional scanner packs to auto-load (see step 6).
+3. **First run** (from the project root):
+   `python3 -m reconloop.cli run --root . --scanners-dir scanners --layers out/layers --graph out/graph.jsonl --pin out/graph.sha256`
+   Stable layers merge into `out/graph.jsonl` + sha256 pin; findings land in
+   `findings/<scanner>.jsonl`; run metadata in `out/layers/analysis-manifest.json`.
+4. **Inspect**: `python3 -m reconloop.cli scan --root .` (list loaded scanners),
+   `... ledger --findings findings` (severity summary),
+   `... verify --graph out/graph.jsonl --pin out/graph.sha256` (pin check),
+   `... verify --rerun ... --layers out/layers` (determinism re-check).
+5. **Add a scanner**: drop `scanners/<name>.py` defining a `BaseScanner`
+   subclass with `name`, `dim`, `run(ctx) -> ScanResult` — see "The extension
+   contract" below. Auto-discovered on the next run; no registration needed.
+6. **YURI-specific scanners are an optional pack**: `packs/yuri/` contains
+   organs/registries/memory_schema/formula_banks. Registry auto-discovery
+   loads `scanners/` (core) only — packs load via `--packs yuri` on the CLI
+   or `"packs": ["yuri"]` in `reconproject.json`. To ship your own pack:
+   `packs/<name>/*.py` + `packs/<name>/manifest.json`.
+
 ## The extension contract ("add code to the loop")
 1. Drop a file in `scanners/` (or register via `@scanner` — any module defining a `BaseScanner` subclass).
 2. Class `XScanner(BaseScanner)` with `name`, `dim`, `run(ctx) -> ScanResult`.
@@ -11,10 +59,17 @@
 ## Rails (binding)
 - Read-only scans. NO secret VALUES in output (location/type/context/hash only). NO egress.
 - Keychain = NODE-ONLY (zero access).
-- Protected surfaces (protected.py catalog): metadata-only via `ctx.meta_only()` — path/size/mtime/perm/sha256-prefix. `ctx.read_text()` returns None for protected paths (fail-closed).
+- Protected surfaces (protected.py catalog): `ctx.meta_only()` returns metadata + content-hash prefix (first 1MiB, sha256-16) — hash only, values never emitted (owner-authorized; `protected.hash_content: false` ⇒ stat only, file never opened). `ctx.read_text()` returns None for protected paths (fail-closed).
 - Tracked promotion via PRs only.
 
 ## CLI
+- `graph-recon init <target-dir> [--force]` — scaffold a NEW graph-recon project (vendor the engine into `<target-dir>`): copies `reconloop/`, `scanners/`, `packs/`, `pyproject.toml`, writes a project `reconproject.json` (template defaults + `reconproject.json` added to `root.markers` as the project's self marker) and a starter `.gitignore` (env/protected/runtime patterns), prints first-run instructions. Idempotent: refuses to touch a non-empty target unless `--force`.
+- `graph-recon query --graph <graph.jsonl> <verb> [args]` — read-only queries over a merged graph JSONL. Deterministic JSONL to stdout: data records first (sorted), then one terminal `status` record. Verbs:
+  - `touchers <node-id>` — distinct nodes connected to `<node-id>` by any edge, bidirectional (incoming + outgoing); dangling edge endpoints are graph citizens (synthesized minimal records).
+  - `exec-path <from-id> <to-id>` — shortest directed path using only exec/spawns/network edges (kinds `exec`, `executes`, `spawns`, `network`, `network_conn`); cycle-safe BFS with sorted neighbor expansion (deterministic on equal-length routes); emits from-node, path edges in order, to-node.
+  - `protected` — all nodes of kind `protected_path` (protected-path scanner surface), sorted by id.
+  - `counts` — nodes/edges per kind + totals.
+  - Statuses: `ok` / `not_found` / `unreachable` / `error`. rc: 0 = ran, 1 = input error (missing/unreadable graph), 2 = unknown verb.
 - `graph-recon scan` — list loaded scanners.
 - `graph-recon run` — execute all scanners → per-scanner layers → merged graph + sha256 pin; findings → `findings/<scanner>.jsonl` (deduped by fingerprint); analysis-bundle manifest → `layers/analysis-manifest.json`. Scanner errors are FAIL-CLOSED: an error layer `<name>.ERROR.jsonl` is written and the run exits nonzero — never a silent empty layer.
 - `graph-recon merge` / `verify` — merge/verify layers vs pin.
@@ -28,8 +83,9 @@
   (live lsof state): its layer is kept, carries `layers/live_ports.meta.json`
   with a freshness stamp, and is excluded from the pinned merged graph.
 - `layers/analysis-manifest.json` records input-graph pin (content-addressed,
-  path-independent), per-scanner file hashes, run config, layer stability,
-  pinned-layer list, and `generated_at`. It is run metadata — never part of
+  path-independent), per-scanner file hashes, effective config/catalog hashes,
+  catalog mode + pattern count, run config, layer stability, pinned-layer
+  list, and `generated_at`. It is run metadata — never part of
   the pin. Schema is pinned at `reconloop/schemas/analysis-manifest.schema.json`
   (+ `.sha256`, asserted by tests).
 - Analytics scanners REQUIRE a merged-graph input (fail-closed): without one
@@ -37,9 +93,10 @@
   scanners keep fail-open semantics.
 
 ## M2 — grammar lenses (lens-spec.md, Marcel-approved 2026-08-04)
-- Six versioned query lenses in `scanners/` (dim=lens, requires_graph, inherit
+- Eight versioned query lenses in `scanners/` (dim=lens, requires_graph, inherit
   `_base_lens.BaseLens`): `route_binding`, `protected_writer`, `hook_projection`,
-  `mcp_registration`, `launchd_existence`, `env_to_process`.
+  `mcp_registration`, `launchd_existence`, `env_to_process`, `security_path`,
+  and `writer_to_protected`.
 - Lenses read ONLY the pinned graph input + rev-pinned registry files
   (`git show ctx.revision:...` — same revision the file layer came from);
   never live state.
@@ -47,13 +104,16 @@
   (verified:false, schema `reconloop/schemas/lens-card.schema.json`, pinned).
 - Negative controls + metamorphic tests per lens (tests/test_lenses.py);
   record-reorder determinism; input-swap detection.
-- `hashfreeze.json`: pinned scanner/schema/engine/fixture hashes + input pins
+- `hashfreeze.json`: pinned scanner/schema/engine/config/fixture hashes + input pins
   (v3 deduped f5597cc3…, canonical deduped 148818ea…) + lens config;
   `verify_hashfreeze` fails on any tamper (tests/test_hashfreeze.py).
-- Frozen-snapshot run (f5597cc3): 107 cards — route_binding 4, launchd 1
+- Historical six-lens frozen-snapshot run (f5597cc3): 107 cards — route_binding 4, launchd 1
   (lane-health dead loop `-l`), env_to_process 102 (graph has zero
   env_to_process edges => modeling gap, not 102 independent violations),
   protected_writer/hook_projection/mcp_registration 0.
+- V1 calibration on the same frozen input is review-gated: `security_path` 0,
+  `writer_to_protected` 0 after catalog binding/calibration, and
+  `route_binding` 2 deferred. Unverified calibration artifacts are not labels.
 
 ## M2.1 (F-041/F-043 fixes, Orion order 2026-08-04)
 - `scanners/env_process_edges.py`: emits env_to_process edges from tracked-source

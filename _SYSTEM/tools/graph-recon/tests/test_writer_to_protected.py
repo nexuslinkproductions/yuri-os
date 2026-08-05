@@ -78,8 +78,14 @@ def _edge(f: str, t: str, kind: str) -> dict:
 
 
 def _run(repo: Path, rev: str, graph_path: Path):
-    c = ScanContext(str(repo), revision=rev, graph_input=str(graph_path))
+    c = ScanContext(str(repo), revision=rev, graph_input=str(graph_path),
+                    config_path=repo / "reconproject.json")
     return WriterToProtectedLens().run(c)
+
+
+def _ctx(repo: Path, rev: str, graph_path: Path) -> ScanContext:
+    return ScanContext(str(repo), revision=rev, graph_input=str(graph_path),
+                       config_path=repo / "reconproject.json")
 
 
 def _lens_node(res):
@@ -88,7 +94,7 @@ def _lens_node(res):
 
 def test_negative_control_zero_cards() -> None:
     repo, rev, graph_path = build_v1_fixture()
-    c = ScanContext(str(repo), revision=rev, graph_input=str(graph_path))
+    c = _ctx(repo, rev, graph_path)
     # 1) raw fixture graph as built: 0 cards
     res = WriterToProtectedLens().run(c)
     assert len(res.findings) == 0, [f.desc for f in res.findings]
@@ -143,17 +149,19 @@ def test_metamorphic_mutations() -> None:
     assert len(res.findings) == 0, [f.desc for f in res.findings]
 
     # ---- W-M3: flow reach (spawns + file_write) to a protected path ----
+    # M4-W1: target moved from _SYSTEM/OS_KERNEL/memory.db (heritage catalog)
+    # to backend/data/flow.json — protected under the neutral config patterns.
     _write_graph(graph_path, base + [
         _edge("file:_SYSTEM/Scripts/writer-b.mjs",
               "file:_SYSTEM/Scripts/helper.mjs", "spawns"),
         _edge("file:_SYSTEM/Scripts/helper.mjs",
-              "file:_SYSTEM/OS_KERNEL/memory.db", "file_write")])
+              "file:backend/data/flow.json", "file_write")])
     res = _run(repo, rev, graph_path)
     assert len(res.findings) == 1, [f.desc for f in res.findings]
     f = res.findings[0]
     assert f.sev == "medium", f.sev
     assert "flow" in f.desc, f.desc
-    assert "writer-b.mjs" in f.desc and "memory.db" in f.desc, f.desc
+    assert "writer-b.mjs" in f.desc and "flow.json" in f.desc, f.desc
     print("metamorphic OK (W-M1=1 medium env_consumption / sub 0, "
           "W-M2=1 high literal_write / sub 0, W-M3=1 medium flow)")
 
@@ -188,7 +196,7 @@ def test_input_swap_fails_stale() -> None:
     """Different graph input => different card set (stale-input detection)."""
     repo, rev, graph_path = build_v1_fixture()
     _write_graph(graph_path, _base_recs(graph_path))
-    c = ScanContext(str(repo), revision=rev, graph_input=str(graph_path))
+    c = _ctx(repo, rev, graph_path)
     clean = WriterToProtectedLens().run(c)
     assert len(clean.findings) == 0
     # swapped graph: W-M2 literal protected write => 1 card
@@ -196,7 +204,7 @@ def test_input_swap_fails_stale() -> None:
     _write_graph(other, _base_recs(graph_path) + [
         _edge("file:_SYSTEM/Scripts/writer-b.mjs",
               "file:backend/data/cache.json", "file_write")])
-    c2 = ScanContext(str(repo), revision=rev, graph_input=str(other))
+    c2 = _ctx(repo, rev, other)
     swapped = WriterToProtectedLens().run(c2)
     assert len(swapped.findings) == 1, [f.desc for f in swapped.findings]
     assert [f.id for f in clean.findings] != [f.id for f in swapped.findings]
@@ -208,7 +216,7 @@ def test_card_schema_and_fingerprints() -> None:
     _write_graph(graph_path, _base_recs(graph_path) + [
         _edge("file:_SYSTEM/Scripts/writer-b.mjs",
               "file:backend/data/cache.json", "file_write")])
-    c = ScanContext(str(repo), revision=rev, graph_input=str(graph_path))
+    c = _ctx(repo, rev, graph_path)
     res = WriterToProtectedLens().run(c)
     assert len(res.findings) == 1, [f.desc for f in res.findings]
     card = res.findings[0]
@@ -219,7 +227,7 @@ def test_card_schema_and_fingerprints() -> None:
     # path-independent evidence: only graph:/node:/edge: labels, never
     # absolute paths or tempdir markers
     for item in card.evidence:
-        assert re.fullmatch(r"(graph|node|edge):.*", item), item
+        assert re.fullmatch(r"(graph|catalog|node|edge):.*", item), item
         assert not item.startswith("/"), item
         assert "lens-v1-fixture-" not in item, item
     # deterministic id across runs (stable fingerprint identity)

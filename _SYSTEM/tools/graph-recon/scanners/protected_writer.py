@@ -10,7 +10,6 @@ Consumes ONLY the pinned graph (file_write edges + protected classifier).
 from __future__ import annotations
 from ._base_lens import BaseLens, LensResult
 from reconloop.graphio import load_graph
-from reconloop.protected import is_protected
 
 GATE_HINTS = ("gate", "allow", "approved", "sanctioned", "audit")
 
@@ -31,7 +30,7 @@ class ProtectedWriterLens(BaseLens):
             if e.get("kind") != "file_write":
                 continue
             tgt = e.get("to", "").removeprefix("file:")
-            if not is_protected(tgt):
+            if not ctx.is_protected(tgt):
                 continue
             # gate evidence: edge props/evidence or source node props mention a gate
             gate_ev = [str(v) for v in (e.get("props") or {}).values()
@@ -44,7 +43,8 @@ class ProtectedWriterLens(BaseLens):
                 continue
             cards.append(self.card(
                 r, node_ids=[e.get("from", "?"), e.get("to", "?")],
-                evidence=[f"{src}", f"edge:{e.get('from')}->{e.get('to')} file_write"],
+                evidence=[f"{src}", f"catalog:{ctx.catalog.catalog_sha256[:16]}",
+                          f"edge:{e.get('from')}->{e.get('to')} file_write"],
                 sev="high",
                 desc=f"file_write into protected path without gate: {e.get('from')} -> {tgt}"))
         return self.finish(r, src=src, cards=cards,

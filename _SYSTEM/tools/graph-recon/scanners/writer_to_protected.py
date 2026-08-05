@@ -22,7 +22,6 @@ from __future__ import annotations
 from collections import Counter, deque
 from ._base_lens import BaseLens, LensResult
 from reconloop.graphio import load_graph
-from reconloop.protected import is_protected
 
 FLOW_EDGE_KINDS = {
     "spawns", "executes", "network_conn", "file_write", "tests",
@@ -65,7 +64,7 @@ class WriterToProtectedLens(BaseLens):
             if k == "env_file":
                 return True
             if k in PROTECTED_PREFIX_KINDS:
-                return is_protected(nid.split(":", 1)[1] if ":" in nid else nid)
+                return ctx.is_protected(nid.split(":", 1)[1] if ":" in nid else nid)
             return False
 
         prot_counts: Counter = Counter()
@@ -114,7 +113,7 @@ class WriterToProtectedLens(BaseLens):
                     if e.get("from") != w:
                         continue
                     tgt = e.get("to", "").split(":", 1)[1] if ":" in e.get("to", "") else e.get("to", "")
-                    if is_protected(tgt):
+                    if ctx.is_protected(tgt):
                         channels["literal_write"] = e["to"]
                         witness_node = e["to"]
                         witness_edge = e
@@ -163,7 +162,8 @@ class WriterToProtectedLens(BaseLens):
             desc = (f"dynamic writer reaches protected path: {w} "
                     f"(dynamic_targets={nodes[w].get('props', {}).get('dynamic_targets')}) "
                     f"-> {witness_node} [reach: {ch}]")
-            ev = [f"{src}", f"node:{w}", f"node:{witness_node}"]
+            ev = [f"{src}", f"catalog:{ctx.catalog.catalog_sha256[:16]}",
+                  f"node:{w}", f"node:{witness_node}"]
             if witness_edge:
                 ev.append(f"edge:{witness_edge['from']}->{witness_edge['to']} {witness_edge.get('kind')}")
             cards.append(self.card(r, node_ids=[w, witness_node], evidence=ev,

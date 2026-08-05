@@ -1,0 +1,22 @@
+# Scaffold pyproject template — vendored into the wheel as
+# graphrecon-template/pyproject.toml ([tool.setuptools.data-files]) and
+# written by `graph-recon init` into every scaffolded project (M5-W1).
+# Minimal: the scaffolded project's own `pip install .` must yield the
+# graph-recon console entry and a reconloop package that ships its schemas.
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "graph-recon"
+version = "1.0.0"
+description = "Reusable graph-engineered recon loop template (stdlib-only Python 3.11)"
+requires-python = ">=3.11"
+[project.scripts]
+graph-recon = "reconloop.cli:main"
+
+[tool.setuptools]
+packages = ["reconloop"]
+
+[tool.setuptools.package-data]
+reconloop = ["schemas/*.json", "schemas/*.sha256"]

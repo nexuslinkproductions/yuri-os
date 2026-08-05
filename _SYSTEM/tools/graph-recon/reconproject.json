@@ -1,0 +1,38 @@
+{
+  "schema": "reconproject",
+  "version": 1,
+  "root": {
+    "markers": ["pyproject.toml", "package.json", "go.mod", "Cargo.toml", "Gopkg.toml", "build.gradle", ".git"]
+  },
+  "protected": {
+    "mode": "configured",
+    "patterns": [
+      "\\.env($|\\.|/)|secrets\\.env",
+      "(^|/)\\.git(/|$)",
+      "(^|/)(\\.github|\\.gitlab|\\.circleci|\\.buildkite)(/|$)",
+      "(^|/)(\\.aws|\\.azure|\\.gcloud|\\.kube)(/|$)",
+      "credentials\\.json$|auth\\.json$|service-account[^/]*\\.json$",
+      "(^|/)secrets(/|$)|(^|/)\\.secrets(/|$)",
+      "(^|/)node_modules(/|$)",
+      "id_rsa$|id_ed25519$|id_dsa$|id_ecdsa$|\\.pem$|\\.key$|\\.p12$|\\.pfx$",
+      "^(data|runtime|\\.cache)(/|$)",
+      "(^|/)(\\.claude|\\.codex|\\.cursor|\\.pi|\\.omp|\\.smart-env)(/|$)"
+    ],
+    "hash_content": true,
+    "hash_bytes": 1048576
+  },
+  "ephemeral": {
+    "layers": {
+      "live_ports": "ephemeral"
+    }
+  },
+  "lenses": {
+    "enabled": [],
+    "disabled": [],
+    "admission": {}
+  },
+  "review": {
+    "max_findings_per_layer": 100
+  },
+  "packs": []
+}

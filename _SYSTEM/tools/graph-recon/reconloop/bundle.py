@@ -25,16 +25,35 @@ def sha256_file(p: Path) -> str:
     return h.hexdigest()
 
 
+def _scanner_file(scanners_dir: Path, name: str, template_root: Path,
+                  packs: list[str] | None = None) -> Path | None:
+    """Locate a scanner file: core scanners dir first, then pack dirs
+    (packs/<pack>/<name>.py) for scanners loaded from optional packs."""
+    cand = scanners_dir / f"{name}.py"
+    if cand.exists():
+        return cand
+    for pack in packs or []:
+        for base in (template_root / "packs" / pack,
+                     template_root / "packs" / pack / "scanners"):
+            cand = base / f"{name}.py"
+            if cand.exists():
+                return cand
+    return None
+
+
 def build_manifest(*, template_root: Path, ctx, args, scanners: dict,
                    input_pin: str, input_label: str, layer_files: dict[str, str],
-                   stability: dict[str, str], pinned_layers: list[str]) -> dict:
+                   stability: dict[str, str], pinned_layers: list[str],
+                   packs: list[str] | None = None) -> dict:
     """Assemble the analysis-bundle manifest dict (deterministic fields)."""
     import subprocess
     scanner_hashes = {}
     for name in sorted(scanners):
         if name == "base":
             continue
-        scanner_hashes[name] = sha256_file(Path(args.scanners_dir) / f"{name}.py")
+        sf = _scanner_file(Path(args.scanners_dir), name, template_root, packs)
+        if sf is not None:
+            scanner_hashes[name] = sha256_file(sf)
     # M1.5 item 8: root context — root path, root git HEAD, revision, input pin.
     # Root-dependent scanners read the working tree, so root HEAD matters for
     # evidence provenance (cross-env note: v2 may materialize a revision tree).
@@ -48,7 +67,7 @@ def build_manifest(*, template_root: Path, ctx, args, scanners: dict,
         pass
     return {
         "schema": "analysis-manifest",
-        "schema_version": 2,
+        "schema_version": 3,
         "generated_at": __import__("datetime").datetime.now().isoformat(timespec="seconds"),
         "root": {
             "path": str(ctx.root),
@@ -61,6 +80,7 @@ def build_manifest(*, template_root: Path, ctx, args, scanners: dict,
             "label": input_label,  # graph:<pin16>, path-independent
             "resolved": bool(input_pin),
         },
+        "protected_catalog": ctx.catalog.provenance(),
         "config": {
             "root": args.root,
             "revision": getattr(args, "revision", "origin/main"),
@@ -69,6 +89,7 @@ def build_manifest(*, template_root: Path, ctx, args, scanners: dict,
             "layers": args.layers,
             "graph": args.graph,
             "pin": args.pin,
+            "packs": sorted(packs or []),
         },
         "scanners": scanner_hashes,
         "layers": {
@@ -99,7 +120,7 @@ def validate_manifest(manifest: dict, schema_path: Path) -> list[str]:
         return [f"schema unreadable: {e}"]
     violations: list[str] = []
     for key in ("schema", "schema_version", "generated_at", "root", "input_graph",
-                "config", "scanners", "layers"):
+                "config", "protected_catalog", "scanners", "layers"):
         if key not in manifest:
             violations.append(f"missing key: {key}")
     if manifest.get("schema") != schema.get("title", "analysis-manifest"):
@@ -111,6 +132,12 @@ def validate_manifest(manifest: dict, schema_path: Path) -> list[str]:
     for sec in ("config", "scanners", "layers", "root"):
         if not isinstance(manifest.get(sec), dict):
             violations.append(f"{sec} must be object")
+    catalog = manifest.get("protected_catalog", {})
+    for key in ("mode", "source", "config_sha256", "catalog_sha256"):
+        if not isinstance(catalog.get(key), str):
+            violations.append(f"protected_catalog.{key} must be str")
+    if not isinstance(catalog.get("pattern_count"), int):
+        violations.append("protected_catalog.pattern_count must be int")
     root = manifest.get("root", {})
     for key in ("path", "git_head", "revision"):
         if not isinstance(root.get(key), str):

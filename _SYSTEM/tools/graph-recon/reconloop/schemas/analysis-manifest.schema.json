@@ -1,8 +1,8 @@
 {
   "title": "analysis-manifest",
-  "schema_version": 2,
+  "schema_version": 3,
   "description": "Run metadata for a graph-recon analysis bundle (M1.5 items 6+8). Written by graph-recon run; excluded from the determinism pin (contains generated_at timestamp). Root block records scan root path + root git HEAD + revision for evidence provenance.",
-  "required": ["schema", "schema_version", "generated_at", "root", "input_graph", "config", "scanners", "layers"],
+  "required": ["schema", "schema_version", "generated_at", "root", "input_graph", "config", "protected_catalog", "scanners", "layers"],
   "properties": {
     "schema": { "type": "string", "const": "analysis-manifest" },
     "schema_version": { "type": "integer" },
@@ -27,6 +27,19 @@
       }
     },
     "config": { "type": "object" },
+    "protected_catalog": {
+      "type": "object",
+      "required": ["mode", "source", "config_sha256", "catalog_sha256", "pattern_count", "hash_content", "hash_bytes"],
+      "properties": {
+        "mode": { "enum": ["configured", "heritage"] },
+        "source": { "type": "string" },
+        "config_sha256": { "type": "string" },
+        "catalog_sha256": { "type": "string" },
+        "pattern_count": { "type": "integer" },
+        "hash_content": { "type": "boolean" },
+        "hash_bytes": { "type": "integer" }
+      }
+    },
     "scanners": { "type": "object", "additionalProperties": { "type": "string" } },
     "layers": {
       "type": "object",

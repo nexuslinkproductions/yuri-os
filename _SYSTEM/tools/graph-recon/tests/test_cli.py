@@ -6,6 +6,7 @@ touches tracked files. The analytics scanners get the pinned fixture as graph
 input; live_ports is ephemeral and must not enter the pinned merge.
 """
 import json
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -13,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from reconloop.cli import cmd_run, cmd_verify, cmd_manifest  # noqa: E402
+from reconloop.cli import cmd_run, cmd_verify, cmd_manifest, cmd_scan  # noqa: E402
 from reconloop import bundle  # noqa: E402
 from reconloop.registry import load_scanners  # noqa: E402
 
@@ -32,12 +33,46 @@ class Args:
         self.__dict__.update(kw)
 
 
-def run_once(td: Path, graph_input: str = str(FIXTURE)):
+class _ConfigScope:
+    """Save/restore GRAPH_RECON_CONFIG around one cmd_run/cmd_verify call.
+
+    M4-W1-FIX (DEFECT 2 — test isolation): config state must never leak
+    between tests or into the environment. `config` is a Path to a
+    reconproject.json to activate for the scope, or None to run with the env
+    var explicitly ABSENT. The prior value (or its absence) is always
+    restored on exit.
+    """
+
+    def __init__(self, config: str | Path | None = None):
+        self._path = str(config) if config is not None else None
+        self._prior: str | None = None
+        self._had = False
+
+    def __enter__(self):
+        self._had = "GRAPH_RECON_CONFIG" in os.environ
+        self._prior = os.environ.get("GRAPH_RECON_CONFIG")
+        if self._path is None:
+            os.environ.pop("GRAPH_RECON_CONFIG", None)
+        else:
+            os.environ["GRAPH_RECON_CONFIG"] = self._path
+        return self
+
+    def __exit__(self, *exc):
+        if self._had:
+            os.environ["GRAPH_RECON_CONFIG"] = self._prior
+        else:
+            os.environ.pop("GRAPH_RECON_CONFIG", None)
+        return False
+
+
+def run_once(td: Path, graph_input: str = str(FIXTURE),
+             config: str | Path | None = None):
     layers, graph, pin = td / "layers", td / "graph.jsonl", td / "graph.sha256"
     findings = td / "findings"
     args = Args(layers=str(layers), graph=str(graph), pin=str(pin),
                 findings_dir=str(findings), graph_input=graph_input)
-    rc = cmd_run(args)
+    with _ConfigScope(config):
+        rc = cmd_run(args)
     return rc, layers, graph, pin, findings, args
 
 
@@ -92,6 +127,22 @@ def test_run_fail_closed_malformed_graph_input() -> None:
             ).exists()
 
 
+def test_scan_config_state_valid_invalid_valid() -> None:
+    """scan validates the freshly bound snapshot, never import-time state."""
+    with tempfile.TemporaryDirectory() as td:
+        cfg = Path(td) / "reconproject.json"
+        args = Args()
+        cfg.write_text(json.dumps({"protected": {"patterns": [r"\.env$"]}}))
+        with _ConfigScope(cfg):
+            assert cmd_scan(args) == 0
+        cfg.write_text(json.dumps({"protected": {"patterns": ["(bad["]}}))
+        with _ConfigScope(cfg):
+            assert cmd_scan(args) == 1
+        cfg.write_text(json.dumps({"protected": {"patterns": [r"\.env$"]}}))
+        with _ConfigScope(cfg):
+            assert cmd_scan(args) == 0
+
+
 def test_run_writes_findings_deduped() -> None:
     """M1.5 item 1: findings written to findings/<scanner>.jsonl, dedup by fingerprint."""
     with tempfile.TemporaryDirectory() as td:
@@ -117,19 +168,21 @@ def test_verify_rerun_baseline_then_match() -> None:
         assert rc == 0
         stored = pin.read_text().strip()
         assert len(stored) == 64
-        # baseline verify (no prior pin) must pass
+        # baseline verify (no prior pin) must pass — cmd_verify re-runs the
+        # pipeline, so it gets the same scoped-clean env as run_once
         args2 = Args(layers=str(layers), graph=str(graph), pin=str(pin),
                      findings_dir=str(findings), graph_input=str(FIXTURE))
-        assert cmd_verify(args2) == 0, "plain verify after run"
-        # rerun: pipeline re-runs, hash must equal stored pin
-        assert cmd_verify(args2) == 0, "rerun verify baseline"
-        # tamper: regen differs => rerun must FAIL
-        (layers / "connected_components.jsonl").write_text("junk\n")
-        # re-pin the graph with tampered layer? no — rerun regenerates layers from
-        # scanners, so tampering layers alone does not change regen output. To
-        # force mismatch, tamper the stored pin file itself.
-        pin.write_text("0" * 64 + "\n")
-        assert cmd_verify(args2) == 1, "rerun must fail on pin mismatch"
+        with _ConfigScope(None):
+            assert cmd_verify(args2) == 0, "plain verify after run"
+            # rerun: pipeline re-runs, hash must equal stored pin
+            assert cmd_verify(args2) == 0, "rerun verify baseline"
+            # tamper: regen differs => rerun must FAIL
+            (layers / "connected_components.jsonl").write_text("junk\n")
+            # re-pin the graph with tampered layer? no — rerun regenerates layers from
+            # scanners, so tampering layers alone does not change regen output. To
+            # force mismatch, tamper the stored pin file itself.
+            pin.write_text("0" * 64 + "\n")
+            assert cmd_verify(args2) == 1, "rerun must fail on pin mismatch"
 
 
 def test_analysis_manifest_written_and_valid() -> None:
@@ -156,6 +209,11 @@ def test_analysis_manifest_written_and_valid() -> None:
             # .git => git_head empty; documented skip, fresh-checkout parity kept
             print("SKIP git_head assertion (root not inside a git repo)")
         assert man["root"]["revision"] == "origin/main"
+        catalog = man["protected_catalog"]
+        assert catalog["mode"] in ("configured", "heritage")
+        assert len(catalog["catalog_sha256"]) == 64
+        assert len(catalog["config_sha256"]) == 64
+        assert catalog["pattern_count"] > 0
         assert "connected_components" in man["scanners"]
         assert len(man["scanners"]["connected_components"]) == 64
         # CLI manifest validator agrees
@@ -187,12 +245,124 @@ def test_ephemeral_layer_excluded_from_pin() -> None:
         assert "file_inventory" in man["layers"]["pinned"]
 
 
+def test_packs_flag_loads_pack_scanners() -> None:
+    """M4-W1: --packs yuri loads the optional pack; core runs without it.
+
+    M4-W1-FIX (DEFECT 2): the core run is executed with GRAPH_RECON_CONFIG
+    scoped absent (restored after) — a leaked config must never cause a core
+    run to auto-load yuri pack scanners.
+    """
+    with tempfile.TemporaryDirectory() as td:
+        td = Path(td)
+        rc, layers, graph, pin, findings, _ = run_once(td, config=None)
+        assert rc == 0
+        assert not (layers / "organs.jsonl").exists(), \
+            "core run must NOT load yuri pack scanners"
+        # now with the pack flag (env still scoped clean — packs come from the flag)
+        layers2, graph2, pin2 = td / "layers2", td / "graph2.jsonl", td / "graph2.sha256"
+        findings2 = td / "findings2"
+        args = Args(layers=str(layers2), graph=str(graph2), pin=str(pin2),
+                    findings_dir=str(findings2), graph_input=str(FIXTURE), packs="yuri")
+        with _ConfigScope(None):
+            rc2 = cmd_run(args)
+        assert rc2 == 0, f"pack run rc={rc2}"
+        organs = layers2 / "organs.jsonl"
+        assert organs.exists(), "pack scanner layer must be emitted"
+        recs = [json.loads(l) for l in organs.read_text().splitlines() if l.strip()]
+        assert len(recs) == 12, len(recs)  # 12 ORGANS entries (no _SYSTEM in template root)
+        assert all(r["kind"] == "governance_organ" for r in recs)
+        man = json.loads((layers2 / "analysis-manifest.json").read_text())
+        assert man["config"]["packs"] == ["yuri"]
+        assert "organs" in man["scanners"], "pack scanner hash must be in the manifest"
+
+
+def test_config_overrides_ephemeral_lens_budget() -> None:
+    """M4-W1: reconproject.json drives ephemeral classification, lens
+    disable, and the review findings budget (via GRAPH_RECON_CONFIG).
+
+    M4-W1-FIX (DEFECT 2): the config file lives in a temp dir and the env var
+    is scoped to this test's cmd_run call only — the prior value is restored
+    afterwards and the template root's reconproject.json is never touched.
+    """
+    had = "GRAPH_RECON_CONFIG" in os.environ
+    prior = os.environ.get("GRAPH_RECON_CONFIG")
+    cfg = {
+        "protected": {"mode": "configured", "patterns": [r"\.env$"]},
+        "ephemeral": {"layers": {"file_inventory": "ephemeral"}},
+        "lenses": {"enabled": [], "disabled": ["env_to_process"], "admission": {}},
+        "review": {"max_findings_per_layer": 1},
+        "packs": [],
+    }
+    with tempfile.TemporaryDirectory() as td:
+        td = Path(td)
+        cfgp = td / "reconproject.json"
+        cfgp.write_text(json.dumps(cfg))
+        rc, layers, graph, pin, findings, _ = run_once(td, config=cfgp)
+        assert rc == 0
+        # ephemeral override: file_inventory freshness-stamped, not pinned
+        meta = layers / "file_inventory.meta.json"
+        assert meta.exists(), "config-ephemeral layer must carry freshness stamp"
+        assert json.loads(meta.read_text())["stability"] == "ephemeral"
+        man = json.loads((layers / "analysis-manifest.json").read_text())
+        import hashlib
+        assert man["protected_catalog"]["config_sha256"] == hashlib.sha256(
+            cfgp.read_bytes()).hexdigest()
+        assert man["protected_catalog"]["pattern_count"] == 1
+        assert man["layers"]["stability"]["file_inventory"] == "ephemeral"
+        assert "file_inventory" not in man["layers"]["pinned"]
+        # lens disabled by config: no layer, no error
+        assert not (layers / "env_to_process.jsonl").exists()
+        assert not list(layers.glob("env_to_process.ERROR.jsonl"))
+        # review budget: exec_centrality findings capped at 1 + review note
+        recs = [json.loads(l) for l in (findings / "exec_centrality.jsonl").read_text().splitlines() if l.strip()]
+        assert len(recs) == 1, len(recs)
+        note = json.loads((findings / "exec_centrality.review.json").read_text())
+        assert note["budget"] == 1 and note["truncated"] == 1
+    # isolation: env restored to its prior state (here: absent)
+    assert ("GRAPH_RECON_CONFIG" in os.environ) == had, "GRAPH_RECON_CONFIG leaked"
+    assert os.environ.get("GRAPH_RECON_CONFIG") == prior, "GRAPH_RECON_CONFIG value leaked"
+
+
+def test_core_run_clean_env_isolated() -> None:
+    """M4-W1-FIX (DEFECT 2, explicit isolation assertion): a core run in a
+    clean env loads ONLY core scanners (26) — no organs/registries/
+    memory_schema/formula_banks layers — and leaves no config state behind:
+    GRAPH_RECON_CONFIG is restored and the template root's reconproject.json
+    is untouched.
+    """
+    had = "GRAPH_RECON_CONFIG" in os.environ
+    prior = os.environ.get("GRAPH_RECON_CONFIG")
+    tpl_cfg = ROOT / "reconproject.json"
+    before = tpl_cfg.read_bytes() if tpl_cfg.exists() else None
+    with tempfile.TemporaryDirectory() as td:
+        td = Path(td)
+        rc, layers, graph, pin, findings, _ = run_once(td, config=None)
+        assert rc == 0
+        # core-only isolation: yuri pack layers must never be emitted
+        for layer in ("organs", "registries", "memory_schema", "formula_banks"):
+            assert not (layers / f"{layer}.jsonl").exists(), \
+                f"core run must NOT emit {layer}.jsonl (yuri pack scanner loaded)"
+        man = json.loads((layers / "analysis-manifest.json").read_text())
+        assert man["config"]["packs"] == [], man["config"]["packs"]
+        assert len(man["scanners"]) == 26, \
+            f"expected exactly 26 core scanners, got {len(man['scanners'])}: {sorted(man['scanners'])}"
+        for layer in ("organs", "registries", "memory_schema", "formula_banks"):
+            assert layer not in man["scanners"], f"pack scanner {layer} in core manifest"
+    # isolation: env restored, template config untouched
+    assert ("GRAPH_RECON_CONFIG" in os.environ) == had, "GRAPH_RECON_CONFIG leaked"
+    assert os.environ.get("GRAPH_RECON_CONFIG") == prior, "GRAPH_RECON_CONFIG value leaked"
+    after = tpl_cfg.read_bytes() if tpl_cfg.exists() else None
+    assert before == after, "template reconproject.json must not be modified by tests"
+
+
 if __name__ == "__main__":
     for fn in (test_run_fail_closed_missing_graph_input,
                test_run_fail_closed_malformed_graph_input,
+               test_scan_config_state_valid_invalid_valid,
                test_run_writes_findings_deduped,
                test_verify_rerun_baseline_then_match, test_analysis_manifest_written_and_valid,
-               test_ephemeral_layer_excluded_from_pin):
+               test_ephemeral_layer_excluded_from_pin, test_packs_flag_loads_pack_scanners,
+               test_config_overrides_ephemeral_lens_budget, test_core_run_clean_env_isolated):
         fn()
         print(f"OK {fn.__name__}")
     print("test_cli OK (all)")

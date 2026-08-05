@@ -1,0 +1,10 @@
+{
+  "schema": "reconpack-manifest",
+  "name": "yuri",
+  "version": "1.0.0",
+  "description": "YURI-OS-specific scanners (organs, registries, memory_schema, formula_banks) — optional pack, NOT part of the neutral core.",
+  "scanners": ["organs", "registries", "memory_schema", "formula_banks"],
+  "requires": {"core": "graphrecon >= 1.1"},
+  "load": ["--packs yuri", "\"packs\": [\"yuri\"] in reconproject.json"],
+  "note": "Registry auto-discovery loads scanners/ (core) only. Packs are opt-in by design: load via the --packs yuri CLI flag or the config packs section. Pack scanners use absolute imports (from scanners.base import ...) since they do not live inside the core scanners package."
+}

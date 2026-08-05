@@ -1,32 +1,57 @@
-"""P3 NEW: protected surfaces -> protected_path nodes (read-only, metadata-only).
-Catalog: yuri-origin.md + AGENTS.md protected list. Keychain = node-only, zero access."""
+"""Protected surfaces -> protected_path nodes (read-only; metadata + content-hash prefix — hash only, values never emitted).
+
+Config-driven since M4-W1: the catalog is the active pattern set from
+reconproject.json `protected.patterns` (with the built-in heritage catalog as
+default-if-absent fallback) — the same classification reconloop.protected
+uses for read-guards, so this scanner and ctx.read_text()/ctx.meta_only()
+always agree.
+
+Walk is bounded and deterministic: the tree is walked in sorted order,
+protected directories are surfaced but never descended into (node_modules,
+.git, secrets dirs stay shallow), and records are emitted sorted by id.
+Protected content is handled via ctx.meta_only(): metadata + content-hash
+prefix (first 1MiB, sha256-16) — hash only, values never emitted. The
+reconproject.json gate protected.hash_content (default true) switches
+hashing off; when false, meta_only() never opens the file (stat only) and
+each node records hash_content:false. Every node records hash_content and
+hash_bytes so consumers can see exactly what was touched.
+"""
 from __future__ import annotations
 from .base import BaseScanner, ScanResult
 from reconloop.model import Node
 
-SURFACES = [  # (rel_path, owning_surface)
-    ("backend/.env", "env"), (".env", "env"), (".env.example", "env"),
-    (".claude/state", "claude-protected"), (".claude/history", "claude-protected"),
-    (".claude/file-history", "claude-protected"), (".claude/projects", "claude-protected"),
-    ("backend/data", "backend-runtime"), ("node_modules", "deps"),
-    (".amp", "runtime"), ("_SYSTEM/OS_KERNEL/memory.db", "kernel-db"),
-    ("_SYSTEM/OS_KERNEL/search-index.db", "kernel-db"),
-    (".smart-env", "runtime-config"), (".omp", "runtime-config"),
-]
 
 class ProtectedPathsScanner(BaseScanner):
     name = "protected_paths"; dim = "protected"
     def run(self, ctx) -> ScanResult:
         r = ScanResult()
-        for rel, surface in SURFACES:
-            p = ctx.abs(rel)
-            meta = ctx.meta_only(rel) if p.exists() else {"path": rel, "exists": False}
-            meta["surface"] = surface
-            meta["scan_state"] = "scanned"
-            r.nodes.append(Node(id=f"protected_path:{rel}", kind="protected_path",
-                                props=meta, evidence=["catalog: yuri-origin.md + AGENTS.md"], src="protected_paths"))
-        # Keychain: node-only, zero access
-        r.nodes.append(Node(id="protected_path:keychain", kind="protected_path",
-                            props={"surface": "keychain", "access": "node-only-zero", "scan_state": "scanned"},
-                            evidence=["owner ruling 2026-08-04"], src="protected_paths"))
+        seen = set()
+        stack = [ctx.root]
+        while stack:
+            d = stack.pop()
+            try:
+                entries = sorted(d.iterdir(), key=lambda p: p.name)
+            except Exception:
+                continue
+            for p in entries:
+                try:
+                    rel = p.relative_to(ctx.root).as_posix()
+                except ValueError:
+                    continue
+                if ctx.is_protected(rel):
+                    meta = ctx.meta_only(rel) if p.exists() else {"path": rel, "exists": False}
+                    meta["surface"] = "protected"
+                    meta["scan_state"] = "scanned"
+                    meta.setdefault("hash_content", False)  # missing file: nothing hashed
+                    nid = f"protected_path:{rel}"
+                    if nid not in seen:
+                        seen.add(nid)
+                        r.nodes.append(Node(
+                            id=nid, kind="protected_path", props=meta,
+                            evidence=[f"catalog:{ctx.catalog.catalog_sha256[:16]}"],
+                            src="protected_paths"))
+                    continue  # never descend into protected dirs
+                if p.is_dir() and not p.is_symlink():
+                    stack.append(p)
+        r.nodes.sort(key=lambda n: n.id)
         return r
