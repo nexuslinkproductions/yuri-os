@@ -53,6 +53,13 @@
 - Tracked promotion via PRs only.
 
 ## CLI
+- `graph-recon init <target-dir> [--force]` — scaffold a NEW graph-recon project (vendor the engine into `<target-dir>`): copies `reconloop/`, `scanners/`, `packs/`, `pyproject.toml`, writes a project `reconproject.json` (template defaults + `reconproject.json` added to `root.markers` as the project's self marker) and a starter `.gitignore` (env/protected/runtime patterns), prints first-run instructions. Idempotent: refuses to touch a non-empty target unless `--force`.
+- `graph-recon query --graph <graph.jsonl> <verb> [args]` — read-only queries over a merged graph JSONL. Deterministic JSONL to stdout: data records first (sorted), then one terminal `status` record. Verbs:
+  - `touchers <node-id>` — distinct nodes connected to `<node-id>` by any edge, bidirectional (incoming + outgoing); dangling edge endpoints are graph citizens (synthesized minimal records).
+  - `exec-path <from-id> <to-id>` — shortest directed path using only exec/spawns/network edges (kinds `exec`, `executes`, `spawns`, `network`, `network_conn`); cycle-safe BFS with sorted neighbor expansion (deterministic on equal-length routes); emits from-node, path edges in order, to-node.
+  - `protected` — all nodes of kind `protected_path` (protected-path scanner surface), sorted by id.
+  - `counts` — nodes/edges per kind + totals.
+  - Statuses: `ok` / `not_found` / `unreachable` / `error`. rc: 0 = ran, 1 = input error (missing/unreadable graph), 2 = unknown verb.
 - `graph-recon scan` — list loaded scanners.
 - `graph-recon run` — execute all scanners → per-scanner layers → merged graph + sha256 pin; findings → `findings/<scanner>.jsonl` (deduped by fingerprint); analysis-bundle manifest → `layers/analysis-manifest.json`. Scanner errors are FAIL-CLOSED: an error layer `<name>.ERROR.jsonl` is written and the run exits nonzero — never a silent empty layer.
 - `graph-recon merge` / `verify` — merge/verify layers vs pin.

@@ -50,8 +50,15 @@ def _config_packs(template_root: Path | str | None) -> list[str]:
     return list(load_reconproject(Path(template_root) / "reconproject.json").get("packs") or [])
 
 
-def load_scanners(scanners_dir: Path, template_root: Path | str | None = None,
+def load_scanners(scanners_dir: Path | str, template_root: Path | str | None = None,
                   packs: list[str] | None = None) -> dict:
+    # M4-FIX2 (DEFECT 1, cycle 2): accept str callers for BOTH inputs — the
+    # public API normalizes here so no str can reach a Path method
+    # (regression: a str scanners_dir crashed with AttributeError at
+    # `scanners_dir.glob`; a str template_root crashed in `_config_packs`).
+    scanners_dir = Path(scanners_dir)
+    if template_root is not None:
+        template_root = Path(template_root)
     if template_root is not None and str(template_root) not in sys.path:
         sys.path.insert(0, str(template_root))
     _REGISTRY.clear()  # deterministic: each call returns exactly its own set
@@ -65,7 +72,7 @@ def load_scanners(scanners_dir: Path, template_root: Path | str | None = None,
         except Exception: pass
         _load_module(f, scanners_dir, f"scanners_{f.stem}")
     for pack in packs or []:
-        pdir = Path(template_root) / "packs" / pack if template_root else Path("packs") / pack
+        pdir = template_root / "packs" / pack if template_root else Path("packs") / pack
         if not pdir.is_dir():
             print(f"[registry] pack not found: {pack} (looked in {pdir})")
             continue

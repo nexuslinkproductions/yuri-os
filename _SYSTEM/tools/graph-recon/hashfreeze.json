@@ -1,20 +1,22 @@
 {
-  "commit": "391cd6b49",
+  "commit": "TBD",
   "engine": {
     "__init__.py": "0980c8543c6395b1c72d90e370970346f7e537a4cc011f4368e4a0be9381e4a8",
     "bundle.py": "af37fbd51520516a6e21ede0bcda2c64c29d2879afb703ec57cdae714181d2b0",
-    "cli.py": "a77fd6fec5fe405924544aacd5ccaf36aab37911a41cbd4ab457629fb0857c69",
+    "cli.py": "d787712d190ca10a7e87a943319480a2d2163b61b3597aa4ddb12b228bc581d5",
     "config.py": "8d8f22c35727aeff7138c2281bbafe9e61c0e80fd6da39b437a6d2118351df43",
     "context.py": "d6795b5a99af7e077514dc89aaa7bb22fdeb68d4c4671b4010fc480a8db23dd8",
     "determinism.py": "c2cb21fa5b1ff01583a1980d75c202ff93b4e11e3a93e050a43cb380244ee057",
     "graphio.py": "69fb7450cba9b499e6204de5eb6018bc59b1bf3a46f9f786a9fd9b7787bf4afd",
-    "hashfreeze.py": "65387e26b189823a6bf1e0b68ab2ee0206c0fde3d1d7aa87a07071154d4d9a28",
+    "hashfreeze.py": "911f4a8818ecffe52871580aa0ec2443f156ce35739f48178bd37a7043ecbc3e",
     "ledger.py": "db1539ab929d9183646996fbdc33bcf38b0dd6708b91613d2d575701e36c6b32",
     "manifest.py": "7336092ad6d15d574de995d822bd34ee373119fc8e041d0b5a164aa3888bf482",
     "merge.py": "ca88fdaf66f5933c55746d1d40633c763314c5bd0a7d70dbf16ab105f6575c00",
     "model.py": "ec0566a93c61dccdbdc1b38a71b0d1309fe668972b6f77aa589b3e9064502d13",
     "protected.py": "40fedb7dca673c97add365b2161da8c6a42b4dfccd95e2020671540766fb1856",
-    "registry.py": "9460610f2e3e9f971a38406e809e6fe4b10607af448aa76db9643905b745bd5e"
+    "query.py": "e4d3f3b5709b41a25832fc01fe476cf465b593c71df7c9471e33b7bb53b6f889",
+    "registry.py": "5b6a43b7eb9ea2f7a6c2b149279f6185a0997ebe55c9e8029ba965cf2b57bcd4",
+    "scaffold.py": "75e99b9c66530958820e6abce6bf43daf31e19c33197d0d6164b1dae8573a597"
   },
   "fixtures": {
     "analytics_graph.jsonl": "1e5b10d5c7a77a2786464b1ee3a2d581f3acefc5bc59e91aa89b54b686960c24"

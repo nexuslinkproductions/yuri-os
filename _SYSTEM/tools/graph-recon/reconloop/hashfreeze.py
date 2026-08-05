@@ -121,7 +121,19 @@ def verify_hashfreeze(template_root: Path, freeze: dict | None = None) -> list[s
     for sec in ("scanners", "schemas", "engine", "packs", "fixtures"):
         for name, expected in freeze.get(sec, {}).items():
             got = cur[sec].get(name)
-            if got != expected:
+            if isinstance(expected, dict):
+                # nested section (packs/<name>/ -> {file: hash}): compare leaf
+                # hashes so a missing/moved pack file is reported precisely
+                # (M4-FIX2: flat `expected[:12]` crashed with KeyError on the
+                # nested packs dict introduced by M4-W1).
+                if not isinstance(got, dict):
+                    v.append(f"{sec}/{name}: frozen {len(expected)} files != current MISSING")
+                    continue
+                for fname, fhash in expected.items():
+                    gh = got.get(fname)
+                    if gh != fhash:
+                        v.append(f"{sec}/{name}/{fname}: frozen {fhash[:12]}... != current {gh[:12] if gh else 'MISSING'}")
+            elif got != expected:
                 v.append(f"{sec}/{name}: frozen {expected[:12]}... != current {got[:12] if got else 'MISSING'}")
     if freeze.get("lens_config_sha256") != cur["lens_config_sha256"]:
         v.append("lens_config changed")

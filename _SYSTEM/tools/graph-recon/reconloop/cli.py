@@ -230,6 +230,68 @@ def cmd_manifest(args) -> int:
     return 0
 
 
+def cmd_init(args) -> int:
+    """M4-W2: scaffold a NEW graph-recon project at <target>.
+
+    Idempotent: refuses to overwrite a non-empty target unless --force;
+    prints first-run instructions on success.
+    """
+    from .scaffold import scaffold_project, ScaffoldError  # noqa: E402
+    try:
+        info = scaffold_project(args.target, force=args.force)
+    except ScaffoldError as e:
+        print(f"[init] REFUSE: {e}")
+        return 1
+    tgt = info["target"]
+    print(f"[init] scaffolded graph-recon project at {tgt}")
+    print(f"[init] template {info['template']} | wrote: {', '.join(info['files'])}")
+    print("[init] first run:")
+    print(f"[init]   cd {tgt}")
+    print("[init]   python3 -m reconloop.cli scan --root .")
+    print("[init]   python3 -m reconloop.cli run --root . --scanners-dir scanners "
+          "--layers out/layers --graph out/graph.jsonl --pin out/graph.sha256 "
+          "--graph-input <merged-graph.jsonl>   # analytics scanners need a graph input")
+    print("[init]   python3 -m reconloop.cli verify --graph out/graph.jsonl "
+          "--pin out/graph.sha256")
+    print("[init]   python3 -m reconloop.cli query --graph out/graph.jsonl counts")
+    print("[init] edit reconproject.json: protected.patterns, lenses, "
+          "root.markers (reconproject.json is the project self marker)")
+    return 0
+
+
+def _verb_args(args) -> dict:
+    """Per-verb keyword args for the query engine (deterministic)."""
+    if args.verb == "touchers":
+        return {"node_id": args.node}
+    if args.verb == "exec-path":
+        return {"from_id": args.from_id, "to_id": args.to_id}
+    return {}
+
+
+def cmd_query(args) -> int:
+    """M4-W2: read-only queries over a merged graph JSONL (deterministic
+    JSONL to stdout). Data records first (sorted), then one terminal status
+    record. rc: 0 = ran (ok/not_found/unreachable), 1 = input error,
+    2 = unknown verb."""
+    from .query import load_graph, VERBS, QueryError  # noqa: E402
+    try:
+        nodes, edges = load_graph(args.graph)
+    except QueryError as e:
+        print(json.dumps({"query": getattr(args, "verb", None),
+                          "status": "error", "error": str(e)}, sort_keys=True))
+        return 1
+    fn = VERBS.get(args.verb)
+    if fn is None:
+        print(json.dumps({"query": args.verb, "status": "error",
+                          "error": f"unknown verb: {args.verb}"}, sort_keys=True))
+        return 2
+    _status, recs, summary = fn(nodes, edges, **_verb_args(args))
+    for r in recs:
+        print(json.dumps(r, sort_keys=True))
+    print(json.dumps(summary, sort_keys=True))
+    return 0
+
+
 def main() -> int:
     p = argparse.ArgumentParser(prog="graph-recon")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -239,11 +301,26 @@ def main() -> int:
     sp = sub.add_parser("verify"); sp.add_argument("--graph", required=True); sp.add_argument("--pin", required=True); sp.add_argument("--rerun", action="store_true"); sp.add_argument("--root", default=None); sp.add_argument("--scanners-dir", default="scanners"); sp.add_argument("--layers", default=None); sp.add_argument("--findings-dir", default="findings"); sp.add_argument("--revision", default="origin/main"); sp.add_argument("--graph-input", default=""); sp.add_argument("--packs", default="", help="comma/space-separated optional scanner packs (e.g. yuri)")
     sp = sub.add_parser("ledger"); sp.add_argument("--findings", required=True)
     sp = sub.add_parser("manifest"); sp.add_argument("--manifest", required=True)
+    sp = sub.add_parser("init", help="scaffold a NEW graph-recon project at <target> (idempotent; --force to regenerate)")
+    sp.add_argument("target")
+    sp.add_argument("--force", action="store_true",
+                    help="regenerate scaffold files in a non-empty target")
+    qp = sub.add_parser("query", help="read-only queries over a merged graph JSONL (deterministic JSONL to stdout)")
+    qp.add_argument("--graph", required=True, help="merged graph JSONL (node + edge records)")
+    qverbs = qp.add_subparsers(dest="verb", required=True,
+                               help="touchers | exec-path | protected | counts")
+    qv1 = qverbs.add_parser("touchers", help="nodes connected to <node> by any edge (bidirectional)")
+    qv1.add_argument("node")
+    qv2 = qverbs.add_parser("exec-path", help="shortest directed path via exec/spawns/network edges")
+    qv2.add_argument("from_id")
+    qv2.add_argument("to_id")
+    qverbs.add_parser("protected", help="all protected-path nodes (kind protected_path)")
+    qverbs.add_parser("counts", help="nodes/edges per kind + totals")
     args = p.parse_args()
     if args.cmd == "verify" and args.rerun:
         if args.layers is None:
             print("verify --rerun requires --layers"); return 1
-    return {"scan": cmd_scan, "run": cmd_run, "merge": cmd_merge, "verify": cmd_verify, "ledger": cmd_ledger, "manifest": cmd_manifest}[args.cmd](args)
+    return {"scan": cmd_scan, "run": cmd_run, "merge": cmd_merge, "verify": cmd_verify, "ledger": cmd_ledger, "manifest": cmd_manifest, "init": cmd_init, "query": cmd_query}[args.cmd](args)
 
 
 def cmd_scan(args) -> int:
