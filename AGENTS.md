@@ -1,80 +1,126 @@
 # AGENTS.md — YURI Workspace (YURI-OS-MUSUBI)
 
-Root agent adapter. This is the brain-stem: it chains the YURI spine in the canonical order every session. This file does not duplicate YURI policy; it routes to the authority sources.
+Root agent adapter. This is the only always-loaded file; everything else is opt-in by pointer. Do not restate policy here. If this file and `_SYSTEM/yuri-origin.md` conflict, origin wins.
 
-## Read Order (every session, natively)
+## Operator
 
-1. `_SYSTEM/yuri-origin.md` — canonical operating contract (authority layer)
-2. `_SYSTEM/persona.md` — identity, cognition, Marcel operating model
-3. `SOUL.md` — core truths, adversarial-ally contract
-4. This file — root-agent routing and tool conventions
-5. xref-selected context evidence (on task)
-6. task-local files
+- Operator: Marcel (never "Rick").
+- Workspace root: `/Users/marcelspatz/YURI-OS-MUSUBI` (branch `main`). Every file here is home.
 
-## Workspace
+## Orientation (load on demand)
 
-This repo (`/Users/marcelspatz/YURI-OS-MUSUBI`, branch `main`) IS the workspace. Operator: Marcel (never "Rick"). Every file here is home. Treat it that way.
+| Need | Path |
+|---|---|
+| Operating contract | `_SYSTEM/yuri-origin.md` |
+| Identity / cognition | `_SYSTEM/persona.md` (`SOUL.md` is injection redirect only) |
+| Navigation map | `_SYSTEM/INDEX.md` |
+| Context cascade | `_SYSTEM/context/README.md` |
+| Context packets | `_SYSTEM/context/context-registry.json` |
+| Folder / artifact placement | `_SYSTEM/config/folder-registry.json`, `_SYSTEM/config/artifact-registry.json` |
+| MURE roles | `_SYSTEM/mure/ROLE-TOPOLOGY.md` |
+| MURE role cards | `_SYSTEM/mure/agents/`, `_SYSTEM/mure/agent-catalog.json` |
+| Skill library | `skills/README.md`, `skills/skill-index.json` |
+| Agent recipes | `.agents/README.md` |
+| Canonical graph | `_SYSTEM/yuri-graph.json` |
+| Graph unify | `_SYSTEM/Scripts/yuri-graph-unify.mjs` |
+| Xref navigation | `_SYSTEM/Scripts/xref-query.mjs` |
+| Structural navigate | `_SYSTEM/Scripts/yuri-navigate.mjs` |
+| Propagation scan | `_SYSTEM/Scripts/propagation-scan.mjs` |
+| Memory mediator | `_SYSTEM/Scripts/memory-kernel.mjs` |
+| Failure evolution | `skills/failure-evolution-loop/SKILL.md` |
+| Agentic fleet discipline | `skills/agentic-engineering-fleet-discipline/SKILL.md` |
+| GitNexus skill | `skills/gitnexus/SKILL.md` |
 
-## YURI Spine (inherited, never restated)
+## Hard Rails
 
-All authority, mutation, evidence, protected-surface, self-governance, and lane-routing rules flow from `_SYSTEM/yuri-origin.md`. Do not inline them here. When a rule appears in both places, `yuri-origin.md` wins.
+### Protected Surfaces
 
-Key contracts (see origin for full text):
-- **Mutation Contract** — scoped-pathspec commit/push, no `git add .`, no force push
-- **Protected Surfaces** — `.env`, `.claude/state/`, `.claude/history/`, `.claude/file-history/`, `backend/data/`, `node_modules/`, `.amp/`, secrets. They are mutation-locked; a Marcel-authorized bounded local read audit is allowed, while deletion, mutation, secret disclosure, and external-model egress remain separately gated.
-- **Evidence Contract** — TERM_COUNT / FILE_COUNT / MATCH grammar, deterministic local evidence required
-- **Self-Governance Charter** — decide+execute safe defaults; hold for owner confirm on gated actions
-- **RESULT_LABEL grammar** — every lane result emits `NNXX_DESCRIPTION_(X|P|F)_PASS_COMMITTED`
+READING is allowed. WRITING is forbidden (mutation-locked). Exact list from `_SYSTEM/yuri-origin.md` → Protected Surfaces:
 
-## Memory Architecture
+- `backend/data/`
+- `.claude/state/`
+- `.claude/history/`
+- `.claude/file-history/`
+- `.claude/projects/*/history/`
+- `.claude/projects/*/state/`
+- `.claude/projects/*/file-history/`
+- `.claude/projects/*/worktrees/`
+- `.claude/projects/*/transcripts/`
+- `.env`
+- `node_modules/`
+- `.amp/`
+- secrets, API keys, credentials
 
-Use the two-track system from YURI origin:
+### Git
 
-- **Track A (YURI canonical)** — `_SYSTEM/memory/`, durable store `_SYSTEM/OS_KERNEL/memory.db`. Shared across all lanes. Governed: propose → decide → promote.
-- **Track B (Claude auto-memory)** — `.claude/memory/`. Claude-Sonnet behavioral self-development. Not shared.
-Routing: Track A for anything another lane should know. Track B for Claude-only behavioral drift. Cross-link by label, never duplicate.
+- Scoped pathspec only: `git add <paths>` + `git commit -- <paths>`
+- Never `git add .` or bare `git commit`
+- `git fetch` + rebase/fast-forward; never force
+- Worktree lanes: commit on own branch; integrate via PR; never push (parent/merge lane publishes)
+- Full Mutation Contract: `_SYSTEM/yuri-origin.md` → Mutation Contract
 
-## Skills
+### Evidence
 
-Canonical skills live in root `skills/` and are loaded through the YURI skill indexes. Provider-specific skill folders are compatibility surfaces only. Honor injected skill-recall hints and invoke matching skills before substantial work.
+- Deterministic local evidence required before any PASS claim
+- Grammar: `TERM_COUNT` / `FILE_COUNT` / `MATCH`
+- Full rules: `_SYSTEM/yuri-origin.md` → Evidence Contract Grammar
 
-For every substantive task, run deterministic canonical recall before implementation:
+### RESULT_LABEL
+
+- Every lane result emits: `NNXX_DESCRIPTION_(X|P|F)_PASS_COMMITTED`
+- Full grammar: `_SYSTEM/yuri-origin.md` → Lane Result Grammar
+
+### Durable Files
+
+- New durable files go through placement first: `node _SYSTEM/Scripts/artifact-registry.mjs --classify <path>`; no random top-level folders
+- Policy → `_SYSTEM/docs/`; full storage rule: `_SYSTEM/context/README.md` → Storage Rule
+
+## Agentic Operating Loop
+
+Pointers only. Use existing machinery; do not invent a second doctrine.
+
+1. **Orient** — `node _SYSTEM/Scripts/xref-query.mjs "<task>"`; known circuitry node → `node _SYSTEM/Scripts/propagation-scan.mjs <node-id> --dry-run`
+2. **Recall skills** — Skill Loading below
+3. **Graph engineering** — edit `_SYSTEM/yuri-graph.json` only; regenerate projections with `_SYSTEM/Scripts/yuri-graph-unify.mjs`; navigate via `_SYSTEM/Scripts/xref-query.mjs` / `_SYSTEM/Scripts/yuri-navigate.mjs`
+4. **Loop engineering** — `_SYSTEM/yuri-origin.md` → Loop Discipline: frozen evaluator (a loop must never modify its own scorer); single-knob mutate → measure → keep-or-revert → durable results log; run on scratch branches
+5. **Self-eval** — independent verifier downstream of producer (`_SYSTEM/mure/ROLE-TOPOLOGY.md`); adversarial verification before completion; failure capture via `skills/failure-evolution-loop/SKILL.md` (failure → root cause → regression → memory proposal)
+6. **Agentic engineering** — fleet/role discipline via `skills/agentic-engineering-fleet-discipline/SKILL.md`; orchestrator plans/delegates/verifies; workers are bounded leaves; producers do not self-grade
+7. **Measurement closeout** — GitNexus impact before symbol edits + detect before commit; deterministic evidence lines; RESULT_LABEL
+
+## Skill Loading
+
+For every substantive task:
 
 ```bash
 node _SYSTEM/Scripts/skill-recall.mjs "<task>" --top 12 --json
 ```
 
-Read each selected source `SKILL.md` completely before acting. When a selected tracked source is sparse-hidden, run `node _SYSTEM/Scripts/skill-recall.mjs --show <skill-id>` and read its complete verified output instead of treating absence as missing capability. This recall step is required even when a provider's bounded initial skill-metadata list omits an entry. `.agents/skills/` is a generated metadata-and-pointer-only Codex discovery projection; each pointer routes to one governed source and never owns or duplicates its instructions. Its generated `agents/openai.yaml` sidecars are the sole Codex invocation authority: `activate-yuri-skills` is implicit and the other 463 adapters are explicit-only. `_SYSTEM/config/codex-native-skill-activation.json` reconciles only the 14 duplicate native Codex paths and never writes governed adapter state.
+- Read each selected governed `SKILL.md` completely before acting
+- Sparse-hidden tracked source: `node _SYSTEM/Scripts/skill-recall.mjs --show <skill-id>`, then read that output
+- `.agents/skills/` is generated metadata + pointers only; never skill-body authority
+- `activate-yuri-skills` is implicit; other adapters are explicit via `$skill-id` or recall
+- Detail: `skills/README.md`
 
-## Root-Agent Conventions
+## Memory
 
-- **Sub-agents** — use for bounded parallel work; never present Codex subagents as MURE route/model evidence.
-- **Continuity** — promote cross-lane durable knowledge through Track A; do not create provider-specific shadow memory.
-- **Freshness** — detect stale indexes and safely regenerate derived projections before trusting them.
-
-## Agent Fleet (MURE)
-
-Canonical logical MURE role cards live under `_SYSTEM/mure/agents/`; `_SYSTEM/mure/agent-catalog.json` is their generated machine-readable projection. The executable role boundaries are summarized in `_SYSTEM/mure/ROLE-TOPOLOGY.md`; the provider/model route registry is `_SYSTEM/config/provider-route-registry.json`. OMP cards and terminal sessions are replaceable runtime bindings, not role authorities. Sol is the orchestrator, advisors are consult-only, workers are bounded leaves, and verifiers are independent downstream gates. Fable 5 is archival and excluded.
-
-OpenClaw is retired. `.openclaw/` is historical/provider residue only and must not be restored to active architecture, role, skill, memory, or routing authority.
-
-## Git & GitHub
-
-- Commit AND push session's own work directly (scoped pathspec only — `git add <paths>` + `git commit -- <paths>`)
-- NEVER `git add .` or bare `git commit`
-- `git fetch` + rebase/fast-forward, NEVER force
-- GitHub: `gh` CLI plus the relevant canonical GitHub skill for issues, PRs, and CI
+- **Track A (canonical, shared):** `_SYSTEM/memory/` via `_SYSTEM/Scripts/memory-kernel.mjs`; pipeline `propose → decide → promote`
+- **Track B:** lane-local auto-memory (Claude), not shared
+- Ambiguous → Track A
+- No provider-specific shadow memory; cross-link by label, never duplicate
+- Full rules: `_SYSTEM/yuri-origin.md` → Memory Architecture
 
 ## Code Intelligence (GitNexus)
 
 <!-- gitnexus:start -->
-GitNexus-indexed (`yuri-os`). Before editing a symbol run `gitnexus_impact` (warn the owner on HIGH/CRITICAL); before committing run `gitnexus_detect_changes`; explore with `gitnexus_query` / `gitnexus_context` instead of grep; rename via `gitnexus_rename` (call-graph aware). Stale index → `npx gitnexus analyze --skip-agents-md` (bare `analyze` re-expands this block). Full dispatcher: `/gitnexus`.
-
-Deep-dives: `skills/gitnexus/SKILL.md` · `skills/gitnexus-exploring/SKILL.md` · `skills/gitnexus-impact-analysis/SKILL.md` · `skills/gitnexus-debugging/SKILL.md` · `skills/gitnexus-refactoring/SKILL.md` · `skills/gitnexus-pr-review/SKILL.md` · `skills/gitnexus-guide/SKILL.md` · `skills/gitnexus-cli/SKILL.md`
+- Before editing a symbol: `gitnexus_impact` (warn owner on HIGH/CRITICAL)
+- Before committing: `gitnexus_detect_changes`
+- Explore: `gitnexus_query` / `gitnexus_context`; rename: `gitnexus_rename`
+- Stale index: `npx gitnexus analyze --skip-agents-md` (bare `analyze` re-expands this block)
+- Deep-dives: `skills/gitnexus/SKILL.md` · `skills/gitnexus-exploring/SKILL.md` · `skills/gitnexus-impact-analysis/SKILL.md` · `skills/gitnexus-debugging/SKILL.md` · `skills/gitnexus-refactoring/SKILL.md` · `skills/gitnexus-pr-review/SKILL.md` · `skills/gitnexus-guide/SKILL.md` · `skills/gitnexus-cli/SKILL.md`
 <!-- gitnexus:end -->
 
-## Related
+## Roles (pointer)
 
-- Codex adapter (archived): `AGENTS.codex.bak.md`
-- Claude Code adapter: `CLAUDE.md`
-- Legacy external OMP config (non-authoritative for MURE): `~/.omp/agent/config.yml`
+- Orchestrator / Architect / Advisor / Worker / Verifier boundaries: `_SYSTEM/mure/ROLE-TOPOLOGY.md`. Verifiers are independent and downstream
+- Models and sessions are route bindings, not roles
+- Subagent output is advisory until locally verified; never present subagents as route or model evidence
