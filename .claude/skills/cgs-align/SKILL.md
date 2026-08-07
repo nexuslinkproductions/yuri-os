@@ -51,6 +51,18 @@ Mass center           -> origin (0,0,0), all 3 axes on the volume centroid
   Glock 43 0.8° rolled there, 2026-07-10b). Final sub-degree → owner's eye via `roll_offset_deg`.
 - **VERIFY ALL THREE ORTHO VIEWS** — side=pitch/parting, back=yaw/sights, **front=roll/slide-top**. Declaring
   "level" off only the views you checked is the skill's #1 repeat failure (2026-07-03/04/07/10/10b).
+- ⚠ **A SLIDE-MOUNTED OPTIC BLINDS EVERY AUTO-DETECTOR** (FN 510, 2026-08-07). The optic is the tallest large
+  flat on the gun, so `pose_report` reports IT as the "slide top" (FN: z=84.6, 262mm² — the real slide top is
+  at 54.5), and the sight detectors' height-spike search finds the optic instead of the blades → `roll` and
+  `yaw` come back **NO_DATUM** with an empty `sight_channel`. The datums are still THERE, the y-windows just
+  miss them: on a comp'd optic gun the irons are **suppressor-height**, the front post sits FORWARD of the
+  optic and the rear iron sits BEHIND it (FN: post y −115…−103 z 64.74, rear sight y 41.5…50.5 z 64.42,
+  radius 155.5mm). Find them with a fine `zmax`-per-2mm-y silhouette profile, then measure the shoulders /
+  notch / post by hand exactly as in steps 5d and 6. **NO_DATUM on an optic gun means "detector missed it",
+  never "the gun has no sights" — go look at the profile before believing it.** Also: a scanned optic is a
+  SOLID, so the literal down-the-sights render is fully occluded — shoot the **TOP ortho** for the yaw
+  picture (post and rear sight both lie outside the optic's y-span) and the **rear ortho at the shoulder
+  plane** for roll.
 
 ## MANDATORY ON EVERY RUN — do not skip, do not hand-roll
 
@@ -355,6 +367,19 @@ recurring trap on this skill):
 
 ## Status / scope
 
+- **ALIGNED + 3-VIEW VERIFIED 2026-08-07** on the **FN 510/545 WITH COMP & OPTIC** (959,762 verts /
+  1,919,832 tris) — first gun with a **compensator** and a **slide-mounted red dot**, and the run that
+  proved a mounted optic blinds every auto-detector (see the canonical-pose caveat above). The incoming
+  pose was already near-canonical (net aligner rotation ≈ identity, 0.1°); the residual was found and
+  fixed BY HAND: roll **−0.183°** (rear-sight shoulders) and yaw **+0.080°** (notch vs post, confirmed by
+  the slide silhouette at +0.087°) → applied as `Rz(+0.080°) @ Ry(−0.183°)`, probe-verified over all four
+  sign combinations before baking. Final measured: rear-sight shoulders **−0.002°** (plane fit, rms
+  0.019mm) / **+0.006°** (two-patch lever, dz 0.0009mm over 8.33mm), sight picture **dx −0.0027mm** over a
+  155.5mm radius → yaw **−0.001°** (silhouette cross-check +0.008°), parting seam **−0.012°** (rms
+  **0.0148mm** over the clean 84mm stretch), slide-top roll −0.014°, optic-top roll +0.031°, volume
+  centroid at origin, det +1, `matrix_world` identity, dims 43.57 × 229.16 × 204.42. Comp'd/optic'd guns
+  are TALL: height extent 204mm vs length 202mm → `ambiguous_axes: true` and `sep_length_height 1.016`;
+  that flag is EXPECTED here and is not by itself a failure. **Owner viewport confirm pending.**
 - **HARDENED ACROSS ALL THREE AXES 2026-08-05b** (owner directive: *"Not only alignment horizontal but
   also pitch, yaw and roll across all axis and also check gun sights / sight channel"*). Three changes and
   a new suite: (1) **`refine_seam`** levels PITCH to the MEASURED parting seam instead of the slide-top
@@ -460,6 +485,59 @@ recurring trap on this skill):
 - Depends on **blender-mcp** live on :9876.
 
 ## Session Notes
+
+### 2026-08-07 (FN 510/545 COMP + OPTIC — an optic blinds every detector; the parting line changes identity)
+- **Run:** `FN510 & 545_WITH COMP & OPTIC_ORIGINAL`, 959,762 verts / 1,919,832 tris, gun mode. René gave two
+  annotation dots on the parting line plus the instruction *"Annotations are not perfectly horizontal. They
+  are indicators to align along the slide between upper and lower"* — i.e. **use the dots to LOCATE the
+  datum, not to set its ANGLE.** They landed at z 29.59 / 29.20, straddling the measured seam at z 29.39.
+  That is the right way to use hand dots: as a z-locator they are excellent (0.2mm), as a protractor they
+  are a ±0.4° instrument.
+- **FAILURE (structural, not mine): `pose_report` is blind on an optic gun.** It returned
+  `roll=NO_DATUM · yaw=NO_DATUM · sight_channel={}` and reported `slide_top_z 84.64` — that is the OPTIC.
+  Every downstream number (`slide_top_roll/pitch`) was therefore the optic's, silently. The gun has a full
+  suppressor-height iron set; the detector's y-windows simply never look in front of and behind an optic.
+  Measured by hand off a 2mm `zmax(y)` silhouette profile: front post y −115.4…−103.0 z 64.74 (10.24mm
+  proud, 3.06mm wide), rear iron y 41.5…50.5 z 64.42 (9.92mm proud, notch 3.94mm), radius 155.5mm, optic
+  y −8…41 top z 85.03. **NO_DATUM is a statement about the detector, not about the gun.**
+- **My own sign slip, caught by the probe harness and worth recording.** I computed the sight yaw as
+  `post − notch` and the silhouette yaw as `d(x)/d(y)`, got −0.077° and +0.087°, and spent real effort
+  reasoning about which datum to trust and whether the rear sight was windage-drifted. They were the SAME
+  number with opposite sign conventions: both +0.08°. The fix that saved me was refusing to bake a
+  hand-rolled matrix — I applied all FOUR sign combinations of `Rz(±yaw) @ Ry(±roll)` to a numpy copy and
+  re-measured. One combination zeroed everything; the "disagreement" evaporated. **Probe every rotation
+  sign against a re-measurement, never against your own algebra** (the Echelon lesson, now also the cure
+  for a units/convention slip rather than just a matrix-convention slip).
+- **The parting line CHANGES IDENTITY along this gun, and that is a general polymer-frame trap.** Aft of
+  y≈−58 the frame is WIDER than the slide (half-width 16.4 → 14.0, a clean downward step). Forward of it
+  the dust cover is NARROWER than the slide (13.8 → 14.75) — there is no frame→slide step at all, and the
+  detector locks onto the recess between them, ~0.4mm higher. Fit across both and you are fitting two
+  populations. Consequences, measured: un-robust OLS over the full span read **−0.19°**, Theil–Sen over the
+  same rows read **−0.067°**, and the single coherent machined stretch (y −61…+23, 84mm) read **−0.012° at
+  rms 0.0148mm** — 10× tighter than anything else in the analysis. A third population (y > 24, the frame's
+  rear contour) reads −1.31° on its own. **When a seam fit's rms is an order of magnitude worse than the
+  mesh deserves, stop tuning and segment it: dump the per-slice rows and fit each population separately.**
+  Theil–Sen plus a per-segment table is the diagnostic; `measure_parting`'s MAD trim is NOT — the
+  contaminants are coherent second populations, not outliers (same shape as the Sphinx, 2026-07-27b).
+- **The proxies were worse here than on any previous gun.** Slide-top plane pitch −0.283° and slide-top
+  silhouette −0.342° against a seam of −0.012° — a **0.28–0.33° gap**, vs 0.17° on the Echelon and 0.10° on
+  the Glock 34. The optic top (−0.112°) sat between them. On a gun whose slide top is broken up by an optic
+  cut and serrations, the top surface is not even a good proxy; only the seam is a datum.
+- **Verified:** all three ortho views against fiducials — side with a bar ON the seam z=29.391 (parallel the
+  full length, plus zooms at both ends), rear-ortho with a bar at the shoulder plane z=64.3227 (both
+  shoulders touching it, notch centred on x=0), front-ortho down the bore with bars at the slide top and
+  x=0. Numerics in the Status entry. Scene cleaned (fiducials + ortho cam removed, `Camera` restored).
+- **Residual risk:** (a) the aligner's own net rotation was ≈identity because the incoming pose was already
+  canonical — the `*_refine_deg` values it reports are INTERNAL steps in its own re-derived frame, not the
+  net change; do not read them as "it corrected 2.7° of pitch". (b) `pose_report` still cannot see this
+  class of gun; the hand measurements above are the only verification, so this pose has NOT been through
+  the standard verifier. (c) The seam's clean stretch is 84mm of a 175mm slide; the front half is measurable
+  only to ~±0.2°. (d) Roll/yaw were corrected by a hand-composed rotation baked into `cgs_align_R`, so
+  `unalign_object` remains valid, but `aligned_ok` will keep reading false.
+- Tools: blender-mcp (`execute_blender_code` — stdout is NOT returned, redirect to a file and Read it),
+  numpy on the live mesh, `scripts/measure_parting.py` + Theil–Sen segmentation, workbench ortho renders
+  vs fiducial bars.
+  <!-- @anchor: v1 | failure: FN 510 with a slide-mounted optic — pose_report reported the OPTIC as the slide top (z 84.6 vs the real 54.5) and returned roll=NO_DATUM yaw=NO_DATUM sight_channel={} on a gun carrying a full suppressor-height iron set in front of and behind the optic; and the parting-line fit mixed three geometry populations (frame-wider-than-slide aft, dust-cover-narrower-than-slide forward, frame rear contour) giving -0.19deg where the single coherent machined stretch reads -0.012deg at rms 0.0148mm, 2026-08-07 | regression: cgs-align SKILL.md canonical-pose optic caveat + Status 2026-08-07 + Session Notes 2026-08-07 (zmax(y) silhouette profile to find irons around an optic; Theil-Sen + per-segment table before trusting any seam fit; four-sign probe harness before baking a hand-rolled rotation) -->
 
 ### 2026-08-05b (HARDEN ALL THREE AXES — owner: *"pitch, yaw and roll across all axis"*)
 - **Scope:** close the last hand step (pitch), make every datum survive a mesh that is not a 2.2M-tri scan,
