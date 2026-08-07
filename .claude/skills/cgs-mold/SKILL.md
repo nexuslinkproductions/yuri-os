@@ -267,6 +267,80 @@ the owner's eye sets the final `*_below_mm`. New gun → copy `hk45.json`, adjus
 
 ## Session Notes
 
+### 2026-08-07 — FN 510/545 + COMP, **NO OPTIC (hand-EDITED scan)** — **DONE, EXPORTED**; new rule on capping a deleted optic
+- Scan `FN510 & 545_WITH COMP NO OPTIC - EDITED` 132,458 v / 264,538 f, canonical pose, **but 590 boundary
+  edges** — René had deleted the optic by hand. Grouped into loops (08-03b rule): **one 568-edge loop**
+  at x −12.4…12.1, y −8.6…42.4 = the **slide top is gone over the optic cut**; the top-down render looks
+  straight into the barrel. Plus 3 trivial loops (3–5 edges) and a 12-vert speck island (auto-dropped).
+- **★ A "fix the SCAN vs cap it here" call is the owner's, but MEASURE THE RIM FIRST — the rim height is
+  NOT automatically a recess.** I first offered "cap at the forward slide crown z 54.05" vs "cap at the
+  rim z 53.01, keeping the ~1 mm milled recess" and René picked 54.05. That framing was **wrong**: the
+  rim runs a dead-flat **53.01 from y −8 to +40** and the optic-region `max|x|` at z 53 is **12.39** —
+  i.e. the rim IS the milled shoulder at **FULL slide width**, while the rounded slide forward of the cut
+  is only **10.88 half-width at the same z** and crowns to 54.05 only within |x| ≤ 6.5. So 53.01 = FLUSH
+  (where the cover plate sits) and 54.05 would have parked a **1.04 mm proud pad, 48 × 25 mm**, on the
+  slide top with its edges standing above the surrounding rails. Re-asked with the measurement; René
+  switched to 53.01. **The probe that decides it: `max|x|` vs z inside the opening's Y band vs the same
+  z forward of it — if the rim is as wide as the slide, the rim is the shoulder, not a pocket floor.**
+- The cap itself was free: `assemble_gun_solid`'s `holes_fill` on a rim that is planar over 48 of its
+  51 mm produced a clean flat lid, rear sight untouched, **0/0, 1 island** — no plug solid needed. Only
+  87 of 568 rim verts sit above 54.05 and they are all the rear-sight block wall at y ≈ 40.
+- **⚠ Walked straight into the 07-28c render trap again: `render.opengl` ignored `hide_render`.** I set
+  `hide_render=True` on everything but the target and left `hide_viewport=False`; three renders came back
+  showing the **uncut 460 mm sweep** and read as "camera framing is broken". The tell was arithmetic: the
+  object's projected extent (173 mm) could not exceed the frame (257 mm), yet it ran off the edge — *a
+  framing contradiction means you are rendering the wrong object*, not a wrong camera. Fix = set
+  `hide_viewport` AND `hide_set` too. Also worth having: a `frame()` helper that computes `ortho_scale`
+  from the projected extent (`|R|·ext`, `|U|·ext` with R/U the screen axes) instead of eyeballing.
+- Pose: pitch corrected, roll/yaw not. slide-top-fwd plane **+0.230°** (rms 0.055, n 233), sight line
+  **+0.144°**, rail underside +1.89° (rms 0.277 — weak but same sign) → all three positive → rotate
+  `θ = −m = +0.004021 rad` about X; residual `dz_dy` 0.00054. roll: symmetry −0.088° vs **rear-sight
+  shoulders −0.059°** vs slide top +0.328° → signs disagree → left alone. yaw: symmetry −0.095° vs sight
+  line ≈0 → left alone. ⚠ The naive sight-line yaw read **+2.00°** because `argmax(z)` in the rear band
+  lands on ONE shoulder (x 5.73), not the notch centre — use the notch, per the rear-sight roll datum.
+- **⚠ An extended magazine makes the global rearmost vert the BASEPAD, not the beavertail.** `gun_rear_y`
+  = 69.76 = the mag floorplate at z −105. The beavertail is the local ridge in the rear silhouette:
+  **y 57.966 at z 36.0** (1 mm bins; recedes above and below). Cut B must key off THAT, not `gun_rear`:
+  `cut_tail(gun_rear=57.966, margin=6)` → y 64.0. Using `gun_rear+6` would have left ~12 mm of dead tail.
+- Knee from the MOLD's own bottom profile (1 mm bins, full gun region): plateau **−3.532 dead flat from
+  y −53.98 to −8.98**, then −7.98 → −5.036 and continuously down. Corner = **(−8.98, −3.532)**, the LAST
+  flat bin. → with −20/−10 → **α 36.5°**, owner-confirmed ("passt — fertig machen").
+- **EXACT@dz=0 first try on BOTH cuts.** Cut A 331,224 v (**0.282×src** — under the old 0.4 guard, over
+  the relaxed 0.25), cut B 298,238 v, both 0/0. No nudge ladder needed.
+- `boot=0.4`, 11 log-doubling passes, travel 229.7, **11.0 s** on 132k v. Edge-length gate after the
+  sweep **p99/p1 = 3.39** (p1 0.137 / med 0.400 / p99 0.465) — slightly over the ≲3 guideline, but the
+  convergence signature was healthy (**601 → 77 → 16 → 6 → 4 → 3 → 0**, mean move 0.235 mm ≈ 0.6× voxel,
+  `extended_rejected` steady at 27), so `repair_pits` was valid. Treat 3.39 with a monotone fall as
+  in-band; it is divergence, not the ratio alone, that condemns a run.
+- `smooth_mold(flat_pairs=8, deburr_thr=0.015, deburr_rings=3, deburr_pairs=12)` — third gun on the
+  anti-orange-peel params. Slide-flank Laplacian p99 **0.0864 → 0.0232**, slide-top p99 0.1078 → 0.0595.
+  70 verts >0.5 mm clamped → max 0.490, 0/0. **Eleven-for-eleven on the clamp.** sharp50 5644 → 2240 and
+  sharp70 3046 → 1531 (−50 %) — again a big drop that the raking close-up shows is NOT lost geometry.
+- **Parting line `z_line` 43.6, read off the fine horizontal cross-section, NOT the three bands.** The
+  front band is unusable here (the comp is wider than the slide, so `max|x|` RISES above the frame:
+  14.1 → 15.5 between z 43.5 and 45.8). 0.2 mm cross-sections: fwd/mid/tang all collapse to 14.0–14.2 at
+  **z 43.6**, while the rear band (y −20…20) holds **18.1 until z 44.0** — that is the beavertail tang,
+  which belongs ABOVE the line, so it does not move the answer. Offset verified by REGION bbox: slide
+  min_x −0.400 / max|x| +0.384 / min_y −0.400 / max_z +0.400; frame region **byte-identical (all 0.000)**.
+- **Decimate produced 6 non-manifold / 4 boundary from a 0/0 source — the 07-30b pinch sliver, second
+  occurrence.** The documented pre-clean fixed it first try: triangulate → `remove_doubles(1e-4)` →
+  `dissolve_degenerate(2e-4)` (exposed **2** non-manifold edges) → delete the 23 faces linked to those
+  edges *and their verts* → `holes_fill(sides=64)` on the 15 resulting boundary edges → recalc normals →
+  decimate. Final **122,992 faces / 123,000 tris / 61,502 v, 0/0, 1 island**. BVH deviation vs the
+  pre-decimate mesh (61,502 samples): p50 0.0006 · **p99 0.0058 · max 0.0125 mm · zero over 0.1 mm**.
+- **mold/gun gaps read correctly per feature:** front-Y **+0.378** (the COMP is front-most and sits at
+  z 45.4, above `z_line` → it gets the offset), max_z **+0.406** (front sight), min-X **−0.033 ≈ 0** (the
+  widest point is the FRAME at 18.7 half-width, z ≈ 43, BELOW the line → correctly not offset). Three
+  different right answers on one gun — always ask which feature owns the extremum before reading a gap.
+- Export (folder confirmed with René = the standing default):
+  `C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS\FN510 & 545 WITH COMP NO OPTIC.stl` (6,150,084 B, 61,502 v)
+  **+ `FN510 & 545 WITH COMP NO OPTIC GUN.stl`** (13,254,984 B, 132,446 v). Both identity `matrix_world`;
+  both byte-verified against `84 + 50·TRIS` (the mold is mixed quad/tri: 122,992 faces → 123,000 tris).
+- ⚠ MCP `execute_blender_code` again returned `"Code executed successfully: "` with **stdout dropped**
+  (fourth session running). Every stage dumped to `_SYSTEM/state/_fn_*.json` and was read back from disk.
+  Also: a stray `</code>` fence pasted into the first call died on `invalid syntax` — send bare Python.
+  <!-- @anchor: v1 | failure: (a) I offered the owner a cap-height choice built on an unmeasured assumption — "rim z 53.01 = a 1mm recess" — when the rim is actually the milled optic-cut shoulder at FULL slide width, so the option he picked (54.05) would have shipped a 1.04mm proud 48x25mm pad on the slide top; (b) render.opengl ignored hide_render for the third time in this skill's history, silently rendering the uncut 460mm sweep and reading as a camera-framing bug; (c) a sight-line yaw datum returned +2.00deg because argmax(z) in the rear band lands on one rear-sight shoulder instead of the notch centre; (d) with an extended magazine, gun_rear_y is the basepad, so cut_tail(gun_rear+6) would have left ~12mm of dead tail behind the beavertail; (e) decimate-collapse produced 6 non-manifold / 4 boundary from a 0/0 source (2nd occurrence of the 07-30b pinch sliver); 2026-08-07 | regression: cgs-mold SKILL.md Session Notes 2026-08-07 — measure max|x| inside vs forward of an opening before choosing a cap height; set hide_viewport AND hide_set before every render and treat a framing contradiction as the wrong object; take yaw from the rear-sight NOTCH centre; key cut B off the measured beavertail ridge, never gun_rear, when a magazine is in the scan; run the triangulate/remove_doubles/dissolve_degenerate/delete-pinch/holes_fill pre-clean BEFORE decimating -->
+
 ### 2026-08-05 — GLOCK 34 + X300 TURBO (B mount) — **DONE, EXPORTED**; owner ask = "no holes or bubbles"
 - Scan `GLOCK_34_X300U-B-X300-TURBO-B-MOUNT` 143,521 v / 287,078 f, **watertight 0/0**, already canonical
   (X 37.85 · Y 223.87 · Z 140.38 = Glock 34 spec, slide 207 mm). Gun + light welded into one island.
