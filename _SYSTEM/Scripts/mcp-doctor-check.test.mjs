@@ -126,12 +126,12 @@ function ok(label) {
 {
   // GitHub PAT
   assert.equal(
-    redactSecrets('error: ' + 'ghp_' + '1234567890abcdefghijklmnopqrstuvwxyz connection refused'),
+    redactSecrets('error: ' + 'ghp_' + 'TESTONLYNOTAREALGITHUBPAT12345678900 connection refused'),
     'error: ghp_<REDACTED> connection refused',
   );
   // Bearer token
   assert.equal(
-    redactSecrets('Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.payload.sig'),
+    redactSecrets('Authorization: Bearer test-bearer-token-NOT-REAL'),
     'Authorization: Bearer <REDACTED>',
   );
   // Protected path — .claude/state/
@@ -140,7 +140,7 @@ function ok(label) {
   assert.ok(redactedPath.includes('<REDACTED>'), `redaction marker missing: ${redactedPath}`);
   // api_key= value
   assert.equal(
-    redactSecrets('config api_key=sk-1234567890abcdef invalid'),
+    redactSecrets('config api_key=sk-TESTONLYNOTREALKEY123456 invalid'),
     'config api_key=<REDACTED> invalid',
   );
   // .env reference
@@ -231,7 +231,7 @@ function ok(label) {
       'auth-server': {
         command: 'node',
         args: ['server.js'],
-        env: { API_KEY: 'ghp_' + 'secret1234567890abcdefghijklmnopqrstuvwxyz' },
+        env: { API_KEY: 'ghp_' + 'TESTONLYNOTAREALGITHUBPAT12345678900' },
       },
       'python-server': {
         command: '/usr/bin/python3',
@@ -275,7 +275,7 @@ function ok(label) {
 
   // Credential safety: the API_KEY value must NEVER appear in any finding
   const allText = JSON.stringify(findings);
-  assert.ok(!allText.includes('ghp_secret1234567890'), `credential leaked in findings: ${allText}`);
+  assert.ok(!allText.includes('ghp_TESTONLYNOTAREALGITHUBPAT12345678900'), `credential leaked in findings: ${allText}`);
   assert.ok(!allText.includes('API_KEY'), `env key name leaked in findings: ${allText}`);
 
   // FAIL must be distinct from UNVERIFIED
@@ -543,7 +543,7 @@ args = ["${passingServer}"]
 enabled = true
 
 [mcp_servers.subtable-env.env]
-API_KEY = "secret-value-12345"
+API_KEY = "test-only-env-value-NOT-REAL"
 `);
 
   const findings = await checkMcpHealth({ root: tomlDir, dedicatedChecks: {} });
@@ -563,7 +563,7 @@ API_KEY = "secret-value-12345"
 
   // P2-2: env value must never appear in output
   const allText = JSON.stringify(findings);
-  assert.ok(!allText.includes('secret-value-12345'), `P2-2: env value leaked: ${allText}`);
+  assert.ok(!allText.includes('test-only-env-value-NOT-REAL'), `P2-2: env value leaked: ${allText}`);
 
   ok('P2-1/P2-2: dash-name + server-github discovered; subtable-env UNVERIFIED; no env leak');
   fs.rmSync(tomlDir, { recursive: true, force: true });

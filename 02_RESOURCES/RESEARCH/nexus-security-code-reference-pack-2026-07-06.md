@@ -273,7 +273,8 @@ ingress:
 
 ### L4f — Tailscale/WireGuard east-west mesh + Postgres mTLS
 ```
-postgresql://nexus:<secret>@pg.tail-<tailnet>.ts.net:5432/nexus?sslmode=verify-full&sslrootcert=...&sslcert=...&sslkey=...
+# Tailscale ACL: tagOwners tag:nexus-app/db/admin -> autogroup:admin; acls app->db:5432 only.
+postgresql://nexus:<YOUR_POSTGRES_PASSWORD>@pg.tail-<YOUR_TAILNET>.ts.net:5432/nexus?sslmode=verify-full&sslrootcert=...&sslcert=...&sslkey=...
 # Tailscale ACL: tagOwners tag:nexus-app/db/admin -> autogroup:admin; acls app->db:5432 only.
 ```
 - **Pitfalls:** `sslmode=verify-full` (not verify-ca — that skips hostname, MITM-open). Set `tagOwners` BEFORE bringing tagged nodes up. Push deny-by-default ACL first (fresh tailnet defaults to allow-all). pg_hba must require `cert` + `scram-sha-256`, not `trust`.

@@ -15,8 +15,8 @@ const UUID = '550e8400-e29b-41d4-a716-446655440000';                    // RFC-4
 const ISO = '2026-06-13T18:42:07Z';                                     // synthetic ISO timestamp
 const EPOCH = '1718304127000';                                          // 13-digit ms epoch (synthetic)
 const HEXHASH = 'deadbeefcafef00d0123456789abcdef0123456789abcdef';     // 48-char bare hex (synthetic sha-shape)
-// JWT STRUCTURE only — three base64url segments. Decodes to nothing sensitive; never a real credential.
-const JWT = 'eyJhbGciOiJub25lIn0.eyJzdWIiOiJ0ZXN0LW9ubHkifQ.c2lnbmF0dXJlLXBsYWNlaG9sZGVy';
+// JWT STRUCTURE only — three base64url segments. Decodes to nothing sensitive; signature is TESTONLY.
+const JWT = 'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJmaXh0dXJlIjp0cnVlfQ.TESTONLY_NOT_A_REAL_SIGNATURE';
 
 // ── clean prefix → no findings, still a successful lane (X) ──
 const cleanPrefix = 'You are the YURI Claude lane. Follow the stable contract.\nNo volatile tokens here.';

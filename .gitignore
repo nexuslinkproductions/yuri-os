@@ -19,6 +19,8 @@ CLAUDE.local.md
 .claude/settings.local.backup-unsafe-original.json
 .env
 .env.local
+.env.*
+!.env.example
 .yuri-env.local.sh
 *.key
 *.pem
@@ -393,6 +395,13 @@ _SYSTEM/state/energy-enforce.enabled
 secrets.env
 *.secrets
 
+# Local vendor / ML virtualenvs (untracked third-party site-packages; never commit)
+gemini_env/
+**/gemini_env/
+
+# October (generated — context bus / browser MCP)
+.qwen/settings.json
+
 # arch-graph-watch runtime state (regenerates; not golden)
 _SYSTEM/state/arch-graph-watch-state.json
 
@@ -509,3 +518,6 @@ _SYSTEM/state/worker-last-*.txt
 # Promoted graph-recon artifacts (owner-approved G1 2026-08-04) — negate the generic graph/ rule above
 !_SYSTEM/graph/
 !_SYSTEM/graph/**
+
+# October (generated — context bus / browser MCP)
+.qwen/settings.json
