@@ -19,9 +19,9 @@ Related memories: `rene-cgs-jeffrey-operating-profile.md` (business + confirm-ga
 
 This is a knowledge/orientation skill, not a build pipeline sibling of cgs-align/cgs-decimate/cgs-mold.
 It exists so a fresh session immediately knows where the cockpit lives, how to run it, and its sharpest
-gotchas — before touching any file. **The cockpit repo is a SEPARATE git repo from yuri-os** (no
-remote); never mix a cockpit-tree change into a yuri-os commit, and this skill never edits cockpit files
-itself.
+gotchas — before touching any file. **The cockpit repo is a SEPARATE git repo from yuri-os** with its
+own remote (see WHERE); never mix a cockpit-tree change into a yuri-os commit, and this skill never
+edits cockpit files itself.
 
 ## WHERE (absolute paths)
 
@@ -32,15 +32,29 @@ itself.
   without yuri-os or this skill — keep those two in sync when cockpit facts change.
 - **Backend** (`backend/`): `app.py` (FastAPI app + route wiring), `db.py` (SQLite access), `woo.py`
   (WooCommerce REST sync), `engine_bridge.py` (reads the cgs-cogs engine), `auth.py` (password gate),
-  `backup.py` (off-site SSH backup), `cam_index.py` (CNC drive scanner for "ready to build"),
-  `cam_registry.py`, `export_molds.py` (Excel export).
-- **Frontend** (`frontend/src/pages/`): `Overview.tsx`, `Sales.tsx`, `Products.tsx`, `Accessories.tsx`,
-  `Purchasing.tsx`, `Molds.tsx`, `CamRegister.tsx`, `Settings.tsx`.
+  `backup.py` (off-site SSH backup), `git_backup.py`, `cam_index.py` (CNC drive scanner for "ready to
+  build"), `cam_registry.py`, `export_molds.py` (Excel export), `inventory.py` (stock + BUILD),
+  `build_cogs.py` (a build re-costs its sale — see below), `quotes_store.py`, `pl.py` (Erfolgsrechnung),
+  `reconcile.py` + `books_client.py` (cgs-books), `twint_report.py`, `post_*.py` (Swiss Post labels),
+  `geo_lookup.py`, plus the three cgs-cogs write stores.
+- **Frontend** (`frontend/src/pages/`): `Overview.tsx`, `Sales.tsx`, `ProfitLoss.tsx`, `Quotes.tsx`,
+  `Molds.tsx`, `CamRegister.tsx`, `Inventory.tsx`, `Demand.tsx`, `PartsCounter.tsx`, `Products.tsx`,
+  `Bom.tsx`, `Accessories.tsx`, `Purchasing.tsx`, `Versand.tsx`, `Reconcile.tsx`, `EtsyPayouts.tsx`,
+  `Settings.tsx`. `nav.tsx` is the single source of truth for sections + routing — `PAGES` and
+  `PageId` must stay in step with `App.tsx`.
 - **Costing engine** (co-located sibling, NOT inside `cockpit/`): `..\cgs-cogs\` — `scripts/engine.py`
-  (stdlib) + `data/*.csv|json`. The cockpit reads this **READ-ONLY except for ONE path**: purchase
-  orders. `backend/orders_store.py` is the single writer into `cgs-cogs/data/orders_*.csv` (atomic,
-  keeps a `.bak`, validates hard). Part prices, BOMs and the dashboard still belong to the
-  `/cgs_cogs` skill — never write those from here.
+  (stdlib) + `data/*.csv|json`. The cockpit reads this READ-ONLY **except through exactly THREE
+  doors** — each the sole writer of its file, validating whole-and-rejecting-whole, atomic
+  temp+replace, one `.bak`:
+  | Store | Owns | Surface |
+  |---|---|---|
+  | `orders_store.py` | `orders_*.csv` supplier ledgers | Purchasing |
+  | `parts_store.py` | `parts.csv` part catalogue | Purchasing → add from invoice |
+  | `boms_store.py` | `boms.json` **master BOM** | Costing → BOM (2026-08-12) |
+  `build_config.json` has **no** writer and is edited by hand — deliberate. `boms.json` decides what a
+  model COSTS; `build_config.json` decides which parts come OFF THE SHELF on a BUILD. Swap a component
+  in the BOM editor and the margin moves at once while the deduction keeps taking the old part until
+  that file gets the same swap. Do not add a fourth door without asking René.
 - **Purchasing write path** (built 2026-07-21): `orders_store.py` (ledger writes) ·
   `invoice_parse.py` (+`.test.py`, stdlib PDF/XLSX field extraction — a PROPOSAL that prefills a
   review dialog, never a write) · `documents.py` (invoice attachments under `cockpit/data/invoices/`,
@@ -172,11 +186,29 @@ hosted there** as a live app. SSH access exists (chrooted bash) but is used only
 backup file push, not for running the app. A live-hosted option would require a real VPS, a PHP
 rewrite, or accepting the current local-box + Tailscale + backup model.
 
+## COST FOLLOWS THE BUILD (2026-08-12)
+
+`sales.unit_cogs` is a BOM snapshot taken at sync. A build that deviated used to leave it stale —
+right stock, optimistic margin. `backend/build_cogs.py` now rewrites it from the material that
+actually left the shelf (labour + tooling stay from the BOM; a build measures neither). It runs after
+the stock write, is never fatal, and **DECLINES rather than guesses** — an unpriced part or a missing
+BOM row leaves the COGS alone and says why, because a silent 0 would understate. `cogs_bom` /
+`cogs_bom_source` hold the pre-build figure (written once); the Sales line carries an amber `*`;
+clicking it reverts. Two things that look optional and are not: `ShellUse.sheet_offset` (a shell build
+drops the sheet line, so without this the biggest line silently vanishes from the cost) and
+`built_qty` (a build total ÷ units = per-unit `unit_cogs`).
+
 ## WORKFLOW discipline
 
 - **Verify against the running app, not assumptions.** Hit the real HTTP endpoints / load the real page
   before claiming a fix works — this app has a documented history of confidently-wrong claims later
   found false under direct testing (see the memory file's 2026-07-19 adversarial-review entry).
+- **To exercise a WRITE path against real data without touching it, run a second instance on copies.**
+  Both data locations are env-overridable and the auth cookie is host-scoped, so the existing browser
+  session works across ports and you get the real UI on real-shaped data at zero blast radius:
+  `COCKPIT_DB=/tmp/sbx/cockpit.db CGS_DATA_DIR=/tmp/sbx/data python -m uvicorn app:app --app-dir backend --port 8010`.
+  Kill it and delete the copies afterwards, and **prove** it stayed a sandbox (`git status` on
+  `cgs-cogs/data/`, a count query on the live DB) rather than asserting it.
 - `tsc` clean + a real HTTP check (not just "it compiled") before calling frontend work done.
 - Git commits inside `landed-cost-cogs/` (the cockpit's own repo) use scoped pathspecs, same
   discipline as yuri-os itself. **Never mix a cockpit-tree change into a yuri-os commit** — they are
@@ -186,12 +218,15 @@ rewrite, or accepting the current local-box + Tailscale + backup model.
 
 ## Status
 
-STATE (per memory file, 2026-07-19): LIVE with real data (~1,600+ orders), remote access live and
-reboot-verified, password gate + mobile-responsive pass shipped and verified. Open items: AVG antivirus
+STATE (2026-08-12): LIVE with real data (~1,600+ orders / 261 in 2026), remote access live and
+reboot-verified, password gate + mobile-responsive pass shipped. Since 2026-07-19 the app has grown
+Quotes, Inventory + BUILD deduction, Demand, Parts Counter, Net Profit, Versand (Swiss Post labels),
+Etsy payouts, TWINT settlement, the master-BOM editor and build re-costing. Open items: AVG antivirus
 occasionally blocked in-app Woo sync (never confirmed whitelisted); flat CHF 14 legacy COGS still
 approximate for old gun-named products; two orders flagged "needs review" in Molds; a ~CHF 78k pending
-cluster never confirmed real vs. artifact; Woo sync is manual-trigger only (only the backup runs on a
-schedule). Full detail: the memory file's `NEXT / open` section.
+cluster never confirmed real vs. artifact; 6 TWINT orders (CHF 647.97) with no evidence of payment —
+check the bank statement before chasing, the cockpit cannot see it; Woo sync is manual-trigger only
+(only the backup + git push run on a schedule). Full detail: the memory file's `NEXT / open` section.
 
 ## Session Notes
 
@@ -214,3 +249,22 @@ schedule). Full detail: the memory file's `NEXT / open` section.
   pure orientation/context skill, not a hardened procedure.
 - Tools: Read (memory file + sibling skills + live cockpit filesystem for path verification), Bash
   (directory listings only, read-only), Write (this file + the command alias).
+
+### 2026-08-12 (master BOM editor, build re-costing, doc drift)
+- Added: the THREE cgs-cogs write doors (boms_store joined orders_store + parts_store), the
+  boms.json-vs-build_config split, COST FOLLOWS THE BUILD, the sandbox-on-copies verification recipe,
+  the full current page list, and a refreshed Status.
+- **Corrected a rule that had gone false**: this skill (and the repo's CLAUDE.md) both still said part
+  prices and BOMs "belong to the /cgs_cogs skill — never write those from here". `parts_store.py`
+  already wrote parts.csv and `boms_store.py` now writes boms.json. A stale prohibition is worse than
+  no rule: it tells a session the safe path is the forbidden one. Rule of thumb this leaves behind —
+  when a doc says "X is read-only", verify against `grep -rn` for writers before trusting it.
+- **Found and fixed real doc drift in the cockpit repo**: TWO copies of the memory snapshot
+  (`docs/cockpit-memory.md`, referenced by CLAUDE.md, 2 weeks stale — and
+  `cockpit/docs/cockpit-memory.md`, newer but referenced by nothing). A session following the
+  documented path got the older file. Refreshed the canonical one, removed the orphan.
+- `@anchor: none` still holds for the orientation content; the CO-COST/`sheet_offset` and
+  DECLINES-rather-than-guesses notes trace to failures caught in testing, recorded in the Track-B
+  memory entry rather than as skill rules.
+- Tools: Read/Edit (skill + repo CLAUDE.md + memory), Bash (git, sandbox instance on :8010 against
+  copies, live-DB count checks to prove isolation), claude-in-chrome (live UI verification).
