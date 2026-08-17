@@ -471,9 +471,25 @@
     "source_path": "skills/zoom-out/SKILL.md",
     "hash": "2a6894c7f9b1c9c5"
   },
+  "cgs-align": {
+    "source_path": ".claude/skills/cgs-align/SKILL.md",
+    "hash": "287e8f640b24dfe0"
+  },
+  "cgs-books": {
+    "source_path": ".claude/skills/cgs-books/SKILL.md",
+    "hash": "75744a9ff1c17840"
+  },
+  "cgs-cockpit": {
+    "source_path": ".claude/skills/cgs-cockpit/SKILL.md",
+    "hash": "9a302c51951d9aa5"
+  },
+  "cgs-decimate": {
+    "source_path": ".claude/skills/cgs-decimate/SKILL.md",
+    "hash": "943c1be4ffbce738"
+  },
   "cgs-mold": {
     "source_path": ".claude/skills/cgs-mold/SKILL.md",
-    "hash": "8ef86493bebc98a4"
+    "hash": "3e7af1b0be160bc5"
   },
   "yuri-control-plane-first": {
     "source_path": ".codex/skills/yuri-control-plane-first/SKILL.md",

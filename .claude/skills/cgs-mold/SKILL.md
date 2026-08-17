@@ -34,6 +34,16 @@ the MCP server live. Output: a cut, smoothed, offset mold object ready for STL e
    default drops a separate light, so a short gun with a big forward light gets a dip that stops at the
    muzzle. `travel` then defaults to the full assembled Y-span and reaches the furthest feature for free.
 <!-- @anchor: v1 | failure: cgs-mold sweep incomplete on short-gun/big-light — light island dropped by 'keep largest island', dip stopped at the muzzle not the light bezel (René 2026-07-03) | regression: assemble_gun_solid() unions all islands + sweep_dip front_feature_z diagnostic; VALIDATED live 2026-07-03 on Glock 43X + TLR-7 (2 islands, both kept, dip front_y=-74.1 full 175.8mm) -->
+5. **Two DIFFERENT voxel defect classes, two different detectors, both MANDATORY — and one of them has no
+   depth at all.** `repair_pits` (pipeline step 2b) catches CRATERS: a vertex sunk below its own 2-ring
+   neighbourhood, up to 1.4 mm on a 0.4 mm voxel. `despeckle_mold` (step 3c) catches the SPECK FIELD: ~0.1 mm
+   NORMAL discontinuities whose depth statistics are indistinguishable from a clean panel (P320 X-Carry:
+   dotted panel rms 0.068 mm vs clean slide flank 0.067 mm) and which `smooth_mold` and `denoise_region`
+   both actively PROTECT as "real creases". **Neither detector sees the other's defect. Run BOTH on every
+   mold, and never judge a speck field by a depth number or by `repair_pits` reporting zero.** Corollary
+   (08-03b, restated): a speck field on a swept mold is a DEFECT until measured — the sweep is a running-max
+   envelope, so it cannot create a concavity, and a swept flank is smooth by construction.
+<!-- @anchor: v1 | failure: OWNER REJECT "why the hell are you always making these holes!!!???" — a dense speck field shipped on the swept left frame flank of the P320 X-Carry mold after repair_pits reported 0 defects for three consecutive stages, because the specks are ~0.1mm NORMAL discontinuities with no depth signature (panel plane-fit rms 0.068mm vs clean flank 0.067mm; the discriminator was sharp_frac 0.18-0.29 vs 0.000), and smooth_mold/denoise_region both froze them as real creases (denoise_region moved 31,989 verts for a measured no-op 0.0241 -> 0.0225); I had also seen the field in my own render and dismissed it as scan stippling without measuring, 2026-08-17b | regression: cgs_mold.py speck_report / repair_specks / smooth_flank_field / despeckle_mold (sharp-mask compactness discriminator + grid flank filter with a 0.18 tolerance gate + 0.35 cumulative cap + per-pass extended_still_sharp assert) + SKILL pipeline step 3c gate on ok==True before export; validated 245 -> 6 hotspot clusters over 6 passes, 0/0, idempotent re-run -->
 
 ## Pipeline (owner gun-dip method — validated)
 
@@ -96,6 +106,55 @@ the MCP server live. Output: a cut, smoothed, offset mold object ready for STL e
    past the original grip (can be full slide-height, not grip-height); a single diagonal can't
    clear that without climbing into the slide or leaving a floating remnant. See METHOD-NOTES.md
    → "GRIP/TAIL CUT = TWO CUTS, NOT ONE" for the full failure story. [VALIDATED]
+   ★★ **THE CUT-CONFIRM RENDER — ONE image, mold TRANSLUCENT over the SOLID gun. Five layouts were
+   rejected by the owner on 2026-08-08; exactly one works.** Switch `render.engine` to
+   `BLENDER_EEVEE_NEXT`; give the MOLD a Principled material, blue base colour, **Alpha 0.28**,
+   `surface_render_method='BLENDED'` (plus `blend_method='BLEND'` in a try/except) and
+   `use_backface_culling=False`; give the GUN an opaque warm-orange material; SUN lamp ~4.0, dark world,
+   ortho side camera framed on the UNION of both bboxes; render with `bpy.ops.render.render(write_still=True)`
+   — **NOT** `render.opengl`; then composite the cut lines from `ppm = res_x/ortho_scale` (screen-right +Y,
+   screen-up +Z at rx=90/rz=90; `cy/cz` = the camera's own y/z). Switch back to `BLENDER_WORKBENCH` after.
+   ⚠ **REJECTED — do not repeat:** mold alone ("I cannot see the gun") · gun alone with a removed-region
+   tint ("I cannot see the mold") · gun + mold *outline* ("there is no overlay, I cannot see where you
+   intend to cut") · mold **half-sectioned** at X=0 rendered beside the gun (readable ONLY when the swept
+   tail protrudes past the gun; when cut B lands near the beavertail the mold hides entirely inside the gun
+   silhouette) · two stacked panels at the same scale ("AGAIN... I must see both!" — he means superimposed,
+   not side by side). The mold IS the gun's swept envelope, so it CONTAINS the gun; only real alpha shows
+   both surfaces at the same pixel. Full failure log: Session Notes 2026-08-08.
+3c. **SPECK-FIELD GATE — `despeckle_mold`, MANDATORY, and `ok` must be True before export** (owner
+   directive 2026-08-17b: *"make sure this is checked automatically with every future mold"*, after
+   *"why the hell are you always making these holes!!!??? The original stl file is a clean file"*).
+   Run it on the **PRE-DECIMATE** mold, after `smooth_mold` + `offset_mold`. One call: audit →
+   `repair_specks` → re-audit → auto `smooth_flank_field` on any surviving hotspot → converge (monotone,
+   stops on no-progress) → final audit. Then **`assert r["ok"] and not r["crease_assert_failed"]`** — a
+   False `ok` names the panels in `r["after"]["hotspots"]`; go render that panel under cavity/matcap light
+   and deal with it. Do NOT export past a False.
+   ★ **THIS DEFECT CLASS HAS NO DEPTH AND EVERY DEPTH PROBE IS BLIND TO IT.** On the P320 X-Carry the
+   dotted panel plane-fitted at **rms 0.068 mm** and the visually-spotless slide flank at **0.067 mm** —
+   identical. The discriminator was the crease flag: **`sharp_frac` 0.18–0.29 vs 0.000**. They are ~0.1 mm
+   NORMAL discontinuities from the voxel remesh; cavity/matcap shading renders a normal break as a hard
+   black speck, so the eye sees a hole where there is almost no depth. `repair_pits` cannot see them, and
+   `smooth_mold` / `denoise_region` actively PROTECT them (both freeze sharp verts as real creases —
+   `denoise_region` moved 31,989 verts and changed the panel metric 0.0241 → 0.0225, a measured no-op).
+   ★ **Discriminator = `repair_pits`' compactness test applied to the SHARP mask**: a real crease is a LONG
+   connected cluster (rail grooves, panel borders, the parting line, cut-face borders — a flat cut face is
+   safe for free, its only sharp verts are its long border), a voxel facet break is a compact blob. Every
+   repair pass re-asserts `extended_still_sharp == extended_verts`, so owner geometry provably cannot be
+   eaten. Escalation is legitimate because a swept flank is the **running max** of the gun's half-width
+   along the sweep — smooth by construction, so high-frequency content on it was manufactured downstream
+   and cannot be scan detail.
+   ⚠ `smooth_flank_field`'s `tol` (0.18) is load-bearing: un-gated, it hit its cap on 100/434 verts of the
+   P320's clean CONVEX right flank, i.e. it was flattening real shape. **A systematic mismatch bigger than
+   the noise band means the region is not a noise case — skip it, don't clamp it.**
+   ⚠ `total_cap` (0.35) exists because passes COMPOSE and the per-stage caps do not bound the sum (an
+   uncapped multi-pass run drifted to 0.60 mm on a 0.15/0.18-capped pipeline).
+   ⚠ **Never re-audit after decimating and expect the same numbers** — neighbourhood metrics scale with
+   edge length: the P320 read f010 **0.0006 pre-decimate and 0.0571 post-decimate** on two surfaces
+   **0.0071 mm** apart. Verify at ONE density, or with a BVH distance.
+   Validated 2026-08-17b on a 0.4-voxel remesh of the X-Carry scan (the hardest case — a gun carries far
+   more real detail than a swept mold): hotspot clusters **245 → 68 → 54 → 18 → 10 → 8 → 6** over 6 passes,
+   8.0 % of verts moved at mean 0.106 mm / max exactly the 0.35 cap, manifold 0/0 and the crease assert
+   green on all 7 repair passes, and a re-run is a 5.6 s **ok:True / 0 hotspots** no-op (idempotent).
 4. **Smooth / retouch** (`smooth_mold`) — feature-preserving denoise of the voxel surface; smooth
    AND sharp (keeps edges, bevels, grooves, corners crisp, no global rounding). **4 sub-passes**:
    flat Taubin denoise (sharp creases frozen) → crease-line de-zigzag (1D midpoint along the
@@ -217,6 +276,12 @@ solid, s = sweep_dip(gun)                                     # -> CGS_MOLD_SOLI
 # 2c. MANDATORY: kill the craters the voxel remesh just manufactured (René 2026-08-03b, "little holes
 #     everywhere"). Re-run after the booleans and after smooth_mold too — each is cheap and idempotent.
 repair_pits(solid)                                            # in-place; check rounds[] -> defect_verts 0
+# 2d. MANDATORY GATE: the SPECK FIELD — ~0.1mm NORMAL breaks that repair_pits is blind to and that
+#     smooth_mold/denoise_region PROTECT as creases (René 2026-08-17b: "always making these holes").
+#     Run on the PRE-DECIMATE mold, AFTER smooth_mold + offset_mold; do NOT export past ok:False.
+sp = despeckle_mold(smo)                                      # audit -> repair -> auto flank filter -> converge
+assert sp["ok"] and not sp["crease_assert_failed"], sp["after"]["hotspots"]
+#     read-only audit anywhere (e.g. a pre-export assert):  speck_report(obj)["ok"]
 # 3. cut A (diagonal grip) + cut B (vertical tail) -> smooth -> remove_overhang? -> offset
 # 4. decimate_mold(smo) -> export_mold(final, "<gun-name>")   # remesh=False collapse to ~125k faces,
 #    corners preserved; ONE solid piece, NO split (owner 2026-07-03)
@@ -228,6 +293,8 @@ repair_pits(solid)                                            # in-place; check 
 Every stage is a standalone function — `sweep_dip`, `solidify_mold`, `cut_grip`, `smooth_mold`,
 `remove_overhang`, `denoise_region`, `offset_mold`, `split_mold` — each returns `(object, summary_dict)`
 except `remove_overhang`/`denoise_region`/`offset_mold`, which are in-place and return just `summary_dict`.
+The two MANDATORY defect gates are also in-place and return just a summary: `repair_pits` (craters) and
+`despeckle_mold` (speck field); `speck_report` is read-only and safe to call anywhere.
 Tune one stage and render between. (`build_mold` is the legacy
 single-cut core = solidify → cut → smooth; the current grip stage is TWO cuts, so drive the stages
 individually. `build_mold` writes `/tmp/cgs_mold_summary.json` — a Unix path; skip it on Windows.)
@@ -266,6 +333,512 @@ the owner's eye sets the final `*_below_mm`. New gun → copy `hk45.json`, adjus
   exports import as manifold 0/0, 1 island — just center on origin; no reseal needed).
 
 ## Session Notes
+
+### 2026-08-17c — **SIG P320 X-Carry, bare gun** — **DONE, EXPORTED**; the speck gate's first live catch
+- First run with `despeckle_mold` (step 3c) wired in as a mandatory gate. Scan `P320 XCARRY - GUN`
+  112,885 v / 225,790 f, watertight **0/0, 1 island**, identity matrix, canonical pose. Edge ratio
+  p99/p1 = **23.0** ⇒ `repair_pits` correctly skipped on the scan; post-sweep **2.40**.
+  Annotation present: 2-point stroke (2.4406, −32.3253) → (96.1547, 11.6567) at x=0 ⇒ m 0.469322,
+  b_scan −33.4708. Δ from assemble = (−0.063, **−6.844**, **+10.954**), pure translation ⇒
+  `b_mold` **−19.30457**, **α 25.14°** — the second-shallowest cut A this pipeline has run (only the
+  43X's 15.4° is shallower). Sanity: passes 10.9 mm under the knee and 12.0 mm under the beavertail,
+  crossing the mold bottom at y ≈ 0. Owner confirmed 25.1° on the first cut-confirm render.
+- **★★ THE GATE EARNED ITS KEEP ON ITS FIRST RUN — it returned `ok: False` and named the region.**
+  27 hotspot clusters at **y −118.5…−108.3, z 53.4…59.1, both flanks** = the mold's **front nose cap**,
+  where the swept envelope curves from the muzzle face up to the slide crown. Its escalation could not
+  clear it (27 → 17 → 19, then it stopped on no-progress, as designed) **because the clusters sit at
+  |x| ≈ 0–3.4, not on a flank** — `smooth_flank_field` selects `|x| > 0.93·hw` and so cannot reach a
+  cap. That is the correct behaviour: it refused to mangle a doubly-curved cap with a flank tool and
+  handed me a location instead. Without the gate this would have shipped — the jagged staircase on the
+  nose arc is plainly visible in a cavity render, and I had not thought to look there.
+  **The fix: `denoise_region` on the nose box with `feature_angle=179` so NOTHING is frozen.** On a
+  voxel staircase the "creases" ARE the defect, so the usual crease-freeze is exactly backwards there.
+  y −122…−104, z 48…64, 10 pairs: nose-cap Laplacian p99 **0.0604 → 0.0414**, max 0.1453 → **0.0650**,
+  for a mean displacement of **0.0085 mm** and 0 verts hitting the 0.25 cap. Re-audit: **0 hotspots,
+  ok: True.** The cap is now smoother than the untouched slide-top reference (p99 0.0704).
+  ⚠ Note the direction of the pre-fix numbers: the nose cap's p99 (0.060) was ALREADY below the
+  slide top's (0.070), so this was not gross roughness — it was a local CONCENTRATION of compact sharp
+  clusters. That is precisely what the hotspot-density test is for and what a global roughness p99
+  cannot see.
+- **⚠ The gate re-reads `ok: False` on the DECIMATED mold and that is the documented density trap, not
+  a regression.** Pre-decimate: 0 hotspots. Post-decimate: 20 hotspot clusters — because the compactness
+  threshold (2.5 mm bbox diag) and the bucket counts are calibrated at 0.4 mm voxel edges, and collapse
+  roughly doubles the edge length, so the same "compact" window now spans twice the surface. The BVH says
+  the decimated surface is **p99 0.0032 / max 0.0677 mm** from the gated one, i.e. the geometry IS the
+  gated geometry. **Gate on the PRE-DECIMATE mesh; validate the decimated one by BVH.** (Same lesson as
+  08-17b's f010 0.0006 → 0.0571, now hit from the other direction.)
+- Knee textbook on the mold's running-min bottom, and it has **TWO plateaus** — 17.79 from y −115 to −66
+  (the dust cover / rail underside), then a step to **−10.987 dead flat from y −27.5 to −5.5** (the
+  trigger-guard bottom), then −4.5 → −11.213 continuously. Corner = the LAST flat bin = **(−5.5, −10.987)**.
+  Beavertail on GUN_SOLID, banded: a clean tang at **y 67.83, z 23.5–28.5**, receding to 43–55 below and
+  58 → 42 above; the grip heel is 20 mm FORWARD (y 47.4 at z −9.5), so no 08-04c heel trap.
+  **EXACT@dz=0 first try on both cuts**: A 316,905 v (0.40×src), B at `beavertail + 6` = y 73.8 →
+  254,276 v, both 0/0.
+- **★ z_line 39.5, and it cross-validated against the previous run on the SAME gun.** Band table: mid
+  frame **16.28** to z 38 → 15.22 → **13.40** at z 40; rear 15.98 to z 37 → 14.99 → 13.95 → **13.47** at
+  40. The ctr band's 17.5 at z 34–37 is the beavertail tang, above the line, correctly ignored (08-07).
+  ⚠ The **fwd band is structurally uninformative on this gun for the third time** — the dust cover is
+  flush with the slide (13.42 from z 31 up). Slide height 62.65 − 39.5 = **23.2 mm** ✓. Converted to scan
+  frame (Δz +10.954) this is **28.55**, against **28.63** from the 08-17b TLR-7 X run (Δz +8.366) —
+  the same gun measured in two independent runs agreeing to **0.08 mm**. That is the cheapest possible
+  confirmation of a parting line and it costs one subtraction; do it whenever the gun has been run before.
+- `boot=0.4`, travel 187.7, 10 passes, **7.1 s** on 113k v. Pits post-sweep **746 → 185 → 51 → 14 → 3 →
+  2 → 1**, then oscillating 1↔2 rather than reaching 0 — a single vert adjacent to an extended cluster
+  flipping in and out. Not divergence (never rises), mean move 0.23 mm ≈ 0.6× voxel; it cleared to 0 after
+  the cuts and stayed 0 through smooth and offset.
+- `smooth_mold(flat_pairs=8, deburr_thr=0.015, deburr_rings=3, deburr_pairs=12)` — tenth gun on the
+  anti-orange-peel params. Slide flank p99 **0.0485 → 0.0221** (max 0.124 → 0.024), slide top p99
+  0.0586 → **0.0229**. 24 verts >0.5 mm clamped → max 0.447, 0/0. **Eighteen-for-eighteen on the clamp.**
+- Offset verified by REGION bbox: slide ±0.400 X / min_y −0.399 / max_z +0.393; frame region
+  **byte-identical (all 0.000)**. Gaps: slide flank **+0.411**, frame flank **+0.035 ≈ 0** (below the
+  line, correctly untouched), front-Y +0.413, max_z +0.417.
+- Pre-clean exposed **0** non-manifold; decimate ratio 0.242, 1 iter → **123,000 faces / 61,502 v, 0/0,
+  1 island**. Dims 35.09 × 194.48 × 86.48.
+- Export (folder + name confirmed with René — a THIRD P320 file, so it needed a distinct name):
+  `C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS\P320 XCARRY.stl` (6,150,084 B, 61,502 v) **+
+  `P320 XCARRY GUN.stl`** (11,289,584 B, 112,885 v). Both byte-exact vs `84 + 50·TRIS`, both identity
+  `matrix_world`.
+  <!-- @anchor: v1 | failure: none shipped — this is the entry recording that the new despeckle_mold gate CAUGHT a real defect on its first live run (27 hotspot clusters of voxel staircase on the mold's front nose cap, y -118.5..-108.3 / z 53.4..59.1) that would otherwise have exported, and that its flank-based escalation correctly REFUSED to touch a cap (clusters at |x| 0-3.4, outside the |x|>0.93*hw flank mask) and stopped on no-progress instead of mangling it; also records that the gate re-reads ok:False on the DECIMATED mesh purely because its thresholds are calibrated at voxel edge length, 2026-08-17c | regression: cgs-mold SKILL.md Session Notes 2026-08-17c — clear a voxel staircase on a curved CAP with denoise_region(feature_angle=179) so nothing is frozen (on a staircase the "creases" ARE the defect); gate on the PRE-DECIMATE mesh and validate the decimated one by BVH; cross-check z_line against a previous run of the same gun by converting through the assemble translation -->
+
+### 2026-08-17b — **SIG P320 X-Carry + TLR-7 X** — **DONE, EXPORTED**; `repair_pits` is BLIND to a wide crater
+- Input = the gun I had aligned earlier the same session with `cgs-align`, now with the light merged:
+  `P320 XCARRY TLR-7 X`, 166,469 v / 332,986 f, **watertight 0/0, 1 island**, identity matrix, canonical pose
+  inherited (pitch −0.017/+0.004° · roll −0.007/+0.010° · yaw +0.009°) — **no pose work needed**. Scan edge
+  ratio p99/p1 = **31.5** ⇒ `repair_pits` correctly skipped on the scan; post-sweep it is **2.45**.
+  Gun and light are one welded island and the light does not extend the envelope (identical bbox to the bare
+  gun) — as on the 08-08c G19, **a matching bbox is not evidence the light is absent**; the cut-confirm
+  render showed it plainly.
+- **★★ THE LESSON: `repair_pits`' 2-ring probe cannot see a crater WIDER THAN ITS OWN SUPPORT.** A dimple on
+  the right slide flank at (13.28, −61.22, 42.39), **~2.5 mm across and 0.35 mm deep**, survived every
+  sanctioned pass — post-sweep, post-cut and post-smooth all reported `defect_verts 0` — because the whole
+  2-ring neighbourhood sits INSIDE the crater, so `d = (mean₂ᵣᵢₙ𝗀 − v)·n` read only **0.16**, under the 0.25
+  threshold. Decimate-collapse then amplified it to 0.238 and it rendered as an obvious black mark.
+  **THE PROBE THAT FINDS IT: fit a plane to an ANNULUS (2.6–4.2 mm) around the suspect spot and measure the
+  INNER deviation against the surrounding surface's own flatness.** Here: annulus rms **0.0129 mm**, inner
+  dev **−0.349 mm**, against reference flank patches elsewhere at rms 0.005–0.012 / ptp 0.022–0.043. That
+  contrast is unambiguous where a normal-projected ring probe is silent.
+  **THE FIX:** pull the inner verts onto the annulus plane with a **smoothstep falloff** (w = 1−(3t²−2t³),
+  t = r/2.6), capped at 0.45 mm. 135 verts moved, max 0.349 → patch rms **0.0095**, ptp **0.0611** — i.e.
+  restored to the flank's native flatness. Applied pre-decimate, then re-decimated; BVH p99 0.0035, max
+  **0.0071 mm**, zero verts over 0.1.
+- **⚠ Lowering `repair_pits`' threshold to chase it DIVERGES — the 08-04c rule, re-measured.** At thr 0.15
+  on the post-offset mesh the flagged set was 224 clusters; the repair moved **1,846 verts** (mean 0.136,
+  capped 0.25 mm) and the post-count came back **1,108 pits, worst 0.395** — WORSE than it started. At
+  0.4 mm voxel density the whole surface carries |d| ≈ 0.10–0.15, so a sub-0.20 threshold is repairing the
+  noise floor, and smoothing a patch manufactures fresh rim mismatch. An earlier variant at 0.15 with a
+  2-ring free set moved 784 verts and left 185 positives. **The compact/extended discriminator does NOT
+  rescue a threshold set under the noise floor.** Both attempts also grabbed verts on the **cut-B flat face**
+  (y 101.45) and the cut-A plane band — always exclude the cut planes from any pit probe.
+- **⚠ Two experiments damaged the pre-decimate mesh, and recovery was free because `CGS_MOLD_CUT2` was
+  never touched.** smooth → clamp → `repair_pits` → offset re-ran from CUT2 and reproduced the previous
+  numbers **exactly** (disp max 7.8507 → clamp 0.462; pits 3→1→1→0; offset region 106,278 verts). **Keep the
+  pre-smooth cut mesh in the scene for the whole run** — it is the cheap rollback point for every
+  experiment downstream of it.
+- Annotation-driven cut A, first try: René's 2-point stroke (−0.2014, −37.1431) → (88.5395, 14.1433) at x=0,
+  scan frame. Δ from `assemble_gun_solid` = (−0.063, **+20.511**, **+8.366**), pure translation (shift_min ==
+  shift_max), so `b_mold = b − m·Δy + Δz` = **−40.5154**, m 0.577931, **α 30.02°**. Sanity: the line passes
+  13.9 mm under the trigger-guard knee (mold bottom plateau **−13.576** flat y −0.5…22.5, plunging from 23.5)
+  and 7.0 mm under the beavertail — both close to the −20/−10 defaults, i.e. his line is geometrically sane.
+  **EXACT@dz=0 first try**, 323,824 v (0.393×src), 0/0.
+- Beavertail on GUN_SOLID, banded: the rear silhouette spikes to **y 95.18 at z 20.5–26.5** (the tang) and
+  recedes both above (z 27.5 → 83.96) and below (z −9.5 → 73.72) — the grip heel is 21 mm FORWARD here, so no
+  08-04c heel trap. cut B at `beavertail + 6` = **y 101.2** → 281,125 v, 0/0.
+- `boot=0.4`, travel 187.7, 10 passes, **7.8 s** on 166k v. Pits post-sweep **970 → 43 → 4 → 0**, mean move
+  0.172 mm ≈ 0.43× voxel, 18 extended clusters rejected.
+- `smooth_mold(flat_pairs=8, deburr_thr=0.015, deburr_rings=3, deburr_pairs=12)` — ninth gun on the
+  anti-orange-peel params. Slide flank p99 **0.0884 → 0.0254**, slide top p99 0.0577 → **0.0235** (max 0.129
+  → 0.024). 25 verts >0.5 mm clamped → max 0.462, 0/0. **Seventeen-for-seventeen on the clamp.**
+  ⚠ My first flank probe returned **n=0**: I derived the half-width from the WHOLE mesh (17.55, the frame)
+  instead of from the slab (13.6, the slide) — the 08-17 lesson repeated within one day. **Derive every
+  probe band from its own slab's extent.**
+- **Parting line `z_line` 37.0** off the band table (1 mm slabs): mid **16.27–16.29** and ctr 16.1 to z 36,
+  both collapsing to **13.46/13.59** at z 37; rear 17.4 tang → 13.45. ⚠ The **fwd band is structurally
+  uninformative on this gun** — the dust cover is flush with the slide (13.41 vs 13.46) — exactly as on the
+  08-17 bare P320. Slide height 60.07 − 37.0 = 23.1 mm ✓. Cross-checks with the parting seam I measured in
+  the align run (scan z 29.36 + Δz 8.366 = **37.7**) to 0.7 mm. Offset verified by REGION bbox: slide ±0.400 X,
+  min_y −0.400, max_z +0.396; frame region **byte-identical (all 0.000)**.
+- Pre-clean exposed **0** non-manifold; decimate ratio 0.219, 1 iter → **123,000 faces / 61,502 v, 0/0,
+  1 island**. Gaps: slide flank **+0.467**, frame flank **+0.013 ≈ 0** (below the line, correctly untouched),
+  front-Y +0.391, max_z +0.415.
+- Cut-confirm render: EEVEE translucent overlay per pipeline step 3, **first render accepted**. ⚠ This build
+  still has no `BLENDER_EEVEE_NEXT` (08-08d) — fall back to `'BLENDER_EEVEE'`. Line composite from
+  ppm = 1800/220.18 = 8.175, `cy/cz` = the camera's own y/z; note the image array from `img.pixels` is
+  **bottom-row-first**, so screen-up = +row for +z.
+- Export (folder confirmed = the standing default), both byte-exact vs `84 + 50·TRIS`, both identity
+  `matrix_world`: `C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS\P320 XCARRY TLR-7 X.stl` (6,150,084 B,
+  61,502 v) **+ `P320 XCARRY TLR-7 X GUN.stl`** (16,649,384 B, 166,469 v). Under the ~500k-vert threshold,
+  so no LIGHT companion needed.
+- **★★ OWNER REJECT — "why the hell are you always making these holes!!!??? The original stl file is a
+  clean file" — and the dots are NOT DEPTH, they are ISOLATED SHARP VERTS.** He arrowed a dense speck field
+  on the LEFT frame flank (y −50…+29, z −4…+9). **I had seen it in my own render and dismissed it as "the
+  frame's stippling — real geometry" WITHOUT MEASURING**, which is the 08-03b rule broken verbatim: a speck
+  field on a swept mold is a DEFECT until measured. Worse, it cannot be scan detail — the flank is the
+  running-max of the gun's half-width along +Y, so the sweep can only ever make it FLATTER.
+  **The measurement that finally identified them:** a 5 mm patch on the dot panel fits a plane at
+  rms **0.068 mm**, and the visually-clean slide flank on the same mesh fits at rms **0.067 mm** — identical
+  depth statistics. The only difference is `_feature(35°)`: **`sharp_frac` 0.18–0.29 on the dot panel vs
+  0.000 on the clean flank.** They are ~0.1 mm normal DISCONTINUITIES, not craters — amplitude below every
+  depth threshold, but the cavity/matcap shading renders a normal break as a hard black speck (the 08-04c
+  "the eye reads normals" note, in its sharpest form).
+  **Consequence: every depth probe is structurally blind to them, AND `smooth_mold`/`denoise_region`
+  actively PROTECT them**, because both freeze sharp verts as real creases. Measured: `denoise_region`
+  (y −56…34, z −9…14, 15 Taubin pairs) moved **31,989 verts** and changed the panel's f010 from 0.0241 to
+  **0.0225** — a no-op. So did a normal-projected dish-fill: it froze `~sharp` by design.
+  **DISCRIMINATOR — apply the compactness test to the SHARP mask, not the depth mask.** Cluster sharp verts
+  by edge adjacency: a real crease is a LONG connected line (bbox diag > 2.5 mm — rail grooves, panel
+  borders, the parting line), a voxel facet break is a COMPACT cluster. Here: 225 clusters → 186 compact
+  (1,127 verts) vs 42 long (4,605 verts). Smoothing only the compact ones dropped sharp35 5,607 → 5,021
+  while **all 4,605 long-crease verts stayed sharp** — features provably intact.
+  **THE FIX THAT ACTUALLY CLEARED IT — a grid-resampled flank filter.** Grid `|x|` over (y,z) at 0.4 mm,
+  dilate-fill the empty cells, separable gaussian σ = 1.0 mm, bilinear-sample back, freeze long-crease
+  verts. That removes structure under ~1.5 mm — exactly the speck scale — and preserves the panel's shape
+  and anything larger than ~2 mm. Left flank: 9,551 verts, mean move **0.022 mm**, max 0.174. Render: the
+  field is **gone**.
+  ⚠ **The tolerance gate on that filter is load-bearing, not a formality.** First run had no gate and on the
+  RIGHT flank — which is CONVEX and was already clean (f010 0.000) — it hit the 0.30 mm cap on 100 of 434
+  verts, i.e. it was flattening real shape, not noise. Fix: apply the move ONLY where `|x_smooth − x| < 0.18`.
+  R then skips those 100 and its mean move falls **0.105 → 0.061 mm**. **A systematic mismatch bigger than
+  the noise band means the region is not a noise case — skip it, don't clamp it.**
+- **⚠ THE WIDE-SUPPORT PROBE IS NOT COMPARABLE ACROSS MESH DENSITIES — I nearly declared the fix failed.**
+  The k-iteration Laplacian probe's support scales with EDGE LENGTH, so the same surface read f010
+  **0.0006 pre-decimate (281k v)** and **0.0571 post-decimate (61.5k v)** — while the BVH said the two
+  surfaces are within **0.0071 mm** of each other. The geometry did not change; the ruler did. **Verify a
+  surface fix at ONE density, or with a BVH distance, never by re-running a neighbourhood probe after
+  decimating.**
+- Recovery discipline paid off twice: `CGS_MOLD_CUT2` was kept untouched all session, so both damaging
+  experiments (the sub-threshold pit chase and the un-gated flank filter) were undone by re-running
+  smooth → clamp → repair_pits → offset from it, reproducing prior numbers exactly. Final chain that shipped:
+  smooth(8/0.015/3/12) + clamp → repair_pits ×2 → offset(z_line 37, 0.4) → repair_pits ×2 → annulus
+  plane-fill of the one wide flank crater (135 v) → compact-sharp decluster (186 clusters, 2,450 v, cap
+  0.15) → grid flank filter both sides with the 0.18 tolerance gate → pre-clean → decimate.
+  Re-verified: **123,000 faces / 61,502 v, 0/0, 1 island**, BVH p99 0.0036 / max 0.0494 / zero over 0.1,
+  gaps slide flank +0.467 · frame flank +0.012 ≈ 0 · front-Y +0.391 · max_z +0.415, dims 35.10 × 194.42 ×
+  89.12. Both STLs re-exported byte-exact.
+- ⚠ Scratch dumps to `C:\Users\rene\cgs_tmp\` (`_SYSTEM/state/` stays denied, 08-17). `scipy` is **not**
+  available in this Blender — build adjacency with `np.add.at` / `searchsorted` instead.
+  <!-- @anchor: v1 | failure: OWNER REJECT "why the hell are you always making these holes!!!???" — a dense speck field on the swept left frame flank shipped in the export, and I had already seen it in my own render and dismissed it as "the frame's stippling, real geometry" without measuring (08-03b rule broken verbatim); the specks are NOT craters — the panel's plane-fit rms 0.068mm equals the visually-clean slide flank's 0.067mm, and the only difference is sharp_frac 0.18-0.29 vs 0.000, i.e. ~0.1mm NORMAL discontinuities that every depth probe is blind to and that smooth_mold and denoise_region both actively PROTECT as "real creases" (denoise_region moved 31,989 verts and changed f010 from 0.0241 to 0.0225); and the un-gated grid filter then hit its 0.30mm cap on 100/434 verts of the clean CONVEX right flank, flattening real shape; 2026-08-17b | regression: cgs-mold SKILL.md Session Notes 2026-08-17b — cluster the SHARP mask by adjacency and smooth only clusters with bbox diag <= 2.5mm (long clusters are real creases, verify all of them stay sharp); clear a speck field with a grid-resampled flank filter (0.4mm grid, gaussian sigma 1.0mm) applied ONLY where |x_smooth - x| < 0.18mm; never compare a neighbourhood probe's numbers across mesh densities -->
+  <!-- @anchor: v1 | failure: a 2.5mm-wide 0.35mm-deep crater on the slide flank survived every sanctioned repair_pits pass (post-sweep, post-cut, post-smooth all reported defect_verts 0) because the 2-ring probe's entire support sits INSIDE a crater that wide, so d read only 0.16 against a 0.25 threshold — decimate then amplified it to 0.238 and it shipped visible in the render; and chasing it by lowering the threshold to 0.15 DIVERGED, moving 1,846 verts and raising the post-count to 1,108 pits worst 0.395; 2026-08-17b | regression: cgs-mold SKILL.md Session Notes 2026-08-17b — detect a wide crater by fitting a plane to a 2.6-4.2mm ANNULUS and comparing the inner deviation against the surrounding surface's own flatness, repair by pulling the inner verts onto that plane with a smoothstep falloff; never set repair_pits below 0.20; exclude the cut planes from every pit probe; keep CGS_MOLD_CUT2 in the scene as the deterministic rollback point -->
+
+### 2026-08-17 — **SIG P320 X-Carry, an OBJ and a RAW PHOTOGRAMMETRY SHELL** — **DONE, EXPORTED**; a new input class
+- First **OBJ** input and first **unaligned, non-watertight** scan this pipeline has run. `Sig_P320_X-Carry`
+  479,434 v / 948,543 f, **24 islands, 10,383 boundary edges / 71 open loops**, textured photogrammetry.
+  ⚠ `matrix_world` carried the **OBJ importer's +Y-up→+Z-up X-rotation**, not identity — apply it
+  (`transform_apply`) before measuring anything (same class as 08-08b's 90° Z rotation).
+- **★★ ALIGNING A RAW SCAN FROM NOTHING — PCA for the frame, then datums for the polish.** No annotation,
+  no canonical pose. Recipe that worked: (1) SVD of the main island → 3 axes; (2) resolve SIGNS by shape,
+  not by guessing — the grip end is the half with the larger spread along the height axis, and "down" is
+  where the rear 25 % of mass sits; (3) render and **read the ACCESSORY RAIL**: it is on the frame's
+  underside near the muzzle, so if the rail is on the +Z side the gun is upside down (it was → 180° about Y).
+  ⚠ **Do NOT sanity-check a pose with `bbox = L·cosφ + H·sinφ`** — that identity holds for a RECTANGLE, and
+  a pistol is an L-shape whose bbox can SHRINK under rotation. I used it to "prove" the pitch could not be
+  20°, and it was 20.75°. The bbox told me nothing; the top-envelope slope told me everything.
+- Pitch from the |x|<4 top envelope: slope 0.3788 → **−20.75° applied**, residual 0.08 % — the slide top then
+  read **61.94–62.14 flat over 121 mm**, with the front sight (65.5–65.8) and rear sight (66.6–67.2) standing
+  proud of it, exactly as they should. Final pitch **+0.18°** (inside the fit's own rms 0.50) → not corrected.
+  Yaw **+0.02°** → zero. **Roll: four independent datums ALL negative** — rear-sight shoulder plane −0.938°
+  (rms **0.124**, n 4667), whole-body symmetry −1.158°, slide-flank mid-X vs z −1.650°, front-sight top
+  −0.642° — against the slide-top plane's +0.62° (rms 0.437), which doctrine forbids anyway. Corrected on
+  the rear-sight plane in **two iterations (−0.938 then −0.336)**; afterwards all three converge
+  (rear sight −0.074°, symmetry −0.054°, slide top −0.274°) and the symmetry fit's rms improves
+  **0.134 → 0.087**. **A falling symmetry rms is the tell that a roll correction was real**, and the X bbox
+  shrank 35.99 → 34.63 confirming it.
+- **★★ SEALING A 71-LOOP SHELL: `fill_holes` cannot do it, `edge_face_add` can, and TRIANGULATING UNDOES IT.**
+  `assemble_gun_solid` got 10,383 → 1,445 boundary edges. Then: select boundary → `fill_holes(sides=0)` →
+  select boundary again → **`edge_face_add`** (one n-gon per remaining loop, 9 of them) → **0/0**. Running
+  `quads_convert_to_tris` on those n-gons immediately re-broke it to 247 nm / 156 bd — the big lids are
+  non-planar and BEAUTY triangulation fails on them. **Stop at the n-gon state; voxel remesh eats n-gons fine.**
+  ⚠ And the trap that cost two rounds: **`bpy.ops.mesh.select_non_manifold` selects NOTHING unless
+  `bpy.ops.mesh.select_mode(type='EDGE')` was called first** — it fails silently, so `fill_holes` looks
+  like a no-op when it never had a selection.
+- **★★ THE RULE FOR "DOES A SCAN HOLE MATTER": it is the hole's FACING relative to the sweep, not its size.**
+  The worst loop (790 v, 29×30 mm) was the **backstrap/beavertail**, and I flagged it to René as a blocker
+  because it sits above the cut line. It is in fact **harmless**: its n-gon lid faces **+Y**, the dip sweeps
+  +Y, so the lid is swallowed into the tail block and cut B trims it. A mold only records surfaces that do
+  NOT face the sweep direction. Judge every hole by which way its lid points before condemning a scan.
+- **⚠ Two mirrored SLIVERS extended `gun_rear_y` by 14.65 mm and blinded the beavertail probe.** The banded
+  rear-silhouette probe returned `peak_y 81.97` at z 8 in ALL THREE bands — degenerate, the 07-28b flat-rear
+  signature now happening on the GUN because the rear is a flat cap. Reading the ROWS instead exposed it:
+  a 4 mm-tall spike (z 8–11) reaching y 82 while its neighbours sit at 65–67, then **z 12–17 with NO rear
+  geometry at all** (the hole), then real geometry declining from z 18. The spike was two symmetric flaps
+  (x 4.5…14.0 and −13.8…−6.1, z 8.6–12.7). Deleted `y>67 & 6<z<15` (1,547 v) → re-seal → **gun rear
+  81.97 → 67.32**. Left in, they would have put cut B 15 mm too far back and shipped in the GUN.stl.
+  **A degenerate max() across every band means read the rows, not the extremum.**
+- Knee textbook on the mold's running-min bottom: **−27.204 dead flat from y −13 to +10**, then 11 → −27.688,
+  12 → −28.732, continuous → corner **(10.0, −27.204)**. Beavertail = the rearmost SURVIVING local ridge
+  **(67.32, z 5.0)** (z 4 → 65.61, z 6 → 65.20) — the real one is inside the torn region, so this cut lands
+  slightly lower/more forward than an intact scan would give; owner accepted. → **α 36.36°**, confirmed first
+  render. **EXACT@dz=0 first try on both cuts**: A 277,591 v (0.392×src), B at beavertail+6 = y 73.32 →
+  236,718 v, both 0/0.
+- `boot=0.4`, travel 172.2, 10 passes, **12.0 s** on 477k v — again volume-bound, not vert-bound. Edge ratio
+  **2.52** → `repair_pits` valid; pits **518 → 50 → 13**, mean 0.203 mm ≈ 0.5× voxel, 14 extended rejected.
+- `smooth_mold(flat_pairs=8, deburr_thr=0.015, deburr_rings=3, deburr_pairs=12)` — eighth gun on the
+  anti-orange-peel params. Slide flank p99 **0.0648 → 0.0275**, slide top p99 0.0712 → 0.0400 (max 0.2522 →
+  0.0434). 26 verts >0.5 mm clamped → max 0.485, 0/0. **Sixteen-for-sixteen on the clamp.**
+  ⚠ My flank probe mask (`|x|>14`) was **EMPTY** and threw an unhelpful `index -1 out of bounds` — the slide
+  half-width here is 13.7. **Derive a flank band from the slab's own `max|x|` (`>0.90·hw`), never a constant.**
+- Parting line **z_line 23.5** off the band table: mid frame plateau **16.32–16.34** to z 22 → z 23 13.841 →
+  z 24 **13.52** slide plateau; rear band identical (17.0–17.4 tang → 13.454). ⚠ The **fwd band is
+  structurally uninformative on this gun** — the dust cover shares the slide's half-width (13.47 vs 13.57),
+  so there is no step to find there. Slide height 46 − 23.5 = 22.5 mm ✓. Offset verified by REGION bbox:
+  slide ±0.400 X / min_y −0.400 / max_z +0.396; frame region **byte-identical (all 0.000)**.
+- **⚠ The decimate pre-clean is NOT free — `dissolve_degenerate` opened the SAME 6 nm / 4 bd on a 0/0 source
+  that the decimate would have.** So the pinch sliver is latent in the smoothed mold either way. Run the
+  pre-clean, but **always follow it with the repair**: bmesh-collect `not e.is_manifold`, delete every face
+  linked to those edges' verts (6 edges → 18 faces), `fill_holes(sides=64)` + `edge_face_add` + recalc →
+  0/0 → then decimate. Ratio 0.260, 1 iter → **122,995 faces / 123,000 tris / 61,502 v, 0/0, 1 island**.
+  BVH vs pre-decimate: p50 0.0003 · **p99 0.0034 · max 0.0072 mm · zero over 0.1**.
+- Gaps read correctly per feature: slide flank **+0.467**, frame flank **+0.018 ≈ 0** (below the line,
+  correctly untouched), front-Y +0.335, max_z +0.301 (thin sight blade, the 08-04c signature).
+- ⚠ **`_SYSTEM/state/` is now DENIED to the scratch-dump habit** — the permission classifier reads it as
+  `.claude/state` and blocks `open().write()` through the Blender MCP. Dump stage summaries to
+  **`C:\Users\rene\cgs_tmp\`** instead; the read-back-from-disk pattern is unchanged.
+- Export (folder confirmed = the standing default), both byte-exact vs `84 + 50·TRIS`, both identity
+  `matrix_world`: `C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS\SIG P320 X-Carry.stl` (6,150,084 B, 61,502 v)
+  **+ `SIG P320 X-Carry GUN.stl`** (47,734,884 B, 477,356 v — 46.6 MB, flagged to René for a possible
+  LIGHT companion per the 08-08b size rule).
+- ⚠ Scan measures **186.86 × 134.20 × 34.63** vs X-Carry's ~203 mm OAL; René ruled it a **truncated X-Carry**
+  (the rear/backstrap tear also removes length), not an X-Compact. Named accordingly.
+  <!-- @anchor: v1 | failure: (a) I "disproved" a real 20.75deg pitch with bbox = L*cos + H*sin, an identity that only holds for a RECTANGLE — a pistol is an L-shape whose bbox can shrink under rotation, so the check was meaningless and nearly sent me hunting for a non-existent measurement bug; (b) bpy.ops.mesh.select_non_manifold selected nothing for two full rounds because select_mode was not EDGE, making fill_holes look like a no-op; (c) triangulating the n-gon hole-lids that had just achieved 0/0 re-broke the mesh to 247 nm / 156 bd; (d) the banded beavertail probe returned an identical degenerate peak in all three bands because the rear was a flat cap plus two mirrored 14mm slivers, which would have put cut B 15mm too far back; (e) I flagged a 29x30mm beavertail hole as a blocker when its lid faces +Y and the dip swallows it; (f) a constant |x|>14 flank probe mask was empty on a gun with a 13.7mm slide half-width and threw an opaque numpy error; (g) the decimate pre-clean's dissolve_degenerate itself opened 6 nm / 4 bd on a 0/0 source; 2026-08-17 | regression: cgs-mold SKILL.md Session Notes 2026-08-17 — never sanity-check a pose with the rectangle bbox identity; call select_mode(type='EDGE') before select_non_manifold and stop sealing at the n-gon state; judge a scan hole by its lid's FACING relative to the sweep, not its size; read the ROWS when a banded max() is degenerate across every band; derive probe bands from the mesh's own extent; always follow the pre-clean with the delete-pinch + refill repair -->
+
+### 2026-08-08d — **HK P30** (gun only) — **DONE, EXPORTED**; 15-min run, one coordinate-frame trap
+- Scan `HK P30_ORIGINAL` 119,460 v / 238,920 f, watertight **0/0**, 1 island, identity matrix, no annotation.
+  X 34.41 · Y 179.84 · Z 136.53 = P30 factory spec. Owner said "seems aligned, cross-check yourself" —
+  it was: pitch slide-top **−0.055°** (rms 0.144, 0.17 mm over 180 mm, inside its own noise), yaw symmetry
+  **−0.008°**, roll +0.181° (slide top) vs +0.059° (symmetry) = 0.05 mm across a 34 mm width. **No correction.**
+  Scan edge ratio p99/p1 = **11.7** → `repair_pits` correctly skipped on the scan.
+- **★★ THE TRAP: `assemble_gun_solid` TRANSLATES, so any profile measured on the SCAN is in a different
+  frame than every later probe.** I profiled the scan first (min z 22.4 in the front band) and then read the
+  parting-line width table off `GUN_SOLID` (step at z 22–23) — the two numbers matched, which made `z_line`
+  22.5 look like it implied a **41.8 mm slide height**, physically wrong for a P30. Reconciling the frames
+  (Δz = −13.65, from the mold's own bottom-profile min −81.54 vs the scan's −67.89) puts the step at scan
+  z 36.2 → slide height **28.0 mm** ✓. **Rule: convert or re-measure — never compare a scan-frame number
+  against a GUN_SOLID/mold-frame number, even when they agree.** Coincidental agreement is the dangerous case.
+- Parting line by the band table (the frame IS wider than the slide here, so no groove probe needed): mid
+  frame **16.6–16.7** to z 22 → **14.11** at z 23; rear frame 17.37 (z 15) → 14.41 (z 22) → 13.73 (z 23);
+  slide plateau **14.25–14.37** in both, matching the fwd band's slide-only 14.19. Step in the same 1 mm slab
+  in both bands → **`z_line` 22.5**. Offset verified by REGION bbox: slide **±0.400** X / min_y −0.399 /
+  max_z +0.399; frame region **byte-identical (all 0.000)**.
+- Knee off the mold's running-min bottom profile: plateau **−21.423 dead flat from y −23.3 to +6.7**, then
+  7.7 → −22.70, 8.7 → −24.39, continuous → corner **(6.7, −21.423)**, the LAST flat bin.
+  Beavertail, banded on GUN_SOLID: two local maxima — **z 23 → y 71.34** (frame tang = the beavertail) and
+  z 44–45 → 69.29 (the **slide rear face**, 2 mm shy). Took the lower, correct one. → **α 40.10°**,
+  owner-confirmed on the first render.
+- **EXACT@dz=0 first try on both cuts**: cut A 251,778 v (0.345×src), cut B at `beavertail + 6` = y 77.3 →
+  232,860 v, both 0/0. Pits after the sweep **674 → 11 → 3**, mean 0.119 mm.
+- `smooth_mold(flat_pairs=8, deburr_thr=0.015, deburr_rings=3, deburr_pairs=12)` — seventh gun on the
+  anti-orange-peel params. 29 verts >0.5 mm clamped → max 0.489, 0/0. **Fifteen-for-fifteen on the clamp.**
+- Pre-clean exposed **0** non-manifold; decimate ratio 0.264, 1 iter → **123,000 faces / 123,000 tris /
+  61,502 v, 0/0**. Mold X 34.428 vs gun 34.408 ≈ 0 — correct, the widest point is the **frame**, below the line.
+- ⚠ This Blender build has **no `BLENDER_EEVEE_NEXT`** enum (only `BLENDER_EEVEE` / `BLENDER_WORKBENCH` /
+  `CYCLES`) — the 08-08 cut-confirm recipe dies on that assignment. Use `'BLENDER_EEVEE'`; everything else
+  (Alpha 0.28, BLENDED, backface culling off, `render.render(write_still=True)`) works unchanged, and the
+  translucent overlay read correctly on the FIRST render, no owner reject.
+- ⚠ `me.edges[::7]` throws `slice indices must be integers` on a bpy collection — pull indices with
+  `foreach_get("vertices", …)` into numpy and slice that instead.
+- Export to the standing default (owner pre-specified the folder in the packet, so no ask):
+  `C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS\HK P30.stl` (6,150,084 B, 61,502 v) **+ `HK P30 GUN.stl`**
+  (11,946,084 B, 119,460 v). Both byte-exact vs `84 + 50·TRIS`, both identity `matrix_world`.
+  Wall clock end-to-end ≈ 11 min, inside the owner's 15-min cap.
+  <!-- @anchor: v1 | failure: a bottom-profile min-z measured on the raw SCAN and a parting-line width table measured on GUN_SOLID returned the SAME number (22.4 / 22.5) in two frames 13.65mm apart, and the coincidence made a correct z_line look like a physically impossible 41.8mm slide height — I nearly moved it; 2026-08-08d | regression: cgs-mold SKILL.md Session Notes 2026-08-08d — never compare a scan-frame measurement against a GUN_SOLID/mold-frame one; re-measure in the target frame, and sanity-check z_line against the gun's real slide height -->
+
+### 2026-08-08c — **GLOCK 19 GEN5 + TLR-7 X** — **DONE, EXPORTED**; a plane fit across a STEP fakes a pose error
+- Scan `GLOCK 19 TLR-7 X - GUN` 151,620 v / 304,922 f, watertight **0/0**, identity matrix, canonical pose,
+  no annotation. 3 islands → 1 kept (7 v + 4 v specks). Gun and light welded into one island. Dims X 34.19 ·
+  Y 185.13 · Z 128.58 — **identical to the bare G19 Gen5 of 07-30b**, because a TLR-7 X neither reaches past
+  the muzzle nor below the grip. **Matching bbox is NOT evidence the light is absent** — render before
+  concluding; `front_feature_z 39.2` and the side view both confirmed the light is there.
+  ⚠ Scan edge ratio p99/p1 = **84.7** (p1 0.027 / p50 0.546 / p99 2.28) → `repair_pits` correctly SKIPPED
+  on the scan; it only ran post-sweep where the ratio is 2.52.
+- **★★ THE LESSON: a least-squares plane fit over a band that CONTAINS A STEP reports the step as SLOPE.**
+  I nearly applied a −0.207° pitch correction that did not exist. The Glock slide top has a **0.25 mm milled
+  recess from y −46 to −21** (median z 56.29 vs 56.55 either side). My `slide_top_fwd` band (y −105…−15)
+  straddled that recess, so the fit read the drop as a tilt — and `light_under` (−0.191°, only a 30 mm
+  baseline on a curved part) appeared to corroborate it. **Fix = PROFILE the surface before FITTING it:**
+  median z vs y in 5 mm bins. That showed the recess, and the two flats either side read **−0.072°** and
+  **+0.080°** — opposite signs, total variation 0.075 mm, i.e. the slide top is slightly dished and no
+  sub-band is authoritative. Full-length fit: **pitch −0.032°** (0.10 mm over 185 mm) = nothing to correct.
+  Sight line +0.026°, symmetry yaw +0.038°, roll ≈0 on all datums. **No pose correction.**
+  Two more datums discarded on their own evidence, per the 08-05 rms rule: `frame_dustcover_under` −1.295°
+  (rms 0.327) and `light_bezel_under` −3.266° (rms 0.397) — both curved surfaces, not planes.
+- **⚠ The beavertail probe's `max()` returned the GRIP HEEL again** (y 92.47 at z −40) — third occurrence of
+  the 08-04c trap, and here the heel is the global rearmost by 4.6 mm. The rows show the real shape: y falls
+  monotonically from 92.47 (z −40) to a **minimum 70.59 at z 8**, rises to the beavertail ridge, then settles
+  onto the 84.4–84.6 slide rear. Re-run banded to **z 14…40** at 1 mm → **(87.85, z 26.0)**, identical at
+  bands 6/10/14. **Always bound the z window to the tang band; a global max over the rear silhouette is the
+  heel on any gun with a grip.**
+- Knee from the mold's running-min bottom profile — note it has **TWO plateaus**, which is the light's
+  signature: −10.37 from y −40 to −35 (the **TLR-7 X underside**), a 1.9 mm step at y −34 to −12.2 (the
+  **frame/trigger-guard bottom** taking over), a slow decline to −13.9, flat y 6…23, then 24 → −15.21,
+  25 → −17.41, continuous. Corner = the last flat bin = **(23.0, −13.916)**. → **α 37.59°**, owner-confirmed.
+  (For reference the bare G19 of 07-30b confirmed 39.87°; the light does not change the knee, the different
+  Z-centering does.) **EXACT@dz=0 first try on both cuts**: cut A 263,023 v (0.352×src), cut B at
+  `beavertail + 6` = y 93.8 → 242,119 v, both 0/0.
+- **⚠ The 08-08b 0.1 mm groove probe is USELESS on a coarse scan — know which parting-line tool to reach for.**
+  This mesh has p50 0.55 mm edges, so 0.1 mm z-bins are undersampled and returned ~35 spurious "dips" per
+  band with no common z. **The two tools are complementary, chosen by whether a width STEP exists:**
+  · frame measurably wider than slide → the **band table** (1 mm slabs, `max|x|` per Y band) — used here:
+    frame **14.7–15.2** to z 29, slide **12.85–12.96** from z 32, transition identical in fwd/mid/rear →
+    **`z_line` 30.5**; slide height 53.4 − 30.5 = 22.9 mm ✓ for a G19. The ctr band's 16.3–17.0 is the
+    beavertail tang, above the line, correctly ignored (08-07 rule).
+  · frame flush with slide AND a dense uniform mesh → the **0.1 mm groove probe** (08-08b, Strike One).
+  Offset verified by REGION bbox: slide ±0.400 X, min_y −0.400; frame region **byte-identical (all 0.000)**.
+- `smooth_mold(flat_pairs=8, deburr_thr=0.015, deburr_rings=3, deburr_pairs=12)` — sixth gun on the
+  anti-orange-peel params. Slide-flank p99 **0.0782 → 0.0201**, light body **0.0604 → 0.0254**. 21 verts
+  >0.5 mm clamped → max 0.498, 0/0. **Fourteen-for-fourteen on the clamp.** Pits: 1→0 after cuts, 3→0 after
+  smooth, 0 after offset.
+- Pre-clean exposed **0** non-manifold; decimate ratio 0.254, 1 iter → **123,000 faces / 123,000 tris /
+  61,496 v, 0/0, 1 island**. BVH vs pre-decimate: p50 0.0003 · **p99 0.0038 · max 0.0067 mm · zero over 0.1**.
+  Gaps: slide flank mold 13.411 vs gun 12.917 = **+0.495**; frame flank 15.035 vs 15.011 = **+0.024 ≈ 0**
+  (below the line, correctly untouched); front-Y **+0.419**; max_z **+0.443**. ⚠ Do NOT compare the mold's
+  z-min against the gun's — the gun's is the grip heel, which cut A removes.
+- Export (folder confirmed = the standing default), both byte-exact vs `84 + 50·TRIS`:
+  `C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS\GLOCK 19 TLR-7 X.stl` (6,150,084 B, 61,496 v) **+
+  `GLOCK 19 TLR-7 X GUN.stl`** (15,245,184 B, 151,606 v). Both identity `matrix_world`. 14.9 MB is well
+  under the ~500k-vert threshold, so no LIGHT companion was needed (contrast 08-08b).
+- Cut-confirm render: the EEVEE translucent overlay (pipeline step 3) worked first time, no rejection.
+  <!-- @anchor: v1 | failure: (a) a least-squares slide-top plane fit reported a −0.207° pitch error that does not exist, because the band straddled a 0.25mm milled recess and the fit read the STEP as SLOPE — a 30mm-baseline light-underside datum appeared to corroborate it, and I was one step from rotating the gun on an artefact; (b) the banded beavertail probe's max() returned the grip heel for the third time (08-04c, 08-08b, here), the heel being the global rearmost by 4.6mm; (c) the 08-08b 0.1mm groove probe returned ~35 spurious dips per band on a coarse scan (p50 edge 0.55mm) and would have produced a garbage z_line if trusted; 2026-08-08c | regression: cgs-mold SKILL.md Session Notes 2026-08-08c — PROFILE a surface (median z vs y in 5mm bins) before FITTING a plane to it, and discard any datum whose baseline is short or whose rms is several times the others'; bound the beavertail z-window to the tang band, never take a global max over the rear silhouette; choose the parting-line probe by whether a width STEP exists (band table) or not (groove probe, dense meshes only) -->
+
+### 2026-08-08b — **ARSENAL STRIKE ONE** (Revint, gun only) — **DONE, EXPORTED**; a parting line max|x| cannot find
+- Scan `ARSENAL STRIKE ONE - ORIGINAL` **1,342,862 v / 2,685,736 f** — by far the heaviest this pipeline has
+  run (previous max 470k) — watertight **0/0, 1 island**, no annotation. ⚠ `matrix_world` was a **90° Z
+  rotation**, not identity: apply it (`transform_apply`) BEFORE anything else, or every coordinate you
+  measure is in a different frame than the one the engine works in. After applying: X 34.12 · Y 214.62 ·
+  Z 146.73, canonical (muzzle −Y, grip −Z), = Strike One factory spec.
+- **★ Vert count is NOT the cost driver — the voxel stages are volume-bound.** `assemble_gun_solid` 8.8 s,
+  `sweep_dip(boot=0.4)` **10.0 s** producing 944,356 v at 0/0, travel 214.6 full span, 11 passes. That is
+  FASTER than the 192k-vert FN earlier the same day (13.4 s) because the swept envelope is smaller. Do not
+  pre-decimate a heavy scan out of fear; measure first. Edge gate p99/p1 **2.60** → `repair_pits` valid;
+  pits converged **339 → 44 → 10**, mean 0.232 mm ≈ 0.6× voxel.
+- **★★ The parting line is NOT findable with `max|x|` on this gun — frame and slide are the SAME width.**
+  The three-Y-band recipe gave transitions at z 32.5 / 35.5 / 36.5 (4 mm spread), so per 08-05 I went to
+  the horizontal cross-section — and that showed WHY the bands disagree: at EVERY z from 31 to 48 the
+  half-width is a flat **14.05–14.35** along the whole length. The only bulges are LOCAL: the takedown
+  lever (y −50…−30, z≈31) and the thumb ledge / frame tang (y 5…25, up to z 36). There is no width step to
+  find, because the Strike One's slide is flush with its frame.
+  **THE PROBE THAT WORKS: a fine groove scan.** `max|x|` vs z in **0.1 mm** bins, run in three separate Y
+  bands, then take the local minima. The slide/frame seam is a real recess of only **0.05–0.06 mm** — far
+  too small for 0.25 or 1 mm bins. It appeared at **z 32.5 in ALL THREE bands** (fwd y −105…−75, mid
+  −70…−55, rear +30…+60); the mid band's other dips (z 21.6–25.8) appear in one band only and are frame
+  features. **A seam is the dip common to every band; a feature is a dip in one.** Cross-check: slide top
+  50.19 − 32.5 = 17.7 mm slide height, right for this low-bore gun; and the frame tang bulge (z ≤ 36) sits
+  ABOVE the line, which is where a tang belongs (08-07 rule), so it does not contradict the answer.
+- **★ The "damaged" front sight is a FIBER-OPTIC sight — measure before reporting a defect.** The side
+  render shows a lumpy saddle-topped blade with ragged edges; it looks broken. `zmax vs y` in 1 mm bins:
+  two retaining peaks at **54.03** (y −126) and **54.25** (y −117) with a **52.70** trough between them,
+  and the blade is only 3 mm wide (`zmax vs x`: 53.85–54.25 at x −2…+1, dropping to 48.5 outside). That is
+  a fiber rod channel with the rod absent/transparent to the scanner — real geometry. The ragged outline is
+  ordinary scan noise on a thin feature. The +Y sweep fills the channel anyway (the front peak sweeps
+  rearward over the trough), so the mold gets a clean sight channel. Rear sight measured clean: proper
+  3 mm notch, shoulders 55.67, floor 52.5. **Nothing to fix — do not send the scan back over this.**
+- Pose measured, **not corrected**: pitch slide-top-fwd −0.181° (rms 0.045) vs slide-top-rear −0.059°
+  (rms 0.064) — same sign but 3× apart, i.e. the slide's own step is not parallel to itself; rail underside
+  +0.117° discarded on rms 0.154. roll +0.019 / −0.208 / symmetry −0.090 → no consensus. yaw symmetry
+  −0.087° vs sight-blade/notch centres +0.041° → opposite.
+- Knee on the mold's running-min bottom profile: plateau ≈−10.2 flat from y −36 to **+9**, then 10 →
+  −11.41, 11 → −13.26, continuous → corner **(9.0, −10.192)**. Beavertail on GUN_SOLID, banded probe:
+  **(82.32, z 28.0)**, identical at bands 6/10/14, receding to 75.7 above and 65.6 below. → **α 33.32°**,
+  owner-confirmed. **EXACT@dz=0 first try on both cuts**: cut A 289,465 v (0.307×src), cut B at
+  `beavertail + 6` = y 88.3 → 263,020 v, both 0/0.
+- `smooth_mold(flat_pairs=8, deburr_thr=0.015, deburr_rings=3, deburr_pairs=12)` — fifth gun on the
+  anti-orange-peel params. Slide-flank p99 **0.0670 → 0.0229**, frame p99 0.0858 → 0.0411. 21 verts >0.5 mm
+  clamped → max 0.478, 0/0. **Thirteen-for-thirteen on the clamp.**
+- Offset `z_line 32.5`, 118,611 region verts; frame region **byte-identical (all 0.000)**. ⚠ The slide
+  region's `maxx` delta read only **+0.316** while `minx` read −0.400 — NOT a bug: the region's extreme
+  +X vertex is on the rounded frame-tang corner (y 5…25), whose normal is not axis-aligned, so a 0.4 mm
+  normal offset projects to less in X. **Verify with a flat-flank SLAB against the gun, not the region
+  bbox extremes**: slide flank (y −90…−70, z 38…46) mold 14.733 vs gun 14.232 = **+0.501** (0.4 + voxel);
+  frame flank (same y, z 16…26) 14.200 vs 14.116 = **+0.084 ≈ 0**, correctly untouched; front-Y +0.384;
+  max_z +0.404.
+- Pre-clean exposed **0** non-manifold this time; decimate ratio 0.234, 1 iter → **123,000 faces /
+  123,000 tris / 61,502 v, 0/0, 1 island**. BVH vs pre-decimate: p50 0.0005 · **p99 0.0047 · max
+  0.0079 mm · zero over 0.1**. Raking close-up clean.
+- **⚠ A 1.34 M-vert scan makes a 134 MB `GUN.stl`** (84 + 50·2,685,716). That is legitimate but Shapr3D
+  may choke on it. Flagged to René, who asked for **both**: the full-res pair plus a decimated companion
+  `<name> GUN LIGHT.stl` (125,000 tris, 6.25 MB, collapse — max deviation from full-res **0.056 mm**,
+  bbox within 0.013 mm, identity matrix). **New habit: when the scan is over ~500k verts, report the
+  GUN.stl size and offer the LIGHT companion rather than shipping a 100 MB+ file silently.**
+- Export (folder confirmed = the standing default), all three byte-exact vs `84 + 50·TRIS`:
+  `C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS\ARSENAL STRIKE ONE.stl` (6,150,084 B, 61,502 v) ·
+  `ARSENAL STRIKE ONE GUN.stl` (134,285,884 B, 1,342,852 v) · `ARSENAL STRIKE ONE GUN LIGHT.stl`
+  (6,250,084 B, 62,494 v). All identity `matrix_world`.
+- ⚠ Render framing: `ortho_scale` maps to the **LONGER resolution axis**, not to width. A portrait
+  1200×1400 top view with `ortho = max(ext_x, ext_y·w/h)` silently cropped the gun. Either always render
+  landscape, or compute against the long axis explicitly.
+  <!-- @anchor: v1 | failure: (a) the max|x| parting-line recipe (both the three-band and horizontal-cross-section forms) CANNOT find the slide/frame seam on a gun whose slide is flush with its frame — the half-width is a flat 14.05-14.35 at every z from 31 to 48, and the three bands disagreed by 4mm on pure noise; (b) the front sight looks broken in every render (saddle top, ragged edges) and is actually an intact fiber-optic sight — reporting it as scan damage would have sent a good scan back; (c) a 1.34M-vert scan silently produced a 134MB GUN.stl that Shapr3D may not import; (d) ortho_scale maps to the longer resolution axis, so a portrait top view cropped the subject; 2026-08-08b | regression: cgs-mold SKILL.md Session Notes 2026-08-08b — find the parting line with a 0.1mm-bin groove scan and take the dip COMMON TO ALL Y BANDS; measure a suspicious sight (zmax vs y and vs x) before calling it damage; report GUN.stl size and offer a LIGHT companion above ~500k verts; verify the offset with a flat-flank slab against the gun, not region-bbox extremes -->
+
+### 2026-08-08 — FN 510/545 + COMP + **TLR-1 HL-X** — **DONE, EXPORTED**; the cut-confirm render rule
+- Scan `FN 510 + 545 - TLR-1 HL-X` 192,607 v / 385,540 f, **0 boundary**, 1 non-manifold edge, 3 islands
+  (main + 57 v + 4 v specks), canonical pose. Same FN frame as 08-07 (Y-span **229.745**, identical) but a
+  different scan: light fitted, **optic cut absent** — the slide top runs dead-flat 67.9–68.2 from y −144 to
+  −18 with no recess. The two blocks at z 78.2/78.6 (half-width ≤8.5) are suppressor-height **irons**, and
+  the z 44.3 gap at y −154…−148 is the **comp port**, not a hole. Nothing to cap; contrast 08-07.
+- **★★ OWNER REJECT ×3 on the cut-confirm render — now a standing rule (pipeline step 3).** I asked the
+  α question with (1) a mold-only render, (2) the gun with a red removed-region tint, (3) the gun with a
+  cyan mold **outline**. All three rejected: *"I cannot see the gun"* → *"now I cannot see the mold
+  anymore"* → *"Are you stupid!? I need to see the gun AND the mold"*. Root cause: the mold is the gun's
+  swept envelope, so it **contains** the gun — from a side ortho either one hides the other, and an
+  outline over the gun reads as no mold at all. **THE FIX = half-section + one solid pass:**
+  boolean-difference a big cube covering x > 0 off a *copy* of the cut mold (`MOLD_HALF`, section on the
+  X=0 seam plane), then render `MOLD_HALF` + `GUN_SOLID` in ONE Workbench pass with
+  `scene.display.shading.color_type='OBJECT'` and contrasting `ob.color` (gun warm tan, mold pale blue) so
+  occlusion is real depth-sorting, not compositing. Frame on the **union** of both bboxes (else the grip
+  and magazine crop out — that happened too). Then composite the cut lines on top from the camera mapping:
+  `ppm = res_x/ortho_scale`, screen-right = +Y, screen-up = +Z at rx=90/rz=90, `cy/cz` = the camera's own
+  y/z since `cam.location = c + (dist,0,0)`. Owner confirmed 38.5° on the first render that did this.
+  ⚠ Two sub-traps hit on the way: a silhouette mask from **colour difference** catches the render's
+  background **dithering** (speckle everywhere) — set `render.film_transparent=True` and mask on
+  **alpha > 0.5** instead; and `_dup` + boolean leaves the display copy in the scene, so delete
+  `MOLD_HALF` before the pipeline continues or it rides into the export selection.
+- **⚠ I called a framing miss "the wrong object" and was wrong.** A first render overflowed the frame and
+  I invoked the 08-07 rule (extent < frame ⇒ wrong object) — but the visibility dump showed only the
+  target visible, and the real cause was that `ortho_scale` needs the **aspect-corrected** requirement,
+  `max(ext_y, ext_z·res_x/res_y)·margin`. Keep the 08-07 rule, but **run the visibility dump before
+  invoking it** (`hide_viewport / hide_render / hide_get / visible_get` per mesh) — it settles it in one call.
+- Pose: **measured, NOT corrected.** pitch slide-top-mid **−0.133°** (rms 0.146) vs slide-top-fwd **+0.119°**
+  (rms 0.053) vs sight-line +0.112° → 2-vs-1 and the magnitude (0.47 mm over 230 mm) sits inside the mid
+  fit's own noise. roll +0.598 vs −0.588 vs symmetry −0.123 → opposite. yaw symmetry −0.102° vs
+  sight-**notch** centres +0.035° → opposite. Per the 08-04c rule, no axis had agreeing signs worth acting on.
+- `assemble_gun_solid`: 3 → 1 island, 2 specks dropped, `sight_x_post −0.0` / `mass_x_post 0.341`,
+  **`front_feature_z 41.0`** — the **comp** drives the front, not the light (the TLR-1 bezel stops short).
+- `sweep_dip(boot=0.4)`: travel 229.7 full span, 11 passes, 1,233,280 v, **13.4 s**, 0/0. Edge gate
+  **p99/p1 = 2.64** (p1 0.176 / med 0.400 / p99 0.464) → well inside the ≲3 band, `repair_pits` valid.
+  Pits converged **726 → 86 → 7**, mean move 0.230 mm ≈ 0.6× voxel, 33 extended clusters rejected.
+- **Knee is textbook on the mold's running-min bottom profile:** −10.888 dead flat from y −30 to **+22**,
+  then 23 → −11.8, 24 → −14.3, continuous. Corner = **(22.0, −10.888)**, the LAST flat bin.
+  Beavertail on GUN_SOLID, banded probe: **(88.59, 32.0)**, identical at bands 6/10/14; it recedes both
+  above (z 34 → 87.6) and below (z 28 → 87.4), and the low-z climb back to y 100.4 is the **extended-mag
+  basepad** — the 08-07 trap, correctly excluded. → **α 38.46°**, owner-confirmed.
+- **EXACT@dz=0 first try on both cuts**, no nudge ladder. Cut A 400,597 v (**0.325×src**) 0/0; cut B keyed
+  off the **beavertail** (`cut_tail(gun_rear=88.59, margin=6)` → y 94.6), not `gun_rear` — 369,864 v 0/0.
+- `smooth_mold(flat_pairs=8, deburr_thr=0.015, deburr_rings=3, deburr_pairs=12)` — fourth gun on the
+  anti-orange-peel params. Slide-flank Laplacian p99 **0.0946 → 0.0501**, light body **0.0869 → 0.0255**
+  (max 0.258 → 0.158). 67 verts >0.5 mm clamped → max 0.499, 0/0. **Twelve-for-twelve on the clamp.**
+  sharp50 7880 → 2391 and sharp70 3175 → 1434 (−55 %) — a big drop that the raking close-up shows is
+  quantisation corners, not geometry: panel edges, the rail groove and the takedown lever all crisp.
+- **Parting line `z_line` 40.0, off the horizontal cross-section (1 mm slabs, ±0.25).** mid/ctr/rear read
+  16.7/16.65/18.75 at z 39 and collapse to a uniform **14.6** at z 41 → midpoint 40.0. ⚠ The **fwd** band
+  reads 15.0–15.4 *above* the line because the **comp is wider than the slide** — same signature as 08-07;
+  the front band is structurally unusable on a comped gun. Offset verified by REGION bbox: slide ±0.400 X,
+  max_z +0.400, min_y −0.400; frame region **byte-identical (all 0.000)**.
+- **Decimate needed the pre-clean and it earned its keep:** triangulate → `remove_doubles(1e-4)` →
+  `dissolve_degenerate(2e-4)` exposed **1** non-manifold edge (the one the scan carried in all along,
+  invisible at 0 boundary) → delete linked faces+verts → `holes_fill` on 5 boundary edges → recalc →
+  decimate ratio 0.166, 1 iter → **122,998 faces / 123,000 tris / 61,498 v, 0/0, 1 island**, no post-hoc
+  repair. Running the pre-clean *preemptively* is cheaper than diagnosing a 6/4 result afterwards.
+  BVH deviation vs the pre-decimate mesh (61,498 samples): p50 0.0007 · **p99 0.0062 · max 0.0169 mm ·
+  zero over 0.1 mm**.
+- **mold/gun gaps, three different right answers again:** front-Y **+0.378** (the comp is front-most at
+  z 45.4, above `z_line` → offset applies), max_z **+0.428** (front sight), max|x| **−0.041 ≈ 0** (the
+  widest point is the **frame** at 18.9 half-width, z ≈ 38, BELOW the line → correctly not offset).
+- Export (folder confirmed with René = the standing default):
+  `C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS\FN 510 & 545 COMP TLR-1 HL-X.stl` (6,150,084 B, 61,498 v)
+  **+ `FN 510 & 545 COMP TLR-1 HL-X GUN.stl`** (19,271,284 B, 192,545 v). Both identity `matrix_world`;
+  both byte-verified against `84 + 50·TRIS` (mold mixed quad/tri: 122,998 faces → 123,000 tris).
+- ⚠ MCP `execute_blender_code` again returned `"Code executed successfully: "` with **stdout dropped**
+  (fifth session running) — every stage dumped to `_SYSTEM/state/_fn2_*.json` and read back from disk.
+  Also: numpy `lstsq` residual arrays are empty for full-rank fits, so compute rms as `A@c − z` yourself;
+  and `BVHTree.FromObject` needs a depsgraph — `FromBMesh` is the reliable path.
+  <!-- @anchor: v1 | failure: (a) OWNER REJECT x3 on the cut-confirm render — mold-only, then gun-with-tint, then gun-with-mold-outline were all unreadable because the mold ENVELOPES the gun, so either body hides the other and an outline reads as no mold at all ("Are you stupid!? I need to see the gun AND the mold"); (b) an alpha-free silhouette mask built from colour difference caught the render background's dithering and produced a speckled composite; (c) I invoked the 08-07 "framing contradiction = wrong object" rule on what was actually an aspect-uncorrected ortho_scale; (d) decimate-collapse would have inherited the scan's 1 carried-in non-manifold edge had the pre-clean not run; 2026-08-08 | regression: cgs-mold SKILL.md Session Notes 2026-08-08 — half-section the mold at X=0 and render it WITH GUN_SOLID in one Workbench OBJECT-colour pass, framed on the union bbox, cut lines composited from ppm = res_x/ortho_scale; mask silhouettes on alpha with film_transparent=True; dump per-mesh visibility before invoking the wrong-object rule; run the sliver pre-clean preemptively before every decimate; Track-B memory feedback-cut-confirm-render-gun-and-mold -->
 
 ### 2026-08-07 — FN 510/545 + COMP, **NO OPTIC (hand-EDITED scan)** — **DONE, EXPORTED**; new rule on capping a deleted optic
 - Scan `FN510 & 545_WITH COMP NO OPTIC - EDITED` 132,458 v / 264,538 f, canonical pose, **but 590 boundary

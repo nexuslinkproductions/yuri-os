@@ -41,7 +41,15 @@ Mass center           -> origin (0,0,0), all 3 axes on the volume centroid
   `(min+max)/2` outline. The post is commonly WIDER than the notch (4.11 vs 3.77mm here), so what the eye
   centres is the post's OUTLINE, not its mass.
 - **ROLL → the two REAR-SIGHT SHOULDERS level with each other in the FRONT (down-the-bore) view** — the flat
-  tops either side of the notch, at equal height; no cant about the bore. Owner directive 2026-08-05
+  tops either side of the notch, at equal height; no cant about the bore.
+  ★★ **MEASURE THEM AS MIRROR PAIRS ABOUT THE NOTCH CENTRE — never as "the flat plateau on each side"**
+  (HK P30, 2026-08-08). Detecting each side's highest plateau independently picks surfaces at DIFFERENT
+  distances from the centre (P30: −5.4…−2.6 vs +2.4…+6.1), and comparing their mean heights measures
+  nothing — it declared a **2.3°-rolled** gun "level to 0.0002 mm", and a down-the-bore render confirmed the
+  same broken metric. Correct method: for d in 2.5…6 mm compare `z(nc − d)` vs `z(nc + d)`, and require
+  **dz to grow LINEARLY with d** — that scaling is the built-in validity check; if it doesn't scale, the
+  surface isn't a tilted plane and the datum is void. Fails silently whenever the notch is not centred in
+  the sight body (0.9 mm off on the P30). `pose_report`'s `roll_deg` still carries the old bug. Owner directive 2026-08-05
   (GLOCK 34), arrows on both shoulders: *"why did you not align this!!?? This is a MUST as well with all
   alignments of guns"*. Auto-leveled by **`refine_sight_roll`** (method step 5d). ⚠ The **slide-top flat is
   only a PROXY** for this and is not good enough on its own — on the Glock 34 the two disagreed by **0.33°**
@@ -485,6 +493,67 @@ recurring trap on this skill):
 - Depends on **blender-mcp** live on :9876.
 
 ## Session Notes
+
+### 2026-08-08 (HK P30 — the shoulder "flats" were NOT mirror pairs; owner caught a 2.3° roll I called 0.001°)
+- **Run:** `HK P30_ORIGINAL`, 1,194,648 verts / 2,389,296 tris, watertight 0/0, gun mode. Incoming
+  `matrix_world` carried a rotation — `align_object` bakes it. Lattice fired **−33.79°** (coherence 0.61) —
+  a sixth platform confirming PCA-vs-bore.
+- **★★ THE FAILURE (owner-caught, worst class this skill has): I detected the rear-sight shoulders as "the
+  highest flat plateau either side of the notch" and they were NOT MIRROR PAIRS.** On this sight the left
+  plateau runs x −7.0…−4.25 and the right +0.75…+4.5 — **−5.4…−2.6 vs +2.4…+6.1 relative to the notch
+  centre**. Comparing the mean height of two surfaces at *different distances from the centre* measures
+  nothing, and it reported the shoulders "level to 0.0002 mm" on a gun rolled **2.3°**. I then rendered a
+  down-the-bore view, saw both plateaus touching the bar, and called it verified — two confirmations of the
+  same broken metric.
+  **THE FIX — sample the shoulders as MIRROR PAIRS about the notch centre**: for d in 2.5…6 mm compare
+  `z(nc − d)` against `z(nc + d)`. A real tilt shows as **dz growing LINEARLY with d** (here −0.219 mm at
+  d 2.6 → −0.409 at d 5.35 → −2.32°), which is a built-in check: if dz does not scale with d you are not
+  looking at a tilted plane and the datum is void. Plateau-detection has no such check and fails silently
+  on any sight whose notch is not centred in its body (this one's notch sat 0.9 mm off the body centre).
+- **⚠ `pose_report`'s `roll_deg` inherits the same bug** — it read −0.328° where mirror-pairs read −0.863°,
+  and its two-patch and split-free plane-fit forms disagreed **in sign** (−0.46 vs +0.34). The skill's own
+  >0.15° bail rule should have stopped me; instead I preferred the silhouette number and moved on.
+  **A sign disagreement between two forms of ONE estimator means the estimator is broken, not that one
+  form is better.**
+- **What the datums said once measured properly** — five independent methods all agreeing the body was
+  rolled: per-station symmetry fit over the slide **−1.44°**, slide_fwd −1.71°, slide_rear −1.62°, left/right
+  parting-seam heights **−1.29°**, rear-sight BODY symmetry plane **−1.295° at rms 0.0038 mm**. The
+  front-view silhouette-centre lean (literally what the owner looks at) read **−2.24°**; a draught-proof
+  seam level-set put the zero at **+2.16°**. ⚠ Two sign conventions in play: the mid-x-vs-z slope is `+φ`,
+  the L/R height difference is `−φ` — reconcile them before declaring a conflict (I nearly logged a phantom
+  one; the 08-07 lesson repeating).
+- **⚠ Blind Newton iteration on a pose datum can DIVERGE — bracket instead.** My first roll solve applied
+  the correction with the wrong sign and walked b to **−12.66°** in five steps, each worse than the last,
+  unguarded. Replaced with a **scan over candidate angles + zero-crossing interpolation** — self-diagnosing
+  (you see the response curve) and it cannot run away. Likewise a fixed x-window for the shoulders slides
+  off the flats mid-solve, because a 0.86° roll moves the sight **0.81 mm laterally** at z≈54: re-detect
+  features adaptively every iteration.
+- **★ This gun has NO usable slide-top datum.** The P30's slide top is **crowned** (49.3 at x −4…+1 falling
+  to 46.3 by x ±9), so `slide_top_roll` read −0.49…−1.24° purely on the sampled x-range; and it is **not
+  bore-parallel** (`segA` +0.73° over y −93…−45 vs `segB` +1.54° over y −40…+25, with a 0.7 mm step at
+  y −43). The parting line is the only pitch datum, and it is clean: level-set trace of the slide's bottom
+  edge (`|x−xc| > 13` per 1 mm slice) at **rms 0.027–0.030 mm over 53 mm**.
+- **⚠ `pose_report`'s seam detector locked onto the wrong feature** — z 45.12, ~3.5 mm below the slide top,
+  in the upper taper; it reported pitch −0.111° when the real parting line (z 21.2) was **+0.71° off**. The
+  arithmetic tell: a P30 slide is ~25 mm tall, so a "parting line" 3.5 mm below its top cannot be one. Its
+  groove mode also rejected **all 29 forward slices** (the dust cover is NARROWER than the slide forward, so
+  no interior recess exists there, while aft the frame is wider) and its mid/full fits disagreed −0.380 vs
+  +0.054 at rms 0.21–0.24 — the FN multi-population trap again.
+- **THE SCAN IS INTERNALLY INCONSISTENT BY 2.3°**, and that is the real finding: body level ⇒ rear-sight top
+  −2.32°; sight level ⇒ front view leans 2.3°. After the body correction the clean bands agree to **±0.4°**
+  (fwd slide +0.30…+0.58, rear slide +0.05…+0.25, grip −0.24…+0.23, all rms ≤0.10) — that residual is the
+  scan's own twist. ⚠ Stations y −42…−17 read +2.1…+6.0° at rms 0.48–1.00: ejection port / controls,
+  **unusable, not twist**. Always report fit rms beside a per-station roll or asymmetric FEATURES read as
+  a warped scan.
+- **Owner ruling: SPLIT THE DIFFERENCE.** Applied +2.3086° then −1.1543°, leaving body lean **−1.123°** and
+  sight **+1.153°** — equal and opposite, 1.14° each. Final: pitch **−0.097°** (rms 0.027, n 54), yaw
+  **+0.052°**, volume centroid at origin (2.5e-10), det +1, `matrix_world` identity, dims 34.54 × 179.70 ×
+  136.97 (P30 spec 37 × 180 × 139). Scene cleaned.
+- **Also keep:** the lateral offset is NOT asymmetry — the slide's flanks reach x −14.9 / +12.6, i.e.
+  half-width 13.75 both sides about a centre at **−1.15 mm**, because the volume centroid is pulled off the
+  bore plane by the frame. Expected; cgs-mold re-centres width on the sight channel. Don't chase it as roll
+  or yaw.
+  <!-- @anchor: v1 | failure: HK P30 shipped 2.3deg rolled while I reported roll 0.001deg and "verified" it in a down-the-bore render — the shoulder detector picked "the highest flat plateau each side of the notch", which on this sight sit at -5.4..-2.6 and +2.4..+6.1 relative to the notch, i.e. NOT mirror pairs, so the height comparison measured nothing; pose_report's roll_deg shares the bug and its two forms disagreed in SIGN (-0.46 vs +0.34), which by the skill's own >0.15deg rule should have voided the datum; and a blind Newton roll solve diverged to -12.66deg unguarded, 2026-08-08 | regression: cgs-align SKILL.md Session Notes 2026-08-08 — sample rear-sight shoulders as MIRROR PAIRS about the notch centre over d=2.5..6mm and require dz to scale linearly with d; bracket-and-zero-cross instead of Newton-iterating a pose datum; re-detect features adaptively each iteration; report fit rms beside every per-station roll -->
 
 ### 2026-08-07 (FN 510/545 COMP + OPTIC — an optic blinds every detector; the parting line changes identity)
 - **Run:** `FN510 & 545_WITH COMP & OPTIC_ORIGINAL`, 959,762 verts / 1,919,832 tris, gun mode. René gave two

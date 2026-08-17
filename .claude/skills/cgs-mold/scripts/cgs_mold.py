@@ -490,6 +490,253 @@ def repair_pits(obj, thr=0.25, max_diag=2.5, max_n=60, halo=2, iters=25, factor=
             "mean_disp_moved_mm":round(float(disp[mv].mean()),4) if mv.any() else 0.0,
             "nonmanifold":nm, "boundary":bd}
 
+# ------------------------------------------------- stage 4d: SHARP-SPECK audit + repair (MANDATORY)
+def _sharp_clusters(me, N, P, angle_deg=35.0, max_diag=2.5):
+    """Split the crease skeleton into COMPACT clusters (voxel facet breaks) and EXTENDED ones
+    (real creases: rail grooves, panel borders, the parting line, cut-face borders).
+    Returns (sharp_mask, compact:[ [vidx..] ], extended:[ [vidx..] ])."""
+    import collections
+    sharp,_=_feature(me, N, angle_deg)
+    ei,ej=_edges(me, N)
+    idx=np.where(sharp)[0]; s=set(idx.tolist())
+    adj=collections.defaultdict(list)
+    for a,b in zip(ei,ej):
+        if a in s and b in s: adj[a].append(b); adj[b].append(a)
+    seen=set(); compact=[]; extended=[]
+    for v in idx.tolist():
+        if v in seen: continue
+        st=[v]; seen.add(v); g=[]
+        while st:
+            n=st.pop(); g.append(n)
+            for x in adj[n]:
+                if x not in seen: seen.add(x); st.append(x)
+        Q=P[g]
+        (compact if float(np.linalg.norm(Q.max(0)-Q.min(0)))<=max_diag else extended).append(g)
+    return sharp, compact, extended
+
+def speck_report(obj, angle_deg=35.0, max_diag=2.5, cell=(20.0,10.0), dens_min=6):
+    """READ-ONLY audit for the SPECK FIELD class of defect — René 2026-08-17b:
+    "why the hell are you always making these holes!!!??? The original stl file is a clean file".
+
+    ★ THESE ARE NOT CRATERS AND NO DEPTH PROBE CAN SEE THEM. On the P320 X-Carry the dotted panel
+    fitted a plane at rms 0.068 mm and the visually-spotless slide flank fitted at 0.067 mm —
+    IDENTICAL depth statistics. The only difference was the crease flag: `sharp_frac` 0.18-0.29 on
+    the dotted panel vs 0.000 on the clean flank. They are ~0.1 mm NORMAL DISCONTINUITIES left by the
+    voxel remesh; the cavity/matcap shading renders a normal break as a hard black speck, so the eye
+    sees a hole where the geometry has almost no depth. `repair_pits` (depth) is blind to them, and
+    `smooth_mold` / `denoise_region` actively PROTECT them because both freeze sharp verts as real
+    creases (`denoise_region` moved 31,989 verts and changed the panel metric 0.0241 -> 0.0225: a no-op).
+
+    DISCRIMINATOR = the same compactness test `repair_pits` uses, applied to the SHARP mask instead of
+    the depth field: a real crease is a LONG connected line, a voxel facet break is a compact blob.
+
+    `hotspots` bins the surviving compact clusters into `cell` (dy,dz) buckets per side and reports any
+    bucket holding >= `dens_min` of them — that is a speck FIELD (what the owner sees), as opposed to
+    the handful of isolated blobs every voxel mold carries. `ok` is False when any hotspot exists;
+    that is the gate. Non-mutating: safe to call anywhere, including as a pre-export assert."""
+    me=obj.data; N=len(me.vertices)
+    P=np.empty((N,3)); me.vertices.foreach_get("co",P.ravel()); P=P.reshape(-1,3)
+    sharp, compact, extended = _sharp_clusters(me, N, P, angle_deg, max_diag)
+    cy,cz=cell
+    buckets={}
+    for g in compact:
+        c=P[g].mean(0)
+        key=(1 if c[0]>0 else -1, int(math.floor(c[1]/cy)), int(math.floor(c[2]/cz)))
+        buckets.setdefault(key,[]).append([float(c[0]),float(c[1]),float(c[2])])
+    hot=[]
+    for (sd,iy,iz),pts in buckets.items():
+        if len(pts)<dens_min: continue
+        A=np.array(pts)
+        hot.append({"side":int(sd),"n_clusters":len(pts),
+                    "y_range":[round(float(A[:,1].min()),1), round(float(A[:,1].max()),1)],
+                    "z_range":[round(float(A[:,2].min()),1), round(float(A[:,2].max()),1)],
+                    "box_y":[round(iy*cy,1), round((iy+1)*cy,1)],
+                    "box_z":[round(iz*cz,1), round((iz+1)*cz,1)]})
+    hot.sort(key=lambda h:-h["n_clusters"])
+    return {"verts":N, "sharp_verts":int(sharp.sum()),
+            "compact_clusters":len(compact), "compact_verts":int(sum(len(g) for g in compact)),
+            "extended_clusters":len(extended), "extended_verts":int(sum(len(g) for g in extended)),
+            "hotspots":hot, "hotspot_clusters":int(sum(h["n_clusters"] for h in hot)),
+            "ok":(len(hot)==0)}
+
+def repair_specks(obj, angle_deg=35.0, max_diag=2.5, halo=1, iters=12,
+                  factor=0.65, cap=0.15, rounds=2):
+    """Melt the COMPACT sharp clusters found by `speck_report`; EXTENDED (real) creases are frozen and
+    are re-asserted in the return value (`extended_still_sharp` must equal `extended_verts`).
+    Displacement is hard-capped at `cap` — these are ~0.1 mm normal breaks, so a large move means the
+    cluster was not a speck. Cut faces need no special handling: a flat cut face carries sharp verts
+    only along its BORDER, which is a long cluster and therefore frozen."""
+    me=obj.data; N=len(me.vertices)
+    P=np.empty((N,3)); me.vertices.foreach_get("co",P.ravel()); P=P.reshape(-1,3)
+    P0=P.copy(); ei,ej=_edges(me,N)
+    log=[]
+    frozen_total=0
+    for r in range(rounds):
+        me.update()
+        sharp, compact, extended = _sharp_clusters(me, N, P, angle_deg, max_diag)
+        frozen=np.zeros(N,bool)
+        for g in extended: frozen[np.array(g,dtype=np.int64)]=True
+        frozen_total=int(frozen.sum())
+        core=np.zeros(N,bool)
+        for g in compact: core[np.array(g,dtype=np.int64)]=True
+        log.append({"round":r,"compact_clusters":len(compact),
+                    "compact_verts":int(core.sum()),"extended_verts":frozen_total})
+        if not compact: break
+        mask=core.copy()
+        for _ in range(halo):
+            nb=np.zeros(N,bool); nb[ei[mask[ej]]]=True; nb[ej[mask[ei]]]=True; mask|=nb
+        mask &= ~frozen                       # a real crease is never moved, even inside the halo
+        Q=P.copy()
+        for _ in range(iters): Q[mask]+=factor*_umbrella(Q,ei,ej,N)[mask]
+        mv=Q-P; L=np.linalg.norm(mv,axis=1); ov=L>cap
+        mv[ov]*=(cap/np.maximum(L[ov],1e-12))[:,None]
+        P=P+mv
+        me.vertices.foreach_set("co",P.ravel()); me.update()
+    me.vertices.foreach_set("co",P.ravel()); me.update(); _shade(obj)
+    sharp2,_=_feature(me,N,angle_deg)
+    frz=np.zeros(N,bool)
+    _,_,ext_final=_sharp_clusters(me,N,P0,angle_deg,max_diag)
+    for g in ext_final: frz[np.array(g,dtype=np.int64)]=True
+    nm,bd=_manifold(me); d=np.linalg.norm(P-P0,axis=1); m=d>1e-6
+    return {"rounds":log, "moved_verts":int(m.sum()),
+            "mean_disp_moved_mm":round(float(d[m].mean()),5) if m.any() else 0.0,
+            "max_disp_mm":round(float(d.max()),4),
+            "extended_verts":int(frz.sum()), "extended_still_sharp":int((sharp2&frz).sum()),
+            "sharp_verts_after":int(sharp2.sum()), "nonmanifold":nm, "boundary":bd}
+
+def smooth_flank_field(obj, y_range, z_range, side, cell=0.4, sigma=1.0, tol=0.18,
+                       angle_deg=35.0, max_diag=2.5, flank_frac=0.93):
+    """Grid-resampled FLANK filter — the escalation that actually clears a speck FIELD when
+    `repair_specks` alone leaves it visible (P320 X-Carry 2026-08-17b).
+
+    Grid the flank's half-width |x| over (y,z) at `cell`, dilate-fill the empty cells, separable
+    gaussian at `sigma`, bilinear-sample back. That removes structure under roughly 1.5*sigma — the
+    speck scale — while preserving the panel's own shape and any feature larger than ~2 mm. Long
+    (real) creases are frozen. Legitimate because a swept flank is the RUNNING MAX of the gun's
+    half-width along the sweep: it is smooth by construction, so any high-frequency content on it was
+    manufactured downstream and cannot be scan detail.
+
+    ⚠ `tol` IS LOAD-BEARING, not a formality. The move is applied ONLY where |x_smooth - x| < tol.
+    Without it the same filter hit its cap on 100 of 434 verts of the P320's RIGHT flank — a convex,
+    already-clean panel — i.e. it was flattening real shape, not noise. A systematic mismatch larger
+    than the noise band means the region is not a noise case: SKIP it, do not clamp it."""
+    me=obj.data; N=len(me.vertices)
+    P=np.empty((N,3)); me.vertices.foreach_get("co",P.ravel()); P=P.reshape(-1,3)
+    _,_,extended=_sharp_clusters(me,N,P,angle_deg,max_diag)
+    frozen=np.zeros(N,bool)
+    for g in extended: frozen[np.array(g,dtype=np.int64)]=True
+    y0,y1=y_range; z0,z1=z_range
+    m=(P[:,1]>y0)&(P[:,1]<y1)&(P[:,2]>z0)&(P[:,2]<z1)
+    m &= (P[:,0]<0) if side<0 else (P[:,0]>0)
+    if m.sum()<50: return {"n":0,"applied":0,"skipped":0,"reason":"too few verts in box"}
+    hw=float(np.abs(P[m,0]).max())
+    m &= np.abs(P[:,0])>flank_frac*hw           # the flank plane only, derived from the SLAB's own extent
+    m &= ~frozen
+    ids=np.where(m)[0]
+    if len(ids)<50: return {"n":int(len(ids)),"applied":0,"skipped":0,"reason":"too few flank verts"}
+    y=P[ids,1]; z=P[ids,2]; x=P[ids,0]
+    gy0,gz0=y.min()-2.0, z.min()-2.0
+    ny=int((y.max()-gy0+2.0)/cell)+1; nz=int((z.max()-gz0+2.0)/cell)+1
+    acc=np.zeros((ny,nz)); cw=np.zeros((ny,nz))
+    iy=((y-gy0)/cell).astype(int); iz=((z-gz0)/cell).astype(int)
+    np.add.at(acc,(iy,iz),x); np.add.at(cw,(iy,iz),1.0)
+    grid=np.where(cw>0, acc/np.maximum(cw,1), np.nan)
+    for _ in range(14):                          # dilate-fill holes so the blur has no NaN craters
+        nan=np.isnan(grid)
+        if not nan.any(): break
+        pad=np.pad(grid,1,constant_values=np.nan)
+        st4=np.stack([pad[0:-2,1:-1],pad[2:,1:-1],pad[1:-1,0:-2],pad[1:-1,2:]])
+        with np.errstate(invalid='ignore'): fv=np.nanmean(st4,axis=0)
+        grid=np.where(nan,fv,grid)
+    grid=np.nan_to_num(grid,nan=float(np.nanmean(grid)))
+    r=int(np.ceil(3*sigma/cell)); k=np.exp(-0.5*((np.arange(-r,r+1)*cell)/sigma)**2); k/=k.sum()
+    G=np.apply_along_axis(lambda v: np.convolve(np.pad(v,(r,r),mode='edge'),k,mode='valid'),0,grid)
+    G=np.apply_along_axis(lambda v: np.convolve(np.pad(v,(r,r),mode='edge'),k,mode='valid'),1,G)
+    fy=(y-gy0)/cell; fz=(z-gz0)/cell
+    i0=np.clip(fy.astype(int),0,ny-2); j0=np.clip(fz.astype(int),0,nz-2)
+    ty=fy-i0; tz=fz-j0
+    xs=(G[i0,j0]*(1-ty)*(1-tz)+G[i0+1,j0]*ty*(1-tz)+G[i0,j0+1]*(1-ty)*tz+G[i0+1,j0+1]*ty*tz)
+    dlt=xs-x; keep=np.abs(dlt)<tol
+    P[ids[keep],0]=x[keep]+dlt[keep]
+    me.vertices.foreach_set("co",P.ravel()); me.update(); _shade(obj)
+    nm,bd=_manifold(me)
+    return {"n":int(len(ids)),"applied":int(keep.sum()),"skipped":int((~keep).sum()),
+            "side":int(side),"y_range":[y0,y1],"z_range":[z0,z1],
+            "mv_mean":round(float(np.abs(dlt[keep]).mean()),4) if keep.any() else 0.0,
+            "mv_max":round(float(np.abs(dlt[keep]).max()),4) if keep.any() else 0.0,
+            "nonmanifold":nm,"boundary":bd}
+
+def despeckle_mold(obj, angle_deg=35.0, max_diag=2.5, dens_min=6, cell=(20.0,10.0),
+                   escalate=True, pad=(6.0,4.0), sigma=1.0, tol=0.18, max_passes=6,
+                   total_cap=0.35):
+    """MANDATORY on every mold — the automatic speck-field check + fix (owner directive 2026-08-17b:
+    "make sure this is checked automatically with every future mold").
+
+    audit -> `repair_specks` -> re-audit -> if a hotspot survives and `escalate`, run
+    `smooth_flank_field` on that hotspot's box (padded by `pad`) -> final audit.
+
+    Returns `{"before":…, "after":…, "ok":bool, …}`. **`ok` False means the mold still carries a speck
+    field and MUST NOT be exported** — read `after["hotspots"]` for where, and render that panel under
+    cavity/matcap light before deciding anything. Both stages freeze long (real) creases, and every
+    stage re-asserts `extended_still_sharp == extended_verts`, so owner geometry cannot be eaten.
+
+    Run it on the PRE-DECIMATE mold: this is a surface fix and the decimate is BVH-faithful to it.
+    ⚠ Do NOT re-audit after decimating and expect the same numbers — neighbourhood metrics scale with
+    edge length (the P320 read 0.0006 pre-decimate and 0.0571 post-decimate on a surface pair 0.0071 mm
+    apart). Verify at ONE density, or with a BVH distance."""
+    me=obj.data; N=len(me.vertices)
+    P0=np.empty((N,3)); me.vertices.foreach_get("co",P0.ravel()); P0=P0.reshape(-1,3)
+    before=speck_report(obj, angle_deg, max_diag, cell, dens_min)
+    steps=[]; assert_fail=False
+    def _clamp_total():
+        """Cumulative-displacement guard: passes compose, and each stage's own cap does NOT bound the
+        SUM. Without this a multi-pass run drifted to 0.60 mm on a 0.15/0.18-capped pipeline."""
+        P=np.empty((N,3)); me.vertices.foreach_get("co",P.ravel()); P=P.reshape(-1,3)
+        d=P-P0; L=np.linalg.norm(d,axis=1); ov=L>total_cap
+        if ov.any():
+            d[ov]*=(total_cap/L[ov])[:,None]
+            me.vertices.foreach_set("co",(P0+d).ravel()); me.update()
+        return int(ov.sum())
+    rep=repair_specks(obj, angle_deg=angle_deg, max_diag=max_diag)
+    steps.append({"stage":"repair_specks", **rep})
+    if rep["extended_still_sharp"]!=rep["extended_verts"]: assert_fail=True
+    _clamp_total()
+    after=speck_report(obj, angle_deg, max_diag, cell, dens_min)
+    passes=0
+    if escalate:
+        prev=after["hotspot_clusters"]
+        while after["hotspots"] and passes<max_passes:
+            passes+=1; fired=0
+            for h in after["hotspots"]:
+                y0=min(h["y_range"][0], h["box_y"][0])-pad[0]
+                y1=max(h["y_range"][1], h["box_y"][1])+pad[0]
+                z0=min(h["z_range"][0], h["box_z"][0])-pad[1]
+                z1=max(h["z_range"][1], h["box_z"][1])+pad[1]
+                r=smooth_flank_field(obj, (y0,y1), (z0,z1), h["side"],
+                                     sigma=sigma, tol=tol, angle_deg=angle_deg, max_diag=max_diag)
+                steps.append({"stage":"field","pass":passes, **r})
+                fired+=r.get("applied",0)
+            if not fired: break
+            r2=repair_specks(obj, angle_deg=angle_deg, max_diag=max_diag, rounds=1)
+            steps.append({"stage":"repair(post-field)","pass":passes, **r2})
+            if r2["extended_still_sharp"]!=r2["extended_verts"]: assert_fail=True
+            clamped=_clamp_total()
+            after=speck_report(obj, angle_deg, max_diag, cell, dens_min)
+            steps.append({"stage":"audit","pass":passes,"hotspot_clusters":after["hotspot_clusters"],
+                          "compact_clusters":after["compact_clusters"],"total_clamped":clamped})
+            if after["hotspot_clusters"]>=prev: break     # no progress -> stop, don't grind
+            prev=after["hotspot_clusters"]
+    P=np.empty((N,3)); me.vertices.foreach_get("co",P.ravel()); P=P.reshape(-1,3)
+    d=np.linalg.norm(P-P0,axis=1); mv=d>1e-6
+    nm,bd=_manifold(me)
+    return {"before":before, "after":after, "steps":steps, "passes":passes,
+            "hotspots_before":before["hotspot_clusters"], "hotspots_after":after["hotspot_clusters"],
+            "moved_verts":int(mv.sum()), "moved_frac":round(float(mv.mean()),5),
+            "mean_disp_moved_mm":round(float(d[mv].mean()),5) if mv.any() else 0.0,
+            "max_disp_mm":round(float(d.max()),4),
+            "crease_assert_failed":assert_fail,
+            "ok":(after["ok"] and not assert_fail), "nonmanifold":nm, "boundary":bd}
+
 # ---------------------------------------------------------------- stage 6b: regional ripple denoise (optional)
 def denoise_region(obj, y_range, z_range, x_range=None, feature_angle=35.0, pairs=15, rings=2):
     """Kill voxel-remesh 'ripple' staircase noise on an otherwise-smooth curved region (e.g. the
