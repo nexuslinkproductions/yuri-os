@@ -33,7 +33,9 @@ edits cockpit files itself.
 - **Backend** (`backend/`): `app.py` (FastAPI app + route wiring), `db.py` (SQLite access), `woo.py`
   (WooCommerce REST sync), `engine_bridge.py` (reads the cgs-cogs engine), `auth.py` (password gate),
   `backup.py` (off-site SSH backup), `git_backup.py`, `cam_index.py` (CNC drive scanner for "ready to
-  build"), `cam_registry.py`, `export_molds.py` (Excel export), `inventory.py` (stock + BUILD),
+  build"), `cam_registry.py` + `cam_vocab_sync.py` (re-mirror the dropdown vocabulary off a WCPA
+  export — see CAM REGISTER VOCABULARY below), `export_molds.py` (Excel export),
+  `inventory.py` (stock + BUILD),
   `build_cogs.py` (a build re-costs its sale — see below), `quotes_store.py`, `pl.py` (Erfolgsrechnung),
   `reconcile.py` + `books_client.py` (cgs-books), `twint_report.py`, `post_*.py` (Swiss Post labels),
   `geo_lookup.py`, plus the three cgs-cogs write stores.
@@ -120,9 +122,16 @@ expected). The process may be **detached with a hidden console** (`MainWindowHan
 elevated scheduled-task context, so a normal `Stop-Process` returns **"Access is denied"** and there is
 no window to close manually.
 
-Fix: open Task Manager **as admin** → Details tab → find the `python.exe` PID listening on port 8000
-(cross-check with `netstat -ano | grep :8000`) → End Task → relaunch via `start-lan.bat` (**never**
-`start.bat` — see RUN above, binding matters).
+Normally **`restart-cockpit.bat`** handles it (verified on disk 2026-08-19): it kills the listener and
+`start-service.bat`'s restart loop brings uvicorn back hidden within ~10 s. Doing it by hand is the
+same shape — kill the uvicorn `python.exe` on port 8000 and let the loop respawn; **never kill the
+loop's parent `cmd.exe` first if you want it back automatically.** Confirm the session is `rene`
+(`Get-Process -Id <pid> | Select SessionId` → si=1) before blaming the network for anything.
+
+Only if the process is ELEVATED (the old SYSTEM task) does the kill return "Access is denied" and
+there is no window to close: Task Manager **as admin** → Details → the `python.exe` PID on port 8000
+(`netstat -ano | grep :8000`) → End Task → relaunch via `start-hidden.vbs` (or `start-lan.bat` when
+you want the log on screen — **never** `start.bat`, binding matters).
 
 ## THE SYSTEM/SMB FOOTGUN — "CAM drive not reachable" while Explorer works
 
@@ -198,6 +207,29 @@ clicking it reverts. Two things that look optional and are not: `ShellUse.sheet_
 drops the sheet line, so without this the biggest line silently vanishes from the cost) and
 `built_qty` (a build total ÷ units = per-unit `unit_cogs`).
 
+## CAM REGISTER VOCABULARY — "I cannot edit the MODEL" (2026-08-19)
+
+The HERSTELLER / MODEL / LAMPENMODUL fields on CAM REGISTER are `<select>`s fed by
+`backend/cam_vocab.json`, a **mirror of the shop's WCPA option lists**. A gun René adds in
+WooCommerce (Product Addons → form 812270) does not exist in the form until that mirror is patched.
+That is what "I cannot edit the MODEL" always means — the field is not meant to be typed in.
+
+```bash
+python backend/cam_vocab_sync.py            # newest wcpa-*.json in ~/Downloads, report only
+python backend/cam_vocab_sync.py --apply    # write the additions, then RESTART (module cache)
+```
+
+**The second half is the dangerous one.** `gun_tokens()` in `cam_index.py` decides which physical
+cavity a name means and it matches by **substring**, so a new model whose name CONTAINS an older one
+inherits the older one's key and gets handed a shell that does not fit — with no mismatch shown
+anywhere. "SHADOW 2 COMPACT" ⊃ "SHADOW 2" (fixed 2026-08-19); "X-COMPACT" ⊃ "COMPACT" (P320, fixed
+earlier). The sync tool reports every addition as `OWN KEY` / `COLLISION` / `GENERIC` / `UNREADABLE`;
+a COLLISION is correct **only** if the two genuinely share one mold — an owner ruling, never the
+tool's and never a session's guess. When a branch is needed: test the **longer** name **first**, and
+match it **adjacently**, never as a loose substring (the legacy path parser feeds `gun_tokens()`
+whole folder segments where COMPACT is a shell/reference word — `CZ_SHADOW-2_PANCAKE_RH_COMPACT_MOLD.nc`
+is a FULL-SIZE mold). The tool never removes retired options and never edits `cam_index.py`.
+
 ## WORKFLOW discipline
 
 - **Verify against the running app, not assumptions.** Hit the real HTTP endpoints / load the real page
@@ -268,3 +300,23 @@ check the bank statement before chasing, the cockpit cannot see it; Woo sync is 
   memory entry rather than as skill rules.
 - Tools: Read/Edit (skill + repo CLAUDE.md + memory), Bash (git, sandbox instance on :8010 against
   copies, live-DB count checks to prove isolation), claude-in-chrome (live UI verification).
+
+### 2026-08-19 (CAM REGISTER vocabulary, and a substring that hands over the wrong shell)
+- René added CZ / SHADOW 2 COMPACT in the shop and could not pick it in CAM REGISTER. Root cause is
+  structural, not a bug: the MODEL field is a `<select>` mirroring `cam_vocab.json`. Patched the
+  vocabulary AND `gun_tokens()`, then built `cam_vocab_sync.py` (+ 23-assert test) so the next one is
+  one command. Both committed to the cockpit repo (`f00b30b`, `ab60d05`), pushed.
+- **The lesson worth keeping**: fixing the visible half (the dropdown) would have shipped a SILENT
+  wrong-shell bug. `gun_tokens()` matches by substring, so "SHADOW 2 COMPACT" would have keyed onto
+  "SHADOW 2" and matched a mold that does not fit, with nothing anywhere reading as a mismatch. When
+  a request is "I can't select X", always ask what X's IDENTITY resolves to, not just where its label
+  is missing.
+- **Two adversarial checks that earned their keep**: (1) mutation test — restoring the pre-fix matcher
+  makes the sync tool report COLLISION, proving the check discriminates rather than always passing;
+  (2) reconciling against the real 01-08-2026 export produced ZERO additions and independently
+  rediscovered both of René's own 2026-08-01 store findings — the extractor reproduces a hand-built
+  file exactly. First-run green on a fresh tool means nothing without one of these.
+- Corrected drift found while working: this skill's RESTART GOTCHA sent sessions to Task Manager when
+  `restart-cockpit.bat` exists (verified on disk). Killed PIDs by hand before noticing.
+- Tools: Read/Grep/Edit/Write, Bash (python, read-only SQLite `mode=ro` check, tempfile sandboxes for
+  the write path, git), claude-in-chrome (live `/api/cam/vocab` + `/api/cam/preview` verification).
