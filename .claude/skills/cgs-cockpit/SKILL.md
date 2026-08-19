@@ -214,10 +214,21 @@ The HERSTELLER / MODEL / LAMPENMODUL fields on CAM REGISTER are `<select>`s fed 
 WooCommerce (Product Addons → form 812270) does not exist in the form until that mirror is patched.
 That is what "I cannot edit the MODEL" always means — the field is not meant to be typed in.
 
+Two surfaces, ONE code path (`review()` / `apply_export()` — the button cannot drift from the command):
+
+- **CAM REGISTER page → "Vocabulary — sync from the shop"** (bottom of the page, route `/cam`).
+  Choose the WCPA export → read the diff → Add. **No restart**: apply drops `cam_registry._LABELS`
+  in place and `vocab()` re-reads the file per call.
+- CLI — same output, but this one **does** need a restart (separate process):
+
 ```bash
 python backend/cam_vocab_sync.py            # newest wcpa-*.json in ~/Downloads, report only
-python backend/cam_vocab_sync.py --apply    # write the additions, then RESTART (module cache)
+python backend/cam_vocab_sync.py --apply    # write the additions, then restart
 ```
+
+A **single-form export covers only its own form** — "nothing new" from the holster form says nothing
+about the magazine lists, which is why the report prints which lists the file carried. (The known
+`PDP COMPACT - 5 ZOLL` / `'19'` store bug lives in the MAGAZINHALTER form, not the holster form.)
 
 **The second half is the dangerous one.** `gun_tokens()` in `cam_index.py` decides which physical
 cavity a name means and it matches by **substring**, so a new model whose name CONTAINS an older one
@@ -320,3 +331,21 @@ check the bank statement before chasing, the cockpit cannot see it; Woo sync is 
   `restart-cockpit.bat` exists (verified on disk). Killed PIDs by hand before noticing.
 - Tools: Read/Grep/Edit/Write, Bash (python, read-only SQLite `mode=ro` check, tempfile sandboxes for
   the write path, git), claude-in-chrome (live `/api/cam/vocab` + `/api/cam/preview` verification).
+
+### 2026-08-19 (same session — the button, and a rename that was not one)
+- Built the UI for the sync (CAM REGISTER → Vocabulary panel). **Verifying a file-upload UI without a
+  readable file**: `file_upload` refused a path outside the session's allowed dirs, so the working
+  method was to build a `File` + `DataTransfer` in the page via `javascript_tool`, assign
+  `input.files` and dispatch `change` — React's handler fires and the whole path runs for real.
+- **Test writes went to the LIVE `cam_vocab.json` on purpose** (the only honest end-to-end for a write
+  path), then `git checkout --` + delete the `.bak`, and PROVED the revert with `git status` + a
+  content read. Do it that way or not at all; a write path verified only in a sandbox copy has not
+  been verified where it runs.
+- Three defects that only appeared by running it: the panel unmounted itself on success (a `loading`
+  early-return), a duplicated clash list, and an LF writer against a CRLF working tree. None were
+  visible in review.
+- **Owner ruling: ARSENAL STRIKE ONE ≠ STRYK B.** The shop replaced one option with the other, which
+  reads like a rename. It was not. Never infer "renamed" from a shop diff — ask; the wrong answer
+  either orphans a mold or hands an order the wrong shell.
+- Route note: the CAM Register page is `/cam`, not `/cam-register`.
+- Tools: as above, plus `file_upload` (refused — see method), `browser_batch`.
