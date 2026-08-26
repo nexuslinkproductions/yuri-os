@@ -332,6 +332,22 @@ check the bank statement before chasing, the cockpit cannot see it; Woo sync is 
 - Tools: Read/Grep/Edit/Write, Bash (python, read-only SQLite `mode=ro` check, tempfile sandboxes for
   the write path, git), claude-in-chrome (live `/api/cam/vocab` + `/api/cam/preview` verification).
 
+### 2026-08-26 (accepted quote → sales rows, and a live footgun the guard now blocks)
+- Built quote→sale conversion (commit `8060dad`): "→ Verkauf" on an accepted quote books its lines
+  into the sales ledger as `source='manual'` rows — no WooCommerce, sync-prune-proof, one-way
+  `converted_at` stamp. Mapping lives in `backend/quote_convert.py`; spec + gotchas in the Track-B
+  memory's QUOTE → SALE CONVERT entry.
+- **The guard the live data demanded**: a quote prefilled from a Woo order SHARES that order's
+  number, and quote 813189 already had 2 synced sale rows — converting would double-count. The
+  endpoint now 409s when `db.count_for_order(order_nr)` is non-zero. When a convert flow reuses an
+  identifier from another system, always check the destination ledger for that identifier first.
+- Verified: money mapped exactly (Σ sales rows = quote Gesamt incl. line + doc discounts + Porto)
+  on a temp-DB sandbox in the app's own venv; all three 409/400 guards exercised negative;
+  `prune_woo_except` proven to leave manual rows; tsc + vite build clean; live UI + `/api/quotes`
+  (new `converted_*` fields) checked through René's Chrome after `restart-cockpit.bat`.
+- Converted sales start `status='pending'` with NO `paid_date` — cash-basis surfaces (P&L, TWINT
+  reconcile) only see them once René marks payment by hand, same as any manual sale.
+
 ### 2026-08-19 (same session — the button, and a rename that was not one)
 - Built the UI for the sync (CAM REGISTER → Vocabulary panel). **Verifying a file-upload UI without a
   readable file**: `file_upload` refused a path outside the session's allowed dirs, so the working
