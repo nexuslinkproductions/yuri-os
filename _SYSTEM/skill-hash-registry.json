@@ -473,7 +473,7 @@
   },
   "cgs-align": {
     "source_path": ".claude/skills/cgs-align/SKILL.md",
-    "hash": "287e8f640b24dfe0"
+    "hash": "362a1605cce6a236"
   },
   "cgs-books": {
     "source_path": ".claude/skills/cgs-books/SKILL.md",
@@ -489,7 +489,7 @@
   },
   "cgs-mold": {
     "source_path": ".claude/skills/cgs-mold/SKILL.md",
-    "hash": "3e7af1b0be160bc5"
+    "hash": "7cab6b0d358c4f6b"
   },
   "yuri-control-plane-first": {
     "source_path": ".codex/skills/yuri-control-plane-first/SKILL.md",

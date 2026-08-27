@@ -809,15 +809,15 @@ def _refine_light_seat(P, F, center, x_hat, y_hat, z_hat):
     D = np.asarray(P, dtype=np.float64) - center
     q = np.c_[D @ x_hat, D @ y_hat, D @ z_hat]                  # current-frame coordinates
     if F is None or len(F) == 0:
-        return x_hat, y_hat, z_hat, 0.0
+        return x_hat, y_hat, z_hat, 0.0, "no_faces"
     a3, b3, c3 = q[F[:, 0]], q[F[:, 1]], q[F[:, 2]]
     fn = np.cross(b3 - a3, c3 - a3); fa = np.linalg.norm(fn, axis=1); ok = fa > 1e-12
     if int(ok.sum()) < 200:
-        return x_hat, y_hat, z_hat, 0.0
+        return x_hat, y_hat, z_hat, 0.0, "too_few_faces"
     nn = fn[ok] / fa[ok][:, None]; area = 0.5 * fa[ok]; cen = ((a3 + b3 + c3) / 3.0)[ok]
     W = _robust_extent(q[:, 0]); H = _robust_extent(q[:, 2])
     if W < 1e-6 or H < 1e-6:
-        return x_hat, y_hat, z_hat, 0.0
+        return x_hat, y_hat, z_hat, 0.0, "degenerate_extent"
     # Restrict to the RAIL CHANNEL by what physically defines it — floor with a JAW STANDING ABOVE IT ON
     # BOTH SIDES — not by a width fraction. Necessary, and the whole ballgame: the TLR-7's rear housing deck
     # is 1.34deg off the seat but only 0.12mm away from its plane, so it is neither cone-separable nor
@@ -842,11 +842,11 @@ def _refine_light_seat(P, F, center, x_hat, y_hat, z_hat):
         floor = float(np.percentile(q[m_b, 2], 90))
         chan[b] = (float(q[l_b, 2].max()) > floor + lip) and (float(q[r_b, 2].max()) > floor + lip)
     if int(chan.sum()) * dy < 0.15 * L:
-        return x_hat, y_hat, z_hat, 0.0                         # no jawed channel found -> keep the consensus
+        return x_hat, y_hat, z_hat, 0.0, "no_jawed_channel"                         # no jawed channel found -> keep the consensus
     fidx = np.clip(((cen[:, 1] - ylo) / dy).astype(int), 0, len(yb) - 1)
     band = (nn[:, 2] > 0.85) & (np.abs(cen[:, 0]) < 0.30 * W) & (cen[:, 2] > 0.10 * H) & chan[fidx]
     if int(band.sum()) < 200:
-        return x_hat, y_hat, z_hat, 0.0
+        return x_hat, y_hat, z_hat, 0.0, "channel_band_too_small"
     # Pick the direction that carries the MOST FACE AREA within a ~2deg cone — a raw histogram peak would
     # not do: a scan surface's normals scatter, so a small very-flat deck (the TLR-7's rear housing, fit rms
     # 0.016mm) concentrates into one bin and outbids the 5x-larger but rougher rail seat (rms 0.070mm). That
@@ -863,7 +863,7 @@ def _refine_light_seat(P, F, center, x_hat, y_hat, z_hat):
     nx0, ny0 = 0.5 * (ex[i] + ex[i + 1]), 0.5 * (ey[j] + ey[j + 1])
     sel = band & (np.abs(nn[:, 0] - nx0) < rad * step) & (np.abs(nn[:, 1] - ny0) < rad * step)
     if int(sel.sum()) < 150:
-        return x_hat, y_hat, z_hat, 0.0
+        return x_hat, y_hat, z_hat, 0.0, "normal_mode_too_small"
     # Collapse the cone to ONE coplanar SHEET before fitting. A cone alone is not enough: the TLR-7's rear
     # housing deck sits only 1.34deg off the seat, so it lands inside any usable cone — and a single plane
     # fit through two patches at different y AND different z is driven by the LEVER ARM between them, not by
@@ -895,23 +895,23 @@ def _refine_light_seat(P, F, center, x_hat, y_hat, z_hat):
                 keep = k2
     k = keep
     if int(k.sum()) < 150 or float(Wt[k].sum()) < 0.10 * float(area[band].sum()):
-        return x_hat, y_hat, z_hat, 0.0                         # guard: no dominant seat sheet in the channel
+        return x_hat, y_hat, z_hat, 0.0, "no_dominant_sheet"                         # guard: no dominant seat sheet in the channel
     co, *_ = np.linalg.lstsq(A[k] * np.sqrt(Wt[k])[:, None], X[k, 2] * np.sqrt(Wt[k]), rcond=None)
     rms = float(np.sqrt(np.mean((X[k, 2] - A[k] @ co) ** 2)))
     if rms > 0.02 * H:
-        return x_hat, y_hat, z_hat, 0.0                         # guard: not a real machined flat
+        return x_hat, y_hat, z_hat, 0.0, "fit_not_flat"                         # guard: not a real machined flat
     n_loc = np.array([-co[0], -co[1], 1.0]); n_loc /= (np.linalg.norm(n_loc) or 1.0)
     new_z = n_loc[0] * x_hat + n_loc[1] * y_hat + n_loc[2] * z_hat
     new_z /= (np.linalg.norm(new_z) or 1.0)
     ang = math.degrees(math.acos(max(-1.0, min(1.0, float(new_z @ z_hat)))))
     if ang > 8.0:
-        return x_hat, y_hat, z_hat, 0.0                         # guard: wild correction, keep the consensus
+        return x_hat, y_hat, z_hat, 0.0, "correction_too_large"                         # guard: wild correction, keep the consensus
     new_x = np.cross(y_hat, new_z); nx_n = np.linalg.norm(new_x)
     if nx_n < 1e-9:
-        return x_hat, y_hat, z_hat, 0.0
+        return x_hat, y_hat, z_hat, 0.0, "degenerate_axis"
     new_x /= nx_n
     new_y = np.cross(new_z, new_x); new_y /= (np.linalg.norm(new_y) or 1.0)
-    return new_x, new_y, new_z, ang
+    return new_x, new_y, new_z, ang, "ok"
 
 def compute_alignment_light(P, F, refine_seat=True):
     """LIGHT-canonical rigid transform (center, R) for a weapon-light STL: long axis -> Y, the RAIL
@@ -952,8 +952,9 @@ def compute_alignment_light(P, F, refine_seat=True):
     # lever) — the battery/body flat is smooth. Score each outward direction by (outer flat area) x
     # (structural complexity)^2. Calibrated on the PL2 (René 2026-07-03): the body flat has MORE raw
     # area (1158 vs 970) but the clamp face is far more complex (1.08 vs 0.88), so complexity^2 tips it.
-    best_th, best_score, best_flatarea, best_cx = 0.0, -1.0, 0.0, 0.0
-    for th in np.arange(0.0, 360.0, 5.0):
+    ths = np.arange(0.0, 360.0, 5.0)
+    cx_score, cx_area, cx_cplx = {}, {}, {}
+    for th in ths:
         cd, sd = math.cos(math.radians(th)), math.sin(math.radians(th))
         ndot = nA * cd + nB * sd; cdot = cA * cd + cB * sd
         outer_thr = np.percentile(cdot, 60); outer2_thr = np.percentile(cdot, 80)
@@ -963,9 +964,56 @@ def compute_alignment_light(P, F, refine_seat=True):
         fa_ = float(np.sum(area[flat]))
         tang = nA * (-sd) + nB * cd                                    # in-plane tangential normal comp
         cx = float(np.std(nY[outer])) + float(np.std(tang[outer]))     # structural complexity of the face
-        score = fa_ * cx * cx
-        if score > best_score:
-            best_score, best_th, best_flatarea, best_cx = score, float(th), fa_, cx
+        cx_score[float(th)] = fa_ * cx * cx; cx_area[float(th)] = fa_; cx_cplx[float(th)] = cx
+
+    # ---- CHANNEL STEP (primary whenever a channel exists). The rail channel is two JAWS STANDING ABOVE
+    # A FLOOR -- a SHAPE, not a texture. The complexity score above is a texture measure, and a fitted rail
+    # KEY erases it: on the TLR-7 HL-X + 1913-1 (2026-08-27) the key filled the channel, clamp_complexity
+    # fell to 1.026, the smooth battery panel won, and the light aligned UPSIDE DOWN with aligned_ok true.
+    # The jaws survive a key -- on that same part the outer columns still stand 3-5mm above the mid ones --
+    # so score each candidate up-direction by the fraction of length slices showing jaws over a floor.
+    Lspan = _robust_extent(pY)
+    dyb = max(1.0, 0.02 * Lspan)
+    ylo_b, yhi_b = float(np.percentile(pY, 1)), float(np.percentile(pY, 99))
+    nb_b = max(1, int((yhi_b - ylo_b) / dyb) + 1)
+    bidx = np.clip(((pY - ylo_b) / dyb).astype(int), 0, nb_b - 1)
+    chan_frac = {}
+    for th in ths:
+        cd, sd = math.cos(math.radians(th)), math.sin(math.radians(th))
+        hgt = p1 * cd + p2 * sd                                        # height along this candidate "up"
+        lat = -p1 * sd + p2 * cd                                       # lateral (across the channel)
+        Wt = _robust_extent(lat); Ht = _robust_extent(hgt)
+        if Wt < 1e-6 or Ht < 1e-6: continue
+        mid = np.abs(lat) < 0.22 * Wt
+        sid = (np.abs(lat) > 0.26 * Wt) & (np.abs(lat) < 0.50 * Wt)
+        if not mid.any() or not sid.any(): continue
+        mx_m = np.full(nb_b, -np.inf); np.maximum.at(mx_m, bidx[mid], hgt[mid])
+        mx_s = np.full(nb_b, -np.inf); np.maximum.at(mx_s, bidx[sid], hgt[sid])
+        c_m = np.bincount(bidx[mid], minlength=nb_b); c_s = np.bincount(bidx[sid], minlength=nb_b)
+        valid = (c_m >= 6) & (c_s >= 6)
+        tot = int(valid.sum())
+        if tot < 5: continue
+        chan_frac[float(th)] = float(((mx_s > mx_m + 0.025 * Ht) & valid).sum()) / tot
+
+    # Decide: channel SHAPE wins when a real channel is present; fall back to the texture score for a
+    # mount with no channel at all (single-screw lights), which is what that score was calibrated on.
+    CHAN_MIN = 0.25
+    best_frac = max(chan_frac.values()) if chan_frac else 0.0
+    if best_frac >= CHAN_MIN:
+        cands = [t for t, f in chan_frac.items() if f >= best_frac - 0.05]
+        best_th = max(cands, key=lambda t: cx_score.get(t, 0.0))       # tie-break on the texture score
+        mount_method = "channel"
+    else:
+        best_th = max(cx_score, key=cx_score.get) if cx_score else 0.0
+        mount_method = "complexity"
+    best_score = cx_score.get(best_th, 0.0)
+    best_flatarea = cx_area.get(best_th, 0.0)
+    best_cx = cx_cplx.get(best_th, 0.0)
+    if chan_frac:
+        opp_t = min(chan_frac, key=lambda t: abs(((t - (best_th + 180.0)) % 360.0 + 180.0) % 360.0 - 180.0))
+        mount_conf = round(float(chan_frac.get(best_th, 0.0) - chan_frac.get(opp_t, 0.0)), 3)
+    else:
+        mount_conf = None
     cd, sd = math.cos(math.radians(best_th)), math.sin(math.radians(best_th))
     z_hat = cd * a1 + sd * a2                                          # clamp mounting face faces this way -> UP
     y_hat = aL
@@ -992,8 +1040,10 @@ def compute_alignment_light(P, F, refine_seat=True):
     # consensus above blends the seat with the jaw tops / bezel deck / rear deck; on the TLR-7 that left the
     # real seat 4.33deg nose-down. Self-zeroing + guarded. Owner datum: the mount is the light's rail.
     seat_refine_deg = 0.0
+    seat_reason = "not_run"
     if refine_seat:
-        x_hat, y_hat, z_hat, seat_refine_deg = _refine_light_seat(P, F, center, x_hat, y_hat, z_hat)
+        x_hat, y_hat, z_hat, seat_refine_deg, seat_reason = _refine_light_seat(
+            P, F, center, x_hat, y_hat, z_hat)
 
     # ---- BEZEL -> -Y: the REFLECTOR/lens end (owner cue #2). The mount POSITION is unreliable (clamp
     # vs single-screw; centered vs offset), so key off the light-emitting end itself: a concave reflector
@@ -1026,6 +1076,11 @@ def compute_alignment_light(P, F, refine_seat=True):
             "clamp_angle_deg": round(float(best_th), 1), "clamp_flat_area": round(best_flatarea, 0),
             "clamp_complexity": round(best_cx, 3), "clamp_leveled_deg": round(float(clamp_level_deg), 2),
             "seat_refine_deg": round(float(seat_refine_deg), 3),
+            "mount_method": mount_method, "mount_channel_frac": round(float(best_frac), 3),
+            "mount_confidence": mount_conf, "seat_refine_reason": seat_reason,
+            # LOUD by design (2026-08-27): the seat was never actually measured, so "level" here is the
+            # step-2 consensus, not a datum. A filled rail channel lands exactly here.
+            "needs_manual_check": bool(seat_reason not in ("ok",)),
             "bezel_score_front": round(sf, 0), "bezel_score_rear": round(sr, 0),
             "det_R": round(float(np.linalg.det(R)), 6)}
     return center, R, diag

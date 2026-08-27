@@ -49,7 +49,21 @@ Mass center           -> origin (0,0,0), all 3 axes on the volume centroid
   same broken metric. Correct method: for d in 2.5…6 mm compare `z(nc − d)` vs `z(nc + d)`, and require
   **dz to grow LINEARLY with d** — that scaling is the built-in validity check; if it doesn't scale, the
   surface isn't a tilted plane and the datum is void. Fails silently whenever the notch is not centred in
-  the sight body (0.9 mm off on the P30). `pose_report`'s `roll_deg` still carries the old bug. Owner directive 2026-08-05
+  the sight body (0.9 mm off on the P30).
+  ★★ **A CROWNED (domed) SHOULDER DEFEATS MIRROR PAIRS ABOUT THE NOTCH** (SIG ATC Rock 5, 2026-08-20).
+  Carry/competition sights are often radiused across the top — the ATC's shoulders dome **0.1–0.3 mm over
+  6 mm**, which is 10× the 0.017 mm a 0.1° roll makes over that span, so the CROWN is the signal and the
+  mirror difference comes out non-monotonic (+0.006, −0.037, −0.057, −0.051, −0.033, −0.010, +0.007 for
+  d = 2.5…6 — it fails the linearity check, correctly, and then gives you nothing). Mirror pairs cancel a
+  crown ONLY when sampled about the surface's OWN symmetry centre, and the notch is not it.
+  **Fix — SOLVE for the centre.** A rolled symmetric top is `z(x) = s(x−xc) + b·(x−xc)` with `s` even, so
+  `dz(u) = z(xc+u) − z(xc−u) = 2b·u` must be **linear THROUGH THE ORIGIN**. Scan `xc`, fit `dz = 2b·u + c`,
+  keep the `xc` minimising `rms + |c|`; `b` is the roll, and a **near-zero intercept is the built-in proof
+  you found the right centre** (ATC: xc −0.75 against a notch centre of −1.096, intercept 0.003 mm, rms
+  0.025 mm; calibrated response −0.996). This is the P30's "symmetry plane" made into the general tool, and
+  it subsumes mirror-pairs — plain mirror-pairs are just the special case where the crown is centred on the
+  notch. ⚠ Do NOT area-weighted-plane-fit a crowned shoulder instead: an `nz>0.90` cone keeps only ~7 mm² of
+  it and returns a 4–5° "pitch" of pure garbage. `pose_report`'s `roll_deg` still carries the old bug. Owner directive 2026-08-05
   (GLOCK 34), arrows on both shoulders: *"why did you not align this!!?? This is a MUST as well with all
   alignments of guns"*. Auto-leveled by **`refine_sight_roll`** (method step 5d). ⚠ The **slide-top flat is
   only a PROXY** for this and is not good enough on its own — on the Glock 34 the two disagreed by **0.33°**
@@ -89,6 +103,28 @@ metric that was never checked against the datum René actually looks at. So ever
    against fiducial bars. A number and a picture fail differently; both, every time.
 5. Clean up after yourself — remove every fiducial and temp camera, restore `Camera`. (Two were left in
    his scene once. He found them.)
+
+★★ **6. WHEN TWO ESTIMATORS DISAGREE, CALIBRATE THEM — do not pick a favourite** (SIG ATC Rock 5,
+2026-08-20). This skill's whole history is estimators disagreeing and me choosing wrong (P30 sign flip,
+G34 dismissed 0.113°, FN "conflict" that was two sign conventions). There is a cheap, decisive test:
+**impose a known rotation on a copy and re-measure.** Apply `Ry(±1°)` (roll) / `Rx(±0.5°)` (pitch) /
+`Rz(±0.5°)` (yaw) to the point array, run every estimator at each step, and take
+`response = (reading(+δ) − reading(−δ)) / 2δ`.
+
+- **|response| ≈ 1.0 → the estimator is VALID**, and its sign tells you the convention for free — which
+  kills the sign-slip class of failure outright (FN 510, 2026-08-07) without any algebra.
+- **|response| far from 1 → BROKEN.** On the ATC: slide-flank `mid(z)` symmetry **+0.749**, frame-flank
+  **+0.808**, sight-flank **+0.145**, a fixed-|x| seam level-set **−2.224**. The `mid(z)` method is biased
+  by the body's own taper (`slope = φ·(1 + d(h·h′)/dz)`, not `φ`) — and note the P30's per-station symmetry
+  numbers were read at face value, so treat those as gain-uncalibrated.
+- **THE PAYOFF: divide by the gain and broken estimators AGREE with the good ones.** The ATC's roll looked
+  like a 0.67° three-way contradiction (slide top +0.65, flanks −0.45, sight −0.02). Gain-corrected:
+  slide top **+0.62 / +0.66**, slide-top plane fit **+0.59**, slide flanks **+0.60**, frame flanks (a
+  DIFFERENT part) **+0.56**, seam L-vs-R **+0.71** — six surfaces converging on **body roll +0.6°** — while
+  the rear sight alone sits at **−0.02°**. That is not a measurement conflict, it is a real 0.6° sight cant,
+  and only calibration could tell the two apart.
+- ⚠ Two "independent" estimators agreeing proves nothing if they share a method: the ATC's slide and frame
+  flanks agreed at −0.45° purely because they shared the same taper bias.
 
 If the aligner is touched at all, run all three suites first: `verify_datums.py --poses 25` (all axes,
 real guns, random 3D scramble), `verify_align_math.py`, `verify_real_guns.py --poses 40`.
@@ -215,13 +251,22 @@ A weapon-light is **near-symmetric** (round body, no grip/slide/sight), so the g
 bezel → −Y (left)**, mass-centered.
 
 1. **Long axis → Y** (PCA extent), same as the gun.
-2. **Rail clamp → up (+Z)** — owner's primary cue. The rail-clip mounting face is the **most STRUCTURED
-   large flat** (rail slot + cross-bolt + lever); the battery/body flat is smooth. Score each outward
-   direction by **`flat_area × structural_complexity²`** and take the max → that face's outward normal is
-   UP. ★ Calibrated on the PL2: the body flat had MORE raw area (1158 vs 965) but the clamp face is far
-   more complex (1.09 vs 0.88), so `complexity²` tips the score to the clamp — area alone picks the wrong
-   (smooth) face. Then **level** it: set the clamp mounting-flat consensus normal exactly to +Z (fixes
-   roll + pitch together). This is a gross leveler only — see 2b.
+2. **Rail clamp → up (+Z)** — owner's primary cue. ★★ **PRIMARY TEST = CHANNEL SHAPE (2026-08-27b), not
+   surface texture.** The rail channel is two **JAWS STANDING ABOVE A FLOOR**. Bin along the long axis and,
+   for each candidate up-direction, take the fraction of slices where the outer lateral band's max height
+   exceeds the mid band's by >0.025·H; the max wins when that fraction is **≥ 0.25**. This survives a fitted
+   rail KEY, which fills the channel. ★ **FALLBACK = `flat_area × structural_complexity²`** (the original
+   score) when no direction reaches 0.25 — a single-screw light with no channel at all, which is what that
+   score was calibrated on. Calibrated on the PL2: the body flat had MORE raw area (1158 vs 965) but the
+   clamp face is more complex (1.09 vs 0.88), so `complexity²` tips it; complexity also serves as the
+   tie-break among near-equal channel fractions.
+   ⚠ **Why the texture score alone is not enough:** a 1913 rail key flattens exactly the structure it
+   detects — `clamp_complexity` fell to 1.026 and the TLR-7 HL-X shipped **UPSIDE DOWN with `aligned_ok`
+   true** (2026-08-27). Read **`mount_method`** (`channel` | `complexity`) and **`mount_confidence`** (the
+   channel-fraction margin over the opposite direction); a keyed light with confidence < ~0.2 is a
+   coin-flip — verify up/down in a FRONT ortho before measuring anything.
+   Then **level** it: set the clamp mounting-flat consensus normal exactly to +Z (fixes roll + pitch
+   together). This is a gross leveler only — see 2b.
 2b. **Rail SEAT level — the light's real PITCH+ROLL datum** `refine_seat` — the owner's mount rule made
    literal: level to the **machined floor of the rail channel**, the surface that actually contacts the
    gun's rail. Step 2 takes an area-weighted CONSENSUS over every up-facing face in a 20° cone; that is a
@@ -303,10 +348,12 @@ Confirm the returned evidence (gun): `det_R == 1.0`, `center_residual_mm < 0.05`
 `grip_is_down == True`, muzzle at `front_y` (min Y). (`aligned_ok` reads **false** whenever a manual
 `pitch/roll/yaw_offset` is set — the built-in verifier re-checks against the no-offset auto-level, so a
 deliberate eye-tweak trips it; that's benign, same as the PDP at +3°. Trust the datum measurements below.)
-For a light: `det_R == 1.0`, `clamp_complexity` clearly the max, `bezel_score_front > bezel_score_rear`,
-`seat_refine_deg` reported (0.0 means the jaw gate found no channel — then the pose rests on the step-2
-consensus and MUST be datum-measured by hand). Then measure the three light datums on the real mesh, in all
-three ortho views, exactly as for a gun:
+For a light: `det_R == 1.0`, `bezel_score_front > bezel_score_rear`, and **`needs_manual_check == False`**.
+★ **`needs_manual_check` is the one to read first (2026-08-27b):** it is True whenever `seat_refine_reason`
+is anything but `ok`, i.e. the seat was never actually measured and "level" is only the step-2 consensus —
+that pose MUST be datum-measured by hand. Also check `mount_method` and `mount_confidence` (see method
+step 2); on a keyed light a confidence < ~0.2 means up/down was nearly a coin-flip. Then measure the three
+light datums on the real mesh, in all three ortho views, exactly as for a gun:
 - **PITCH + ROLL (side + front ortho)** — plane-fit the **rail-channel floor** (up-faces inside the jaws)
   and confirm `dz/dy ≈ 0` and `dz/dx ≈ 0`. Do NOT fit "the biggest top flat": on the TLR-7 that is the rear
   housing deck, 1.34° off the seat. Cross-check with the **bezel/reflector cylinder axis** (per-slice circle
@@ -375,6 +422,40 @@ recurring trap on this skill):
 
 ## Status / scope
 
+- **ALIGNED + 3-VIEW VERIFIED 2026-08-27** on the **STREAMLIGHT TLR-7 HL-X WITH THE 1913-1 KEY INSTALLED**
+  (`STREAMLIGHT TLR-7 HL-X - 1913-1 KEY`, 90,821 verts / 182,046 tris, `mode="light"`) — the SAME light as
+  2026-08-04 but with the rail key fitted, and that one part **broke both of light mode's mount decisions**
+  (see Session Notes 2026-08-27). Auto-align shipped it **UPSIDE DOWN** (`clamp_complexity` 1.026 — the key
+  fills the channel, so the smooth body panel outscored the mount face) and `seat_refine_deg` came back
+  **0.0** (the jaw gate found no channel). Corrected by hand: rigid **Ry180**, then the seat levelled from
+  **4.31° nose-down / 1.15° rolled** to the fitted seat plane, then yaw to the transverse channel wall —
+  every rotation probe-verified before baking, all composed into `cgs_align_R`.
+  Final measured: seat-floor plane **pitch −0.103° / roll +0.063°** (236.5mm², rms 0.092mm) · transverse
+  channel-wall **yaw −0.001°** (27.6mm², rms **0.021mm**, 14.9mm x-span) · det +1 · `matrix_world` identity
+  · volume centroid (0,0,0) · volume 40,936.7mm³ · dims 29.79 × 73.04 × 32.62 · bezel −Y · rail seat +Z.
+  ⚠ The mid-body **side panels are NOT a datum on this light**: fitted left and right they read **+6.7°**
+  and **−5.3°** at rms 0.40mm — opposite signs, i.e. body taper, not tilt. **Owner-confirmed datum: the
+  rail seat.** Owner viewport confirm pending.
+- **ALIGNED + VERIFIED 2026-08-20** on the **SIG SAUER ATC "ROCK 5"** (`ATC ROCK 5 - OWN SCAN`,
+  **1,464,754 verts / 2,929,568 tris — largest mesh to date**), a hammer-fired P226-family competition
+  pistol. Auto-align gross-clean (lattice **−30.92°**, coherence 0.448 — a **seventh** platform confirming
+  PCA≠bore; det +1, grip −Z, muzzle −Y, volume centroid exactly (0,0,0)); the residual was measured and
+  corrected by hand in two probe-verified bakes — **Rz(−0.2355°) @ Rx(−0.300°)**, then **Rz(+0.0186°) @
+  Ry(+0.600°)** for the owner's roll ruling.
+  ★ **NEW OWNER RULING — on THIS gun the roll datum is the BODY, not the sight.** The rear sight is canted
+  **0.6°** on the slide, twice the G34's 0.33°, and it is the sight that is wrong: six gain-calibrated
+  surfaces converge on the body (slide-top symmetry +0.63 median over 5 clean windows, slide-top plane fit
+  +0.585 / 762 mm², slide flanks +0.603, frame flanks +0.560, frame underside +0.553, seam L-vs-R +0.713)
+  while the sight alone sat at −0.02°. René chose to level the BODY (better mold split); the standing
+  "shoulders win" directive still holds by default, but **a body-vs-sight gap this large is now an
+  explicit owner question, not an automatic sight-level.**
+  Final, measured on the baked mesh: parting seam **−0.010° ±0.029** (8-window ensemble, ~56 slices,
+  seam z 26.75) · **body roll +0.053°** (slide-top symmetry, 5 windows) · sight picture yaw **−0.011°**,
+  post−notch **+0.035 mm** over a 182.75 mm radius · rear sight **−0.622°** *by design*. Volume
+  348,364.8 mm³, volume centroid (0, −7e−8, 6e−8), det +1, `matrix_world` identity, dims
+  42.92 × 220.95 × 149.69. Sight channel: slide top 51.67 · post 4.44 mm proud × 3.32 wide · shoulders
+  5.36 mm proud, body 19.12 wide, **notch 2.83 × 2.12 mm** · radius 182.75 mm.
+  **Owner viewport confirm pending.**
 - **ALIGNED + 3-VIEW VERIFIED 2026-08-07** on the **FN 510/545 WITH COMP & OPTIC** (959,762 verts /
   1,919,832 tris) — first gun with a **compensator** and a **slide-mounted red dot**, and the run that
   proved a mounted optic blinds every auto-detector (see the canonical-pose caveat above). The incoming
@@ -493,6 +574,175 @@ recurring trap on this skill):
 - Depends on **blender-mcp** live on :9876.
 
 ## Session Notes
+
+### 2026-08-27b (THE KEYED-LIGHT FIX — mount by channel SHAPE, and a seat that says when it bailed)
+- Closes residual-risk (a) of the entry below. Owner asked directly whether light mode would fail the same
+  way next run; the honest answer was yes, so it got built. **Two changes, both in `compute_alignment_light`
+  / `_refine_light_seat`; gun mode untouched.**
+- **(1) MOUNT BY CHANNEL SHAPE, not surface texture.** `flat_area × complexity²` is a TEXTURE measure and a
+  fitted key erases the texture. The rail channel is a SHAPE — two jaws standing above a floor — and the
+  jaws survive the key. New score: per candidate up-direction, bin along the long axis and count the
+  fraction of slices where the outer lateral band's max height exceeds the mid band's by >0.025·H. Channel
+  score decides whenever the best fraction ≥ **0.25**; below that (a single-screw light with no channel at
+  all) it **falls back to the original complexity score**, which is what that score was calibrated on.
+  Complexity is kept as the tie-break among directions within 0.05 of the best fraction.
+- **(2) THE SEAT REFINE NOW SAYS WHY IT BAILED.** All 10 early returns in `_refine_light_seat` carry a
+  reason (`no_jawed_channel`, `fit_not_flat`, `normal_mode_too_small`, …) and the success path returns
+  `"ok"`. New diag keys: **`seat_refine_reason`** and **`needs_manual_check`** (True whenever the reason is
+  not `ok`, i.e. the seat was never actually measured and "level" is only the step-2 consensus). A filled
+  channel lands exactly here, loudly. Also added: `mount_method`, `mount_channel_frac`, `mount_confidence`.
+- **★ VALIDATED ON THE REAL PART, not a synthetic.** `STREAMLIGHT TLR-7 HL-X - 1913-1 KEY.stl` reproduced
+  the documented failure offline first (`clamp_complexity` **1.026**, `seat_refine_deg` **0.0**, aligned
+  **channel-DOWN 27 slices vs 2**). After the fix: **channel-UP 25 vs 4**, `mount_method` channel,
+  `mount_confidence` 0.447, and **`seat_refine_deg` 4.27°** — against the **4.31°** measured by hand in the
+  08-27 session, a **0.04°** agreement with ground truth from a completely independent path.
+- **Regression, 11 real lights + 2 synthetic, all PASS**: bare TLR-7 HL-X / HL-X SUB / TLR-1 HL-X / TLR-8 /
+  PL2 Valkyrie, and keyed 1913-1/2/3/4 + UNIV-1/2. Existing suites still green: `verify_align_math.py`
+  (300 random-pose guns + 240 WML poses, 0 failures), `verify_datums.py` PASS, `verify_real_guns.py` PASS.
+  Idempotent residual **0.000°** and pose-invariance **≤0.0013 mm** on keyed 1913-1, PL2 and TLR-8.
+- ⚠ **`mount_confidence` is doing real work — read it.** The 1913-2/3/4 and UNIV-1/2 scans all score
+  `mount_channel_frac` 1.00 with confidence **0.03–0.18**, i.e. BOTH directions look channelled and the
+  decision is nearly a coin-flip even though it lands right. Low confidence on a keyed light means verify
+  up/down in a front ortho before measuring anything.
+- ⚠ **I could not reproduce this failure synthetically without fabricating it** — my synthetic light kept
+  clamp complexity ~0.95 when keyed, because the jaws' own walls still scatter normals, so the body panel
+  never won. Tuning a synthetic until it fails is fitting the test to the answer. **Test light-mode mount
+  changes against the real scans in `Desktop\CAD\STREAMLIGHT`; the synthetic is a smoke test only.**
+- New files: `scripts/verify_keyed_light.py` (the regression), `scripts/_stl_io.py` (bpy-free binary-STL
+  reader with vertex welding, so light math can be exercised on real scans from plain python).
+  Run: `python scripts/verify_keyed_light.py` — exits non-zero on any upside-down or silent-seat case.
+  Rollback point: `scripts/cgs_align.py.bak-2026-08-27`.
+  <!-- @anchor: v1 | failure: closes the 2026-08-27 residual risk — a keyed light would have aligned UPSIDE DOWN again on the next run because the mount score measured surface TEXTURE (flat_area x complexity^2), which a rail key erases, and _refine_light_seat's bail-outs were silent no-ops indistinguishable from "already level"; verified by reproducing the original failure offline on the real 1913-1 scan (channel-down 27 vs 2) before changing anything, 2026-08-27b | regression: scripts/verify_keyed_light.py over 11 real light scans + 2 synthetic, plus verify_align_math/verify_datums/verify_real_guns; mount_method + mount_confidence + seat_refine_reason + needs_manual_check in the light diag -->
+
+### 2026-08-27 (TLR-7 HL-X + 1913-1 KEY — one accessory part broke BOTH of light mode's mount decisions)
+- **Run:** `STREAMLIGHT TLR-7 HL-X - 1913-1 KEY`, 90,821 verts / 182,046 tris, `mode="light"`. Same light as
+  2026-08-04, with the rail key fitted. Incoming `matrix_world` carried a rotation — `align_object` bakes it.
+- **★ THE FINDING — the KEY defeats both mount heuristics at once, and each failed SILENTLY.**
+  (a) Step 2 picks UP by `flat_area × complexity²`. The key fills the rail channel, flattening exactly the
+  structure that score exists to detect: `clamp_complexity` **1.026** here vs the bare PL2's 1.09 — enough
+  for the smooth body panel to win, and the light shipped **UPSIDE DOWN** with `aligned_ok: true`.
+  (b) `refine_seat`'s jaw gate then found no channel → `seat_refine_deg` **0.0**, the documented "measure it
+  by hand" signal. So the ONE datum-bearing accessory a WML can wear takes out the gross decision and the
+  fine one together. **On a light with a key/insert fitted, treat `clamp_*` and `seat_refine_deg 0.0` as a
+  pair of red flags and verify up/down in a FRONT ortho before measuring anything.**
+- **How up/down was actually settled** (the aligner's own report cannot): a per-slice top-profile table —
+  `zmax` per 1mm x-column, per 2mm y-slice. The rail channel is unmistakable in it: over y −16…+8 the mid
+  columns (|x|<8) sit at 11.6–13.2 while the outer columns sit at 16–18. Jaws standing over a floor, in
+  numbers, before any render. The bare-eye check came second (front ortho) and agreed.
+- **Seat measured, not consensus'd:** up-faces `nz>0.9`, |x|<7.5, y −15…+6, robust area-weighted plane fit
+  (4 MAD passes) → pitch **4.31°** nose-down, roll **1.15°**, 250mm², rms 0.105mm. Cross-checked against the
+  left jaw top, a physically separate machined surface: pitch 4.06° / roll 1.88°, rms 0.057mm. Split fwd/aft:
+  4.21° / 4.81°. Levelled with a single axis-angle rotation mapping the seat normal to +Z (no yaw injected).
+- **⚠ MY OWN FAILURE, and the guard that did NOT catch it: `atan2(n_x, n_y)` on a −Y-facing wall.** The
+  channel wall normal is ≈(−0.003, −0.998, −0.062); the yaw I wanted was **+0.199°**, and `atan2(n_x, n_y)`
+  with n_y NEGATIVE returned **−179.80°**. I applied it and spun the light end-for-end. My probe checked
+  `(Rz@n)[0] ≈ 0` — which a 180° flip satisfies perfectly. **A probe on ONE component is not a probe.** The
+  correction was exact (0.19920 + 179.80080 = 180.000), so a clean Rz(180°) restored it. Probe the whole
+  pose — the datum normal AND a landmark direction (here: bezel still at −Y).
+- **Yaw datum, and segment it first:** a `|n·ŷ|>0.9` selection inside the channel LOOKS like one clean plane
+  (rms 0.021mm) but the y-histogram showed **five** populations (−14, −13.5, −9.5, +2, +3). Fitted
+  separately, only the y −13.72 wall is real (712 faces, 27.6mm², 14.9mm x-span, rms 0.0206mm); the rest are
+  1–2 faces. The trim had silently converged onto one population — right answer, wrong reason. Dump the
+  member histogram before believing any "clean" transverse-wall fit (the FN 510 multi-population lesson,
+  now on a light).
+- **The owner's annotation was a LOCATOR that pointed at a NON-datum, and saying so was the right move.**
+  Two grease-pencil points, x = 4e−16 exactly and identical z → drawn in the x=0 side ortho, so PITCH-only
+  by construction and carrying **no angle information** (both z equal). Reconstructed by rebuilding the
+  pre-align mesh (`loc = new@R + c`, then `@ mw_old.T`) into a temp object and rendering the same +X ortho
+  with a fiducial rod on the line: it lands on the **mid-body side panel**, mid-way across a curved groove,
+  not on the seat. Fitted left and right that panel reads **+6.7° / −5.3° at rms 0.40mm** — opposite signs
+  is body taper, not tilt, so it cannot be a datum at all. Aligned to the rail seat and **asked**; owner
+  confirmed *"rail seat"*. A wide fit had made the same panels look clean (rms ~0.5 over the full length,
+  roll agreeing with the seat to 0.15°) — **narrowing the window is what exposed it as curvature.**
+- **Verified:** three ortho views against fiducial rods (side + front with a rod ON the seat plane z=12.30
+  along both Y and X, top with the seat-plane rod and an x=0 vertical) — front view shows the channel and
+  both jaws up and level; top shows the channel wall parallel to the rod and the channel symmetric about
+  x=0. Numerics in the Status entry. Scene cleaned (all rods + temp camera removed, `Camera` restored).
+- **Residual risk:** (a) ~~light mode is unchanged in code — a keyed light will fail the SAME way next run;
+  the fix (score the mount by channel geometry rather than surface complexity, and gate the jaw test to
+  ignore a filled channel) is unbuilt.~~ **CLOSED 2026-08-27b — see the entry below.** (b) The seat spans y −14.3…+6 of a 73mm light; forward of the bezel
+  shoulder there is no seat to measure. (c) Roll rests on one 236mm² surface — the jaw top agrees to 1.5°,
+  which is corroboration, not a second datum. (d) All corrections are hand-composed into `cgs_align_R`, so
+  `unalign_object` stays valid while `aligned_ok` no longer means anything here.
+- Tools: blender-mcp (`execute_blender_code` — stdout is NOT returned, redirect to a file and Read it),
+  numpy on the live mesh, pre-align mesh reconstruction for the annotation, workbench ortho renders.
+  <!-- @anchor: v1 | failure: STREAMLIGHT TLR-7 HL-X with the 1913-1 rail key fitted shipped UPSIDE DOWN with aligned_ok=true — the key fills the rail channel and drops clamp_complexity to 1.026 so the smooth body panel wins the flat_area x complexity^2 mount score, and refine_seat's jaw gate then found no channel (seat_refine_deg 0.0) leaving the seat 4.31deg nose-down; separately my own yaw correction used atan2(n_x, n_y) on a -Y-facing wall, returned -179.80deg instead of +0.199deg, and my probe passed it because it only checked that one normal component went to zero, 2026-08-27 | regression: cgs-align SKILL.md Status 2026-08-27 + Session Notes 2026-08-27 (per-slice zmax top-profile table to settle up/down on a keyed light; probe the WHOLE pose incl. a landmark direction, never one component; dump the member y-histogram before trusting a transverse-wall fit) -->
+
+### 2026-08-20 (SIG ATC Rock 5 — calibrate the estimator instead of choosing between estimators)
+- **Run:** `ATC ROCK 5 - OWN SCAN`, 1,464,754 verts / 2,929,568 tris (largest yet), gun mode. Incoming
+  `matrix_world` carried a rotation (69.1 / −11.0 / −102.8°) — `align_object` bakes it. Lattice fired
+  **−30.92°** (coherence 0.448). No owner annotations in the scene.
+- **★★ THE METHOD THIS RUN ADDS — RESPONSE-GAIN CALIBRATION** (now MANDATORY step 6). Roll came back as a
+  0.67° three-way contradiction: slide-top symmetry **+0.65**, slide-flank `mid(z)` symmetry **−0.45**,
+  rear-sight blade **−0.02**. Every previous session met this and *chose* — and the choice was the failure
+  (P30 sign flip, G34's dismissed 0.113°). Instead: impose `Ry(±1°)` on a copy and re-measure everything.
+  Responses came out slide top **−1.000 / −1.006 / −0.986**, blade **−0.996**, shelf **−0.992** → valid;
+  slide flank **+0.749**, frame flank **+0.808**, sight flank **+0.145**, fixed-|x| seam level-set
+  **−2.224** → broken. The `mid(z)` flank method is taper-biased — the slope is `φ·(1 + d(h·h′)/dz)`, not
+  `φ` — and I had been about to report "−0.45°, confirmed by two independent bodies" when the two bodies
+  merely **shared the bias**. Divide by the measured gain and everything converges: slide top +0.62/+0.66,
+  slide-top plane fit +0.59, slide flanks +0.60, frame flanks +0.56, seam L/R +0.71. Six surfaces,
+  **body roll +0.6°**, sight **−0.02°** — a real sight cant, not a measurement conflict. Calibration also
+  hands you the sign convention for free, which retires the FN 510 sign-slip class entirely.
+- **CROWNED SHOULDERS** (new datum geometry, folded into the ROLL section). This sight is radiused: the
+  shoulders dome 0.1–0.3 mm over 6 mm, so mirror-pairs about the notch read non-monotonic garbage and
+  correctly refuse to answer. Fix is to SOLVE for the symmetry centre (`dz(u)=2b·u` linear **through the
+  origin**; minimise `rms+|c|`) — found xc −0.75 against a notch centre of −1.096, intercept 0.003 mm.
+  ⚠ An area-weighted plane fit is NOT the fallback here: `nz>0.90` keeps 7 mm² of a crowned shoulder and
+  returns a 4–5° "pitch". The same plane fit on the 762 mm² slide top is fine (+0.585°, response −0.994).
+- **THE PARTING LINE FLIPS STEP SIGN ALONG THIS GUN** — the FN 510 multi-population trap with a twist.
+  Forward (y −111…−47) the dust cover is NARROWER than the slide → step UP (11.85→13.3, `argmax` of the
+  width gradient). Aft (y +5…+27) the frame is WIDER → step DOWN (17.6→13.55). `measure_parting`'s "step"
+  mode only ever looks for a DOWNWARD step, so it is structurally blind to the forward 60 mm — which on
+  this gun is the clean stretch. Between them (y −43…+1) the slide-stop lever bulges to x +16.5 on ONE
+  side and the frame matches the slide's width, so there is no seam signal at all. Fit the forward stretch
+  alone, threshold-free (crossing of the midpoint between the two measured width plateaus).
+- **⚠ `pose_report` locked onto the wrong seam again, the P30 tell INVERTED**: it reported `pitch_seam_z`
+  **14.59** in groove mode. The slide top is at 51 and a P226-class slide is ~25 mm tall, so a "parting
+  line" **36 mm below the slide top** cannot be one — it is the dust cover's side scallop (a real groove at
+  z 13.2, just not that datum). The true seam is at **z 26.5**. Arithmetic beats the detector: check the
+  reported seam height against the slide's height before believing any of it. `yaw` also came back
+  **NO_DATUM** despite both blades being present and clean.
+- **A fixed-|x| level-set is not a datum, it is a threshold sweep.** My first pitch estimator (slide flank
+  `|x|>thr`, min-z) swung **+0.184 → −0.919°** as thr went 12.4 → 13.1, because the slide's own half-width
+  varies along y and the threshold starts clipping it. It also looked deceptively good at rms 0.0097 mm —
+  that was the MAD trim discarding 13 of 62 slices. Untrimmed it was 0.053 mm. **Report the trim count, or
+  the rms is a lie.**
+- **Two valid pitch estimators, 0.09° apart**, exactly in family (G34 0.10°, Echelon 0.17°, FN 0.28°):
+  seam **+0.267°** (response 1.035) vs slide-top silhouette edge **+0.175°** (response 1.000). Seam wins.
+  Its own jitter is ±0.05° window-to-window, so I bracketed the correction across 7 candidates × an
+  8-window ensemble rather than trusting one fit or Newton-stepping (P30 rule).
+- **Verified:** side ortho with a bar ON the measured seam (z 26.604) full-length plus zooms at both ends
+  of the window — the seam rides the fiducial at both; down-the-sights ortho at the shoulder plane
+  (z 57.025) + a vertical at the notch centre — both shoulders touch, notch symmetric; top ortho with a
+  bore line at x −0.8573 through the front post and the rear notch. The front-ortho roll view is **not
+  useful on this gun** — 0.6° over the muzzle face's 6.5 mm sampling lever is 0.085 mm ≈ 4 px; the number
+  is the only instrument at that scale. Scene cleaned (all fiducials + temp cameras removed, `Camera`
+  restored).
+- **Sight channel:** slide top z 51.665 · front post top 56.101 (4.436 mm proud, 3.323 mm wide, centre
+  x −0.8593) · rear sight shoulders 57.025 (5.360 mm proud, body 19.117 mm wide), notch floor 54.904,
+  **notch 2.829 mm wide × 2.121 mm deep**, centre x −0.8573 · sight radius 182.75 mm · post-in-notch
+  **−0.002 mm**. The channel centreline sitting at x ≈ −0.86 rather than 0 is the P30 effect (the volume
+  centroid is pulled off the bore plane by the frame) — expected, a translation not a rotation; cgs-mold
+  re-centres width on the sight channel. Don't chase it as yaw.
+- **OWNER RULING (2026-08-20): body wins on this gun.** Presented the 0.6° body-vs-sight cant with three
+  options (keep sights / split / roll to body); René chose **roll to the body**, so the second bake applied
+  `Ry(+0.600°)` and the rear sight now reads −0.622° canted, deliberately. Target chosen as the MEDIAN of
+  all six calibrated body surfaces (+0.594), not the tightest single fit — the slide reads ~+0.63 and the
+  frame ~+0.56, a real ~0.07° slide-vs-frame disagreement in the scan, so no single surface is "the" body.
+  Every body surface now sits within ±0.12° of level. ⚠ Rolling about the bore MOVES the sight channel
+  laterally (notch x −0.857 → −0.293) and couples ~0.03° into yaw — re-measure pitch and yaw after any
+  roll bake rather than assuming independence.
+- **Residual risk:** (a) the standing "shoulders win" directive was overridden for THIS gun only; a future
+  cgs-align run on a different ATC scan must ask again, not inherit it. (b) The seam datum rests on a 61 mm forward stretch of a ~196 mm
+  slide; the aft stretch is only 22 mm and its OLS/Theil–Sen disagree in sign (−0.188 vs −0.018), so it is
+  a corroboration at best. (c) Roll and yaw were baked as a hand-composed rotation into `cgs_align_R`, so
+  `unalign_object` stays valid but `aligned_ok` will read false. (d) `pose_report` is wrong on this gun in
+  two of three axes; the hand measurements above are the verification.
+- Tools: blender-mcp (`execute_blender_code` — stdout is NOT returned, redirect to a file and Read it),
+  offline numpy on a dumped vertex/triangle array via Blender-5.1 python (much faster to iterate than the
+  socket), workbench ortho renders vs fiducial bars.
+  <!-- @anchor: v1 | failure: SIG ATC Rock 5 — three roll estimators disagreed by 0.67deg and I was about to report the slide/frame flank symmetry value (-0.45deg) as "confirmed by two independent bodies" when both shared the same taper bias (measured response gains +0.749 and +0.808, not 1.0); separately a fixed-|x| level-set pitch estimator swung +0.184 to -0.919deg across thresholds 12.4-13.1 while showing rms 0.0097mm because the MAD trim silently dropped 13 of 62 slices; and pose_report reported the parting seam at z 14.59, 36mm below the top of a ~25mm-tall slide, 2026-08-20 | regression: cgs-align SKILL.md MANDATORY step 6 (response-gain calibration: impose a known rotation, keep only |response|~1.0 estimators, gain-correct the rest) + ROLL crowned-shoulder symmetry-centre solve + Session Notes 2026-08-20 -->
 
 ### 2026-08-08 (HK P30 — the shoulder "flats" were NOT mirror pairs; owner caught a 2.3° roll I called 0.001°)
 - **Run:** `HK P30_ORIGINAL`, 1,194,648 verts / 2,389,296 tris, watertight 0/0, gun mode. Incoming

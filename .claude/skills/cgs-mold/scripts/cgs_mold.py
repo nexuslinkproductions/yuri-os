@@ -176,7 +176,11 @@ def assemble_gun_solid(scan_names, out_name="GUN_SOLID", speck_frac=0.02, center
                  "verts":len(me.vertices), "nonmanifold":nm, "boundary":bd}
 
 # ---------------------------------------------------------------- stage 2: the dip / draw sweep
-def sweep_dip(gun_solid, out_name="CGS_MOLD_SOLID", voxel=0.4, boot=2.0, travel=None):
+def sweep_dip(gun_solid, out_name="CGS_MOLD_SOLID", voxel=0.4, boot=0.4, travel=None):
+    # ★ boot DEFAULT 0.4 = the voxel. The log-doubling union's offset set is DISCRETE {0, boot, 2*boot,
+    #   ...}, so any section that changes along Y gets a visible comb at `boot` pitch; setting boot to
+    #   the voxel makes the comb pitch equal the fill resolution and it disappears (2026-08-01, first
+    #   seen on a magazine's tapered feed lips). Costs ~2 extra passes. Every gun since has used 0.4.
     """FULL-LENGTH translational 'dip' of the sealed GUN_SOLID along +Y, as ONE clean filled
     manifold solid. THE VALIDATED SWEEP (owner-confirmed 2026-07-02, SIG 1911 + TLR-1 HL-X).
 
@@ -422,7 +426,8 @@ def remove_overhang(obj, box, factor=0.6, iters=25, rings=3):
             "nonmanifold":nm, "boundary":bd}
 
 # ---------------------------------------------------------------- stage 4c: voxel pinhole repair (MANDATORY)
-def repair_pits(obj, thr=0.25, max_diag=2.5, max_n=60, halo=2, iters=25, factor=0.6, rounds=3):
+def repair_pits(obj, gun_solid=None, thr=0.25, max_diag=2.5, max_n=60, halo=2, iters=25, factor=0.6,
+                rounds=3, depth_cap=1.25, cap_floor=0.15, total_cap=1.5, protect_creases=False):
     """Kill the compact craters / needles a VOXEL REMESH leaves behind — René 2026-08-03b:
     "Mold has little holes everywhere, unacceptable!"
 
@@ -441,7 +446,22 @@ def repair_pits(obj, thr=0.25, max_diag=2.5, max_n=60, halo=2, iters=25, factor=
 
     REPAIR = `remove_overhang`'s mechanic applied per blob: umbrella Laplacian over the blob + a
     `halo`-ring skirt, which melts the crater while the untouched skirt boundary holds the surface.
-    Cost on the Glock 45: 1,787 of 749,908 verts moved (0.24 %), mean 0.22 mm, manifold 0/0."""
+    Cost on the Glock 45: 1,787 of 749,908 verts moved (0.24 %), mean 0.22 mm, manifold 0/0.
+
+    ★★ DISPLACEMENT CAP — MANDATORY, added 2026-08-20 after this function ATE 2.08 mm of the mold at
+    the light/dust-cover junction on the G19 + GTL II (owner: "you are cutting stuff away"). 25
+    Laplacian iterations at factor 0.6 over a blob sitting in a TIGHT CONCAVE CREASE do not "melt a
+    crater", they collapse the crease — and the old code had NO cap at all, so the mean stayed a
+    healthy 0.207 mm while a single outlier moved 2.082 mm (5x the voxel) and gouged real geometry.
+    The compactness test cannot catch this: a crease CORNER is genuinely a compact cluster.
+    Two new guards, both cheap:
+      • per-vertex cap = `depth_cap`*|d_i| + `cap_floor` — a vertex may only move about as far as its
+        OWN measured pit depth. A real 1.4 mm crater still gets its 1.4 mm; a crease wall whose d is
+        0.3 gets 0.53 and cannot be dragged open. Plus a `total_cap` across all rounds.
+      • `protect_creases` removes every vertex belonging to an EXTENDED sharp cluster from the repair
+        mask (the `despeckle_mold` discriminator, applied here) — real creases are never moved.
+    Tells that the cap is doing work: `capped_verts` > 0 in the summary. Tells it is misapplied
+    (08-04c): defect_verts not falling to 0, or `mean_disp_moved_mm` >> the voxel size."""
     import collections
     me=obj.data; N=len(me.vertices)
     P=np.empty((N,3)); me.vertices.foreach_get("co",P.ravel()); P=P.reshape(-1,3)
@@ -454,8 +474,19 @@ def repair_pits(obj, thr=0.25, max_diag=2.5, max_n=60, halo=2, iters=25, factor=
             np.add.at(S,ej,L[ei]); np.add.at(C,ej,1)
             C[C==0]=1; L=S/C[:,None]
         return L
-    log=[]
+    arb=None
+    if gun_solid is not None:
+        import bmesh
+        from mathutils import Vector
+        from mathutils.kdtree import KDTree
+        from mathutils.bvhtree import BVHTree
+        _bmg=bmesh.new(); _bmg.from_mesh(gun_solid.data); _bvhg=BVHTree.FromBMesh(_bmg)
+        _G=_world_verts(gun_solid); _kdg=KDTree(len(_G))
+        for _j,_p in enumerate(_G): _kdg.insert(Vector(_p.tolist()), _j)
+        _kdg.balance(); arb=(_bvhg,_kdg,_G)
+    log=[]; ncap=0
     for r in range(rounds):
+        gprot=0
         me.update()
         NR=np.empty((N,3)); me.vertices.foreach_get("normal",NR.ravel()); NR=NR.reshape(-1,3)
         L=ringmean(P,2)
@@ -473,19 +504,43 @@ def repair_pits(obj, thr=0.25, max_diag=2.5, max_n=60, halo=2, iters=25, factor=
                 for x in adj[n]:
                     if x not in seen: seen.add(x); st.append(x)
             Q=P[g]
-            if float(np.linalg.norm(Q.max(0)-Q.min(0)))<=max_diag and len(g)<=max_n: keep.extend(g)
+            if float(np.linalg.norm(Q.max(0)-Q.min(0)))<=max_diag and len(g)<=max_n:
+                if arb is not None and _gun_arbiter(arb[0], arb[1], arb[2], Q.mean(0)):
+                    gprot+=1                     # the GUN has real geometry here -> never touched
+                else: keep.extend(g)
             else: ext+=1                         # extended = a real crease/groove -> never touched
         log.append({"round":r,"defect_verts":len(keep),"extended_rejected":ext,
+                    "gun_protected":gprot,
                     "dmax":round(float(d.max()),2),"dmin":round(float(d.min()),2)})
         if not keep: break
         mask=np.zeros(N,bool); mask[np.array(keep,dtype=np.int64)]=True
         for _ in range(halo):                    # ring-expand so the fix blends without a seam
             nb=np.zeros(N,bool); nb[ei[mask[ej]]]=True; nb[ej[mask[ei]]]=True; mask|=nb
+        if protect_creases:                      # never move a vertex on a REAL crease (08-20)
+            _s,_c,extd=_sharp_clusters(me,N,P,35.0,max_diag)
+            if extd:
+                ex=np.zeros(N,bool); ex[np.concatenate([np.array(g,dtype=np.int64) for g in extd])]=True
+                mask &= ~ex
+                log[-1]["crease_verts_protected"]=int(ex.sum())
+        if not mask.any(): break
+        Pr=P.copy()
         for _ in range(iters): P[mask]+=factor*_umbrella(P,ei,ej,N)[mask]
+        # --- per-vertex cap tied to the vertex's OWN pit depth (08-20 gouge fix)
+        cap=np.minimum(depth_cap*np.abs(d)+cap_floor, total_cap)
+        dl=P-Pr; mag=np.linalg.norm(dl,axis=1)
+        over=mag>cap
+        if over.any():
+            sc=np.ones(N); sc[over]=cap[over]/mag[over]
+            P=Pr+dl*sc[:,None]
+            ncap+=int(over.sum())
+        # --- global cap across rounds
+        tot=P-P0; tmag=np.linalg.norm(tot,axis=1); tover=tmag>total_cap
+        if tover.any():
+            sc=np.ones(N); sc[tover]=total_cap/tmag[tover]; P=P0+tot*sc[:,None]
         me.vertices.foreach_set("co",P.ravel()); me.update()
     me.vertices.foreach_set("co",P.ravel()); me.update(); _shade(obj)
     nm,bd=_manifold(me); disp=np.linalg.norm(P-P0,axis=1); mv=disp>1e-4
-    return {"rounds":log, "moved_verts":int(mv.sum()), "verts":N,
+    return {"rounds":log, "moved_verts":int(mv.sum()), "verts":N, "capped_verts":ncap,
             "max_disp_mm":round(float(disp.max()),3),
             "mean_disp_moved_mm":round(float(disp[mv].mean()),4) if mv.any() else 0.0,
             "nonmanifold":nm, "boundary":bd}
@@ -786,9 +841,67 @@ def denoise_region(obj, y_range, z_range, x_range=None, feature_angle=35.0, pair
             "mean_disp_mm":round(float(disp[free].mean()),4) if free.any() else 0.0,
             "nonmanifold":nm, "boundary":bd}
 
-# ---------------------------------------------------------------- stage 7: regional offset
+# ---------------------------------------------------------------- stage 7: offset (XZ cross-section)
+def offset_mold_xz(obj, offset=0.2, offset_y=0.1, min_l=0.15):
+    """★ THE CURRENT OFFSET RULE (owner ruling 2026-08-20, supersedes the 2026-06-30 slide-only one):
+    "0.4 should always be everywhere but only along the Z axis and X axis. Never along the Y axis."
+    ★ MAGNITUDE, converged over four owner messages the same day: 0.4 -> 0.3 -> **0.2 in XZ**, then
+    **"add 0.1 on Y AXIS"**. So Y is no longer zero — it is a SMALLER, separate value. Defaults are
+    `offset=0.2` (X and Z) and `offset_y=0.1`.
+
+    MECHANISM (generalised 2026-08-20b): a true anisotropic Minkowski offset by an ELLIPSOID with
+    semi-axes (0.2, 0.1, 0.2), not two offsets bolted together. For unit normal n the exact offset
+    point is `p + (a^2 nx, b^2 ny, c^2 nz) / sqrt(a^2 nx^2 + b^2 ny^2 + c^2 nz^2)`. That gives exactly
+    0.2 on a pure X or Z facing surface, exactly 0.1 on a pure Y facing one (the muzzle face, cut B's
+    rear face), and the correct smooth blend on every mixed normal — with no ramp constant to tune and
+    no discontinuity, which the earlier zero-Y version needed `min_l` to paper over.
+    VERIFY: mold Y extent must grow by exactly `offset_y` at each end, and the XZ flank gaps by `offset`.
+    René's axes are this pipeline's axes (he confirmed on a front view: Z up, X across, Y down the
+    barrel). So: offset EVERY XZ cross-section of the mold outward by `offset`, and change NOTHING
+    along the draw axis.
+
+    WHY the old rule failed: `offset_mold`'s z_line region left the whole lower half — dust cover,
+    trigger guard and the ENTIRE WEAPON LIGHT — at exactly 0.000 clearance. Overlaying his gun on the
+    G19 + GTL II mold showed the light and frame bleeding straight through the mold surface, while
+    only the slide had clearance. Kydex shrinks around the whole cross-section, not just the slide.
+    WHY Y is excluded: extra length does nothing for shrink and it moves the muzzle face and the
+    trigger-guard detent fore/aft. The draw axis is already handled by `sweep_dip`.
+
+    MECHANISM: displace along the normal's XZ COMPONENT, RE-NORMALISED, so every horizontal
+    cross-section grows by exactly `offset` in its own plane regardless of how the surface is
+    inclined in Y. Vertices whose normal is (near-)pure ±Y — the muzzle front face, cut B's rear
+    face — have no XZ direction and correctly do not move: `min_l` smoothsteps them to zero. The
+    RIM of the muzzle face has a mixed normal, so it grows radially while the face plane stays put,
+    which is exactly a 2D offset of that cross-section. Cut A's diagonal press-bed face has a mostly
+    -Z normal, so it drops `offset` and stays planar.
+    VERIFY: mold-vs-gun gap ~= `offset` on flanks AND on the top AND on the light; and the mold's
+    Y extent must be UNCHANGED (front_y and rear_y identical to the pre-offset mesh). In-place."""
+    me=obj.data; N=len(me.vertices)
+    P=_world_verts(obj); P0=P.copy()
+    Nrm=np.empty((N,3)); me.vertices.foreach_get("normal", Nrm.ravel()); Nrm=Nrm.reshape(-1,3)
+    a=float(offset); bq=max(float(offset_y),1e-6); c=float(offset)
+    S=np.array([a*a, bq*bq, c*c])
+    num=Nrm*S
+    h=np.sqrt((Nrm*Nrm*S).sum(1))                          # ellipsoid support: exact offset distance
+    h=np.maximum(h,1e-12)
+    P += num/h[:,None]
+    me.vertices.foreach_set("co", P.ravel()); me.update(); _shade(obj)
+    nm,bd=_manifold(me); disp=np.linalg.norm(P-P0,axis=1)
+    return {"mode":"ellipsoid-offset", "offset_xz_mm":offset, "offset_y_mm":offset_y,
+            "moved_verts":int((disp>1e-4).sum()),
+            "verts":N, "max_disp_mm":round(float(disp.max()),4),
+            "y_extent_before":[round(float(P0[:,1].min()),4), round(float(P0[:,1].max()),4)],
+            "y_extent_after":[round(float(P[:,1].min()),4), round(float(P[:,1].max()),4)],
+            "dy_max":round(float(np.abs(P[:,1]-P0[:,1]).max()),6),
+            "nonmanifold":nm, "boundary":bd}
+
+# ---------------------------------------------------------------- stage 7 (LEGACY): regional offset
 def offset_mold(obj, z_line=None, feather=2.0, offset=0.4, z_frac=0.62):
-    """Thicken ONLY the slide+barrel+beavertail (Kydex shrink comp) — owner corrected the
+    """DEPRECATED 2026-08-20 — use `offset_mold_xz`. Kept only for reproducing older molds.
+    This left the light + dust cover + trigger guard at ZERO clearance, which the owner rejected on
+    the G19 + GTL II ("you seem to only have made the 0.4 on the top section but not the bottom").
+
+    Thicken ONLY the slide+barrel+beavertail (Kydex shrink comp) — owner corrected the
     earlier 'offset everywhere' to this region (2026-06-30). Push verts ABOVE the slide/frame
     parting line outward along their normals by `offset` mm, feathered across `feather` mm at
     the line so there is no hard ridge. The grip/frame/trigger-guard (below z_line) stay put.
@@ -810,9 +923,471 @@ def offset_mold(obj, z_line=None, feather=2.0, offset=0.4, z_frac=0.62):
             "feather":feather, "max_disp_mm":round(float(np.linalg.norm(P-P0,axis=1).max()),3),
             "nonmanifold":nm, "boundary":bd}
 
+def _flank_hint(bvhg, c, flank_nx=0.70):
+    """True when the gun's surface nearest `c` faces mostly +/-X, i.e. `c` is on a side flank."""
+    from mathutils import Vector
+    hit=bvhg.find_nearest(Vector([float(x) for x in c]))
+    return hit[0] is not None and abs(hit[1].x)>flank_nx
+
+def _gun_arbiter(bvhg, kdg, G, c, r_in=1.4, r_out=3.2, snr=2.5, gun_flat=0.16,
+                 flank_nx=0.70, detached=1.0):
+    """Is there REAL geometry on the owner's clean gun scan at mold-point `c`? Shared by
+    `repair_pits` and `fill_dimples` so both use one definition of 'don't touch this'.
+
+    Returns True only when the gun carries a feature that stands OUT of its own local roughness.
+    Three ways to answer 'no, repair it':
+      • FLANK — the gun's surface normal there is mostly +/-X. The mold's half-width along a flank is
+        the RUNNING MAXIMUM of the gun's half-width over the sweep, so it is monotone and a local dip
+        is geometrically impossible; even a real recess on the gun's flank is filled by the sweep.
+      • DETACHED — the mold point is more than `detached` mm from the gun, i.e. pure swept envelope,
+        where the gun's local shape is irrelevant.
+      • SIGNAL-TO-NOISE — `dev > max(gun_flat, snr*rms)` of a local quadric fit. An ABSOLUTE threshold
+        fails: the grip stipple fits at rms 0.6-0.7, so an absolute test called the whole textured
+        region 'real' and let 1.1 mm craters ship (2026-08-20b).
+    A +Z feature such as the rear-sight notch is a genuine mold recess (forward of the sights the
+    slide top is lower, so the envelope never fills it) and is correctly protected by the SNR test."""
+    from mathutils import Vector
+    hit=bvhg.find_nearest(Vector([float(x) for x in c]))
+    if hit[0] is None: return False
+    nor=hit[1]
+    if abs(nor.x)>flank_nx: return False
+    gcx=np.array(hit[0])
+    if float(np.linalg.norm(gcx-np.asarray(c)))>detached: return False
+    gin=[j for (co,j,dist) in kdg.find_range(Vector(gcx.tolist()), r_in)]
+    gann=[j for (co,j,dist) in kdg.find_range(Vector(gcx.tolist()), r_out) if dist>=r_in]
+    if len(gann)<20 or len(gin)<5: return False
+    Q=G[gann]; m=Q.mean(0); A=Q-m
+    n=np.linalg.svd(A, full_matrices=False)[2][2]
+    t=np.array([1.0,0,0]) if abs(n[0])<0.9 else np.array([0,1.0,0])
+    u=np.cross(n,t); u/=max(np.linalg.norm(u),1e-12); v=np.cross(n,u)
+    def M(X):
+        B=X-m; a=B@u; b=B@v
+        return np.column_stack([np.ones_like(a),a,b,a*a,a*b,b*b]), B@n
+    Ma,wa=M(Q); coef,_,_,_=np.linalg.lstsq(Ma,wa,rcond=None)
+    rms=float((wa-Ma@coef).std())
+    Mi,wi=M(G[gin]); dev=float(np.abs(wi-Mi@coef).max())
+    return dev > max(gun_flat, snr*rms)
+
+def fill_dimples(mold, gun_solid, thr=0.12, max_diag=3.0, max_diag_flank=9.0, max_n=400,
+                 r_in=1.4, r_out=3.2,
+                 rms_max=0.13, gun_flat=0.16, snr=2.5, needle_n=3, flank_nx=0.70, detached=1.0,
+                 cap=1.5, rounds=4):
+    """Fill the CRATERS that survive `repair_pits` — and use RENÉ'S OWN CLEAN GUN STL as the arbiter
+    for what is a defect and what is real geometry.
+
+    ★ 2026-08-20b: after `repair_pits` was given a displacement cap + crease protection (so it would
+    stop gouging the light), it STALLED at ~48 unrepaired defects, and those were exactly the craters
+    René circled — up to **1.37 mm deep** on both rear frame flanks (x +/-14..16, y 31..67, z 12..32).
+    A capped Laplacian cannot fix them and an uncapped one eats creases. Neither is the right tool.
+
+    MECHANISM — annulus plane fill (the 08-17b wide-crater fix, automated): for each compact depth
+    blob, fit a plane to the ANNULUS `r_in..r_out` around it and pull the inner vertices onto that
+    plane with a smoothstep falloff. This is bounded by construction — it restores the local surface
+    and cannot displace beyond it, so there is no gouge failure mode.
+
+    ★★ THE DISCRIMINATOR IS THE GUN, NOT A HEURISTIC. Two gates, both must pass:
+      • the mold's own annulus must fit a plane at rms <= `rms_max` (a crease/curved region will not),
+      • and the SAME neighbourhood ON THE GUN must be flat to `gun_flat` mm.
+    So a real feature — a pin hole, an engraved slot, a stamped marking — is present on the gun, fails
+    the second gate, and is left completely alone; a crater the voxel remesh manufactured has no
+    counterpart on a clean scan and gets filled. This is the owner's own argument ("the original stl
+    file is a clean file") turned into the actual test instead of a guess about what a dot might be."""
+    from mathutils.kdtree import KDTree
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    import bmesh, collections
+    me=mold.data; N=len(me.vertices)
+    P=_world_verts(mold); P0=P.copy(); ei,ej=_edges(me,N)
+    G=_world_verts(gun_solid)
+    kdg=KDTree(len(G))
+    for j,p in enumerate(G): kdg.insert(Vector(p.tolist()), j)
+    kdg.balance()
+    bmg=bmesh.new(); bmg.from_mesh(gun_solid.data); bvhg=BVHTree.FromBMesh(bmg)
+    def frame(Q, nrm):
+        m=Q.mean(0); n=nrm/max(np.linalg.norm(nrm),1e-12)
+        t=np.array([1.0,0,0]) if abs(n[0])<0.9 else np.array([0,1.0,0])
+        u=np.cross(n,t); u/=max(np.linalg.norm(u),1e-12); v=np.cross(n,u)
+        return m,u,v,n
+    def quad_fit(Q, m,u,v,n):
+        """Local QUADRIC (paraboloid) fit — absorbs the surface's own curvature so the residual is
+        the DEFECT alone. A plane fit cannot do this: on the G19 frame flank it read the flank's
+        curvature as roughness and rejected all 151 candidate craters as 'not flat' (2026-08-20b)."""
+        A=Q-m; a=A@u; b=A@v; w=A@n
+        M=np.column_stack([np.ones_like(a),a,b,a*a,a*b,b*b])
+        coef,_,_,_=np.linalg.lstsq(M,w,rcond=None)
+        res=w-M@coef
+        return coef, float(res.std()), float(np.abs(res).max())
+    def quad_eval(coef, Q, m,u,v,n):
+        A=Q-m; a=A@u; b=A@v; w=A@n
+        M=np.column_stack([np.ones_like(a),a,b,a*a,a*b,b*b])
+        return w-M@coef                                    # signed deviation from the fitted surface
+    log=[]
+    for r in range(rounds):
+        me.update()
+        NR=np.empty((N,3)); me.vertices.foreach_get("normal",NR.ravel()); NR=NR.reshape(-1,3)
+        L=P.copy()
+        for _ in range(2):
+            S=np.zeros((N,3)); C=np.zeros(N)
+            np.add.at(S,ei,L[ej]); np.add.at(C,ei,1)
+            np.add.at(S,ej,L[ei]); np.add.at(C,ej,1)
+            C[C==0]=1; L=S/C[:,None]
+        d=np.einsum('ij,ij->i',L-P,NR)
+        idx=np.where(np.abs(d)>thr)[0]
+        s=set(idx.tolist()); adj=collections.defaultdict(list)
+        for a,b in zip(ei,ej):
+            if a in s and b in s: adj[a].append(b); adj[b].append(a)
+        seen=set(); blobs=[]
+        for v in idx.tolist():
+            if v in seen: continue
+            st=[v]; seen.add(v); g=[]
+            while st:
+                n_=st.pop(); g.append(n_)
+                for x in adj[n_]:
+                    if x not in seen: seen.add(x); st.append(x)
+            Q=P[g]; diag=float(np.linalg.norm(Q.max(0)-Q.min(0)))
+            # ★ On a FLANK the size limit must be relaxed: the running-max argument says NO depression
+            # of ANY size can survive the sweep there, so a big one is still a defect. A 4.08 mm slot
+            # on the G19's light flank shipped twice because max_diag 2.5/3.0 filed it as a "real
+            # crease" (owner: "there is still one hole!", 2026-08-20d). Measured proof it was fake:
+            # mold xmin 12.93 in one 0.5 mm bin against 13.87-14.05 either side, while the gun ran a
+            # smooth 13.52 -> 13.07 ramp through the same band with no dip at all.
+            lim = max_diag_flank if _flank_hint(bvhg, Q.mean(0), flank_nx) else max_diag
+            if diag<=lim and len(g)<=max_n: blobs.append((g,diag))
+        if not blobs:
+            log.append({"round":r,"blobs":0,"filled":0}); break
+        kd=KDTree(N)
+        for j,p in enumerate(P): kd.insert(Vector(p.tolist()), j)
+        kd.balance()
+        nfill=0; nskip_mold=0; nskip_gun=0; worst=0.0
+        for g,diag in blobs:
+            c=P[g].mean(0)
+            ri=max(r_in, 0.62*diag)                 # scale the fill radius to the blob
+            ro=ri+(r_out-r_in)
+            nb=kd.find_range(Vector(c.tolist()), ro)
+            ann=[j for (co,j,dist) in nb if dist>=ri]
+            inner=[(j,dist) for (co,j,dist) in nb if dist<ri]
+            if len(ann)<20 or not inner: continue
+            nrm=NR[g].mean(0)
+            # ⚠ The blob's MEAN VERTEX NORMAL is a bad orientation estimate: inside a crater the wall
+            # normals point every way and cancel, so a flank crater can read |nx| ~ 0.3 and dodge the
+            # flank override (2026-08-20b — 5 marks survived three passes because of this). Take the
+            # orientation from the ANNULUS's own best-fit plane, which is undisturbed by the defect.
+            _A=P[ann]-P[ann].mean(0)
+            _ns=np.linalg.svd(_A, full_matrices=False)[2][2]
+            if float(_ns@nrm)<0: _ns=-_ns
+            nrm=_ns
+            m,u,v,n=frame(P[ann], nrm)
+            coef,rms,_=quad_fit(P[ann], m,u,v,n)
+            # --- the GUN is the arbiter: does a REAL feature live here?
+            # SIGNAL-TO-NOISE, not an absolute threshold. An absolute `gun_dev > 0.16` rejected the
+            # grip-stipple region wholesale (gun_rms 0.6-0.7 there is TEXTURE, not a hole) and let
+            # 1.1 mm craters ship. A real pin hole / notch stands OUT of the local roughness.
+            # ★ FLANK OVERRIDE — on a side flank the gun gate does not apply AT ALL. The mold's
+            # half-width along a flank is the RUNNING MAXIMUM of the gun's half-width over the sweep,
+            # so it is monotone and a local dip is geometrically impossible; even a real recess on the
+            # gun's flank is FILLED by the sweep (full-width material exists forward of it). Any
+            # depression there was manufactured downstream. Restricted to |nx| > `flank_nx` so it can
+            # never touch a +Z feature such as the rear-sight notch, which is a genuine mold recess
+            # (forward of the sights the slide top is lower, so the envelope does not fill it).
+            nx=abs(float(nrm[0])/max(float(np.linalg.norm(nrm)),1e-12))
+            hit=bvhg.find_nearest(Vector(c.tolist()))
+            real=False
+            # A mold vertex far from the gun sits on pure swept envelope; the gun's local shape there
+            # is irrelevant, so the arbiter must not veto.
+            far = hit[0] is not None and (np.linalg.norm(np.array(hit[0])-c) > detached)
+            if nx>flank_nx or far:
+                pass
+            elif hit[0] is not None:
+                gc_=np.array(hit[0])
+                gin=[j for (co,j,dist) in kdg.find_range(Vector(gc_.tolist()), r_in)]
+                gann=[j for (co,j,dist) in kdg.find_range(Vector(gc_.tolist()), r_out) if dist>=r_in]
+                if len(gann)>=20 and len(gin)>=5:
+                    gm,gu,gv,gn=frame(G[gann], nrm)
+                    gcoef,grms,_=quad_fit(G[gann], gm,gu,gv,gn)
+                    gdev=float(np.abs(quad_eval(gcoef, G[gin], gm,gu,gv,gn)).max())
+                    real = gdev > max(gun_flat, snr*grms)
+            if real: nskip_gun+=1; continue                  # real hole / notch / slot -> leave it
+            if len(g)<=needle_n or rms>rms_max:
+                # NEEDLE MODE — a 1-3 vertex spike, or a blob whose annulus is not cleanly fittable.
+                # Pull each vertex onto its own 2-ring mean along the normal, capped at its own depth.
+                # Bounded by construction; cannot round a corner further than the corner's neighbours.
+                gi_=np.array(g)
+                mv=np.clip(d[gi_]*0.9, -cap, cap)
+                P[gi_]=P[gi_]+NR[gi_]*mv[:,None]
+                worst=max(worst, float(np.abs(mv).max())); nfill+=1
+                if rms>rms_max and len(g)>needle_n: nskip_mold+=1
+                continue
+            idxs=np.array([j for j,_ in inner]); dists=np.array([dd_ for _,dd_ in inner])
+            dev=quad_eval(coef, P[idxs], m,u,v,n)
+            t=dists/ri; wgt=1.0-(3*t*t-2*t*t*t)
+            mv=np.clip(-dev*wgt, -cap, cap)
+            P[idxs]=P[idxs]+n[None,:]*mv[:,None]
+            worst=max(worst, float(np.abs(mv).max()))
+            nfill+=1
+        log.append({"round":r,"blobs":len(blobs),"filled":nfill,"skipped_not_flat":nskip_mold,
+                    "skipped_real_on_gun":nskip_gun,"max_move_mm":round(float(worst),3)})
+        me.vertices.foreach_set("co",P.ravel()); me.update()
+        if nfill==0: break
+    bmg.free(); _shade(mold)
+    nm,bd=_manifold(me); disp=np.linalg.norm(P-P0,axis=1)
+    return {"rounds":log,"moved_verts":int((disp>1e-4).sum()),
+            "max_disp_mm":round(float(disp.max()),3),
+            "nonmanifold":nm,"boundary":bd}
+
+def enforce_clearance(mold, gun_solid, clearance=0.25, radius=2.5, rounds=3, cap=2.0,
+                      screen=0.05, keep_mask=None):
+    # ★ DEFAULT 0.25 = the owner's 0.2 target PLUS a margin, because this runs BEFORE the decimate and
+    #   collapse must not be able to eat into the 0.2. Repairing the decimated mesh instead perturbs
+    #   the surface ~6x more than the error it fixes (2026-08-20d).
+    """HARD GUARANTEE that the gun cannot poke through the mold — run LAST, after every smoothing
+    stage, immediately before the decimate.
+
+    WHY it is needed even with `offset_mold_xz`: the offset is applied along vertex normals, and in a
+    TIGHT CONCAVE POCKET (the trigger-guard interior, the light/rail slot) a normal offset cannot
+    recover what `smooth_mold` + `despeckle_mold` shrank — Laplacian smoothing pulls a concave region
+    inward, and no amount of outward normal displacement on a pocket wall reaches the deficit.
+    Measured on the G19 + GTL II (2026-08-20): after a clean 0.2 XZ offset, 117 of 54,173 retained gun
+    vertices still sat OUTSIDE the mold, up to 1.63 mm, all inside the trigger-guard bow.
+
+    MECHANISM — SURGICAL, driven by the MEASURED failures, not by a blanket distance rule. Iterate:
+    (1) screen every gun vertex in the retained region with a nearest-point normal-sign test;
+    (2) CONFIRM each candidate with a 5-ray parity test (the screen alone reports phantom 10 mm
+        intrusions inside concave pockets — see the VERIFY note);
+    (3) for each confirmed offender, push the mold vertices within `radius` outward along the gun
+        normal's XZ component, by (intrusion + clearance) with a smoothstep falloff, capped at `cap`.
+    ⚠ A BLANKET version of this — "push every mold vertex closer than `clearance` to the gun" — was
+    tried first and FAILED: it selected 42,305 vertices (17 % of the mesh, because the whole
+    gun-hugging face sits at exactly the clearance), did not converge over three rounds, and inflated
+    the mold by up to 4.4 mm. Enforce against the failures you can prove, never against a predicate
+    that the correct surface also satisfies.
+    Y is never touched — `dy_max` in the summary must read 0.0.
+    VERIFY with the gun-vertex parity test, not with a nearest-point normal sign: on a concave pocket
+    the nearest-point normal lies and reports phantom 10 mm intrusions."""
+    import bmesh
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    from mathutils.kdtree import KDTree
+    me=mold.data; N=len(me.vertices)
+    P=_world_verts(mold); P0=P.copy()
+    G=_world_verts(gun_solid); GN=np.empty((len(G),3))
+    gun_solid.data.vertices.foreach_get("normal",GN.ravel()); GN=GN.reshape(-1,3)
+    if keep_mask is None: keep_mask=np.ones(len(G),bool)
+    gi=np.where(keep_mask)[0]
+    log=[]
+    for r in range(rounds):
+        bmm=bmesh.new(); bmm.from_mesh(me); bvh=BVHTree.FromBMesh(bmm)
+        def outside(p):
+            v=Vector(p.tolist()); votes=0
+            for d in ((1,0,0),(-1,0,0),(0,0,1),(0,0,-1),(0,1,0)):
+                D=Vector(d); n=0; org=v.copy()
+                for _ in range(64):
+                    h=bvh.ray_cast(org+D*1e-4, D)
+                    if h[0] is None: break
+                    n+=1; org=h[0]
+                votes += (n%2)
+            return votes<3
+        bad=[]
+        for i in gi:
+            v=Vector(G[i].tolist())
+            loc,nor,idx,dd=bvh.find_nearest(v)
+            if loc is None: continue
+            s=(v-loc).dot(nor)
+            if s<=screen: continue
+            if outside(G[i]): bad.append((i, float(s)))
+        bmm.free()
+        log.append({"round":r,"screened":int(sum(1 for i in gi)),"confirmed_outside":len(bad),
+                    "worst_mm":round(max([b[1] for b in bad]),3) if bad else 0.0})
+        if not bad: break
+        kd=KDTree(N)
+        for j,p in enumerate(P): kd.insert(Vector(p.tolist()), j)
+        kd.balance()
+        add=np.zeros((N,3))
+        for i,s in bad:
+            n=GN[i].copy(); n[1]=0.0
+            L=float(np.linalg.norm(n))
+            if L<1e-6: continue
+            n/=L
+            need=min(s+clearance, cap)
+            for (co,j,dist) in kd.find_range(Vector(G[i].tolist()), radius):
+                t=dist/radius; w=1.0-(3*t*t-2*t*t*t)          # smoothstep falloff
+                cand=n*(need*w)
+                if np.linalg.norm(cand)>np.linalg.norm(add[j]): add[j]=cand
+        P+=add
+        me.vertices.foreach_set("co",P.ravel()); me.update()
+    _shade(mold)
+    nm,bd=_manifold(me); disp=np.linalg.norm(P-P0,axis=1)
+    return {"rounds":log,"clearance":clearance,"moved_verts":int((disp>1e-4).sum()),
+            "max_disp_mm":round(float(disp.max()),3),
+            "dy_max":round(float(np.abs(P[:,1]-P0[:,1]).max()),6),
+            "nonmanifold":nm,"boundary":bd}
+
+def patch_region(mold, center, r_in=3.5, r_out=5.5, cap=1.5, iters=1):
+    """FORCED local surface restoration at one coordinate — the manual escalation for when
+    `preflight_mold` reports a defect that `fill_dimples`' thresholds do not reach (e.g. a residual
+    seam left after a big slot is filled: the depth falls under `min_depth` but the normal break is
+    still visible under cavity light).
+
+    Fits a quadric to the annulus `r_in..r_out` around `center` and pulls everything inside `r_in`
+    onto it with a smoothstep falloff. Use ONLY where the defect has been PROVEN manufactured — on a
+    flank (running-max argument) or by measuring the gun and finding it smooth there. It has no
+    arbiter of its own; that is the caller's job."""
+    from mathutils.kdtree import KDTree
+    from mathutils import Vector
+    me=mold.data; N=len(me.vertices); P=_world_verts(mold); P0=P.copy()
+    NR=np.empty((N,3)); me.vertices.foreach_get("normal",NR.ravel()); NR=NR.reshape(-1,3)
+    c=np.asarray(center,dtype=float)
+    for _ in range(iters):
+        kd=KDTree(N)
+        for j,p in enumerate(P): kd.insert(Vector(p.tolist()), j)
+        kd.balance()
+        nb=kd.find_range(Vector(c.tolist()), r_out)
+        ann=[j for (co,j,dist) in nb if dist>=r_in]
+        inner=[(j,dist) for (co,j,dist) in nb if dist<r_in]
+        if len(ann)<20 or not inner: return {"applied":0,"reason":"too few neighbours"}
+        Q=P[ann]; m=Q.mean(0); A=Q-m
+        n=np.linalg.svd(A, full_matrices=False)[2][2]
+        if float(n@NR[ann].mean(0))<0: n=-n
+        t=np.array([1.0,0,0]) if abs(n[0])<0.9 else np.array([0,1.0,0])
+        u=np.cross(n,t); u/=max(np.linalg.norm(u),1e-12); v=np.cross(n,u)
+        def M(X):
+            B=X-m; a=B@u; b=B@v
+            return np.column_stack([np.ones_like(a),a,b,a*a,a*b,b*b]), B@n
+        Ma,wa=M(Q); coef,_,_,_=np.linalg.lstsq(Ma,wa,rcond=None)
+        idxs=np.array([j for j,_ in inner]); dists=np.array([dd for _,dd in inner])
+        Mi,wi=M(P[idxs]); dev=wi-Mi@coef
+        tt=dists/r_in; wgt=1.0-(3*tt*tt-2*tt*tt*tt)
+        mv=np.clip(-dev*wgt, -cap, cap)
+        P[idxs]=P[idxs]+n[None,:]*mv[:,None]
+        me.vertices.foreach_set("co",P.ravel()); me.update()
+    _shade(mold)
+    nm,bd=_manifold(me); disp=np.linalg.norm(P-P0,axis=1)
+    return {"applied":int((disp>1e-4).sum()),"max_move_mm":round(float(disp.max()),3),
+            "annulus_rms":round(float((wa-Ma@coef).std()),4),"nonmanifold":nm,"boundary":bd}
+
+def preflight_mold(mold, gun_solid, min_depth=0.25, max_diag=10.0, max_n=600, thr=0.10,
+                   clearance=0.2, keep_mask=None, snr=2.5, gun_flat=0.16, flank_nx=0.70):
+    """★★ THE PRE-EXPORT GATE. `assert preflight_mold(...)["ok"]` BEFORE writing any STL.
+
+    Owner directive 2026-08-20d, after a fourth reject: *"STOP wasting my time and STOP guessing and
+    START to check your work BEFORE you submit files!!!"* Three molds shipped with visible defects I
+    could have found in seconds with a measurement instead of a render I glanced at. This function is
+    that measurement, and it is not optional.
+
+    Checks, all on the mesh that is about to be written:
+      1. manifold 0 non-manifold / 0 boundary,
+      2. every depression clustered and put to `_gun_arbiter` — anything deeper than `min_depth` that
+         the owner's clean gun scan does NOT justify is a DEFECT, reported with its coordinates,
+      3. no gun vertex outside the mold (ray-parity confirmed, not a normal-sign guess),
+      4. `speck_report`.
+    Returns `{"ok":bool, "defects":[...], "intrusions":n, ...}`. A False names WHERE to look; go render
+    that coordinate under cavity light and fix it — do not export past it.
+
+    ⚠ `speck_ok` is REPORTED BUT DELIBERATELY NOT PART OF `ok`. `speck_report`'s thresholds are
+    calibrated at 0.4 mm voxel edge length, so on a DECIMATED mesh (edges ~2x longer) it reads False
+    on geometry that a BVH proves is 0.003 mm from the gated surface — the documented density trap
+    (08-17c). Gate the speck field on the PRE-DECIMATE mesh with `despeckle_mold` (step 3c); here it is
+    advisory only. If it reads False post-decimate, verify with a BVH distance before believing it."""
+    import bmesh, collections
+    from mathutils import Vector
+    from mathutils.kdtree import KDTree
+    from mathutils.bvhtree import BVHTree
+    me=mold.data; N=len(me.vertices); P=_world_verts(mold); ei,ej=_edges(me,N); me.update()
+    NR=np.empty((N,3)); me.vertices.foreach_get("normal",NR.ravel()); NR=NR.reshape(-1,3)
+    L=P.copy()
+    for _ in range(2):
+        S=np.zeros((N,3)); C=np.zeros(N)
+        np.add.at(S,ei,L[ej]); np.add.at(C,ei,1); np.add.at(S,ej,L[ei]); np.add.at(C,ej,1)
+        C[C==0]=1; L=S/C[:,None]
+    d=np.einsum('ij,ij->i',L-P,NR)
+    idx=np.where(np.abs(d)>thr)[0]; s=set(idx.tolist()); adj=collections.defaultdict(list)
+    for a,b in zip(ei,ej):
+        if a in s and b in s: adj[a].append(b); adj[b].append(a)
+    G=_world_verts(gun_solid); kdg=KDTree(len(G))
+    for j,p in enumerate(G): kdg.insert(Vector(p.tolist()), j)
+    kdg.balance()
+    bmg=bmesh.new(); bmg.from_mesh(gun_solid.data); bvhg=BVHTree.FromBMesh(bmg)
+    seen=set(); defects=[]
+    for v in idx.tolist():
+        if v in seen: continue
+        st=[v]; seen.add(v); g=[]
+        while st:
+            n_=st.pop(); g.append(n_)
+            for x in adj[n_]:
+                if x not in seen: seen.add(x); st.append(x)
+        Q=P[g]; diag=float(np.linalg.norm(Q.max(0)-Q.min(0)))
+        dep=float(np.abs(d[g]).max())
+        if dep<min_depth or diag>max_diag or len(g)>max_n: continue
+        c=Q.mean(0)
+        if _gun_arbiter(bvhg,kdg,G,c,snr=snr,gun_flat=gun_flat,flank_nx=flank_nx): continue
+        defects.append({"depth":round(dep,3),"diag":round(diag,2),"n":len(g),
+                        "ctr":[round(float(x),1) for x in c]})
+    bmg.free()
+    defects.sort(key=lambda r:-r["depth"])
+    # gun must be fully enclosed (parity-confirmed)
+    bmf=bmesh.new(); bmf.from_mesh(me); bvhf=BVHTree.FromBMesh(bmf)
+    km=np.ones(len(G),bool) if keep_mask is None else keep_mask
+    pts=G[km]; nout=0; worst=0.0
+    for p in pts:
+        v=Vector(p.tolist()); loc,nor,i_,dd=bvhf.find_nearest(v)
+        if loc is None or (v-loc).dot(nor)<=0.05: continue
+        votes=0
+        for D_ in ((1,0,0),(-1,0,0),(0,0,1),(0,0,-1),(0,1,0)):
+            D=Vector(D_); n2=0; org=v.copy()
+            for _ in range(64):
+                h=bvhf.ray_cast(org+D*1e-4, D)
+                if h[0] is None: break
+                n2+=1; org=h[0]
+            votes+=(n2%2)
+        if votes<3: nout+=1; worst=max(worst,float((v-loc).dot(nor)))
+    bmf.free()
+    nm,bd=_manifold(me)
+    sp=speck_report(mold)
+    ok = (nm==0 and bd==0 and not defects and nout==0)
+    return {"ok":bool(ok),"nonmanifold":nm,"boundary":bd,"defects":defects[:25],
+            "n_defects":len(defects),"intrusions":nout,"intrusion_worst_mm":round(worst,3),
+            "speck_ok":sp.get("ok"),"speck_hotspots":len(sp.get("hotspots",[])),
+            "faces":len(me.polygons),"verts":N}
+
+def beautify_decimated(obj, angle_deg=25.0):
+    """Kill the speck field that DECIMATE-COLLAPSE re-creates, WITHOUT moving a single vertex.
+
+    ★ 2026-08-20, G19 + GTL II: the pre-decimate mold audited **0 hotspots, ok:True**, and the
+    decimated export audited **4 hotspot regions** that the owner could see as dots in his CAD —
+    while the BVH said the two surfaces are 0.003 mm apart (p99). The geometry did not change; the
+    TRIANGULATION did. Collapse leaves sliver triangles whose face normals scatter, and a normal
+    break shades as a black speck exactly like a real pit (the 08-17b "the eye reads normals" rule,
+    now with a topological cause instead of a geometric one).
+
+    Because the defect is topology, the fix must be topology: `beautify_fill` flips edges to improve
+    triangle aspect ratio and CANNOT move a vertex, so the surface stays bit-for-bit where the gated
+    pre-decimate mesh put it. Restricted to edges whose dihedral angle is under `angle_deg` so no
+    real crease, groove or cut-face border can be flipped across. In-place; returns the audit delta."""
+    import bmesh
+    _activate(obj)
+    me=obj.data; N=len(me.vertices)
+    P=_world_verts(obj)
+    before=speck_report(obj)
+    bm=bmesh.new(); bm.from_mesh(me)
+    bm.faces.ensure_lookup_table(); bm.edges.ensure_lookup_table()
+    lim=math.radians(angle_deg)
+    flat=[e for e in bm.edges if len(e.link_faces)==2 and e.calc_face_angle(0.0)<lim]
+    tris=[f for f in bm.faces if len(f.verts)==3]
+    bmesh.ops.beautify_fill(bm, faces=tris, edges=flat, method='AREA')
+    bm.to_mesh(me); bm.free(); me.update(); _shade(obj)
+    P2=_world_verts(obj)
+    after=speck_report(obj)
+    nm,bd=_manifold(me)
+    return {"flat_edges":len(flat), "hotspots_before":len(before.get("hotspots",[])),
+            "hotspots_after":len(after.get("hotspots",[])), "ok":after.get("ok"),
+            "vert_move_max_mm":round(float(np.abs(P2-P).max()),9),
+            "faces":len(me.polygons), "verts":N, "nonmanifold":nm, "boundary":bd}
+
 # ---------------------------------------------------------------- stage 8: decimate + re-solidify
-def decimate_mold(obj, out_name="CGS_MOLD_FINAL", ratio=0.5, times=1, voxel=0.7, target_faces=123000,
+def decimate_mold(obj, out_name="CGS_MOLD_FINAL", ratio=0.5, times=1, voxel=0.7, target_faces=250000,
                   remesh=False):
+    # ★ BUDGET 250,000 — owner ruling 2026-08-20b. 123,000 visibly facets the curved surfaces (light
+    #   body, lower rail, trigger-guard fill) and he reads the facets as "pimples", even though the
+    #   geometry is only 0.024 mm from the smooth mesh. Do not lower it without a new ruling.
     """Reduce to a clean manifold solid at a controllable FACE BUDGET. Two modes:
     • remesh=True (default): decimate then voxel-remesh to the budget. Uniform quads, but the remesh
       ROUNDS corners to the voxel — fine when the sweep was coarse anyway.
