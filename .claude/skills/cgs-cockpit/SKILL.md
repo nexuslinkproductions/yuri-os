@@ -207,6 +207,29 @@ clicking it reverts. Two things that look optional and are not: `ShellUse.sheet_
 drops the sheet line, so without this the biggest line silently vanishes from the cost) and
 `built_qty` (a build total ÷ units = per-unit `unit_cogs`).
 
+## COMPANION SHELLS FOLLOW THE COLOUR (2026-09-05)
+
+A SIDECAR books **1.5** sheets: its own body plus the amortised half of a MAGAZINHALTER molded
+two-up. The colour swap moves exactly ONE whole sheet, so the carrier's 0.5 is left on the base —
+and `companion_shells.sheet_part` is configured as `KYDEX_Black_8x8`.
+
+- **A mag carrier is never light-bearing → it takes the colour's `no_light` sheet.** 8x8 for BLACK
+  and STORM GREY, that colour's 8x12 for everything else (owner ruling 2026-08-04).
+- `resolve_components` returns **`companion_sheets`** — the single place that decides. `build_preview`
+  uses it for the shell offer AND for the `companions` notice; the notice filters on `sheet_part`, so
+  a stale value prints "cut a fresh <black sheet>" next to an offer naming the olive one.
+- A colour cut at a custom fraction (CARBON PURPLE, 12x24) converts **with a warning** — a carrier's
+  share of it is not the 8x8's 0.5.
+- **`own` vs companion in the deduction table**: an OWN shell replaces the whole sheet line; a
+  COMPANION only offsets its share. The row must show `−<offset> from shell` and a reduced balance,
+  never a free line.
+- **⚠ `for/else` TRAP**: anything added near the `if slots: … else: …` chain in `resolve_components`
+  must sit AFTER both branches. Dropped between them, Python binds it as a `for/else`, the
+  single-sheet branch runs on every build, and every holster books one sheet too many — valid syntax,
+  wrong totals. `companion_sheet.test.py`'s unchanged-models asserts are the net.
+- Editing a BOM from a script: `boms_store.save(model, payload, rename_from=model)`. A plain `save`
+  over an existing key is REFUSED on purpose (it would wipe it).
+
 ## UNDOING A BUILD — a build is an EVENT, not a row (2026-09-05)
 
 A build writes one `stock_moves` consume row **per part**, plus a `shell_moves` `use` row when the
@@ -388,6 +411,24 @@ check the bank statement before chasing, the cockpit cannot see it; Woo sync is 
   (new `converted_*` fields) checked through René's Chrome after `restart-cockpit.bat`.
 - Converted sales start `status='pending'` with NO `paid_date` — cash-basis surfaces (P&L, TWINT
   reconcile) only see them once René marks payment by hand, same as any manual sale.
+
+### 2026-09-05 (two screens telling the truth about different sheets)
+- "The bench shows 2 carriers, the build says nothing on the bench." Both were right — the build was
+  asking for a BLACK 8x8 while the carriers were OLIVE 8x12. Fixed so the companion follows the
+  colour (commit `b2df6d3`, pushed); detail in the section above.
+- **The habit that paid**: the visible complaint was a missing offer. Pulling the thread found a
+  wrong COGS basis (olive carrier costed on black), a lying deduction row, and — via `git log -S` on
+  the config key — a BOM regression worth CHF 3.30/sidecar that nothing in the app surfaced. Read the
+  ORIGINAL design commit before deciding what "correct" means; `3afe119`'s message contained the
+  ruling that settled the whole question.
+- **Two self-inflicted bugs, both silent, both worth remembering**: a `for/else` created by inserting
+  code between `if` and `else` (booked a second sheet on every build), and a test fixture pinned to a
+  wall-clock hour that went red on its own once real time passed it. The first was caught only
+  because I checked the numbers after the change rather than trusting a green import; the second by
+  running the FULL suite rather than just the new file.
+- Owner-gated correctly: the BOM restore and the carrier-sheet ruling were both money decisions, so
+  they were put to René rather than assumed — and `boms.json` was left out of the commit because it
+  also carried his in-flight edits.
 
 ### 2026-09-05 (undoing a build, and two mutants that survived)
 - "How do I undo a BUILD HOLSTER for 813150?" — you couldn't, properly. Built the undo (commit
