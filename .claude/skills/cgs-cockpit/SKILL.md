@@ -207,6 +207,27 @@ clicking it reverts. Two things that look optional and are not: `ShellUse.sheet_
 drops the sheet line, so without this the biggest line silently vanishes from the cost) and
 `built_qty` (a build total ÷ units = per-unit `unit_cogs`).
 
+## A SHELL'S IDENTITY INCLUDES ITS GUN (2026-09-05)
+
+A WIP shell is keyed `(model, variant, guns, sheet_part)`. `guns` is the FITMENT — which gun
+(holster) or which magazine (mag carrier) the cavity was pressed for, stored as
+`"<MAKE>: <label> | <label>"` with the labels **sorted**, so the same ticks in any order compose
+the same stock line. Empty = never recorded (every shell molded before 2026-09-05; they were all
+PIEXON Guardian Angels, which have no gun — which is exactly why the hole survived so long).
+
+- **The make is identity, not decoration**: `45` alone is a GLOCK 45 or an H&K 45.
+- **One mag mold covers a FAMILY** (owner ruling 2026-08-21) so a mag carrier may tick several shop
+  options; a holster cavity is one gun and `mold_shells` refuses more (`is_mag_carrier()`).
+- The picker reads `cam_vocab.json` through `/api/cam/vocab` — **local, not the CNC drive**, so a
+  molding run stays recordable when the network is down.
+- **Build-time fit** comes from `cam_index.gun_tokens` (the ONE place gun identity is decided —
+  never rebuild it) against the sale's `gun_make`/`gun_model`. **SUBSET, not intersection**: a
+  carrier sold as `43x / 48 / 48 MOS` must fit all three, so a 48-only mold is the wrong body.
+  Unknown on either side stays SILENT; a real mismatch blocks Confirm until acknowledged.
+- The shell picker keys on `ShellOption.key`, never on `variant` — two fitments share a geometry.
+- Regression net: `backend/shell_fitment.test.py`. Its three mutation guards (subset→intersection,
+  dropped sort, identity ignoring `guns`) are the point; re-run them if you touch this.
+
 ## CAM REGISTER VOCABULARY — "I cannot edit the MODEL" (2026-08-19)
 
 The HERSTELLER / MODEL / LAMPENMODUL fields on CAM REGISTER are `<select>`s fed by
@@ -347,6 +368,25 @@ check the bank statement before chasing, the cockpit cannot see it; Woo sync is 
   (new `converted_*` fields) checked through René's Chrome after `restart-cockpit.bat`.
 - Converted sales start `status='pending'` with NO `paid_date` — cash-basis surfaces (P&L, TWINT
   reconcile) only see them once René marks payment by hand, same as any manual sale.
+
+### 2026-09-05 (a field that was missing, and the merge it was hiding)
+- René could not say WHICH gun two molded Magazinhalter were for. Added a fitment dimension to the
+  shell ledger (commit `7f1e026`, pushed). Detail in the section above and in the memory file.
+- **The lesson, again in a new costume**: the visible complaint was "the dropdown has no Glock". The
+  actual defect was that a Glock mag body and a SIG mag body **shared one stock line** — invisible,
+  and it survived a year only because every prior shell was a gun-less Guardian Angel. When a
+  request is "I can't specify X", ask what the record's IDENTITY is without X, not just where the
+  field is missing. Same shape as the 2026-08-19 `gun_tokens` substring finding.
+- **What made the verification worth anything**: three MUTANTS. First-run green proved nothing —
+  flipping subset→intersection, removing the canonical sort, and dropping `guns` from the balance
+  query each had to break a specific assert, and each did. Then the migration was run against a
+  hand-built pre-`guns` database (the fresh-DB test never touches `ALTER TABLE`, which is the path
+  the LIVE db takes) and the UI half was driven end-to-end on the :8010 sandbox-over-copies.
+- Method note: the in-app Browser pane has no auth cookie; René's Chrome does. Driving React
+  `<select>`s there needs the native value setter + a dispatched `change`, and a cross-port `fetch`
+  needs the tab navigated to that port first.
+- Tools: Read/Grep/Edit/Write, Bash (python, read-only `mode=ro` DB checks, sandbox on :8010, git),
+  claude-in-chrome (live UI verification on both the live app and the sandbox).
 
 ### 2026-08-19 (same session — the button, and a rename that was not one)
 - Built the UI for the sync (CAM REGISTER → Vocabulary panel). **Verifying a file-upload UI without a
