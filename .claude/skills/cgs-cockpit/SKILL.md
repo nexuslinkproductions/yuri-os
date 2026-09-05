@@ -207,6 +207,26 @@ clicking it reverts. Two things that look optional and are not: `ShellUse.sheet_
 drops the sheet line, so without this the biggest line silently vanishes from the cost) and
 `built_qty` (a build total ÷ units = per-unit `unit_cogs`).
 
+## UNDOING A BUILD — a build is an EVENT, not a row (2026-09-05)
+
+A build writes one `stock_moves` consume row **per part**, plus a `shell_moves` `use` row when the
+body came off the bench, plus a COGS re-cost and `build_status='built'` on the sale. The ledger has
+**no batch id**, so a build is identified by `(ref, note, timestamp cluster)`.
+
+- `consume()` stamps every line of one build with **one** `_now()`. It used to read the clock per
+  part, so a write across a second boundary split the batch into two half-undos. `BUILD_WINDOW_S = 60`
+  still re-joins rows written before that fix.
+- **Both guards are load-bearing**: the *note* separates two models built in the same second; the
+  *window* separates the same model built twice (a rebuild after an undo). Neither covers the other.
+- `GET /api/inventory/builds?ref=&model=` lists batches · `POST /api/inventory/build/undo
+  {ref,ts,note,sale_id}` reverses one. The batch is **re-derived server-side** — never trust a client
+  row-id list. Repeat undo → 400, never a silent double-restore.
+- UI: **Sales → expand the order → "Undo a build…"**. `build_status` has no other UI anywhere; before
+  this it could only be cleared by a raw `PATCH /api/sales/{id} {"build_status":""}`.
+- Nothing says which SALE LINE a batch belongs to (one ref covers every line of an order), so on a
+  multi-built order the line to un-flag is an explicit pick. `matches_model` sorts, never decides.
+- Regression net: `backend/build_undo.test.py`, four mutation guards.
+
 ## A SHELL'S IDENTITY INCLUDES ITS GUN (2026-09-05)
 
 A WIP shell is keyed `(model, variant, guns, sheet_part)`. `guns` is the FITMENT — which gun
@@ -368,6 +388,20 @@ check the bank statement before chasing, the cockpit cannot see it; Woo sync is 
   (new `converted_*` fields) checked through René's Chrome after `restart-cockpit.bat`.
 - Converted sales start `status='pending'` with NO `paid_date` — cash-basis surfaces (P&L, TWINT
   reconcile) only see them once René marks payment by hand, same as any manual sale.
+
+### 2026-09-05 (undoing a build, and two mutants that survived)
+- "How do I undo a BUILD HOLSTER for 813150?" — you couldn't, properly. Built the undo (commit
+  `0d1c6b7`, pushed) and ran it on the real order: 11 parts restored, out of BUILT, COGS back on the
+  BOM figure. Detail in the section above.
+- **The finding worth keeping is about TESTING, not the feature.** The first suite was green, and
+  then **two of four mutants survived it**: `len(stamps)==1` passes with the clock inside the loop
+  because three fast inserts share a second *by luck*, and the time-window assert was actually being
+  carried by the note. Both asserts were testing the machine, not the rule. Fixed by stubbing
+  `inv._now` to tick on every call, and by adding two SAME-note builds five minutes apart. **A
+  surviving mutant is not a weak mutant — it is a vacuous assert.** Run the mutants before believing
+  a green suite, and when one survives, suspect the test first.
+- Second lesson: a build that reads the clock per row is not just untidy, it destroys the only thing
+  that makes the event addressable. Undo-ability is a property you have to design INTO the write.
 
 ### 2026-09-05 (a field that was missing, and the merge it was hiding)
 - René could not say WHICH gun two molded Magazinhalter were for. Added a fitment dimension to the
