@@ -76,6 +76,18 @@ the MCP server live. Output: a cut, smoothed, offset mold object ready for STL e
 
 ## Pipeline (owner gun-dip method — validated)
 
+**★★ GLOBAL CONSTANT — SWEEP VOXEL IS 0.15 (owner ruling 2026-09-06).** `sweep_dip`/`solidify_mold` default to it; do NOT
+   pass 0.4. The manufactured dimple field scales LINEARLY with the grid (max depth / voxel = 3.55 · 3.41 ·
+   3.51 at 0.4 · 0.25 · 0.15), so at 0.15 the raw sweep has **zero** pits over 0.8 mm where 0.4 had 121, and
+   a finer voxel SHARPENS corners rather than softening them. Cost on a 160k-vert scan: 3.86 M verts, ~41 s.
+   ⚠ Verts go as 1/voxel², so a big gun + light can exceed ~6 M — the cut-A EXACT boolean then runs long
+   enough to **time out the MCP socket while succeeding** (re-query the scene, don't assume failure), and
+   cut B may need `solver='FLOAT'`. Drop to 0.25 only if memory or wall-clock actually bites, and say the number.
+0a. **OPTIONAL — clean the SCAN** (`clean_scan(obj)`), before assemble. **NOT the dimple fix**: measured A/B, cleaning 92 % of
+   the scan's own defects moved the mold by **10 % in count and 0 % in depth**. What it IS worth: the scan's
+   own defects >0.05 mm **810 → 63**, a nicer `export_gun` file for Shapr3D, and (plausible, UNMEASURED) a
+   more trustworthy `_gun_arbiter`. ~30 s, outward-only, creases + textured regions frozen. Run it before
+   `assemble_gun_solid`; skip it without ceremony if the scan is already clean.
 0. **Assemble GUN_SOLID from the FULL scan** — `assemble_gun_solid([gun, light…])` [VALIDATED
    2026-07-03, Glock 43X + TLR-7]. UNION every substantial island (gun + light + rail), drop only specks, seal + center.
    Universal replacement for "keep the largest island" — the reason the dip now reaches the
@@ -172,7 +184,26 @@ the MCP server live. Output: a cut, smoothed, offset mold object ready for STL e
    silhouette) · two stacked panels at the same scale ("AGAIN... I must see both!" — he means superimposed,
    not side by side). The mold IS the gun's swept envelope, so it CONTAINS the gun; only real alpha shows
    both surfaces at the same pixel. Full failure log: Session Notes 2026-08-08.
-3c. **SPECK-FIELD GATE — `despeckle_mold`, MANDATORY, and `ok` must be True before export** (owner
+3c. ★★★ **NO LONGER UNCONDITIONALLY MANDATORY — AT VOXEL ≤ 0.25 THIS STAGE SMEARS REAL GEOMETRY. ARBITRATE
+   ITS HOTSPOTS FIRST, AND EXPECT TO SKIP IT** (owner reject 2026-09-06: *"with both 0.15 and 0.25 it creates
+   impurities … 0.15 also has impurities on the other side"*). Its compactness window (2.5 mm) and hotspot
+   density buckets are calibrated for a **0.4 mm** voxel. A fine mesh resolves real feature lines sharply and
+   carries almost no speck field, so the detector fires on ordinary geometry corners — **53 hotspots at 0.15
+   vs 7 at 0.25 vs 39 at 0.4** — and `smooth_flank_field` (which selects `|x| > 0.93·half-width`, i.e. the
+   flanks) then flattens them. It moved **41,422 verts (3.05 %)** at 0.15 and produced the smeared dust-cover
+   flanks René circled.
+   **THE GATE ON THE GATE — run the 08-20g arbitration over EVERY hotspot before letting the stage run:**
+   compare `_feature(35°)` sharp fraction of the GUN vs the PRE-DECIMATE MOLD in each `box_y`/`box_z`/`side`.
+   On the HK CC9 at 0.15, **30 of 53 had the gun 1.95×–181× sharper** (false positives), **23 more had gun
+   sharp_frac 0.0000** — no gun surface in the box at all, i.e. pure swept envelope, unarbitrable, NOT "real".
+   Only 3–4 boxes had the mold genuinely sharper. Absolute scale check: the mold read **0.002–0.075** against
+   the P320's real speck field at **0.18–0.29** — two orders of magnitude apart.
+   **Skipping it is now the DEFAULT at 0.15.** Verify the decision the same way every time: the pre-decimate
+   `preflight_mold` must still return `ok:True` on defects + intrusions, and a cavity close-up must show no
+   dotted field. Tell that the features survived: a following `fill_dimples` protects **>0 blobs as
+   real-on-gun** (3 at 0.15, 1 at 0.25 after the rebuild; **0** in the despeckled run — nothing left to
+   recognise). At 0.4 the stage stays live and its history below stands.
+3c-legacy. **SPECK-FIELD GATE — `despeckle_mold`** (owner
    directive 2026-08-17b: *"make sure this is checked automatically with every future mold"*, after
    *"why the hell are you always making these holes!!!??? The original stl file is a clean file"*).
    Run it on the **PRE-DECIMATE** mold, after `smooth_mold` + `offset_mold`. One call: audit →
@@ -291,10 +322,14 @@ the MCP server live. Output: a cut, smoothed, offset mold object ready for STL e
    Always render a raking/cavity close-up of the DECIMATED mesh, not just the gated one.
 5e. **How the reduction is done — decimate-collapse, corners preserved** (`decimate_mold`, default
    `remesh=False`, VALIDATED 2026-07-03) — `DECIMATE COLLAPSE` straight to `target_faces` ≈ 125k, NO
-   voxel re-solidify. ★ Two INDEPENDENT levers: **crispness = the sweep voxel (0.4)**; **face count =
-   this budget.** Collapse sheds flat faces first so it KEEPS the crisp corners the 0.4 sweep produced —
+   voxel re-solidify. ★ Two INDEPENDENT levers: **crispness = the sweep voxel (now 0.15)**; **face count =
+   this budget.** Collapse sheds flat faces first so it KEEPS the crisp corners the sweep produced —
    a voxel-remesh (`remesh=True`, legacy) would round them back. Ratio is vs TRIS (collapse
    triangulates) with one measure+correct. Glock 43X: 0.4 sweep → collapse → 119,549 faces, manifold 0/0.
+   ⚠ **At 0.15 the collapse ratio is ~0.09** (vs 0.26 at 0.25), so the decimated mesh's depth + speck
+   probes are proportionally MORE artefact-prone — read those pre-decimate and clear the shipped ones
+   with the 5f falsification arithmetic. The must-pass trio (nonmanifold / boundary / intrusions) is
+   unaffected and still decides. Expect the pinch sliver more often at 0.15; repair it and BVH both ways.
 5f. ★★★ **PREFLIGHT GATE — `assert preflight_mold(fin, GUN_SOLID, keep_mask=…)["ok"]` IMMEDIATELY
    BEFORE `export_mold`. NON-NEGOTIABLE** (owner directive 2026-08-20d, after a fourth reject:
    *"STOP wasting my time and STOP guessing and START to check your work BEFORE you submit files!!!"*).
@@ -395,6 +430,11 @@ wrong half. The four owner rulings:
 The dip still earns its keep: it fills the **mag-catch notch** on the front face, which would
 otherwise lock the magazine into the pouch, and it fills the rear witness holes flush.
 
+⚠ **Magazines INHERIT the 0.15 sweep voxel** (owner ruling 2026-09-06 was for the skill, not for guns
+only). `boot` still tracks the voxel — that is the 08-01 anti-comb rule and it is what made a magazine's
+tapered feed lips come out clean; it is satisfied automatically by the new default. A magazine is small,
+so 0.15 costs little. The offset magnitude (+0.1 isotropic) is a SEPARATE ruling and is unchanged.
+
 Export pair: `<name>.stl` + **`<name> MAG.stl`** (not ` GUN.stl` — `export_gun` hardcodes the wrong
 suffix for magazines; write the sibling inline).
 
@@ -412,11 +452,14 @@ arbiter (step 2a) — and the run ENDS on a gate, not on a render.
 # do NOT persist between MCP calls (07-30).
 exec(open(r"C:\Users\rene\.claude\skills\cgs-mold\scripts\cgs_mold.py").read(), globals())
 
+# 0b. OPTIONAL scan clean — NOT the dimple fix (10% on count, 0% on depth). Skip if the scan is clean.
+# clean_scan(bpy.data.objects["<gun-scan>"])                   # in place; check ["max_disp_mm"] <= total
 # 0. ASSEMBLE — union EVERY island (gun + light + rail), drop only specks, seal, center on the SIGHTS.
 gun, sa = assemble_gun_solid(["<gun-scan>", "<light-scan-if-separate>"])   # -> GUN_SOLID
 #    check sa["islands_kept"] covers every real part; sa["front_feature_z"] low => a forward light leads.
-# 1. THE DIP — full length, produces a filled manifold-0/0 solid directly. voxel 0.4 = crisp corners.
-solid, s = sweep_dip(gun, boot=0.4)                            # -> CGS_MOLD_SOLID
+# 1. THE DIP — full length, filled manifold-0/0 solid directly. VOXEL 0.15 (owner 2026-09-06) is the default;
+#    do not pass 0.4. Expect ~3.9M verts / ~40s on a 160k-vert scan; >6M on a big gun+light.
+solid, s = sweep_dip(gun)                                      # -> CGS_MOLD_SOLID, voxel=boot=0.15
 repair_pits(solid, gun)                                        # re-invoke until the last round reads 0
 # 2. CUTS — annotation-driven if René drew lines (preferred); EXACT solver first, guard the vert ratio.
 #    cut A = diagonal grip plane; cut B = cut_tail(gun_rear=<beavertail>, margin=...)
@@ -427,8 +470,11 @@ repair_pits(smo, gun); fill_dimples(smo, gun, rounds=6)
 # 4. OFFSET — 0.2 in X and Z, 0.1 in Y. Ellipsoid; assert the Y extent grew by exactly offset_y.
 offset_mold_xz(smo, offset=0.2, offset_y=0.1)
 repair_pits(smo, gun)
-sp = despeckle_mold(smo); assert sp["ok"] and not sp["crease_assert_failed"]
-fill_dimples(smo, gun, rounds=4)
+# ★ SPECK STAGE — at voxel 0.15 the DEFAULT is to SKIP it (step 3c). Arbitrate before you ever run it:
+#   for each speck_report(smo)["hotspots"] box, compare _feature(35°) sharp fraction GUN vs MOLD;
+#   gun sharper => false positive; gun sharp_frac 0.0 => no gun surface => unarbitrable, not "real".
+#   sp = despeckle_mold(smo); assert sp["ok"] and not sp["crease_assert_failed"]   # 0.4 voxel only
+fill_dimples(smo, gun, rounds=4)   # >0 "skipped_real_on_gun" = the features are intact
 # 5. CLEARANCE with a MARGIN above target, so the decimate cannot eat into the 0.2.
 enforce_clearance(smo, gun, clearance=0.25, keep_mask=keep)     # keep_mask = the RETAINED gun region
 assert preflight_mold(smo, gun, keep_mask=keep)["ok"]           # gate the pre-decimate mesh too
@@ -448,10 +494,19 @@ forward of cut B: `(gz > m*gy + b + 2) & (gy < cutB_y - 2)`. Without it the cut-
 ~33,000 "outside" verts at up to 62 mm and buries the real signal.
 
 Stage functions returning `(object, summary)`: `sweep_dip`, `solidify_mold`, `cut_grip`, `cut_tail`,
-`smooth_mold`, `decimate_mold`. In-place, returning a summary only: `repair_pits`, `fill_dimples`,
-`patch_region`, `offset_mold_xz`, `enforce_clearance`, `despeckle_mold`, `repair_specks`,
-`smooth_flank_field`, `remove_overhang`, `denoise_region`. Read-only: `speck_report`, `preflight_mold`.
+`smooth_mold`, `decimate_mold`. In-place, returning a summary only: `clean_scan` (OPTIONAL, step 0b),
+`repair_pits`, `fill_dimples`, `patch_region`, `offset_mold_xz`, `enforce_clearance`, `despeckle_mold`,
+`repair_specks`, `smooth_flank_field`, `remove_overhang`, `denoise_region`.
+Read-only: `speck_report`, `preflight_mold`.
 DEPRECATED: `offset_mold` (region/z_line — see 5c), `split_mold`, `build_mold`.
+CONDITIONAL: `despeckle_mold` / `repair_specks` / `smooth_flank_field` — 0.4-voxel stages; at ≤0.25 they
+smear real geometry unless every hotspot arbitrates as real (step 3c).
+
+★ **THE DAMAGE MAP — the diagnostic for "the pipeline changed something it shouldn't have".** Signed BVH
+distance from the shipped mesh to the PRE-SMOOTH cut mesh (`CGS_MOLD_CUT2` / `C*_B`), minus the nominal
+offset; cluster `|residual| > 0.12`. Non-zero residual is exactly what the stack did, and it localises to a
+coordinate in one call. It is what found the despeckle smearing (6 clusters at x ±11 → 1 after the fix).
+This is the reason the pre-smooth cut mesh is kept in the scene for the whole run.
 
 **Render to LOCATE, measure to CONCLUDE** — never the reverse (failure-rule 6). `bpy.ops.render.opengl`
 needs `view_context=False` AND `hide_viewport`/`hide_set`, not just `hide_render`; Workbench FLAT +
@@ -461,7 +516,9 @@ needs `view_context=False` AND `hide_viewport`/`hide_set`, not just `hide_render
 
 | Constant | Value | Ruled |
 |---|---|---|
-| sweep voxel / `boot` | **0.4** | 2026-07-03 (crisp corners), 08-01 (boot=voxel kills the comb) |
+| **sweep voxel / `boot`** | **0.15** | **2026-09-06 — OWNER RULING, supersedes 0.4** |
+| ~~sweep voxel~~ (superseded) | ~~0.4~~ | 2026-07-03 (crisp corners), 08-01 (boot=voxel kills the comb) |
+| `despeckle_mold` | **OFF at voxel ≤ 0.25** unless its hotspots arbitrate as real | 2026-09-06 owner reject |
 | offset X and Z | **0.2 mm** | 2026-08-20 (0.4 → 0.3 → 0.2) |
 | offset Y | **0.1 mm** | 2026-08-20d ("add 0.1 on Y AXIS") |
 | clearance enforced pre-decimate | **0.25 mm** (0.2 + margin) | 2026-08-20d |
@@ -516,6 +573,375 @@ flat bin of the bottom-Z plateau.
   exports import as manifold 0/0, 1 island — just center on origin; no reseal needed).
 
 ## Session Notes
+
+### 2026-09-06b — **GLOCK 34 (bare gun)** — **DONE, EXPORTED**; the first EXACT-boolean CRASH at 0.15, and how to decide the speck stage with a DEPTH number instead of a render
+- Scan `GLOCK 34.stl` 66,916 v / 133,832 f, **watertight 0/0**, identity matrix, canonical pose, no annotations,
+  3 islands (main 56,484 v + barrel 5,731 v + recoil assembly 4,701 v — **all three kept**, 0 specks dropped).
+  Scan edge ratio **109.5** (p1 0.049 / p50 0.70 / p99 5.37) ⇒ `repair_pits` correctly skipped on the scan.
+  ⚠ **A clean STL does NOT mean `clean_scan` is warranted** — the 09-06 A/B already proved cleaning moves the
+  mold 10 % in count and 0 % in depth. Skipped it and said so; the sweep voxel is the lever, not the scan.
+- **★ POSE: the CONVERGENCE TEST fired on pitch and nothing else.** Global least-squares axis fit (cos_tol
+  0.9999, 17,749 mm² = 36 % of surface): `r` correction **(+0.0742, −0.1341, +0.0367)°**, rms **0.004620 →
+  0.004287** (−7.2 %). Independent pitch datums all agreed in sign: slide-top +Z face clusters
+  **+0.067 … +0.244°** (area-weighted, 3,171 mm²), so **+0.0706° applied about X**, max vertex move 0.105 mm;
+  slide top after **+0.0296°**. Roll/yaw left alone — flank normals read roll **−0.15…−0.23 (+X side)** vs
+  **+0.11…+0.27 (−X side)**, i.e. the two flanks tilt at OPPOSITE angles (the 08-04c wedge), and symmetry
+  yaw **+0.027°** vs slide-symmetry **−0.014°** straddle zero.
+- **★ `_sight_channel_x` was off by 0.109 mm again — measure the sights (09-05 rule, second gun).** The engine
+  put `sight_x_post` at 0.0, but the front blade centred at **−0.103** (edges −2.167 / +1.961) and the rear
+  notch at **−0.115** (edges −1.979 / +1.750, shoulders 57.71, floor 54.84) ⇒ residual **+0.1088 mm** applied
+  to GUN_SOLID before the sweep. Both sights then straddle X = 0.
+- **★★★ THE EXACT BOOLEAN DID NOT TIME OUT — IT CRASHED BLENDER, AND THE PROCESS RESTARTED CLEAN.** At voxel
+  0.15 the sweep is **6,346,164 v / 91.6 s**; the first cut-A attempt (EXACT, dz 0) took the process from
+  25.6 GB working set to a hard exit — the MCP socket returned "No data received", `blender.exe` reappeared
+  under a NEW PID with an EMPTY scene, and my JSON log stopped at the pre-cut line. **Distinguish the two
+  failure modes before waiting**: a socket TIMEOUT leaves the PID and the memory footprint intact and the
+  object appears on re-query (09-06 HK CC9); a CRASH changes the PID and empties the scene. The tells I used:
+  `tasklist` PID 15588 → 24944, working set 25.6 GB → 0.5 GB, `Get-Process blender` CPU delta **0.08 s over
+  30 s** (idle, not computing), and `get_scene_info` returning 2 objects. Do not sit through a 10-minute poll
+  loop — poll the PID.
+  **THE FIX AND THE STANDING RULE: at ≥ ~6 M verts, run cut A with `solver='FLOAT'` from the start.** FLOAT
+  cut this mold in **84.9 s**, ratio **0.300** (1,902,389 v), manifold **0/0**, bbox max_y 137.97 well past
+  cut B's plane — the healthy signature. Rebuild from the STL to that point cost ~3.5 min and reproduced every
+  number exactly (same 6,346,164 v, same 0/0), which is the second confirmation this year that the pipeline
+  is deterministic and a crash costs only wall-clock.
+- Cut points auto (no annotation), both off the right mesh. **Knee from the MOLD's running-min bottom**, which
+  is dead flat at **−14.090 from y +1.0 to +20.5** and then plunges continuously (21.0 → −15.21, 21.5 → −16.41)
+  ⇒ corner **(20.5, −14.090)**, the LAST flat bin. **Beavertail from GUN_SOLID's banded rear silhouette** — a
+  clean local ridge at **(84.58, z 26.0)** (z 23 → 81.92, z 30 → 83.70), while the global rearmost point is the
+  **grip heel at y 95.51, z −60**, i.e. the 08-04c heel trap present and avoided. With the owner-locked
+  −20 / −10 ⇒ **α 38.01°**. ★ Cross-check that costs one lookup: the 08-05 Glock 34 + X300 run gave **38.10°**
+  on the same frame — **0.09° apart**. Same-model agreement across two independent runs is the cheapest cut-A
+  sanity check there is; use it whenever the gun has been run before.
+- Cut B keyed off the BEAVERTAIL (84.58 + 6 = **y 90.58**), NOT `gun_rear_y` 96.4 — the heel is 12 mm behind
+  the tang, so `gun_rear + 6` would have left ~12 mm of dead tail. Verified first: **0 gun verts behind cut B
+  above the cut-A plane**, max y above the plane = 84.58. FLOAT, 4.6 s, 1,754,548 v, 0/0.
+- Sweep `boot=0.15`, travel 222.2, 12 passes, edge ratio **2.32**. Pits post-sweep **1272 → 1 → 0**; after the
+  cuts **464 → 1 → 0**; after smooth **2 → 0**; after offset **0**. smooth(8/0.015/3/12): **21 verts >0.5 mm**
+  clamped, max 7.358 → **0.488**, p99 0.030. Offset exact to the ruling: **max_disp 0.200 · dy_max 0.100**.
+- **★★★ THE SPECK DECISION, MADE ON A DEPTH NUMBER RATHER THAN A PICTURE — and it went BOTH ways in one run.**
+  `speck_report` on the offset mold: **34 hotspots, ok False**. Arbitrated per 08-20g before touching anything:
+  **13 false positives** (gun 1.3×–5.5× sharper in the box), **17 unarbitrable** (gun sharp_frac 0.0000 — no gun
+  surface, pure swept envelope), **4 marginal** with the mold sharper but on tiny gun samples (n 138–452).
+  Mold absolute sharp_frac **0.0011–0.0486** against the P320's real field at **0.18–0.29**. By the 09-06 ruling
+  that is a SKIP — and I skipped `despeckle_mold`.
+  **Then a routine 3/4 cavity render showed a dot field on the frame flanks that the GUN does not have at the
+  same camera.** Measured rather than argued: dotted box (y 40–80, z −10…25) mold sharp_frac **0.0239 (R) /
+  0.0176 (L)** vs gun **0.0120 / 0.0098**, i.e. mold ~2× the gun; the visually clean slide flank read mold
+  **0.0000** vs gun 0.0755. Mold-sharper on a FLANK, where the running-max law forbids a concavity ⇒
+  manufactured ⇒ escalation legitimate.
+  **THE ESCALATION THAT IS SAFE AT 0.15 IS `repair_specks` ALONE — NOT `despeckle_mold`.** The 09-06 smearing
+  came from `smooth_flank_field`, which `despeckle_mold` calls automatically; `repair_specks` only melts
+  COMPACT sharp clusters under a 0.15 cap and re-asserts the crease freeze. Two invocations, 2 rounds each:
+  clusters **445 → 127 → 59 → 24**, 8,320 verts moved at mean 0.048 / max 0.277, and
+  **`extended_still_sharp == extended_verts` on both** (6,581 and 6,587) — owner geometry provably untouched.
+  Speck hotspots **34 → 1**. **DAMAGE MAP vs `CGS_MOLD_CUT2`** (signed BVH minus the nominal ellipsoid offset,
+  250,650 samples): residual p99 **0.0257**, **11 samples over 0.12**, forming **ONE** cluster at
+  (2.3, 73.4, 55.5) — the rear-sight blob, the same benign survivor as the 09-06 rebuild. No flank smearing.
+  ★★ **AND THEN I STOPPED, because the next number said to.** The render still showed faint wisps, so I
+  measured the 2-ring depth in the dotted box instead of escalating again: **max 0.047 mm, p99 0.0128, ZERO
+  verts over 0.05 mm** — against the visually SPOTLESS slide flank at **max 0.046, p99 0.0119**. The two
+  regions are depth-identical; what differs is only sharp_frac 0.0031 vs 0.00016. Pre-smooth (`CGS_MOLD_CUT2`)
+  the same box read max **0.249** with 506 verts over 0.10, so the stack removed 5× of it.
+  **RULE: escalate on a flank when mold sharp_frac > gun sharp_frac, and STOP when the box's depth statistics
+  match a clean reference flank on the same mesh. A residual you cannot separate from an accepted surface by
+  depth is not a defect — and `smooth_flank_field` is exactly what turns it into one.** The 08-17b field was
+  real because it had 0.18–0.29 sharp_frac; this one is 0.0031.
+- `fill_dimples` protected **0** blobs as real-on-gun — ⚠ the 09-06 "features survived" tell does NOT apply
+  here and must not be read as failure: it found **0 blobs at all** (the mold was already clean), so there was
+  nothing to arbitrate. The damage map is the load-bearing evidence in that case, not the protect count.
+- `enforce_clearance(0.25)`: **41,837 keep-masked gun verts screened, 0 confirmed outside, 0 moved** — first
+  gun in this log where the parity push was a total no-op. Pre-decimate gate **ok:True** (0/0, 0 defects,
+  0 intrusions) and **0 defects down to min_depth 0.15**, the cleanest pre-decimate mesh recorded here.
+- Decimate ratio **0.076** (the 0.15-voxel penalty), 2 iters → **248,732 faces / 265,600 tris / 132,802 v,
+  0/0 first try**, no pinch sliver. BVH vs PRE_DEC **fwd max 0.0168 / rev max 0.0426, zero over 0.1** both ways.
+- **Shipped-mesh gate: must-pass ALL GREEN — nonmanifold 0 · boundary 0 · intrusions 0.** 30 depth flags
+  (0.43–1.49 mm) and 17 speck hotspots, every one falsified with the 08-20f arithmetic computed on the
+  **flagged region's own** BVH (the 09-05 correction): local bvh_max **0.005–0.015** ⇒ ceilings **0.160–0.180**
+  against claims **3.5×–9× higher** ⇒ geometrically impossible ⇒ probe artifacts. Local edge ratio on the
+  shipped mesh **22–76** vs **2.1–6.6** pre-decimate. **8 of the top 10 sit exactly on the cut-B flat rear face
+  (y 90.6)**, the rest on the grip-cut corner strip — non-forming press-bed faces either way.
+- Gaps: slide flank **+0.212** · frame flank **+0.236** · front-Y **+0.128** · top-Z **+0.220**.
+  Dims **35.867 × 216.611 × 87.697**.
+- Export (standing default folder), both byte-exact vs `84 + 50·TRIS`, both identity `matrix_world`:
+  `C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS\GLOCK 34.stl` (13,280,084 B, 265,600 tris) **+
+  `GLOCK 34 GUN.stl`** (6,691,684 B, 133,832 tris — the pitch-corrected, sight-centred gun for Shapr3D).
+  <!-- @anchor: v1 | failure: (a) the cut-A EXACT boolean on a 6.35M-vert 0.15-voxel sweep CRASHED Blender outright (25.6GB working set, process exited and restarted with a new PID and an empty scene) and I initially read it as the documented 09-06 socket TIMEOUT, polling a dead process for ~10 minutes before checking the PID and CPU delta; (b) I skipped despeckle_mold on the 09-06 ruling after arbitration showed 30 of 34 hotspots were false positives or unarbitrable, and a routine cavity render then showed a real manufactured dot field on the frame FLANKS where the mold measured ~2x the gun's sharp fraction -- the arbitration's box-level averages had diluted it; (c) after repair_specks cleared it the render still showed faint wisps and I was one step from running smooth_flank_field, which is exactly the stage that caused the 09-06 owner reject; 2026-09-06b | regression: cgs-mold SKILL.md Session Notes 2026-09-06b -- use solver='FLOAT' for cut A at >=6M verts; distinguish a Blender CRASH from an MCP timeout by PID + working set + CPU delta, not by waiting; escalate a flank speck field with repair_specks ALONE (never despeckle_mold's smooth_flank_field) at voxel <= 0.25, verify with the damage map against CGS_MOLD_CUT2, and STOP when the flagged box's 2-ring depth statistics match a clean reference flank on the same mesh -->
+
+### 2026-09-06 — **HK CC9, CONTROLLED A/B: cleaning the SCAN does NOT reduce the mold's dimples. The VOXEL does.** ★★★ closes the 08-27h "honest limit"
+- René asked the right question — *"test your GUN_CLEAN stl and see if YOU still create those dimples"* — after I had
+  cleaned `HK CC9 - GUN.stl` (annulus-quadric fill: scan defects >0.05 mm **810 → 63**, >0.10 **214 → 32**) and told
+  him to re-derive the mold from it. **That recommendation was wrong and one A/B refuted it.**
+- **THE A/B** — identical `assemble_gun_solid` → `sweep_dip(voxel 0.4, boot 0.4)`, only the input scan differs:
+
+  | metric (2-ring probe, thr 0.25, diag ≤ 2.5) | original scan | cleaned scan |
+  |---|---|---|
+  | pit clusters | 362 | **326** |
+  | max depth | 1.397 | **1.421** |
+  | mean depth | 0.629 | 0.681 |
+  | pits > 0.5 / 0.8 / 1.0 mm | 215 / 94 / 44 | 209 / 121 / **44** |
+  | on a FLANK (\|nx\| > 0.70) | 314 (87 %) | 294 (90 %) |
+
+  Removing 92 % of the scan's own defects moved the mold **10 % in count and nothing in depth**.
+- **FOUR PROOFS the sweep manufactures them** (any one suffices; together conclusive):
+  1. **87–90 % sit on a FLANK**, where the running-max law forbids a concavity — so they cannot be scan geometry.
+  2. The deepest are **single vertices, cluster diag 0.00 mm** — marching-cubes needles. Under Workbench FLAT +
+     `show_cavity` they render as grid-aligned **`+` shapes**; a scan dimple is a multi-vertex depression with no
+     axis alignment. **The `+` signature is the fastest visual tell in this skill — learn it.**
+  3. **Depth scales linearly with the voxel**: max/voxel = **1.421/0.4 = 3.55** and **0.868/0.25 = 3.47**.
+  4. A **plain single** `solidify_mold` of the clean gun maxes at **0.508** at voxel 0.4, so the 10-pass sweep
+     **amplifies one remesh ~2.8×**. It is the STACKED remeshes, not one — 08-27h said "the grid"; this splits
+     the grid from the pass count.
+- **★★ THE LEVER — voxel 0.4 → 0.25, same gun, same sweep:**
+
+  | | 0.40 | 0.25 |
+  |---|---|---|
+  | verts / sweep time | 541,986 / 5.5 s | 1,396,834 / **15.3 s** |
+  | pits > 1.0 mm | 44 | **0** |
+  | pits > 0.8 mm | 121 | **14** |
+  | pits > 0.5 mm | 209 | **73** |
+  | max depth | 1.421 | **0.868** |
+  | `repair_pits` calls to converge | 3 (429→38→7→5→0) | **1** (274→4→0) |
+  | residual `dmax` after repair | **1.15** | **0.49** |
+
+  It does not merely start cleaner — it **ends 2.3× cleaner**, and a finer voxel also *sharpens* corners (07-03),
+  so there is no crispness trade-off. Owner declined 0.25 on 08-27h on cost grounds **without these numbers**;
+  the cost is ~10 s of sweep plus a denser cut/smooth. Re-ask him.
+- Chain confirmed to the CNC plate: `HK VP9 CC\HK CC9 - MOLD.stl` is **12,499,784 B = 249,994 tris**, the exact size
+  of the 09-05b pipeline export — so the dimples René circled on `HK_SFP9-CC_IWB_RH_MOLD.stl` came through Shapr3D
+  from `sweep_dip`, not from his scan and not from Shapr3D.
+- ⚠ **A defect-DENSITY argument is not a CAUSAL argument.** The scan genuinely carries **25×** the mold plate's
+  density per 1000 mm² (27.2 vs 1.1 at >0.05 mm); I read that as "the mold inherits them" and recommended a full
+  Shapr3D rebuild from a cleaned scan. Comparing two surfaces' densities says nothing about which produced the other.
+  **Run the A/B — it costs one sweep.**
+- **★★ PRODUCTION RUN, same day, both voxels end-to-end on the cleaned + yaw-corrected HK CC9** (owner asked for
+  0.25 and 0.15 shipped side by side). Full canonical order, no step skipped:
+
+  | stage | **0.25** | **0.15** |
+  |---|---|---|
+  | sweep verts / secs | 1,397,222 / 14.4 | 3,859,734 / 40.8 |
+  | raw sweep max pit · >0.8 · >0.5 | 0.852 · 7 · 59 | **0.527 · 0 · 28** |
+  | `repair_pits` post-sweep | 233→2→0, 1 call | 1029→7→0, 1 call |
+  | cut A ratio / α | 0.390 / 38.93° | 0.391 / 38.93° |
+  | cut B | EXACT 0/0 | ⚠ EXACT **3nm/3bd** → **FLOAT 0/0** |
+  | smooth clamped / disp p99 | 17 / 0.0533 | 19 / **0.0343** |
+  | `despeckle_mold` | 7 regions → 0, ok | 53 regions → 0, ok |
+  | offset | 0.200 · dy 0.100 | 0.200 · dy 0.100 |
+  | `enforce_clearance` | 0 confirmed | 0 confirmed |
+  | **pre-decimate gate** | **ok:True** 0/0/0 | **ok:True** 0/0/0 |
+  | pre-decimate true worst depression | 0.12 | 0.154 |
+  | decimate | 250,000 f, 0/0 first try | 249,997 f **3nm/2bd** → repaired 249,992 f 0/0 |
+  | **shipped must-pass nm / bd / intrusions** | 0 / 0 / **2 @ 0.058 mm** | 0 / 0 / **0** |
+  | BVH vs pre-dec (fwd / rev max) | 0.034 / 0.014 | **0.017 / 0.020** |
+  | gaps slide · frame · front-Y · top-Z | 0.248/0.200 · 0.199/0.202 · 0.082 · 0.199 | 0.237/0.199 · 0.198/0.212 · 0.090 · 0.202 |
+  | dims | 27.286 × 159.660 × 90.649 | 27.309 × 159.669 × 90.636 |
+
+  **0.15 wins on every must-pass metric** (0 intrusions vs 2, tighter BVH, visibly cleaner cavity render) for 2.8×
+  the sweep and one extra sliver repair. **Both ship at the same 250k budget**, so the CNC file is identical in size.
+  ⚠ At 0.15 the collapse ratio is **0.092** (vs 0.255), so the decimated speck/depth probe is proportionally MORE
+  artefact-prone — 32 hotspots and 8 depth flags on the shipped mesh, **0 and 0 on the pre-decimate**. Falsification
+  cleared every flag: claims 0.42–0.53 against a ceiling of **0.16–0.19** (worst_pre 0.154 + 2·local-BVH 0.003–0.012),
+  local edge ratio **42–60** vs 2.3 pre-decimate. Arbitrate at pre-decimate density, always.
+  ⚠ The 0.15 pinch sliver sat at **(12.1, 51.3, −6.4)**, within **0.06 mm of the cut-A plane** — on the flat
+  press-bed face, not a forming surface (same pattern as 09-05b).
+  ⚠ The cut-A EXACT boolean on the 3.86 M-vert sweep runs long enough to **time out the MCP socket while succeeding** —
+  re-query the scene before assuming failure; the object was there and manifold 0/0.
+  Exported: `_AUTOMATED MOLDS\HK CC9 0.25 voxel.stl` (250,000 tris) · `HK CC9 0.15 voxel.stl` (249,994 tris) ·
+  `HK CC9 CLEAN GUN.stl` (319,666 tris) — all byte-exact vs `84 + 50·TRIS`, all identity `matrix_world`.
+- **★★★ OWNER REJECT, same day — "with both 0.15 and 0.25 it creates impurities … 0.15 also has impurities on the
+  other side, whereas 0.25 does not". CAUSE: I ran `despeckle_mold` WITHOUT ARBITRATING ITS HOTSPOTS, and at a fine
+  voxel that stage SMEARS REAL GEOMETRY.** He circled smeared/gouged patches on the front lower flank (dust cover).
+  **THE DIAGNOSTIC THAT LOCALISED IT IN ONE CALL — the DAMAGE MAP: signed BVH distance from the shipped mesh to the
+  PRE-SMOOTH cut mesh (`CGS_MOLD_CUT2` equivalent), minus the nominal offset.** Residual ≠ 0 is exactly what the
+  pipeline changed, and it clusters:
+
+  | | with despeckle | rebuilt WITHOUT |
+  |---|---|---|
+  | 0.15 damage clusters | **6** — x ±11.2, y −80…−65, z 13–22, res ±0.16–0.19 (**both flanks** = his "other side") | **1** |
+  | 0.25 damage clusters | **3** — x −11.6, y −70, z 21 (one flank only) | **1** |
+  | 0.25 shipped gate | 3 defects, **2 intrusions @ 0.058** | **0 defects, 0 intrusions** |
+  | 0.15 shipped gate | 8 defects, 0 intrusions | 5 defects (artifacts), **0 intrusions** |
+
+  Both survivors are on non-forming faces (rear sight blob 0.9 mm; the cut-B flat rear face).
+- **★★ THE ARBITRATION, which I should have run BEFORE the stage (08-20g exists for exactly this):** of the 0.15's
+  **53 hotspots, 30 are provable FALSE POSITIVES** — gun sharp_frac vs mold sharp_frac in the same box runs
+  **1.95× to 181×** in the gun's favour (e.g. 0.2907 vs 0.0016). The other 23 read **gun 0.0000** = no gun surface
+  in the box, i.e. pure swept envelope where the comparison is meaningless — unarbitrable, not "real". Only 3–4 boxes,
+  all on the lower frame (z −20…0), have the mold genuinely sharper. The mold's absolute sharp fractions are
+  **0.002–0.075**, against the P320's real speck field at **0.18–0.29** — two orders of magnitude apart.
+- **★★★ ROOT CAUSE — `despeckle_mold`'s thresholds are VOXEL-CALIBRATED (0.4) and it inverts below ~0.25.** Its
+  compactness window (2.5 mm bbox diag) and hotspot-density buckets assume 0.4 mm edges. At 0.15 the mold resolves
+  real feature lines sharply and carries almost no voxel speck field, so the sharp-cluster test fires on ordinary
+  geometry corners — **53 hotspots at 0.15 vs 7 at 0.25 vs 39 at 0.4** — and `smooth_flank_field` (which selects
+  `|x| > 0.93·half-width`, i.e. the flanks) then flattens it. It moved **41,422 verts (3.05 %)** at 0.15.
+  **RULE: arbitrate EVERY hotspot against the gun before running the stage; at voxel ≤ 0.25 expect it to be a net
+  negative and skip it.** The stage exists for a defect class that a fine voxel does not produce.
+  ⚠ Corroborating tell: after the rebuild `fill_dimples` protected **3 blobs as real-on-gun (0.15) / 1 (0.25)**;
+  in the despeckled run it protected **0** — the arbiter had nothing left to recognise because the feature was gone.
+  <!-- @anchor: v1 | failure: OWNER REJECT "with both 0.15 and 0.25 it creates impurities ... 0.15 also has impurities on the other side, whereas 0.25 does not" — I ran despeckle_mold as a mandatory stage without arbitrating its hotspots, and at 0.15/0.25 voxel its smooth_flank_field flattened real geometry on the front lower flank (6 damage clusters at x +/-11, y -80..-65 on BOTH flanks at 0.15; 3 on one flank at 0.25), because the stage's compactness and density thresholds are calibrated for a 0.4mm voxel and a fine mesh carries no speck field for it to remove — 30 of the 53 hotspots it acted on had the GUN 1.95x to 181x sharper than the mold, and 23 more had no gun surface at all; 2026-09-06 | regression: cgs-mold SKILL.md Session Notes 2026-09-06 — localise pipeline damage with the DAMAGE MAP (signed BVH from the shipped mesh to the pre-smooth cut mesh, minus the offset); arbitrate every speck hotspot against the gun BEFORE running despeckle_mold, and skip the stage entirely at voxel <= 0.25; a post-rebuild fill_dimples that protects >0 blobs as real-on-gun is the tell that the features survived -->
+  <!-- @anchor: v1 | failure: I measured 25x the defect density on the gun scan vs the mold plate and concluded the mold's dimples were inherited from the scan, recommending René clean the scan and re-derive the whole mold in Shapr3D — a large piece of wrong work. His own test request produced the controlled A/B that refuted it: cleaning 92% of the scan's defects changed the swept mold by 10% in count and 0% in depth, while 87-90% of the mold's pits sit on flanks where the running-max law forbids a concavity, the deepest are single-vertex needles rendering as grid-aligned '+' shapes, and depth scales linearly with the voxel (3.55 at 0.4, 3.47 at 0.25); 2026-09-06 | regression: cgs-mold SKILL.md Session Notes 2026-09-06 + Track-B memory cgs-scan-dimple-cleanup — attribute a dimple field with the A/B (same pipeline, two inputs) plus the flank split, the single-vertex/'+'-shape check and the voxel-scaling ratio, never by comparing defect densities between two surfaces -->
+
+### 2026-09-05b — **HK CC9 (no red dot)** — **DONE, EXPORTED**; ★ the first gun this pipeline has ever ROTATED, and the test that justified it
+- Scan `HK CC9 - NO RED DOT` 159,837 v / 319,674 f, identity matrix, canonical pose, **no annotations**, edge
+  ratio 8.68 (pits off the scan). ⚠ **4 non-manifold edges with 0 boundary** — the METHOD-NOTES ★ROOT CAUSE
+  signature — but 4 edges is a pinch, not internal walls, and `sweep_dip`'s first voxel-fill absorbed them
+  (post-sweep 0/0). Don't reach for a rebuild on a single-digit count; check it survived the sweep instead.
+- **★★★ THE CONVERGENCE TEST — sweep an applied rotation and see whether the independent datums share a
+  COMMON ZERO. This is a strictly better rule than "the signs agree" and it is what finally separated a real
+  pose error from the gun's own non-parallelism.** Rotate the point cloud + face normals through a range of
+  angles and re-measure every datum at each step:
+
+  | applied yaw | flankR | flankL | sym_slide | sym_all | sight_line | mean |
+  |---|---|---|---|---|---|---|
+  | +0.000 | −0.0838 | −0.0603 | −0.0698 | −0.0956 | −0.0462 | **−0.0711** |
+  | +0.040 | −0.0508 | −0.0271 | −0.0305 | −0.0573 | −0.0067 | −0.0345 |
+  | **+0.078** | **−0.0149** | **−0.0070** | **+0.0071** | **−0.0200** | **+0.0307** | **−0.0008** |
+  | +0.120 | +0.0261 | +0.0160 | +0.0483 | +0.0205 | +0.0725 | +0.0367 |
+
+  **All five cross zero together at +0.078° and the spread collapses from [−0.096, −0.046] (all one sign) to
+  [−0.020, +0.031] (straddling).** Noise does not co-converge. Run the same sweep on pitch and roll and they
+  do NOT: pitch's four datums sit at fixed offsets (slide top 0.000 · grip base +0.227 · sight line +0.192 ·
+  fwd down-flats +0.547) that never meet — those surfaces genuinely are not parallel to each other on a
+  pistol; roll's two flanks cross at **opposite** angles (−0.19 and +0.07), the classic 08-04c wedge.
+  **⇒ applied yaw +0.078° about Z (max vertex move 0.105 mm), no pitch, no roll.** First rotation this skill
+  has ever applied — every prior gun failed this test and was correctly left alone.
+- **⚠ SIGN TRAP: the global least-squares axis fit returns the CORRECTION, not the error.** It solves for `r`
+  in `(n + r×n) ∥ e`, so the object's error is **−r**. Reading it as the error flips the sign and makes it
+  disagree with every datum-derived number. Here the fit gave `r_z = +0.0257°` ⇒ error −0.0257°, which then
+  agreed with all five datums instead of contradicting them. (Re-checked the 09-05 SFP9 note against this —
+  its conclusion is unaffected, every axis there was under 0.03° with mixed signs either way.)
+- Sight channel: notch centre **−0.071** (crossings −2.053/+1.910), blade **−0.004** ⇒ **−0.037**; the engine's
+  band read 0.0, so the residual correction was only **+0.037 mm** (vs 0.117 on the SFP9). Still worth doing.
+- Cut points, auto (no annotation), both from the right mesh: **knee off the MOLD's running-min bottom** —
+  trigger-guard plateau dead flat at −25.07 from y −35.5 to **+3.5**, then 4.5 → −25.49, 5.5 → −26.97
+  continuous ⇒ corner **(3.5, −25.072)**, the LAST flat bin. **Beavertail off GUN_SOLID's banded rear
+  silhouette** — broad tang z 12.5–27.5 at 64.4–64.76, peak **(64.76, z 14.5)**; the grip heel reaches only
+  63.98, so no 08-04c heel trap and `gun_rear_y` IS the beavertail. With the owner-locked −20/−10 →
+  **α 38.98°**. **EXACT@dz=0 first try on both cuts** (A 211,600 v = 0.392×src; B at y 70.76 → 189,986 v), 0/0.
+- Sweep `boot=0.4`, travel 153.5, 10 passes, **539,966 v, 8.7 s**, 0/0, edge ratio **2.33**. Pits **47 → 2 → 0**.
+  smooth(8/0.015/3/12): 52 clamped, max 6.023 → **0.4957**, p99 0.090. Offset exact: **`disp_max` 0.200 ·
+  `dy_max` 0.100**.
+- **★ The 08-20f clearance↔despeckle fight, and it converged in ONE iteration.** First pass: despeckle 39 → 0
+  ok:True, then `enforce_clearance(0.25)` pushed 224 verts (worst 0.243) → 0, and the gate came back
+  **0 defects / 0 intrusions but speck_ok False with 3 hotspots** — the push re-seeded them. One round of
+  (despeckle → repair_pits → clearance → gate) cleared it: hotspots 22 → 0, pits 0, clearance 10 → 0
+  (worst 0.086), gate **ok:True + speck_ok:True + 0 intrusions**. Loop it; don't argue with the first result.
+- **⚠ Decimate re-created the pinch sliver even though the pre-clean had already repaired it — 6th occurrence.**
+  Pre-clean found 3 nm / 2 bd and fixed them to 0/0; the collapse then produced **3 nm / 2 bd again**. Manifold
+  and boundary are density-INDEPENDENT must-pass checks, so this cannot ship. Repair on the decimated mesh
+  (delete the 14 faces linked to the bad edges' verts → `select_non_manifold` → `fill_holes(64)` → recalc) →
+  **0/0**, 249,985 faces / 124,999 v. **Then verify the recovery BOTH directions (08-20g), don't assume:**
+  forward BVH max **0.0043 mm**, reverse **max 0.195 mm with 3 verts over 0.1** — and all three sit within
+  **0.16 mm of the cut-A plane** (cut line z −39.93/−40.05/−39.96 at their y), i.e. the repair strip lives
+  entirely on the flat cut face that presses against the bed, not on a forming surface.
+- **★★ ARBITRATE SPECK HOTSPOTS AT MATCHED DENSITY — the decimate inflates the mold's sharp fraction ~1.85×
+  and can flip the 08-20g verdict.** The shipped mesh reported 7 hotspots; six are clear false positives
+  (gun/mold sharp ratio **1.99 / 3.46 / 2.41 / 5.52 / 3.05 / 3.59**). The seventh read **0.74** — mold
+  *sharper* than the gun, which by 08-20g reads "manufactured". At PRE-DECIMATE density the same box reads
+  mold **0.0267** vs gun 0.0368 ⇒ ratio **1.38**, gun sharper ⇒ false positive. Confirmed by `speck_report`
+  on PRE_DEC (**0 hotspots, ok True**) and a cavity close-up showing a clean feature line, no dotted field.
+  **Compare the gun against the PRE-DECIMATE mold, never against the collapsed one.**
+- Shipped-mesh gate, must-pass all green: **nonmanifold 0 · boundary 0 · 0 defects · 0 intrusions.**
+  Pre-decimate 0 defects down to min_depth 0.17 (6 at 0.15); falsification ceiling 0.17 + 2(0.0043) = 0.179.
+- Gaps: slide flank **+0.262** · frame flank **+0.215** · top-Z **+0.248** · front-Y **+0.076**; mold clears
+  the RETAINED gun on both flanks (**+0.428 / +0.218**). Dims 27.54 × 159.67 × 90.76.
+- Export (folder + name confirmed), both byte-exact vs `84 + 50·TRIS`, both identity `matrix_world`:
+  `C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS\HK CC9.stl` (12,499,784 B, 249,994 tris) **+
+  `HK CC9 GUN.stl`** (15,983,484 B, 319,668 tris — the yaw-corrected, re-centred gun for Shapr3D).
+  <!-- @anchor: v1 | failure: (a) I read the global least-squares axis fit's output as the object's pose ERROR when it is the CORRECTION (it solves for r in (n + r x n) parallel to e), which flipped the yaw sign and made the fit appear to contradict all five independent datums; (b) the decimate re-created a 3 non-manifold / 2 boundary pinch sliver even though the pre-clean had already repaired the same defect to 0/0 before decimating, and manifold/boundary are must-pass on the shipped mesh (6th occurrence of this class); (c) the 08-20g speck arbitration gave an inverted verdict on the decimated mesh (gun/mold sharp ratio 0.74 = "manufactured") for a box that reads 1.38 = false positive at pre-decimate density, because decimate-collapse inflates the mold's sharp fraction ~1.85x; 2026-09-05b | regression: cgs-mold SKILL.md Session Notes 2026-09-05b — negate the global fit's r before comparing it to datum-derived errors; decide a pose correction with the CONVERGENCE TEST (sweep the applied rotation and require the independent datums to share a common zero) rather than sign agreement alone; repair the decimated mesh's slivers and verify recovery with a BVH in BOTH directions; arbitrate speck hotspots against the PRE-DECIMATE mold, never the collapsed one -->
+
+### 2026-09-05 — **HK SFP9-L OR** — **DONE, EXPORTED**; first CAD/Shapr3D input, and `_sight_channel_x` is wrong on it
+- **★★ A NEW INPUT CLASS: a CAD model, not a scan — and VERTEX-BASED PROFILING LIES ON IT.** `HK_SFP9_L_OR`
+  49,806 v / 99,628 f, watertight **0/0, 1 island**, identity matrix. Edge **p1 0.233 / p50 0.877 /
+  p99 4.096 / max 12.36** — big flat faces with vertices only at their corners. My first `max Z` centre-strip
+  profile alternated between 37.776 and −31 in adjacent Y bins purely because the strip caught a corner in one
+  bin and nothing in the next. **Two tools replace vertex sampling on a CAD mesh:** (a) **face-normal/area
+  clustering** — bin faces by their offset along an axis, area-weight their normals; (b) a **dense surface
+  point cloud** (sample each triangle at ~1 pt / 0.06 mm², here 745k pts). Both are density-independent.
+  Everything downstream in this session was measured on one of those two.
+- **★★★ THE POSE TEST THAT SETTLES IT WITHOUT DATUM-PICKING — a GLOBAL LEAST-SQUARES AXIS FIT.** For a small
+  rotation `r`, a normal maps to `n + r×n`; for every face whose nearest cardinal axis is `e`, require the two
+  components perpendicular to `e` to vanish. That is **linear in r** (rows `n×u`, `n×v`; rhs `−n·u`, `−n·v`),
+  area-weighted, solved by `lstsq` — one number per axis over the whole model instead of arguing between
+  datums. Result at cos_tol 0.9999 (4,470 mm², 10 % of surface): **pitch +0.0079° · roll +0.0263° · yaw
+  +0.0219°**, and **rms 0.0087017 → 0.0086759**, i.e. the correction removes **0.3 %** of the residual.
+  **A rotation that does not move the rms is not a pose error.** Report `rms_pre`/`rms_post` every time; it is
+  the guard against "fitting" a number that is really the model's own non-cardinal geometry.
+- **Verdict: NO ROTATION APPLIED**, and every independent datum agreed it would be noise —
+  pitch: slide-top plane (1276 mm², n=(−4.7e−4, +5.8e−5, 1.0)) **−0.003°** · slide-top-rear **+0.015°** ·
+  picatinny slot floors **+0.034°** · sight line **+0.041°** · global fit **+0.008°**;
+  roll: slide top **−0.027°** · rear-sight shoulders **−0.135°** · slide symmetry **−0.075°** · global
+  **+0.026°** · rail floors +0.214° · frame symmetry +0.295°;
+  yaw: global **+0.022°** · slide symmetry **−0.018°** · sight line **+0.036°** · flank average **+0.019°** ·
+  rail mid-X −0.263°. No axis has sign consensus, and the **worst-case physical consequence is roll 0.135°
+  × 35.8 mm = 0.084 mm** — 1/5 of the sweep voxel and below the 0.2 offset. ⚠ René's own picatinny annotation
+  reads **+0.382°**; he labelled it "indicative only", and the rail's actual machined flats read +0.034°, so
+  the annotation is a *pointer to the reference surface*, not the datum. **Measure the surface he points at.**
+- **★★ `_sight_channel_x` IS WRONG ON THIS GUN BY 0.117 mm — MEASURE THE SIGHTS THEMSELVES.** The engine takes
+  the 2/98 bilateral centre of `z > zmax − 0.15·H`; here H = 133.9, so that band is **z > 21.9** — the entire
+  slide *and* the frame top, whose one-sided features (ejection port, controls) are exactly what the 07-03
+  ruling says pull the centre off the sights. It returned **+0.047** while the sights read **−0.107**:
+  front-blade bilateral centre **−0.046** and rear-notch centre **−0.168** (half-depth crossings at
+  −2.076 / +1.741, notch width 3.82). Fix = run `assemble_gun_solid`, then measure the two sights on
+  GUN_SOLID and apply the residual X translation (**+0.1069** here). After: blade **+0.061**, notch
+  **−0.053** — they straddle X=0 and the ±0.06 residual is the two sights' own disagreement, irreducible.
+  **The engine's band is a proxy; on any gun where the slide is shallow relative to grip depth, measure the
+  sights.** Total scan→GUN_SOLID Δ = (+0.060008, −1.954590, +11.219530), pure translation (verified).
+- **⚠ The rear-sight shoulders are CROWNED, so their face normals cannot give roll.** Left and right shoulder
+  top faces read nx **+0.0285** and **−0.0410** — opposite signs, tilting away from each other, because each
+  shoulder peaks ~0.15 mm at |x| ≈ 3.1 and falls off outboard. The owner's datum has to be read as the
+  **height difference between MATCHED |x| positions**: mean R−L = **+0.0193 mm** over a ~8.2 mm span →
+  dz/dx +0.00235 → roll **−0.135°**. Pair the shoulders; never average their normals.
+- Annotations, all three at x=0, used verbatim: cut A (18.301, −41.641)→(87.913, −5.486) ⇒ m **0.519379**,
+  **α 27.4464°**, b_mold **−38.91145**; cut B two points at y 87.734/87.644 → mean 87.689 → **y_mold 85.7344**
+  = gun_rear + **3.90 mm**; picatinny (−98.708, 5.757)→(−44.835, 6.116). 08-27b check: **0 gun verts behind
+  cut B above the cut-A plane**. **EXACT@dz=0 first try on both cuts** (A 313,712 v = 0.374×src; B 260,989 v),
+  0/0. Bottom-profile cross-check: forward of the knee the mold bottom (−22.4) sits 7–26 mm **above** the cut
+  line, so nothing forward of the trigger guard is touched.
+- **The optic pocket is a non-issue and the reason is worth keeping.** René removed the optic in Shapr3D;
+  Shapr3D healed it (0 boundary edges), leaving a floored recess at **y −32…0, 0.5–0.95 mm below** the
+  forward slide top, with a dead-flat plate at **z 37.7759** from y +5…+55 behind it. `mold_top(y) =
+  max over y' ≤ y` is **monotone non-decreasing**, so the recess fills from the crown forward of it and the
+  plate behind it only ever steps UP. **A +Z-facing recess is filled by whatever lies FORWARD of it; only a
+  feature that is higher BEHIND and lower in front could trap, and the running max forbids that.** Verified
+  after the fact by the 08-27c envelope scan: **8 bad cells of 12,913**, and all 8 lie within ~1.1 mm of the
+  cut-A plane (grid boundary cells) — **0 outside the cut band ⇒ no pocket, ship the plain envelope** (08-27g).
+- Sweep `boot=0.4`, travel 210.0, 11 passes, **839,682 v, 8.5 s**, 0/0, edge ratio **2.33**. Pits **75 → 11 →
+  0** (776 moved, mean 0.225 mm) — an order of magnitude fewer than a scan, because the source is CAD.
+  smooth(8/0.015/3/12): **26 verts >0.5 mm clamped**, max 7.094 → **0.4867**, p99 0.088. `fill_dimples`
+  43→9 blobs with **6 protected as real-on-gun**. Offset verified to the ruling exactly: **`disp_max` 0.200 ·
+  `dy_max` 0.100** (front-Y grew 0.0999). Despeckle **ok:True, 0 hotspots before AND after**, crease assert
+  green (1680/1680). `enforce_clearance(0.25)` **14 → 0** (worst 0.286), idempotent. Pre-decimate gate
+  **ok:True** — 0/0, 0 defects, 0 intrusions, 0 speck hotspots.
+- **★★ THE FALSIFICATION CEILING MUST USE THE FLAGGED REGION'S BVH MAX, NOT THE GLOBAL ONE — I nearly
+  condemned a clean mold with my own arithmetic.** The 250k gate returned `ok:False`: 1 depth flag
+  **0.289 mm at (−2.5, 57.7, 49.2)** and 2 speck hotspots. Global BVH max was 0.0229, giving a ceiling of
+  0.20 + 2(0.0229) = **0.246 < 0.289** — the 08-20f test says that is a REAL defect. It is not: the global
+  max comes from a different part of the mesh entirely. **In the flagged region the two surfaces are
+  0.001227 mm apart** (187 verts within 4 mm), so the correct ceiling is 0.17 + 2(0.001227) = **0.1725**,
+  which clears 0.289 decisively. Confirmed independently: local edge stats at the flag are **p99 3.54 /
+  max 10.02 / ratio 21.4** on the shipped mesh vs **p99 0.445 / ratio 2.53** pre-decimate ⇒ the 2-ring probe's
+  support balloons over ~10 mm there and reads curvature as depth (08-04c/08-20f); the pre-decimate mesh has
+  **0 defects at min_depth 0.17/0.18/0.19/0.20** and its three 0.15-flags are at unrelated coordinates; and
+  the cavity close-up shows crisp step edges, no crater. **Compute the ceiling from the BVH of the region you
+  are arguing about.**
+- The 2 speck hotspots (both left flank, y 0–20, z −20…0) arbitrated FALSE POSITIVE per 08-20g: **gun
+  sharp_frac 0.0569 / 0.0309 vs mold 0.0121 / 0.0135** — the owner's clean source is **4.7× and 2.3×
+  sharper** than the mold there, so the mold cannot be manufacturing specks; **0 depth flags in either box**
+  on either mesh; and `speck_report(PRE_DEC)` = **0 hotspots, ok True**. Note the decimate roughly
+  **quadrupled** the apparent sharp fraction (0.0033 → 0.0121) purely by lengthening edges.
+- Density-INDEPENDENT must-pass on the shipped mesh, all green: **nonmanifold 0 · boundary 0 · intrusions 0**.
+  Pre-clean exposed **0** non-manifold; decimate ratio 0.479, 1 iter → **250,000 faces / 250,000 tris /
+  125,002 v, 0/0**; BVH vs PRE_DEC p50 0.0 · p99 0.00138 · **max 0.0229 · zero over 0.1**.
+- Gaps (flat-slab, 08-08b): slide flank **+0.240** · frame flank **+0.242** · top-Z **+0.221** · front-Y
+  **+0.093**. Dims 35.06 × 214.03 × 82.66. ⚠ The mold's bbox min-X sits **0.44 mm inside** the gun's — not a
+  defect: both gun X-extremes (−17.856 at y 54.3 z −33.9; +17.903 at y 51.4 z −28.8) are **below the cut-A
+  plane**, i.e. on the grip cut A removes (`in_keep: false`). Against the RETAINED region the mold clears by
+  **+0.166 / +0.315**. **Attribute a bbox extremum to the kept region before reading it as a gap.**
+- Export (folder + name confirmed with René), both byte-exact vs `84 + 50·TRIS`, both identity `matrix_world`:
+  `C:\Users\rene\Desktop\CAD\_AUTOMATED MOLDS\HK SFP9-L OR.stl` (12,500,084 B, 250,000 tris) **+
+  `HK SFP9-L OR GUN.stl`** (4,981,384 B, 99,626 tris).
+  <!-- @anchor: v1 | failure: (a) the engine's _sight_channel_x band (z > zmax - 0.15*H) spans the whole slide AND frame top on a gun with a deep grip, so it returned +0.047 where the actual sights sit at -0.107 — a 0.117mm seam error against the 2026-07-03 ruling that the clamshell seam must run through the sights; (b) I computed the 08-20f falsification ceiling from the GLOBAL BVH max (0.0229) instead of the flagged region's own (0.001227), producing 0.246 < 0.289 and nearly condemning a clean mold as having a real defect; (c) vertex-based max/min profiling on a CAD mesh with 12.4mm flat-face edges returned alternating garbage that looked like real geometry; (d) the rear-sight shoulders are crowned so their face normals point outward in opposite directions (+0.0285 / -0.0410) and cancel, making the owner's ruled roll datum unreadable from normals; 2026-09-05 | regression: cgs-mold SKILL.md Session Notes 2026-09-05 — measure the front-blade and rear-notch centres on GUN_SOLID and apply the residual X shift after assemble_gun_solid; compute the falsification ceiling from the flagged REGION's BVH max; profile a CAD mesh with face-normal/area clustering or a dense surface cloud, never raw vertices; read the rear-sight roll datum as the height difference between matched |x| positions; run the global least-squares axis fit and report rms_pre -> rms_post before applying any rotation -->
 
 ### 2026-08-27h — **THE PUTTY EQUIVALENCE, and where the dimples actually come from (voxel-scaling table)**
 - René asked how molds are "really" made and proposed the physical picture: push the gun horizontally into

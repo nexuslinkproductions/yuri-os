@@ -175,12 +175,132 @@ def assemble_gun_solid(scan_names, out_name="GUN_SOLID", speck_frac=0.02, center
                  "y_length":round(float(Q[:,1].max()-Q[:,1].min()),2) if len(Q) else 0.0,
                  "verts":len(me.vertices), "nonmanifold":nm, "boundary":bd}
 
+# ------------------------------------------------- stage 0b: OPTIONAL scan clean (NOT the dimple fix)
+def clean_scan(obj, step=0.10, total=0.60, rounds=6, thr=0.025, max_diag=4.0, max_n=200,
+               rms_max=0.13, crease_deg=45.0, hmax=1.0, sliver=0.40):
+    """Fill the concave defects in the SCAN ITSELF, in place. Annulus-quadric restore, OUTWARD-ONLY,
+    creases frozen, per-round step cap + cumulative cap + sliver guard.
+
+    ★★★ READ THIS BEFORE REACHING FOR IT — THIS IS **NOT** THE FIX FOR THE MOLD'S DIMPLES.
+    Measured A/B, 2026-09-06, HK CC9, identical pipeline, original vs cleaned scan: mold pit clusters
+    **362 -> 326 (-10 %)** and max depth **1.397 -> 1.421 (no better)**. The mold's dimples are
+    manufactured by `sweep_dip`'s voxel remesh, not inherited — 87-90 % of them sit on a FLANK where the
+    running-max law forbids a concavity, the deepest are single-vertex marching-cubes needles, and their
+    depth scales linearly with the grid. **The lever for those is the VOXEL** (see sweep_dip).
+
+    WHAT IT IS ACTUALLY WORTH (all measured on `HK CC9 - GUN.stl`, 159,834 v, edge median 0.44):
+      - the scan's own defects >0.05 mm **810 -> 63**, >0.10 **214 -> 32**, >0.15 **72 -> 22**;
+        max disp 0.600, mean 0.042, 10.6 % of verts moved, ~30 s;
+      - markings, logo, slide serrations and grip stipple all survive — the `rms_max` gate skips
+        textured regions (307-334 blobs/round skipped);
+      - the file `export_gun` ships to Shapr3D is nicer to work with;
+      - PLAUSIBLE BUT UNMEASURED: `_gun_arbiter` trusts the gun, so a scan dimple could make it protect
+        a real mold defect as "real on gun". Cleaning removes that risk. **Not quantified — do not
+        cite it as a reason without measuring it.**
+    ⚠ Only valid on a UNIFORM scan. On a pathological mesh (the 245x245 CNC plate STL: edges
+    0.015-346 mm, valence to 112) the same code reached only 93 -> 68 and Taubin did nothing at all.
+    ⚠ It does NOT clear pre-existing non-manifold edges (the HK CC9 scan's 4 survive it untouched).
+    """
+    from mathutils.kdtree import KDTree
+    from mathutils import Vector
+    import collections
+    me=obj.data
+    def arrs():
+        n=len(me.vertices)
+        P=np.empty(n*3); me.vertices.foreach_get('co',P); P=P.reshape(-1,3)
+        N=np.empty(n*3); me.vertices.foreach_get('normal',N); N=N.reshape(-1,3)
+        return n,P,N
+    n,P0,_=arrs(); frozen=_feature(me,n,crease_deg)[0].copy()
+    bm=bmesh.new(); bm.from_mesh(me)
+    for e in bm.edges:
+        if len(e.link_faces)!=2: frozen[e.verts[0].index]=True; frozen[e.verts[1].index]=True
+    bm.free()
+    FN0=np.empty(len(me.polygons)*3); me.polygons.foreach_get('normal',FN0); FN0=FN0.reshape(-1,3).copy()
+    P=P0.copy(); tot=np.zeros(n); log=[]
+    for rd in range(rounds):
+        me.vertices.foreach_set('co',P.ravel()); me.update()
+        n,P,N=arrs(); ei,ej=_edges(me,n)
+        Ln=np.linalg.norm(P[ei]-P[ej],axis=1)
+        SL=np.zeros(n); C=np.zeros(n); MN=np.full(n,1e9)
+        np.add.at(SL,ei,Ln); np.add.at(C,ei,1.0); np.add.at(SL,ej,Ln); np.add.at(C,ej,1.0)
+        np.minimum.at(MN,ei,Ln); np.minimum.at(MN,ej,Ln); C[C==0]=1; h=SL/C
+        S=P.copy()
+        for _ in range(2):
+            A=np.zeros((n,3)); B=np.zeros(n)
+            np.add.at(A,ei,S[ej]); np.add.at(B,ei,1.0); np.add.at(A,ej,S[ei]); np.add.at(B,ej,1.0)
+            B[B==0]=1; S=A/B[:,None]
+        d=np.einsum('ij,ij->i',S-P,N)
+        cand=np.where((h<hmax)&(d>thr)&(~frozen))[0]
+        if cand.size==0: log.append({"r":rd,"filled":0}); break
+        s=set(cand.tolist()); adj=collections.defaultdict(list)
+        for a,b in zip(ei.tolist(),ej.tolist()):
+            if a in s and b in s: adj[a].append(b); adj[b].append(a)
+        kd=KDTree(n)
+        for j,p in enumerate(P): kd.insert(Vector(p.tolist()),j)
+        kd.balance()
+        seen=set(); nfil=0; nskip=0
+        for v0 in cand.tolist():
+            if v0 in seen: continue
+            st=[v0]; seen.add(v0); g=[]
+            while st:
+                x=st.pop(); g.append(x)
+                for y in adj[x]:
+                    if y not in seen: seen.add(y); st.append(y)
+            Q=P[g]; diag=float(np.linalg.norm(Q.max(0)-Q.min(0)))
+            if diag>max_diag or len(g)>max_n: continue
+            c0=Q.mean(0); ri=max(0.9,0.62*diag); ro=ri+1.8
+            nb=kd.find_range(Vector(c0.tolist()),ro)
+            ann=[j for (_,j,dd) in nb if dd>=ri]
+            inn=[(j,dd) for (_,j,dd) in nb if dd<ri and not frozen[j]]
+            if len(ann)<20 or not inn: continue
+            Aa=P[ann]-P[ann].mean(0); ns=np.linalg.svd(Aa,full_matrices=False)[2][2]
+            if float(ns@N[g].mean(0))<0: ns=-ns
+            m_=P[ann].mean(0)
+            t=np.array([1.0,0,0]) if abs(ns[0])<0.9 else np.array([0,1.0,0])
+            u=np.cross(ns,t); u/=max(np.linalg.norm(u),1e-12); v=np.cross(ns,u)
+            A2=P[ann]-m_; a2=A2@u; b2=A2@v; w2=A2@ns
+            M2=np.column_stack([np.ones_like(a2),a2,b2,a2*a2,a2*b2,b2*b2])
+            co,_,_,_=np.linalg.lstsq(M2,w2,rcond=None); rms=float((w2-M2@co).std())
+            if rms>rms_max: nskip+=1; continue          # textured region (stipple, markings) -> leave alone
+            idx=np.array([j for j,_ in inn]); dist=np.array([dd for _,dd in inn])
+            A3=P[idx]-m_; a3=A3@u; b3=A3@v; w3=A3@ns
+            M3=np.column_stack([np.ones_like(a3),a3,b3,a3*a3,a3*b3,b3*b3])
+            dev=w3-M3@co                                 # <0 = below the fitted surface = a pit
+            tt=np.clip(dist/ri,0,1); wgt=1.0-(3*tt**2-2*tt**3)
+            mv=np.clip(-dev*wgt,0.0,None)                # OUTWARD ONLY: fills, never gouges
+            mv=np.minimum(mv,step)
+            mv=np.minimum(mv,np.maximum(total-tot[idx],0.0))
+            mv=np.minimum(mv,sliver*MN[idx])             # never cross a short edge (slivers invert)
+            if not np.any(mv>1e-6): continue
+            P[idx]+=ns[None,:]*mv[:,None]; tot[idx]+=mv; nfil+=1
+        log.append({"r":rd,"filled":nfil,"skipped_textured":nskip})
+        if nfil==0: break
+    me.vertices.foreach_set('co',P.ravel()); me.update()
+    FN1=np.empty(len(me.polygons)*3); me.polygons.foreach_get('normal',FN1); FN1=FN1.reshape(-1,3)
+    flip=int((np.einsum('ij,ij->i',FN0,FN1)<0).sum()) if len(FN1)==len(FN0) else -1
+    nm,bd=_manifold(me); disp=np.linalg.norm(P-P0,axis=1)
+    return {"rounds":log,"moved_verts":int((disp>1e-4).sum()),
+            "max_disp_mm":round(float(disp.max()),4),
+            "mean_disp_mm":round(float(disp[disp>1e-4].mean()),4) if (disp>1e-4).any() else 0.0,
+            "flipped_faces":flip,"frozen_verts":int(frozen.sum()),
+            "nonmanifold":nm,"boundary":bd}
+
 # ---------------------------------------------------------------- stage 2: the dip / draw sweep
-def sweep_dip(gun_solid, out_name="CGS_MOLD_SOLID", voxel=0.4, boot=0.4, travel=None):
-    # ★ boot DEFAULT 0.4 = the voxel. The log-doubling union's offset set is DISCRETE {0, boot, 2*boot,
-    #   ...}, so any section that changes along Y gets a visible comb at `boot` pitch; setting boot to
-    #   the voxel makes the comb pitch equal the fill resolution and it disappears (2026-08-01, first
-    #   seen on a magazine's tapered feed lips). Costs ~2 extra passes. Every gun since has used 0.4.
+def sweep_dip(gun_solid, out_name="CGS_MOLD_SOLID", voxel=0.15, boot=0.15, travel=None):
+    # ★★ VOXEL DEFAULT 0.15 — OWNER RULING 2026-09-06, supersedes the 0.4 of 2026-07-03.
+    #   The dimple field this pipeline manufactures scales LINEARLY with the grid: measured max pit
+    #   depth / voxel = 3.55 @ 0.4, 3.41 @ 0.25, 3.51 @ 0.15. On the HK CC9, raw-sweep pits deeper
+    #   than 0.8 mm went 121 (0.4) -> 7 (0.25) -> 0 (0.15), and max depth 1.42 -> 0.85 -> 0.53.
+    #   A finer voxel also SHARPENS corners (the 0.7->0.4 move of 07-03 was made for exactly that),
+    #   so there is no crispness trade-off. Cost on that gun: 3.86 M verts and ~41 s of sweep.
+    #   ⚠ SCALE WARNING: verts go as 1/voxel^2. A big gun + light (e.g. a 1.3 M-vert scan) can exceed
+    #   ~6 M verts at 0.15 — the cut-A EXACT boolean then runs long enough to TIME OUT the MCP socket
+    #   WHILE SUCCEEDING (re-query the scene before assuming failure), and cut B may need FLOAT.
+    #   Fall back to 0.25 only if memory or wall-clock actually bites; report the number, don't guess.
+    # ★ boot = the voxel. The log-doubling union's offset set is DISCRETE {0, boot, 2*boot, ...}, so any
+    #   section that changes along Y gets a visible comb at `boot` pitch; setting boot to the voxel makes
+    #   the comb pitch equal the fill resolution and it disappears (2026-08-01, first seen on a magazine's
+    #   tapered feed lips). Costs ~2 extra passes.
     """FULL-LENGTH translational 'dip' of the sealed GUN_SOLID along +Y, as ONE clean filled
     manifold solid. THE VALIDATED SWEEP (owner-confirmed 2026-07-02, SIG 1911 + TLR-1 HL-X).
 
@@ -237,7 +357,7 @@ def sweep_dip(gun_solid, out_name="CGS_MOLD_SOLID", voxel=0.4, boot=0.4, travel=
                  "verts":len(obj.data.vertices), "nonmanifold":nm, "boundary":bd}
 
 # ---------------------------------------------------------------- stage 3: solidify
-def solidify_mold(src, out_name="CGS_MOLD_SOLID", voxel=0.4):
+def solidify_mold(src, out_name="CGS_MOLD_SOLID", voxel=0.15):   # tracks sweep_dip's voxel (owner 2026-09-06)
     """Voxel-fill the mold shell into ONE filled manifold solid (the cut precondition).
     voxel default 0.4 (2026-07-03) — fine enough to keep corners crisp; 0.7 rounds them."""
     obj=_dup(src, out_name); _activate(obj)
