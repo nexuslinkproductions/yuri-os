@@ -119,13 +119,23 @@ at time of order.
 
 ---
 
+## Closed — "Guardian Angel 5"
+
+`guardian angel 5` shows **169 impressions** site-wide (12 on the dead page in the last 3 months),
+which looked like unserved demand. **It is not: René confirmed 08/09/2026 that no Guardian Angel 5
+exists — Piexon's line is 3 and 4.** Those impressions are people searching for a product that was
+never made.
+
+**Deliberately not written into the page.** Two reasons: a flat "there is no Guardian Angel 5" is a
+claim about another company's product line that would age badly the day Piexon releases one, and the
+page already handles the case properly — FAQ 3 says the range keeps growing and invites contact if a
+model is missing. That answers a GA5 searcher without asserting anything that can go stale. Revisit
+only if the term grows materially.
+
 ## Open — needs René
 
-1. **Guardian Angel 5.** `guardian angel 5` shows **169 impressions** site-wide and 12 on the dead
-   page in the last 3 months. The configurator offers only `GUARDIAN ANGEL 3 + 4`. Product question,
-   not a copy question — do you make one? I will not write a fit claim you have not confirmed.
-2. **"Unterschied Guardian Angel 3 und 4"** — 27 impressions, **0 clicks**, unanswered by anyone on
+1. **"Unterschied Guardian Angel 3 und 4"** — 27 impressions, **0 clicks**, unanswered by anyone on
    your site. A short factual comparison would be the cheapest content win here, but the facts belong
    to Piexon, not to us, so it needs verifying against Piexon's own documentation first.
-3. **The `/en/` version is machine-translated from the same post (669669)** and was still serving the
+2. **The `/en/` version is machine-translated from the same post (669669)** and was still serving the
    German title at the time of checking. If the translation layer caches, it may need a refresh.

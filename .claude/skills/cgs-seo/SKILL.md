@@ -65,8 +65,12 @@ Product 669669 renamed on owner instruction: `GUARDIAN ANGEL` → **`PIEXON GUAR
 (the product name IS the H1 on a Woo product). **Slug pinned to `guardian-angel` in the same
 request** — it is the target of all nine 301s; verified unchanged afterwards.
 
+**No Guardian Angel 5 exists** (owner-confirmed 2026-09-08) — Piexon's line is 3 and 4. The 169
+impressions on `guardian angel 5` are searches for a product that was never made. Deliberately NOT
+written into the page: a "there is no GA5" line would age badly the day Piexon ships one, and FAQ 3
+("Sortiment wird laufend erweitert … melde dich") already covers the searcher.
+
 **Open:** **René publishes the hub + 15 children** (Claude is classifier-blocked from publishing) ·
-does a **Guardian Angel 5** holster exist? (169 impressions, configurator says 3 + 4 only) ·
 align the hub intro to the approved CAD/CNC boilerplate ·
 H1 on `/kontakt/` + `/referenzen/` · 11 hardcoded `alt=""` on 6 minor pages ·
 typo "Zentralschweiz **seid** 2019" → `seit`.
