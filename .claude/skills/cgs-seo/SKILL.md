@@ -55,16 +55,23 @@ Phase 3 page ids — hub `kydex-holster` **813335** · `cz-shadow-2` 813336 · `
 `sig-p226` 813360 · `sig-p365` 813361 · `walther-q5-match` 813362 · `glock-43x` 813363.
 Generators: `02_RESOURCES/CGS-SEO/_gen_gunpages.py` + `_gen_gunmeta.py`.
 
+**Guardian Angel salvaged 2026-09-08** — the traffic was landing on a **404**. 9 exact-match 301s
+(Redirection ids 13–21) now point every dead/mis-targeted Guardian Angel URL at
+`/artikel/guardian-angel/`; the product page went 28 → 265 words with a title that finally leads
+with the query term ("Holster", not "Halterung"). Full write-up + the corrected numbers:
+`02_RESOURCES/CGS-SEO/guardian-angel-2026-09-08.md`.
+
 **Open:** **René publishes the hub + 15 children** (Claude is classifier-blocked from publishing) ·
-optimise `/artikel/guardian-angel/` (4,889 impressions — biggest single item in GSC) ·
+rename product 669669 to put "Holster" in the H1 (owner call — it changes the shop-visible name) ·
+does a **Guardian Angel 5** holster exist? (169 impressions, configurator says 3 + 4 only) ·
+align the hub intro to the approved CAD/CNC boilerplate ·
 H1 on `/kontakt/` + `/referenzen/` · 11 hardcoded `alt=""` on 6 minor pages ·
 typo "Zentralschweiz **seid** 2019" → `seit`.
 
-**Flagged for owner ruling:** the Shadow 2 page ends its holster table with a "häufigste Wahl"
-recommendation. That is a sales-data claim I have for no other gun, so the 14 new pages carry the
-neutral line *"Alle fünf Holstertypen fertigen wir für die &lt;Gun&gt;."* instead. If René names the
-most-chosen type per gun, patch them in. Second: the hub intro predates the approved CAD/CNC
-boilerplate and says "fräsen wir für jede Waffe eine eigene Form" — true, but not the verbatim block.
+**BINDING (owner ruling 2026-09-08): no page may claim which holster type is most chosen for a
+given gun.** The Shadow 2 "häufigste Wahl" sentence was deleted — *"Lets remove this all together"* —
+and replaced with the neutral *"Alle fünf Holstertypen fertigen wir für die &lt;Gun&gt;."* that all
+15 pages now carry. Re-scanned all 16 for `häufigste` / `in der Praxis`: zero hits.
 
 ---
 
@@ -90,6 +97,14 @@ POST /wp-json/redirection/v1/redirect/{id} // update (DELETE /{id} returns 404 �
 GET  /wp-json/redirection/v1/redirect?per_page=50
 // header: X-WP-Nonce = wpApiSettings.nonce
 ```
+- **`match_type: "url"` is REQUIRED on create.** Omit it and every call returns **400** with an error
+  body that does not name the missing field. Mirror an existing rule's JSON shape instead of guessing.
+- **`position` is IGNORED on create** — new rules are appended to the end, so a specific exact rule
+  loses to a broad regex that sits earlier. Create first, then `POST /redirect/{id}` with the
+  position you want; that sticks. **Confirm precedence by fetching the URL**, never by reading the
+  create response.
+- Prefer **exact rules (`regex: false`) over regex** whenever the URL list is enumerable. Exact rules
+  cannot repeat the `hk`-inside-`flachkopfschrauben` incident — they touch only the listed paths.
 Language-aware pattern — one rule covers DE **and** EN:
 `^/(en/)?artikel/…` → `/$1artikel/owb-holster/`
 
@@ -187,7 +202,31 @@ per-gun light restrictions.
 
 ---
 
+## Reading GSC properly (learned the hard way 2026-09-08)
+
+A query-level total is **not** a page-level total. "Guardian Angel = 4,889 impressions" was recorded
+as belonging to `/artikel/guardian-angel/`; the page actually had **76**, and 4,343 were landing on a
+**404**. Always break the filter down by page before drawing a conclusion about a page.
+
+- Page-level: `…/performance/search-analytics?resource_id=https%3A%2F%2Fcustom-gear.ch%2F&page=!<urlenc>&num_of_months=16`
+- Query-substring + page breakdown: `…&query=~<term>&num_of_months=16&breakdown=page`
+- Read the table with `get_page_text` — the GSC React table is far easier to read as text than as
+  a screenshot, and the row values come out clean.
+- **Site Kit's REST proxy is not a substitute.** `/wp-json/google-site-kit/v1/modules/search-console/
+  data/searchanalytics` honours the `url` filter but **silently ignores `dimensions`** — every row
+  comes back with `keys: null`, in every param spelling tried. Use the GSC UI.
+- **A dead URL with no backlinks can still be carrying live impressions.** Check impressions per URL
+  before concluding a redirect is not worth it (see the amendment in `404-analysis-2026-09-07.md`).
+
 ## Session Notes
+
+**2026-09-08 (part 2 — Guardian Angel)** — tools: claude-in-chrome, GSC UI, Redirection REST, WP REST.
+- Found the real defect: the biggest non-brand earner on the site was a 404. 9 exact 301s + a full
+  rewrite of product 669669. Sitemap sweep after: 99/99 clean.
+- Two corrections to my own prior work, both now written into the source docs rather than left in
+  chat: the Guardian Angel impressions were misattributed to the wrong page, and the
+  "redirects are hygiene, not a growth lever" verdict was argued from backlinks alone.
+- Owner ruling: the "häufigste Wahl" line is removed everywhere and must not come back.
 
 **2026-09-08** — tools: claude-in-chrome (WP REST + block-editor dispatch), Bash/python.
 - Built the remaining 14 gun pages + wired the hub's "Beliebte Modelle" list (15 links) + Yoast

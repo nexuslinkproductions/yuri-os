@@ -28,9 +28,13 @@ Position is the impression-weighted average. **High impressions + poor position 
 | 15 | **Glock 43X** | 382 | 52 | 13.6% | 10.9 | Concealed carry, strong CTR. |
 
 ### Not a gun, but the single biggest item in the data
-**Guardian Angel — 4,889 impressions, 368 clicks, position 8.**
-You already sell this (`/artikel/guardian-angel/`). It does not need a new page; it needs its
-existing page improved. Treat separately — it may be worth more than any single gun page.
+**Guardian Angel queries — 4,970 impressions, 367 clicks, position 8.2** (site-wide, 16 months).
+
+> **CORRECTION 08/09/2026.** This was originally written as "*/artikel/guardian-angel/* — 4,889
+> impressions, position 8", i.e. attributed to the live product page. That was wrong. Those numbers
+> are the **query-level** total across every page. The live product page took only **76** of them.
+> **4,343 of them were landing on `/artikel/guardian-angel4-owb/`, which returns 404.**
+> Fixed 08/09/2026 — see the Guardian Angel section below.
 
 ---
 
@@ -155,13 +159,14 @@ duplicate title or description anywhere. Generators: `_gen_gunpages.py`, `_gen_g
 
 **Next step is René's:** publish the hub first, then the 15 children (Claude cannot publish).
 
-### Two things I did not decide for you
+### Owner rulings applied 08/09/2026
 
-1. **The "häufigste Wahl" line.** The Shadow 2 page closes its holster table with *"Für die Shadow 2
-   ist in der Praxis das IPSC/IDPA-Holster „PRIMUS“ die häufigste Wahl."* That is a claim about your
-   actual sales, and I have it for exactly one gun. The other 14 carry the neutral
-   *"Alle fünf Holstertypen fertigen wir für die &lt;Gun&gt;."* Name the most-chosen type per gun and
-   I will patch all 14 in one pass.
-2. **The hub intro** predates the approved CAD/CNC boilerplate — it says "fräsen wir für jede Waffe
-   eine eigene Form und ziehen das Kydex direkt darauf tief". Accurate, but not the verbatim block
-   the 15 children use. Say the word and I align it.
+1. **The "häufigste Wahl" line is GONE.** René: *"Lets remove this all together."* The Shadow 2
+   sentence *"Für die Shadow 2 ist in der Praxis das IPSC/IDPA-Holster „PRIMUS“ die häufigste
+   Wahl."* was deleted and replaced with the same neutral line the other 14 carry:
+   *"Alle fünf Holstertypen fertigen wir für die CZ Shadow 2."*
+   Verified: all 16 pages re-scanned for `häufigste` / `in der Praxis` — **zero hits**.
+   **Standing rule: no page claims which holster type is most chosen for a given gun.**
+2. **The hub intro** still predates the approved CAD/CNC boilerplate — it says "fräsen wir für jede
+   Waffe eine eigene Form und ziehen das Kydex direkt darauf tief". Accurate, but not the verbatim
+   block the 15 children use. Still open; say the word and I align it.
