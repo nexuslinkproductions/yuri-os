@@ -88,6 +88,7 @@ landing on a firearm-holster page is a soft-404 signal to Google, so those were 
 | H2s in description | 0 | 5 |
 | Yoast title | `Piexon Guardian Angel Halterung \| Custom Gear Solutions` (55) | `Guardian Angel Holster für Piexon 3 + 4 \| Custom Gear` (53) |
 | Meta description | 114 chars | 148 chars |
+| Product name / H1 | `GUARDIAN ANGEL` | `PIEXON GUARDIAN ANGEL HOLSTER` |
 
 The title change is the substantive one. Every top query uses **"holster"** — `guardian angel 4
 holster` (843 imp), `guardian angel holster` (829), `holster guardian angel 4` (298) — and the old
@@ -105,18 +106,26 @@ empty-cart behaviour, not ours.
 
 ---
 
+### 5. Product renamed (owner instruction, same day)
+
+`GUARDIAN ANGEL` → **`PIEXON GUARDIAN ANGEL HOLSTER`**. On a WooCommerce product the H1 *is* the
+product name, so this is what puts the head term ("Holster") and the brand ("Piexon") into the H1.
+
+**The slug was pinned to `guardian-angel` in the same request** — non-negotiable, because that URL is
+the target of all nine 301s. Verified after the rename: slug unchanged, `/artikel/guardian-angel/`
+still 200, all three spot-checked redirects still land on it, and the new name renders on `/`,
+`/shop/` and `/product-category/piexon/`. Past orders are unaffected — Woo stores the line-item name
+at time of order.
+
+---
+
 ## Open — needs René
 
-1. **The H1 is still `GUARDIAN ANGEL`.** On a WooCommerce product the H1 *is* the product name, so
-   fixing it means renaming the product to something like `GUARDIAN ANGEL HOLSTER`. That changes the
-   name in the shop, in listings and in the cart, so I did not touch it. Past orders are unaffected —
-   Woo stores the line-item name at time of order. **Worth doing:** it puts the exact head term in
-   the H1.
-2. **Guardian Angel 5.** `guardian angel 5` shows **169 impressions** site-wide and 12 on the dead
+1. **Guardian Angel 5.** `guardian angel 5` shows **169 impressions** site-wide and 12 on the dead
    page in the last 3 months. The configurator offers only `GUARDIAN ANGEL 3 + 4`. Product question,
    not a copy question — do you make one? I will not write a fit claim you have not confirmed.
-3. **"Unterschied Guardian Angel 3 und 4"** — 27 impressions, **0 clicks**, unanswered by anyone on
+2. **"Unterschied Guardian Angel 3 und 4"** — 27 impressions, **0 clicks**, unanswered by anyone on
    your site. A short factual comparison would be the cheapest content win here, but the facts belong
    to Piexon, not to us, so it needs verifying against Piexon's own documentation first.
-4. **The `/en/` version is machine-translated from the same post (669669)** and was still serving the
+3. **The `/en/` version is machine-translated from the same post (669669)** and was still serving the
    German title at the time of checking. If the translation layer caches, it may need a refresh.

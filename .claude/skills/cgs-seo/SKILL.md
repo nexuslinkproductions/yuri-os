@@ -61,8 +61,11 @@ Generators: `02_RESOURCES/CGS-SEO/_gen_gunpages.py` + `_gen_gunmeta.py`.
 with the query term ("Holster", not "Halterung"). Full write-up + the corrected numbers:
 `02_RESOURCES/CGS-SEO/guardian-angel-2026-09-08.md`.
 
+Product 669669 renamed on owner instruction: `GUARDIAN ANGEL` → **`PIEXON GUARDIAN ANGEL HOLSTER`**
+(the product name IS the H1 on a Woo product). **Slug pinned to `guardian-angel` in the same
+request** — it is the target of all nine 301s; verified unchanged afterwards.
+
 **Open:** **René publishes the hub + 15 children** (Claude is classifier-blocked from publishing) ·
-rename product 669669 to put "Holster" in the H1 (owner call — it changes the shop-visible name) ·
 does a **Guardian Angel 5** holster exist? (169 impressions, configurator says 3 + 4 only) ·
 align the hub intro to the approved CAD/CNC boilerplate ·
 H1 on `/kontakt/` + `/referenzen/` · 11 hardcoded `alt=""` on 6 minor pages ·
