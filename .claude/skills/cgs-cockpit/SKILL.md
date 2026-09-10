@@ -271,6 +271,27 @@ PIEXON Guardian Angels, which have no gun — which is exactly why the hole surv
 - Regression net: `backend/shell_fitment.test.py`. Its three mutation guards (subset→intersection,
   dropped sort, identity ignoring `guns`) are the point; re-run them if you touch this.
 
+## JOB SHEETS — the paper that goes to the machine (2026-09-10)
+
+Sales → tick orders → **Job sheets** → one A4 page per order (order nr, customer, then the addon
+fields), for the CNC and the vacuum bench. `backend/jobsheet.py` + `GET /api/sales/jobsheet.xlsx`.
+
+- **What prints is `sales.meta_json`, the VERBATIM WCPA addon fields — not `options`.** `options` is a
+  costing/build vocabulary and silently drops the OPTIK model text, the engraving, the sweat guard,
+  the soft-loop retention. Those are precisely the fields nobody at a bench can invent.
+- **The blob is NOT on `/api/sales`** — `_row` pops it; read it through `db.sales_meta(ids)`.
+- **The selection is resolved server-side** from order keys (`collect()`); the client never says which
+  rows an order means.
+- **Backfill is `woo.backfill_meta` (POST `/api/woo/backfill-meta`), NEVER a full re-sync** —
+  `replace_order` deletes and re-inserts every line, resetting `build_status` and re-snapshotting
+  COGS. Positional match, hard-skip on a differing line COUNT, fill-and-count on a renamed model
+  (`orders_relabelled`: legacy "GLOCK MAGAZINHALTER" → "MAGAZINHALTER"). 2026 is done.
+- A line with no meta falls back to the curated options **and says so on the page**. Accessories
+  genuinely carry no addon fields — that is not a defect.
+- Prices are stripped **in jobsheet.py only**: `woo._clean` cannot widen its regex, because those
+  verbatim strings are the keys the Magazinhalter BOM options are priced against.
+- Regression net: `backend/jobsheet.test.py` (six mutation guards).
+
 ## CAM REGISTER VOCABULARY — "I cannot edit the MODEL" (2026-08-19)
 
 The HERSTELLER / MODEL / LAMPENMODUL fields on CAM REGISTER are `<select>`s fed by
