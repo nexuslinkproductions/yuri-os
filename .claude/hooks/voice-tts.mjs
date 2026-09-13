@@ -101,7 +101,7 @@ try {
       const fleet = fs.existsSync(`${base}/_SYSTEM/state/voice/fleet-active`);
       if (fleet && !pttHeld) {
         const chime = process.env.VOICE_DONE_CHIME || '/System/Library/Sounds/Glass.aiff';
-        const c = spawn('afplay', [chime], { stdio: 'ignore', detached: true }); c.unref();
+        const c = spawn('afplay', [chime], { stdio: 'ignore', detached: true, windowsHide: true }); c.unref();
       }
     } catch {}
     ok();
@@ -176,12 +176,12 @@ try {
       fs.writeFileSync(tmp, out);
       stdinFd = fs.openSync(tmp, 'r');
     } catch {}
-    child = spawn('/bin/sh', ['-c', ttsCmd], { stdio: [stdinFd, 'ignore', 'ignore'], detached: true, env: childEnv });
+    child = spawn('/bin/sh', ['-c', ttsCmd], { stdio: [stdinFd, 'ignore', 'ignore'], detached: true, windowsHide: true, env: childEnv });
   } else {
     const args = [];
     if (process.env.VOICE_SAY_VOICE) args.push('-v', process.env.VOICE_SAY_VOICE);
     args.push('-r', process.env.VOICE_SAY_RATE || '210', out);
-    child = spawn('say', args, { stdio: 'ignore', detached: true, env: childEnv });
+    child = spawn('say', args, { stdio: 'ignore', detached: true, windowsHide: true, env: childEnv });
   }
   child.unref();
 } catch {

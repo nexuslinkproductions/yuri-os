@@ -90,7 +90,7 @@ function speak(text) {
     if (fs.existsSync(path.join(REPO, '_SYSTEM', 'state', 'voice', 'tts.paused'))) return;
     const sh = path.join(REPO, '_SYSTEM', 'Scripts', 'voice-speak.sh');
     if (!fs.existsSync(sh)) return;
-    const c = spawn('bash', [sh], { stdio: ['pipe', 'ignore', 'ignore'], detached: true });
+    const c = spawn('bash', [sh], { stdio: ['pipe', 'ignore', 'ignore'], detached: true, windowsHide: true });
     c.stdin.write(text); c.stdin.end(); c.unref();
   } catch (_) {}
 }
@@ -140,7 +140,7 @@ async function main() {
       if (src[i] === '--delay') { childArgs.push('--_armed', String(o.delay)); i++; }
       else childArgs.push(src[i]);
     }
-    const child = spawn(process.execPath, [fileURLToPath(import.meta.url), ...childArgs], { detached: true, stdio: 'ignore' });
+    const child = spawn(process.execPath, [fileURLToPath(import.meta.url), ...childArgs], { detached: true, windowsHide: true, stdio: 'ignore' });
     child.unref();
     console.log(`✓ inject armed — firing in ${o.delay}s once the overseer is idle (${o.submit ? 'auto-submit' : 'paste-hold'}). Result lands in dispatch-ledger.jsonl.`);
     process.exit(0);
@@ -155,7 +155,7 @@ async function main() {
     console.log('✓ instruction copied to clipboard — click the worker tab, paste (Cmd-V), hit Enter. (No focus-grab, no spazz.)');
     try {
       const sh = path.join(REPO, '_SYSTEM', 'Scripts', 'voice-speak.sh');
-      if (fs.existsSync(sh)) { const c = spawn('bash', [sh], { stdio: ['pipe', 'ignore', 'ignore'], detached: true }); c.stdin.write('Worker instruction is on your clipboard. Paste it into the worker and send.'); c.stdin.end(); c.unref(); }
+      if (fs.existsSync(sh)) { const c = spawn('bash', [sh], { stdio: ['pipe', 'ignore', 'ignore'], detached: true, windowsHide: true }); c.stdin.write('Worker instruction is on your clipboard. Paste it into the worker and send.'); c.stdin.end(); c.unref(); }
     } catch (_) {}
     process.exit(0);
   }

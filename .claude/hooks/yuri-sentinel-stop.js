@@ -155,7 +155,7 @@ function spawnDream() {
 
   const dreamScript = path.join(__dirname, 'yuri-dream.js');
   const child = spawn('node', [dreamScript], {
-    detached: true,
+    detached: true, windowsHide: true,
     stdio: 'ignore',
     cwd: process.cwd()
   });

@@ -271,6 +271,17 @@ PIEXON Guardian Angels, which have no gun — which is exactly why the hole surv
 - Regression net: `backend/shell_fitment.test.py`. Its three mutation guards (subset→intersection,
   dropped sort, identity ignoring `guns`) are the point; re-run them if you touch this.
 
+## CUT BELT WINGS — a cut is one event (2026-09-13)
+
+Belt wings (`PancakeWing_38/45/50/55mm`) are CUT from `KYDEX_125_8x12` (12 per sheet), never
+bought. `demand()` already rolled wing shortfall into sheet demand; `inventory.cut_wings()` is the
+matching WRITE: one transaction, one timestamp, a `consume` on the sheet (`ref='cut'`) plus a
+`kind='cut'` row per width. Inventory → **Cut belt wings** (beside Mold shells). Sheets default to
+wings ÷ 12 and stay editable; `0` writes no sheet leg; wings must be whole; a bad line writes
+nothing. `GET /api/inventory/wings` reads the widths off parts.csv, so a new width needs no code.
+Before this existed the wing rows went to −168 / −8 while the sheet never moved — a negative wing
+balance is unrecorded cutting, not a bug. Regression net: `backend/cut_wings.test.py` (3 mutants).
+
 ## JOB SHEETS — the paper that goes to the machine (2026-09-10)
 
 Sales → tick orders → **Job sheets** → one A4 page per order (order nr, customer, then the addon
@@ -483,6 +494,23 @@ check the bank statement before chasing, the cockpit cannot see it; Woo sync is 
   needs the tab navigated to that port first.
 - Tools: Read/Grep/Edit/Write, Bash (python, read-only `mode=ro` DB checks, sandbox on :8010, git),
   claude-in-chrome (live UI verification on both the live app and the sandbox).
+
+### 2026-09-13 (cut belt wings — the write that the demand view assumed existed)
+- "I need to be able to add PANCAKE BELT WINGS made from KYDEX_125_8x12." The parts, the BOM
+  option (`MONTAGE → FÜR 38mm GURTE` swaps 0.16667 sheet for 2 wings) and the demand roll-up all
+  existed; only the WRITE was missing. Built `cut_wings()` + route + dialog (commit `3f6ae88`,
+  pushed). Detail in the section above.
+- **The finding worth keeping**: the live ledger had 45 mm at **−168** and 38 mm at **−8** while
+  the sheet sat at 63 — every PANCAKE build deducted wings nobody had booked in. A missing write
+  path does not show up as an error; it shows up as a plausible negative number that everyone
+  reads past. When a part is "made from" another, check the ledger has a conversion event, not
+  just a demand formula.
+- Mirrored `mold_shells` on purpose (one ts, one transaction, `ref` naming the event) so a cut is
+  undoable the same way a molding run is. Three mutants killed before trusting the green run.
+- Method: sandbox-over-copies on :8010 driven through René's Chrome (the auth cookie is host-scoped,
+  so :8000's login carried over); live DB proven untouched by a read-only count before the restart.
+  `restart-cockpit.bat` is not on PATH from bash — call `restart-cockpit.ps1` via powershell.
+- Left for René: record the historical cuts or count the wing widths; the cockpit cannot pick.
 
 ### 2026-08-19 (same session — the button, and a rename that was not one)
 - Built the UI for the sync (CAM REGISTER → Vocabulary panel). **Verifying a file-upload UI without a

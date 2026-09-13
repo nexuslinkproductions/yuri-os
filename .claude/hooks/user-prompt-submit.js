@@ -93,7 +93,7 @@ function spawnRecall(cue, turnId) {
   try {
     const child = spawn('node', [RECALL_SCRIPT, '--out', RECALL_FILE, cue.slice(0, 400)], {
       cwd: REPO_ROOT,
-      detached: true,
+      detached: true, windowsHide: true,
       stdio: 'ignore',
       env: { ...process.env, YURI_RECALL_TURN: turnId },
     });
@@ -236,7 +236,7 @@ function spawnOrchestrator(text, turnId) {
   try {
     const child = spawn('node', [ORCHESTRATOR, text], {
       cwd: REPO_ROOT,
-      detached: true,
+      detached: true, windowsHide: true,
       stdio: 'ignore',
       env: { ...process.env, PULSE_TURN_ID: turnId },
     });
@@ -348,7 +348,7 @@ process.stdin.on('end', async () => {
       try {
         const ragChild = spawn('python3', [GOVERNOR_PY, 'read', '--query', text.slice(0, 400), '--limit', '20'], {
           cwd: REPO_ROOT,
-          detached: true,
+          detached: true, windowsHide: true,
           stdio: ['ignore', 'pipe', 'ignore'],
         });
         let ragOut = '';

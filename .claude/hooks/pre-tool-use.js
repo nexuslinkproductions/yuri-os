@@ -135,7 +135,7 @@ try {
                 // Trigger early learning extraction async
                 const { spawn } = require('child_process');
                 spawn('node', [path.join(__dirname, 'session-reflect.js'), '--mid-session'], {
-                    detached: true, stdio: 'ignore', cwd: process.cwd()
+                    detached: true, windowsHide: true, stdio: 'ignore', cwd: process.cwd()
                 }).unref();
                 emitContext(
                     `CONTEXT AT ${contextPct.toFixed(0)}%: Session approaching limit. Auto-extracted learnings written.\n` +

@@ -280,7 +280,7 @@ export function scheduleCaptureAfterFeed(worker, taskId, options = {}) {
   if (options.session) args.push('--session', options.session);
   if (options.model) args.push('--model', options.model);
   const child = spawn(process.execPath, args, {
-    detached: true,
+    detached: true, windowsHide: true,
     stdio: 'ignore',
     env: {
       ...process.env,

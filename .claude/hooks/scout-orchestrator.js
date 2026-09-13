@@ -89,7 +89,7 @@ function spawnScout(scoutType, contextText) {
   const contextFile = path.join('/tmp', `scout-ctx-${scoutType}-${Date.now()}.txt`);
   fs.writeFileSync(contextFile, contextText);
   const child = spawn('node', [SCOUT_RUNNER, scoutType, contextFile], {
-    detached: true, stdio: 'ignore', cwd: REPO_ROOT,
+    detached: true, windowsHide: true, stdio: 'ignore', cwd: REPO_ROOT,
   });
   child.unref();
 }
