@@ -60,3 +60,36 @@ skank/organ balance, vocal delay-throw amount, and the bass pattern choice in ch
 
 Derivative of a copyrighted recording (Roland Kaiser, "Amore Mio"). Private/personal use
 from the owner's own upload; do not publish or distribute without the rights holders' licence.
+
+---
+
+## v2 — upbeat, built from the record's own instruments
+
+Owner feedback on v1: too slow, dull, too electronic. v2 (`Amore_Mio_Reggae_Remix_v2.mp3`,
+3:20, −12 LUFS) changes the approach rather than the knobs:
+
+- **Original tempo kept (123 BPM).** No vocal stretch at all. Skank on every offbeat 8th
+  gives an upbeat/ska-leaning reggae pulse instead of a half-time crawl.
+- **Real drums.** The instrumental was split further with kuielab MDX-Net into drums / bass /
+  other. The record's own kick, snare and hi-hat were sampled from the drum stem (positions
+  known from the beat grid) and re-sequenced: one-drop in low-energy bars, rockers (kick on
+  1 and 3) in mid, steppers (four-on-the-floor kick, 16th hats) in the loudest sections,
+  snare fills every 8 bars and at section changes.
+- **Real bass tone.** The bass stem is nearly silent in the intro and verses, so instead of
+  gating it, one clean A2 note was sampled from it (attack + period-synced loop) and repitched
+  per chord into reggae bass lines with rests. Measured pitches of generated notes match
+  their targets exactly.
+- **Real skank.** The "other" stem (guitars/strings/keys) chopped on every offbeat 8th, plus
+  a lighter 16th-offbeat chop in the steppers sections; sidechain-ducked pad from the same
+  stem for lift in the choruses; the original solo (119–131 s) as a delay-soaked dub break.
+- Vocal untouched in tempo; dub delay throws on phrase endings; mastered hotter (−12 LUFS).
+
+```bash
+for m in kuielab_b_drums kuielab_b_bass kuielab_b_other; do
+  audio-separator "stems/source_(Instrumental)_UVR-MDX-NET-Voc_FT.wav" --model_filename $m.onnx --output_dir stems4 --output_format WAV
+done
+python reggae_remix_v2.py --vocals vocals.wav --instrumental instrumental.wav \
+  --drums "stems4/instrumental_(Drums)_kuielab_b_drums.wav" --bass "stems4/instrumental_(Bass)_kuielab_b_bass.wav" \
+  --other "stems4/instrumental_(Other)_kuielab_b_other.wav" --out amore_mio_reggae_v2.wav --stems
+ffmpeg -i amore_mio_reggae_v2.wav -af loudnorm=I=-12:TP=-1:LRA=9 -b:a 320k Amore_Mio_Reggae_Remix_v2.mp3
+```
