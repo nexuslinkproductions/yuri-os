@@ -70,8 +70,35 @@ impressions on `guardian angel 5` are searches for a product that was never made
 written into the page: a "there is no GA5" line would age badly the day Piexon ships one, and FAQ 3
 ("Sortiment wird laufend erweitert … melde dich") already covers the searcher.
 
-**Open:** **René publishes the hub + 15 children** (Claude is classifier-blocked from publishing) ·
-align the hub intro to the approved CAD/CNC boilerplate ·
+**PUBLISHED 2026-09-08. 4-week interim review 2026-10-06 → `02_RESOURCES/CGS-SEO/phase3-review-2026-10-06.md`.**
+The 15 pages earn **88 clicks / 525 impressions / CTR 16.8% / avg position 6.5** against pre-launch
+baselines of 9–17. Guardian Angel cluster 28/152, position 8.2 → 5.9, dead URLs gone from the report.
+Small sample; direction right, magnitude unsettled.
+
+### Three confounders — never read these numbers without them
+
+1. **Mid-June 2026 sitewide cliff, three months BEFORE this work.** Sitewide clicks roughly halved
+   (1,240/9,690 last 3 months vs 2,650/30,500 prior). The 16-month chart puts the step-down in
+   mid-June and flat since. **NOT caused by Phase 3 — never attribute it to these pages.** Cause
+   unknown, uninvestigated, and currently **the biggest open item on this site**.
+2. **Holiday closure: store took no orders from start of Sept 2026 to ~09–11/10/2026.** Site online
+   and crawlable, but zero conversion was possible. Traffic figures from that window are valid;
+   any commercial/revenue read of them is not.
+3. **95 empty categories deleted + product tags noindexed 07/09.** Falling impressions with rising
+   CTR is the expected signature of that cleanup, not a problem.
+
+### Crawl defect (found 2026-10-06)
+
+`glock-19` · `glock-45` · `glock-43x` · `sig-p320` had ZERO impressions — *"Gefunden – zurzeit nicht
+indexiert"*, **Letztes Crawling: Nicht zutreffend**. In the sitemap, never fetched. Being in a
+submitted sitemap does NOT guarantee a crawl; **verify `Letztes Crawling` per URL, don't assume.**
+Indexing requested 06/10: glock-19, glock-45, sig-p320 crawled within minutes; **glock-43x did not
+take** and still needs re-requesting.
+
+**Open:** re-request indexing for `glock-43x` · **purge WP Super Cache on reopen** (trap #7 — the
+"Bestellbereich pausiert" banner is cached and the vacation toggle won't auto-purge) ·
+**investigate the mid-June cliff** · why does `/en/artikel/guardian-angel/` convert 6× better than
+the DE page (30.8% vs 5.0% CTR)? · align the hub intro to the approved CAD/CNC boilerplate ·
 H1 on `/kontakt/` + `/referenzen/` · 11 hardcoded `alt=""` on 6 minor pages ·
 typo "Zentralschweiz **seid** 2019" → `seit`.
 
