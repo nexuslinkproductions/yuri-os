@@ -102,7 +102,7 @@ edits cockpit files itself.
 ## BACKUPS — two systems, neither replaces the other (2026-07-28)
 
 - **Code + costing ledgers → GitHub.** `auto-push.bat`, Scheduled Task **"CGS Cockpit Git Push"**,
-  every 6 h, runs as user `rene` (Git Credential Manager stores the token per-user, so a SYSTEM-run
+  daily 09:30 with catch-up (was every 6 h on a trigger that EXPIRED after one day — 69 days dead until 06/10/2026; check Settings "hours since push"), runs as user `rene` (Git Credential Manager stores the token per-user, so a SYSTEM-run
   task fails every push). Auto-commits ONLY `cgs-cogs/data/`, then pushes; source files are never
   swept, so in-flight edits are safe — and NOT backed up until committed. Log:
   `cockpit/logs/auto-push.log`.
