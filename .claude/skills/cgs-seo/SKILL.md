@@ -95,6 +95,29 @@ submitted sitemap does NOT guarantee a crawl; **verify `Letztes Crawling` per UR
 Indexing requested 06/10: glock-19, glock-45, sig-p320 crawled within minutes; **glock-43x did not
 take** and still needs re-requesting.
 
+### Shop reopen verified 09/10/2026 — and the popup cleanup
+
+Shop is **open and clean**: anonymous fetches of `/`, `/shop/` and product pages show no closure
+notice, "In den Warenkorb" enabled, prices shown, no WooCommerce notices. The cached-banner trap
+did **not** occur.
+
+The September closure was an Elementor popup, **not** a WooCommerce lock — `SHOP TEMP CLOSED`
+(744363), scheduled 31/08/2026 08:00 → 02/10/2026 08:00. **OPEN QUESTION for René: if that popup
+was the only mechanism, orders were technically possible all September**, which would invalidate
+the "zero conversion was possible" assumption in the Phase 3 analysis. Ask before concluding
+anything about September conversion.
+
+Four expired auto-opening popups were still being printed into every page — `SHOP TEMP CLOSED`
+744363, `LÄNGERE LIEFERZEITEN` 744112, `BETRIEBSFERIEN OHNE RABATT` 744081 (the "Online-Store ist
+bis zum 02. Januar **2025** geschlossen" text), `BETRIEBSFERIEN MIT RABATT` 671038. René set all
+four to **Entwurf** 09/10/2026; Elementor + WP Super Cache purged. Verified after:
+**homepage 332,004 → 312,824 bytes (−19,180, −5.8%), popups 9 → 5**, stale 2025 text gone, shop
+still 200 with cart enabled. The 5 remaining (CITADEL 813047 · UMBRA 813064 · ARX 813065 ·
+PRIMUS 813066 · GEMINI 813067) are click-triggered product popups — leave them.
+**A draft template is not rendered at all** (proven on this site: drafts `CGS NEXT LEVEL` 800755 and
+`HALLOWEEN-HOLSTER` 711214 never appear in the HTML) — so drafting is the reversible way to retire
+a popup without deleting a reusable seasonal one.
+
 **Open:** re-request indexing for `glock-43x` · **purge WP Super Cache on reopen** (trap #7 — the
 "Bestellbereich pausiert" banner is cached and the vacation toggle won't auto-purge) ·
 **investigate the mid-June cliff** · why does `/en/artikel/guardian-angel/` convert 6× better than
@@ -171,6 +194,11 @@ Claude CAN create/save **drafts** (`POST /wp-json/wp/v2/pages`, status `draft`).
    sub-dropdown never appears.
 5. **Elementor caches rendered markup.** After changing attachment alt text, clear Elementor cache
    (`admin.php?page=elementor-tools` → `#elementor-clear-cache-button`) **then** purge WP Super Cache.
+   Same applies to **template status changes** — drafting a popup/template does NOT purge either
+   cache, so the public page keeps serving the old markup indefinitely (verified 2026-10-09).
+   **Stale-cache tell: compare the response BYTE LENGTH before and after.** A byte-identical page
+   (332,004 chars both times) is proof you are reading cache, not the new render — far more
+   reliable than eyeballing the content.
 6. **CONCURRENCY 1 on admin work.** Three parallel product-editor loads produced **502 Bad Gateway**.
    Sequential + ~2.5 s gap. (The page cache shielded public visitors — verify the public site after
    any admin hammering.)
