@@ -93,8 +93,15 @@ investigated.**
 
 ## 5. Confounder — the holiday closure
 
-René closed the store to orders from the **start of September 2026**, reopening ~09–11/10/2026. The
-site stayed online and crawlable; no order could be placed.
+René closed the store to orders from the **start of September 2026**, reopening **09/10/2026**
+(verified). The site stayed online and crawlable; no order could be placed.
+
+> **Mechanism confirmed 09/10/2026:** the *Store Vacation Lite for WooCommerce* plugin
+> (`https://custom-gear.ch/wp-admin/admin.php?page=wc-settings&tab=woo-store-vacation`) with both
+> *Urlaubsmodus aktivieren* and ***Käufe deaktivieren*** ticked — cart, checkout and add-to-cart
+> were removed outright. Ordering really was impossible. (I briefly doubted this on 09/10 after
+> finding only an Elementor popup left on the live site; that doubt was wrong — once the plugin is
+> switched off, its effect leaves no trace in the page source.)
 
 So the entire 4-week measurement window ran against a shop that could not convert. The traffic
 figures above are valid as traffic. **Any commercial read of them is not** — zero revenue was

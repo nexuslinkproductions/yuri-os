@@ -81,9 +81,21 @@ Small sample; direction right, magnitude unsettled.
    (1,240/9,690 last 3 months vs 2,650/30,500 prior). The 16-month chart puts the step-down in
    mid-June and flat since. **NOT caused by Phase 3 — never attribute it to these pages.** Cause
    unknown, uninvestigated, and currently **the biggest open item on this site**.
-2. **Holiday closure: store took no orders from start of Sept 2026 to ~09–11/10/2026.** Site online
-   and crawlable, but zero conversion was possible. Traffic figures from that window are valid;
-   any commercial/revenue read of them is not.
+2. **Holiday closure: ~01/09/2026 → 09/10/2026 — orders genuinely blocked.** Mechanism confirmed by
+   René 09/10: the **Store Vacation Lite for WooCommerce** plugin
+   (`admin.php?page=wc-settings&tab=woo-store-vacation`) with BOTH *Urlaubsmodus aktivieren* and
+   ***Käufe deaktivieren*** ticked — the second strips cart, checkout and add-to-cart entirely.
+   Not the Elementor popup (that carried only the message). Site stayed online and crawlable; zero
+   conversion was possible, so the ENTIRE life of the 15 pages (live 08/09) ran against a shop that
+   could not sell. Traffic figures are valid; commercial reads are not.
+   **DO NOT date the closure from the plugin's Startdatum field** — it stores only the last value
+   entered and keeps no history of previous periods (owner correction 09/10/2026; the field read
+   `2026-08-13`, which is NOT when this closure began). Corroborating evidence for the real window:
+   the `SHOP TEMP CLOSED` Elementor popup was scheduled **31/08/2026 → 02/10/2026**, and the
+   plugin's Enddatum `2026-10-09` matches the verified reopen.
+   Side effect worth remembering: the popup stopped **02/10** while purchases stayed blocked until
+   **09/10** — about a week where visitors saw no explanation and simply found no add-to-cart.
+   Next closure: end the popup and the plugin on the same date.
 3. **95 empty categories deleted + product tags noindexed 07/09.** Falling impressions with rising
    CTR is the expected signature of that cleanup, not a problem.
 
@@ -101,11 +113,13 @@ Shop is **open and clean**: anonymous fetches of `/`, `/shop/` and product pages
 notice, "In den Warenkorb" enabled, prices shown, no WooCommerce notices. The cached-banner trap
 did **not** occur.
 
-The September closure was an Elementor popup, **not** a WooCommerce lock — `SHOP TEMP CLOSED`
-(744363), scheduled 31/08/2026 08:00 → 02/10/2026 08:00. **OPEN QUESTION for René: if that popup
-was the only mechanism, orders were technically possible all September**, which would invalidate
-the "zero conversion was possible" assumption in the Phase 3 analysis. Ask before concluding
-anything about September conversion.
+**RESOLVED 09/10/2026 — orders really were blocked.** I briefly suspected the closure was only the
+`SHOP TEMP CLOSED` Elementor popup (744363, scheduled 31/08 → 02/10/2026) because that was the only
+artefact left on the live site. Wrong: René confirmed the **Store Vacation Lite for WooCommerce**
+plugin was doing the blocking, with *Käufe deaktivieren* ticked. The "zero conversion was possible"
+assumption in the Phase 3 analysis **stands**. Lesson: a plugin's effect can be completely invisible
+in the post-hoc page source once it is switched off — ask the owner rather than inferring the
+mechanism from what survives on the page.
 
 Four expired auto-opening popups were still being printed into every page — `SHOP TEMP CLOSED`
 744363, `LÄNGERE LIEFERZEITEN` 744112, `BETRIEBSFERIEN OHNE RABATT` 744081 (the "Online-Store ist
