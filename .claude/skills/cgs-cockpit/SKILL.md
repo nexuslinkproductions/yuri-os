@@ -282,6 +282,19 @@ nothing. `GET /api/inventory/wings` reads the widths off parts.csv, so a new wid
 Before this existed the wing rows went to −168 / −8 while the sheet never moved — a negative wing
 balance is unrecorded cutting, not a bug. Regression net: `backend/cut_wings.test.py` (3 mutants).
 
+## ACCESSORIES LEAVE THE SHELF (2026-10-13)
+
+Only holster lines had a stock write path (BUILD). An accessory line (belt clip, Molle clip, UltiClip…)
+never moved stock — found on 813437 (18× GÜRTEL CLIP - BREIT, completed). Now: **Sales → expand the
+order → "Deduct accessories (n)"** → review → confirm. Recipe = `accessories.csv` `parts` column (the
+same one its COGS is priced from; exposed as `parts` on `eb.accessories()`), name match via
+`woo.norm_name` (dash/case blind). `GET /api/inventory/accessories?order_nr=` · `POST
+/api/inventory/accessories/ship`. **One batch per line**, note `ship <model> #<sale id>`, so the
+existing *Undo a build…* reverses exactly one line; `build_status='built'` is the done-flag and blocks a
+second deduction. Unmapped lines (LASERGRAVUR, screws) are listed with a reason, never guessed.
+Offered whatever the order status. NOT backfilled: every accessory sold since the 22/07/2026 counts is
+still un-deducted unless René books it. Regression net: `backend/ship_accessories.test.py` (3 mutants).
+
 ## JOB SHEETS — the paper that goes to the machine (2026-09-10)
 
 Sales → tick orders → **Job sheets** → one A4 page per order (order nr, customer, then the addon
