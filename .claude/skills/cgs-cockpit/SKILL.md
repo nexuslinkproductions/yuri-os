@@ -271,6 +271,22 @@ PIEXON Guardian Angels, which have no gun — which is exactly why the hole surv
 - Regression net: `backend/shell_fitment.test.py`. Its three mutation guards (subset→intersection,
   dropped sort, identity ignoring `guns`) are the point; re-run them if you touch this.
 
+## JOB SHEETS AS PDF (2026-10-13)
+
+Sales → tick orders → **Job sheets** now downloads a **PDF** (`GET /api/sales/jobsheet.pdf`,
+`backend/jobsheet_pdf.py`); the `.xlsx` route still exists but has no button. Same `collect()` and
+content as the Excel cards, packed **first-fit into 3 columns on A4 landscape** at ~8 pt (René's
+reference print size): 16 open orders = 3 pages. A card is never split unless taller than a whole
+column (then "(Forts.)").
+- **Pure stdlib PDF writer** (no reportlab: a dependency is owner-gated). Base-14 Helvetica, WinAnsi;
+  widths baked in from arial.ttf, so wrapping is exact.
+- **Text outside cp1252 is drawn in embedded Arial** (`C:\Windows\Fontsrial*.ttf`, whole file,
+  ~560 KB, only when such a line exists). 813436's engraving was Cyrillic and printed `????` before.
+  Missing font → `?`, never a crash. Emoji/CJK are not in Arial → `?`.
+- No PDF renderer on the box (no poppler): view output in Chrome via fetch → blob URL; the PDF
+  viewer freezes CDP screenshots after scrolling, so reopen at `#page=N` instead.
+- Regression net: `backend/jobsheet_pdf.test.py` (4 mutants).
+
 ## CUT BELT WINGS — a cut is one event (2026-09-13)
 
 Belt wings (`PancakeWing_38/45/50/55mm`) are CUT from `KYDEX_125_8x12` (12 per sheet), never
