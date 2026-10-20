@@ -75,6 +75,22 @@ The 15 pages earn **88 clicks / 525 impressions / CTR 16.8% / avg position 6.5**
 baselines of 9–17. Guardian Angel cluster 28/152, position 8.2 → 5.9, dead URLs gone from the report.
 Small sample; direction right, magnitude unsettled.
 
+**6-week review 2026-10-20 → `02_RESOURCES/CGS-SEO/phase3-review-2026-10-20.md`. Verdict: working, early.**
+15 pages + hub **130 clicks / 900 impressions / pos 6.8** (data to 17/10). All 16 indexed; health check
+clean (200, 1 H1, index/follow, self-canonical, no banned words). Guardian Angel 25/144, **pos 5.1**.
+**First sale from a gun page: 19/10/2026, organic → `/kydex-holster/cz-shadow-2/`, CHF 144.50**
+(Woo order attribution `_wc_order_attribution_session_entry`, readable via `wc/v3/orders` + wp nonce).
+38 orders 09–19/10, 17 organic. Weak: glock-19 pos 15.9 (worse than baseline), CTR <7% on hk-sfp9 /
+sig-p226 / glock-43x. Query-filtered gun data is near-empty (anonymised long tail + June demand loss)
+— use page-level positions.
+
+**MID-JUNE CLIFF — prime suspect found 2026-10-20 (hypothesis, not yet proven sitewide):** the 5
+configurator products were created **19–20/06/2026**; the sitewide step-down is ~20–22/06; `~shadow`
+impressions go to flat zero ~22/06 (579/686 had been on `/artikel/cz-shadow-2-6/`). = the catalogue
+consolidation that deleted ~276 per-gun product pages. Those old URLs now 301 (Redirection regex) to
+the **generic** `/artikel/owb-holster/`. Proposed (owner-gated): exact rules repointing each covered
+gun's old URLs to its `/kydex-holster/<gun>/` page.
+
 ### Three confounders — never read these numbers without them
 
 1. **Mid-June 2026 sitewide cliff, three months BEFORE this work.** Sitewide clicks roughly halved
@@ -104,8 +120,12 @@ Small sample; direction right, magnitude unsettled.
 `glock-19` · `glock-45` · `glock-43x` · `sig-p320` had ZERO impressions — *"Gefunden – zurzeit nicht
 indexiert"*, **Letztes Crawling: Nicht zutreffend**. In the sitemap, never fetched. Being in a
 submitted sitemap does NOT guarantee a crawl; **verify `Letztes Crawling` per URL, don't assume.**
-Indexing requested 06/10: glock-19, glock-45, sig-p320 crawled within minutes; **glock-43x did not
-take** and still needs re-requesting.
+Indexing requested 06/10: glock-19, glock-45, sig-p320 crawled within minutes. **RESOLVED (verified
+20/10):** glock-43x was in fact crawled **06.10.2026 10:29:55** and is indexed — the 06/10 inspection
+panel was lagging. **URL inspection lags by minutes-to-hours; re-read later before re-requesting.**
+All four still say *Verweisende Seite: Nicht gefunden* and a per-URL *Sitemaps: Vorübergehender
+Verarbeitungsfehler* — stale label; the Sitemaps report shows the index read 17/10, Erfolgreich, 114.
+Cross-linking ("weitere Modelle") is therefore no longer an indexing fix, only a ranking lever.
 
 ### Shop reopen verified 09/10/2026 — and the popup cleanup
 
@@ -132,9 +152,9 @@ PRIMUS 813066 · GEMINI 813067) are click-triggered product popups — leave the
 `HALLOWEEN-HOLSTER` 711214 never appear in the HTML) — so drafting is the reversible way to retire
 a popup without deleting a reusable seasonal one.
 
-**Open:** re-request indexing for `glock-43x` · **purge WP Super Cache on reopen** (trap #7 — the
-"Bestellbereich pausiert" banner is cached and the vacation toggle won't auto-purge) ·
-**investigate the mid-June cliff** · why does `/en/artikel/guardian-angel/` convert 6× better than
+**Open:** **prove/act on the June-consolidation hypothesis** (5–6 more guns' 16-month query breaks vs
+19–20/06; then owner decision on repointing old per-gun 301s to the gun pages) · glock-19 at pos 15.9 ·
+title/meta test for hk-sfp9 / sig-p226 / glock-43x · 12-week review ~01/12/2026 · why does `/en/artikel/guardian-angel/` convert 6× better than
 the DE page (30.8% vs 5.0% CTR)? · align the hub intro to the approved CAD/CNC boilerplate ·
 H1 on `/kontakt/` + `/referenzen/` · 11 hardcoded `alt=""` on 6 minor pages ·
 typo "Zentralschweiz **seid** 2019" → `seit`.
