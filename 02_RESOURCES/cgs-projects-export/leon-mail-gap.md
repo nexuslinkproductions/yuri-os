@@ -6,7 +6,9 @@
 > (René's hand). 36 offline regression checks in `mail_store.test.py`. Deviations from the spec below:
 > `from_name` is kept beside the domain (needed to tell senders apart), `uid`/`uidvalidity` are stored
 > for the incremental pull, and the answered mark also comes from Outlook's `\Answered` flag.
-> Remaining: René enters host + mailbox passwords, clicks "Verbindung testen", then "Postfächer abgleichen".
+> 24/10/2026 later: credentials in, scheduled sync every 15 min ("CGS Front Desk Sync"), **Sent-folder mirror
+> + local Ollama draft writer live** (`mail_draft.py`, qwen3:14b) — drafts appear beside each open mail; René
+> pastes into Outlook. The "learning" is the example bank built from his own sent replies.
 
 **State 24/10/2026.** The CUSTOMER SERVICE role has a working lane (`.claude/skills/cgs-frontdesk/SKILL.md`,
 `/cgs-frontdesk`): order status, tracking, mold readiness, fitment scope, returns and discount policy all

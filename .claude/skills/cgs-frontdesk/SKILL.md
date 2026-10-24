@@ -82,6 +82,14 @@ René pastes the mail (or the order nr + question). In his Chrome on a cockpit t
   quote / other) → pull the answer pack by order nr → draft (DE, "wir", signed CGS; EN block if the
   customer wrote EN) → **facts list with sources** under the draft → **flags** (UNVERIFIED, needs
   René's decision) → "René: send from Outlook; change X in Woo first if …". ≤ 30 lines.
+- **Drafts are written locally, not by this lane.** Since 24/10/2026 the cockpit's own writer (Jeffrey's
+  Ollama `qwen3:14b`, `backend/mail_draft.py`) proposes a reply for every open customer mail on each
+  15-min sync, from the same facts (order pack + AGB rule) and from René's real sent replies (Sent folder
+  mirrored, linked by In-Reply-To → the example bank). René copies it from the Front Desk modal into
+  Outlook. This lane's job is now the exceptions: a draft marked `[PRÜFEN: …]`, a `review`/`no_match`
+  mold, a return/legal question, a dealer request — reason it through with the sources and hand René
+  the corrected text. `POST /api/mail/{id}/draft` rewrites a draft; `GET /api/mail/{id}` returns `draft`
+  + `reply` (his sent text) for comparison.
 - **Inbox sweep (when invoked, ≤ 30 lines):** the mailbox syncs itself every 15 min (scheduled task
   "CGS Front Desk Sync", log `cockpit/logs/mail-sync.log`) — never ask René to sync; then `inbox?unanswered=true` → per mail: date, category, order pack, and the draft the lane
   proposes; mails unanswered > 48 h first. Body via `/api/mail/{id}` only when drafting.
@@ -109,6 +117,8 @@ René pastes the mail (or the order nr + question). In his Chrome on a cockpit t
 - Honest gap at creation: NO mail integration existed. **Closed the same day** — the cockpit's Front
   Desk (`mail_client.py` + `mail_store.py` + `/api/mail/*` + the tab) is the read-only IMAP pull from
   `leon-mail-gap.md`, live-verified on an empty config in René's Chrome; René enters the credentials.
+- Step 2 built 24/10/2026 (cockpit `169396b..`): Sent-folder mirror (21 replies, 12 example pairs), local
+  Ollama writer, 5 drafts in 75 s; the lane shifts from drafting to reviewing the exceptions.
 - First real sync 24/10/2026 (sales@, 60 days): 51 mails → 14 real customer questions after the shop's own
   Woo notices were tagged `shop`; 36/51 joined to a ledger order, 1 candidate. Live in René's Chrome.
 - Not verified at creation: a live pull in René's Chrome (now done, see above). Residual risk: `/api/sales` has no customer
