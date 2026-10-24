@@ -31,7 +31,7 @@ Cockpit (`http://127.0.0.1:8000`, René's Chrome session; `curl` gets 401). Key 
 
 | Question | Source | What to read |
 |---|---|---|
-| **The question itself** | `GET /api/mail/inbox?unanswered=true` → `subject`, `category`, `order_nr`, `order` (pack) · `GET /api/mail/{id}` → body | sender = name + domain only; the reply is written in Outlook; mark done via `POST /api/mail/{id}/answered` (Outlook's \Answered flag also flows in on sync) |
+| **The question itself** | `GET /api/mail/inbox?unanswered=true` → `subject`, `category` (status/shipping/fitment/return/discount/quote/other; `shop` = the shop's own Woo notices, hidden unless `&shop=true`), `order_nr`, `order` (pack) · `GET /api/mail/{id}` → body | sender = name + domain only; the reply is written in Outlook; mark done via `POST /api/mail/{id}/answered` (Outlook's \Answered flag also flows in on sync) |
 | Order status | `GET /api/sales?limit=` → rows with `order_nr` | `status`: processing = **IN BEARBEITUNG** (paid, being made) · pending = **IN WARTESTELLUNG** (unpaid) · completed = shipped/done; `build_status` ('built' = made); `pay_state`; `date`, `paid_date` |
 | Will it be built soon? | `GET /api/molds/coverage` · `GET /api/molds/ready` | per line: mold milled? cut-out? verdict `ready` / `mold_only` / `review` / `no_match` (= a NEW mold → longer lead time; never promise a date the index does not back) |
 | Shipped? Tracking? | `GET /api/post/labels?order_nr=` | `ident_code` (18-digit Swiss Post tracking) where `is_preview=0` and `status='created'`; `created_at` = ship date |
@@ -109,5 +109,7 @@ René pastes the mail (or the order nr + question). In his Chrome on a cockpit t
 - Honest gap at creation: NO mail integration existed. **Closed the same day** — the cockpit's Front
   Desk (`mail_client.py` + `mail_store.py` + `/api/mail/*` + the tab) is the read-only IMAP pull from
   `leon-mail-gap.md`, live-verified on an empty config in René's Chrome; René enters the credentials.
-- Not verified this session: a live pull in René's Chrome. Residual risk: `/api/sales` has no customer
+- First real sync 24/10/2026 (sales@, 60 days): 51 mails → 14 real customer questions after the shop's own
+  Woo notices were tagged `shop`; 36/51 joined to a ledger order, 1 candidate. Live in René's Chrome.
+- Not verified at creation: a live pull in René's Chrome (now done, see above). Residual risk: `/api/sales` has no customer
   e-mail field, so mail → order matching is by order nr in the mail (or René's lookup in Woo).
