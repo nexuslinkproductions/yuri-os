@@ -491,13 +491,33 @@
     "source_path": ".claude/skills/cgs-decimate/SKILL.md",
     "hash": "943c1be4ffbce738"
   },
+  "cgs-frontdesk": {
+    "source_path": ".claude/skills/cgs-frontdesk/SKILL.md",
+    "hash": "f62cae2a040af437"
+  },
+  "cgs-head-office": {
+    "source_path": ".claude/skills/cgs-head-office/SKILL.md",
+    "hash": "d7e1e2c882f4ad2b"
+  },
+  "cgs-marketing": {
+    "source_path": ".claude/skills/cgs-marketing/SKILL.md",
+    "hash": "867bbf2a04406edd"
+  },
   "cgs-mold": {
     "source_path": ".claude/skills/cgs-mold/SKILL.md",
     "hash": "872d93b6f5968b65"
   },
+  "cgs-production": {
+    "source_path": ".claude/skills/cgs-production/SKILL.md",
+    "hash": "3964c5d17a25f113"
+  },
   "cgs-seo": {
     "source_path": ".claude/skills/cgs-seo/SKILL.md",
-    "hash": "e5f56869bda52a85"
+    "hash": "b53fb554033c0ee6"
+  },
+  "cgs-stock": {
+    "source_path": ".claude/skills/cgs-stock/SKILL.md",
+    "hash": "d327622a90406a49"
   },
   "yuri-control-plane-first": {
     "source_path": ".codex/skills/yuri-control-plane-first/SKILL.md",
