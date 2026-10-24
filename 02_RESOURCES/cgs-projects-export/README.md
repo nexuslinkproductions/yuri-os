@@ -25,7 +25,7 @@ rules and unprompted routines) or an explicit gap note. House pattern: `.claude/
 | # | Project | Lane | Data it stands on | Gap |
 |---|---------|------|-------------------|-----|
 | 1 | ACCOUNTING – HUGO | `cgs-cfo` · `/cgs-cfo` (24/10/2026) | cgs-books + cockpit dashboard/sales/orders | method decision Treuhänder-pending |
-| 2 | CUSTOMER SERVICE – LEON | `cgs-frontdesk` · `/cgs-frontdesk` | cockpit `/api/sales`, `/api/post/labels`, `/api/molds/coverage|ready`, `/api/cam/vocab`; AGB v2; discount programme | **inbox not wired** → [leon-mail-gap.md](leon-mail-gap.md) |
+| 2 | CUSTOMER SERVICE – LEON | `cgs-frontdesk` · `/cgs-frontdesk` | cockpit `/api/sales`, `/api/post/labels`, `/api/molds/coverage|ready`, `/api/cam/vocab`; AGB v2; discount programme | inbox wired 24/10/2026 (cockpit Front Desk, `/api/mail/*`) — credentials pending → [leon-mail-gap.md](leon-mail-gap.md) |
 | 3 | WEB/SEO – NICO | folded into `cgs-seo` · `/cgs-seo` (Role section) | GSC/Bing (Chrome), WP/Woo REST, Plesk, `02_RESOURCES/CGS-SEO/` | — |
 | 4 | PRODUCTION – BRUNO | `cgs-production` · `/cgs-production` | cockpit `/api/molds/ready` verdicts, `/api/molds`, `/api/shells`, `/api/finished`, `/api/inventory/demand`, job-sheet PDF | — |
 | 5 | HEAD OFFICE | `cgs-head-office` · `/cgs-head-office` | sourced registry: AGB, memories, `config.json`, ledgers, organigram PDF in `02_RESOURCES/CGS-HEAD-OFFICE/` | Zefix excerpt not on disk (fetch on demand) |
@@ -34,6 +34,6 @@ rules and unprompted routines) or an explicit gap note. House pattern: `.claude/
 | 8 | COO – JEFFREY | existing local voice assistant (`_SYSTEM/SELF/jeffrey-persona.md`) — not rebuilt | file index, confirm-gate | — |
 
 All lanes share the contract: propose → René clicks (confirm-gate), Rule B (customer data stays local),
-cite-or-flag, ≤ 30-line routines. The one integration that would unlock the most at once: a **read-only
-IMAP pull into the cockpit** (Leon's inbox, Jeffrey's "mail recap", Stefan/Bruno's supplier + customer
-mails) — see `leon-mail-gap.md`.
+cite-or-flag, ≤ 30-line routines. The one integration that unlocks the most at once — a **read-only IMAP pull into the cockpit** (Leon's
+inbox, Jeffrey's "mail recap", supplier + customer mails) — was **built 24/10/2026** (cockpit Front Desk);
+see `leon-mail-gap.md`.

@@ -18,10 +18,12 @@ It replaces the dead claude.ai Project "CUSTOMER SERVICE – LEON" (a prompt wit
   (CF7), WhatsApp/Threema for some. Etsy messages live on Etsy.
 - Voice (owner): friendly, competent, concise; "wir" + signed **CGS** (brand is "CGS", never "Custom
   Gear Switzerland"; legal name only in legal docs); Hochdeutsch, Swiss spelling (grosse, not große).
-- **INBOX IS NOT WIRED.** No IMAP/Outlook/Graph integration exists in yuri-os or the cockpit (checked
-  24/10/2026). Input = René pastes the mail, or reads it in his Chrome (Roundcube — UNVERIFIED path).
-  The one integration that would make this lane proactive: a read-only IMAP pull of `info@`/`sales@`
-  into a LOCAL store (Rule B) — see `02_RESOURCES/cgs-projects-export/leon-mail-gap.md`.
+- **INBOX IS WIRED (24/10/2026): the cockpit's Front Desk tab** (`http://127.0.0.1:8000/frontdesk`,
+  `GET /api/mail/inbox?unanswered=true`) is a READ-ONLY IMAP mirror of `info@`/`sales@` into the local
+  `data/mail.db`, each mail tagged with the order number it names and joined to status / tracking /
+  mold verdict. No send path exists. Credentials go into `backend/.mail_config.json` by René's hand
+  (IMAP host still to be filled in); until then the lane works on pasted mails.
+  Build record: `02_RESOURCES/cgs-projects-export/leon-mail-gap.md`.
 
 ## WHERE (absolute paths + endpoints) — the answer pack
 
@@ -29,6 +31,7 @@ Cockpit (`http://127.0.0.1:8000`, René's Chrome session; `curl` gets 401). Key 
 
 | Question | Source | What to read |
 |---|---|---|
+| **The question itself** | `GET /api/mail/inbox?unanswered=true` → `subject`, `category`, `order_nr`, `order` (pack) · `GET /api/mail/{id}` → body | sender = name + domain only; the reply is written in Outlook; mark done via `POST /api/mail/{id}/answered` (Outlook's \Answered flag also flows in on sync) |
 | Order status | `GET /api/sales?limit=` → rows with `order_nr` | `status`: processing = **IN BEARBEITUNG** (paid, being made) · pending = **IN WARTESTELLUNG** (unpaid) · completed = shipped/done; `build_status` ('built' = made); `pay_state`; `date`, `paid_date` |
 | Will it be built soon? | `GET /api/molds/coverage` · `GET /api/molds/ready` | per line: mold milled? cut-out? verdict `ready` / `mold_only` / `review` / `no_match` (= a NEW mold → longer lead time; never promise a date the index does not back) |
 | Shipped? Tracking? | `GET /api/post/labels?order_nr=` | `ident_code` (18-digit Swiss Post tracking) where `is_preview=0` and `status='created'`; `created_at` = ship date |
@@ -79,6 +82,9 @@ René pastes the mail (or the order nr + question). In his Chrome on a cockpit t
   quote / other) → pull the answer pack by order nr → draft (DE, "wir", signed CGS; EN block if the
   customer wrote EN) → **facts list with sources** under the draft → **flags** (UNVERIFIED, needs
   René's decision) → "René: send from Outlook; change X in Woo first if …". ≤ 30 lines.
+- **Inbox sweep (when invoked, ≤ 30 lines):** `POST /api/mail/sync` is René's click (or run it when he
+  asks); then `inbox?unanswered=true` → per mail: date, category, order pack, and the draft the lane
+  proposes; mails unanswered > 48 h first. Body via `/api/mail/{id}` only when drafting.
 - **Waiting-customer sweep (when invoked, ≤ 30 lines):** `sales` processing orders older than 21 days
   with no post label → "customer may be waiting — status mail?"; pending (unpaid) > 7 days → payment
   reminder draft; labels created but order not completed in Woo → "mark completed?"; `review` /
@@ -100,9 +106,8 @@ René pastes the mail (or the order nr + question). In his Chrome on a cockpit t
 - Built as the LEON replacement in the role-lane programme (cgs-cfo = template). Data sources verified
   to exist from the cockpit route table (`/api/sales`, `/api/post/labels`, `/api/molds/coverage|ready`,
   `/api/cam/vocab`) and the `post_labels` schema (`ident_code`, `is_preview`).
-- Honest gap: NO mail integration exists (grep over `_SYSTEM/Scripts`, `.claude/skills`, the cockpit
-  backend: no imap/smtp/outlook/graph code). The lane works on pasted mails today; the inbound pull is
-  the one integration to build — `leon-mail-gap.md`. Roundcube read via Chrome is a plausible but
-  UNVERIFIED alternative.
+- Honest gap at creation: NO mail integration existed. **Closed the same day** — the cockpit's Front
+  Desk (`mail_client.py` + `mail_store.py` + `/api/mail/*` + the tab) is the read-only IMAP pull from
+  `leon-mail-gap.md`, live-verified on an empty config in René's Chrome; René enters the credentials.
 - Not verified this session: a live pull in René's Chrome. Residual risk: `/api/sales` has no customer
   e-mail field, so mail → order matching is by order nr in the mail (or René's lookup in Woo).

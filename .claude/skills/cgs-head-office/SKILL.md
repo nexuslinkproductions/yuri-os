@@ -36,7 +36,7 @@ Nico; the lanes use the Project names). Export of the eight Projects: `02_RESOUR
 | Accounting | Hugo | `cgs-cfo` · `/cgs-cfo` | cgs-books + cockpit |
 | Stock & Procurement | Stefan | `cgs-stock` · `/cgs-stock` | cockpit inventory/demand/purchasing |
 | Production | Bruno | `cgs-production` · `/cgs-production` | cockpit molds/ready, shells, demand, job sheets |
-| Customer Service | Leon | `cgs-frontdesk` · `/cgs-frontdesk` | cockpit sales/labels/coverage; **inbox not wired** (`leon-mail-gap.md`) |
+| Customer Service | Leon | `cgs-frontdesk` · `/cgs-frontdesk` | cockpit sales/labels/coverage + **Front Desk** mail mirror (`/api/mail/*`, built 24/10/2026) |
 | Web & SEO | Nico | folded into `cgs-seo` · `/cgs-seo` | GSC/Bing, WP/Woo REST, Plesk |
 | Marketing | Max | `cgs-marketing` · `/cgs-marketing` | BOM/vocab/sales, Etsy scripts, render pipelines; **no newsletter tool** |
 | Engineering / R&D | Yuri | `cgs-align` → `cgs-decimate` → `cgs-mold` + FreeCAD CAM memories | Blender, CNC share |

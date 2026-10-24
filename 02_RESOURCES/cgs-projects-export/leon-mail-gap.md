@@ -1,5 +1,13 @@
 # LEON (Customer Service) — the mail gap
 
+> **BUILT 24/10/2026** in the cockpit repo (`landed-cost-cogs`, commit "Front Desk: read-only IMAP mirror"):
+> `cockpit/backend/mail_client.py` + `mail_store.py`, routes `/api/mail/*`, page **Front Desk** at
+> `http://127.0.0.1:8000/frontdesk`, store `cockpit/data/mail.db`, credentials `backend/.mail_config.json`
+> (René's hand). 36 offline regression checks in `mail_store.test.py`. Deviations from the spec below:
+> `from_name` is kept beside the domain (needed to tell senders apart), `uid`/`uidvalidity` are stored
+> for the incremental pull, and the answered mark also comes from Outlook's `\Answered` flag.
+> Remaining: René enters host + mailbox passwords, clicks "Verbindung testen", then "Postfächer abgleichen".
+
 **State 24/10/2026.** The CUSTOMER SERVICE role has a working lane (`.claude/skills/cgs-frontdesk/SKILL.md`,
 `/cgs-frontdesk`): order status, tracking, mold readiness, fitment scope, returns and discount policy all
 come from real sources (cockpit endpoints, AGB v2, the discount programme). What it CANNOT do is see the
