@@ -479,6 +479,10 @@
     "source_path": ".claude/skills/cgs-books/SKILL.md",
     "hash": "75744a9ff1c17840"
   },
+  "cgs-cfo": {
+    "source_path": ".claude/skills/cgs-cfo/SKILL.md",
+    "hash": "814312f75d4c5889"
+  },
   "cgs-cockpit": {
     "source_path": ".claude/skills/cgs-cockpit/SKILL.md",
     "hash": "1dda08fc00067ede"
