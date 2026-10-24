@@ -82,8 +82,8 @@ René pastes the mail (or the order nr + question). In his Chrome on a cockpit t
   quote / other) → pull the answer pack by order nr → draft (DE, "wir", signed CGS; EN block if the
   customer wrote EN) → **facts list with sources** under the draft → **flags** (UNVERIFIED, needs
   René's decision) → "René: send from Outlook; change X in Woo first if …". ≤ 30 lines.
-- **Inbox sweep (when invoked, ≤ 30 lines):** `POST /api/mail/sync` is René's click (or run it when he
-  asks); then `inbox?unanswered=true` → per mail: date, category, order pack, and the draft the lane
+- **Inbox sweep (when invoked, ≤ 30 lines):** the mailbox syncs itself every 15 min (scheduled task
+  "CGS Front Desk Sync", log `cockpit/logs/mail-sync.log`) — never ask René to sync; then `inbox?unanswered=true` → per mail: date, category, order pack, and the draft the lane
   proposes; mails unanswered > 48 h first. Body via `/api/mail/{id}` only when drafting.
 - **Waiting-customer sweep (when invoked, ≤ 30 lines):** `sales` processing orders older than 21 days
   with no post label → "customer may be waiting — status mail?"; pending (unpaid) > 7 days → payment
