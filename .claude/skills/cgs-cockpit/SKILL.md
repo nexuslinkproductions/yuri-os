@@ -286,6 +286,8 @@ column (then "(Forts.)").
 - No PDF renderer on the box (no poppler): view output in Chrome via fetch → blob URL; the PDF
   viewer freezes CDP screenshots after scrolling, so reopen at `#page=N` instead.
 - Regression net: `backend/jobsheet_pdf.test.py` (4 mutants).
+- **Tick boxes** (2026-10-21, `f543b55`): every `kind='holster'` position ends with an empty
+  `VACUUM FORMED` + `CUT OUT` pair (`Checks` row, `CHECKS`/`BOX` constants); accessory lines get none.
 
 ## CUT BELT WINGS — a cut is one event (2026-09-13)
 
@@ -323,8 +325,9 @@ fields), for the CNC and the vacuum bench. `backend/jobsheet.py` + `GET /api/sal
 - **The selection is resolved server-side** from order keys (`collect()`); the client never says which
   rows an order means.
 - **Backfill is `woo.backfill_meta` (POST `/api/woo/backfill-meta`), NEVER a full re-sync** —
-  `replace_order` deletes and re-inserts every line, resetting `build_status` and re-snapshotting
-  COGS. Positional match, hard-skip on a differing line COUNT, fill-and-count on a renamed model
+  `replace_order` deletes and re-inserts every line (new ids, fresh COGS snapshot). Since 2026-10-18
+  it carries `build_status` over on a model match and a build re-cost on an exact (model, qty)
+  match (`resync_build_state.test.py`) — before that every shop-side change un-built the order. Positional match, hard-skip on a differing line COUNT, fill-and-count on a renamed model
   (`orders_relabelled`: legacy "GLOCK MAGAZINHALTER" → "MAGAZINHALTER"). 2026 is done.
 - A line with no meta falls back to the curated options **and says so on the page**. Accessories
   genuinely carry no addon fields — that is not a defect.

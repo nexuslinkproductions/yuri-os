@@ -241,6 +241,21 @@ Rechnungsdatum (Umstellung auf Zahlungseingang = offener Owner-Entscheid, würde
 
 ## Session Notes
 
+### 2026-11-11 (round 19: ESTV-Quartalsabrechnung + eCH-0217-XML)
+- Commit `1eff0b2` (cgs-books), **deployed (v36 server-verified)**. Plan: `02_RESOURCES/CGS-TAX/15-books-mwst-export-plan-2026-11-11.md`.
+- `report-vat` now vereinnahmt (`book_date_expr` + paid only). New `src/mwst.php` (+ `mwst_controller.php`, routes
+  `mwst` / `mwst-manual` / `mwst-xml`): Ziffern 200–510 per eCH-0217 Tab. 22 (tax from turnover per rate, integer
+  micro-CHF, rounding only at payableTax), Netto, formOfReporting 2. Unclear bookings BLOCK the XML (income 0 % without
+  flag, Bezugsteuer with booked VAT, export with VAT) — never guessed. Manual 410/415/420/900/910 in settings
+  `mwst_manual_YYYY-Qn`.
+- **Migration 012** (accounts.vat_code 400/405, entries.vat_flag) **APPLIED live 11/11/2026** (session, René logged in):
+  report-pl 2024/2025/2026 byte-identical before/after; codes 400 = 4000/4200/4400/6400, 405 = 6100/6200/6500/6570/
+  6600/6640/6700. Live production XML (2027-Q1, empty) fetched and validated against the XSD locally → valid.
+  Entry form „MWST-Behandlung" renders for 2027 dates; Bezugsteuer sets rate 0 (tested without saving).
+- Local test `tests/mwst_test.php` (59 checks, `C:\Users\rene\php\php.exe tests\mwst_test.php`): validates XML against
+  the real eCH-0217 XSD chain in `tests/xsd/` (schemaLocations rewritten local; PHP `DOMDocument::schemaValidate`),
+  incl. the official eCH example + negative tests. Ziffer numbers verified: 303 (8.1 %), 383; 313/343 NOT verified → UI shows „—".
+
 ### 2026-07-30 (round 18: mehrere Belege pro Buchung in einem Rutsch)
 - Commit `162b861` (cgs-books), **deployed + server-verified (v33)**. René: pro Buchung 2 Dokumente
   hochladen (USD-Rechnung + CHF-Überweisungsbeleg bei Fremdwährungs-Einkauf); Idee: 2 Dateien →
