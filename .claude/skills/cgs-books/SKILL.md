@@ -255,6 +255,10 @@ Rechnungsdatum (Umstellung auf Zahlungseingang = offener Owner-Entscheid, würde
 - Local test `tests/mwst_test.php` (59 checks, `C:\Users\rene\php\php.exe tests\mwst_test.php`): validates XML against
   the real eCH-0217 XSD chain in `tests/xsd/` (schemaLocations rewritten local; PHP `DOMDocument::schemaValidate`),
   incl. the official eCH example + negative tests. Ziffer numbers verified: 303 (8.1 %), 383; 313/343 NOT verified → UI shows „—".
+- Follow-up commit `vat_flag='einfuhrsteuer'` (v37, live-verified): import VAT from BAZG/UPS/FedEx/Post — the whole
+  entered amount is stored as net 0 / VAT = amount (`mwst_einfuhr_apply`, only effective + after registration), so it
+  counts fully in 400/405 (by account, regardless of the account's vorsteuer flag) and never as P&L expense. Duty and
+  carrier fees are booked separately. A flagged entry with net ≠ 0 blocks the XML. Tests 73/73.
 
 ### 2026-07-30 (round 18: mehrere Belege pro Buchung in einem Rutsch)
 - Commit `162b861` (cgs-books), **deployed + server-verified (v33)**. René: pro Buchung 2 Dokumente
