@@ -288,6 +288,12 @@ column (then "(Forts.)").
 - Regression net: `backend/jobsheet_pdf.test.py` (4 mutants).
 - **Tick boxes** (2026-10-21, `f543b55`): every `kind='holster'` position ends with an empty
   `VACUUM FORMED` + `CUT OUT` pair (`Checks` row, `CHECKS`/`BOX` constants); accessory lines get none.
+  Since 13/11/2026 (`4f964d4`) also `MOUNTED`, plus `LASERED` ONLY when the shop option LASER GRAVUR
+  (or the older key LASERGRAVUR) reads JA/YES (`jobsheet.is_lasered`); boxes wrap balanced (2+2).
+- **DRAWER row** (13/11/2026) under each holster position bar: drawers of the FOLDING JIG and the MOLD
+  (= printed dummy) from the 3D PRINTS register (`prints.drawer_index`), matched EXACTLY on
+  HERSTELLER + MODEL, lamp ignored (owner ruling). No gun → no row; gun with nothing registered →
+  "nicht erfasst (3D PRINTS)". Exact match means GLOCK "45" does NOT find the "19 / 19x / 45" jig.
 
 ## CUT BELT WINGS — a cut is one event (2026-09-13)
 
