@@ -249,6 +249,13 @@ body came off the bench, plus a COGS re-cost and `build_status='built'` on the s
 - Nothing says which SALE LINE a batch belongs to (one ref covers every line of an order), so on a
   multi-built order the line to un-flag is an explicit pick. `matches_model` sorts, never decides.
 - Regression net: `backend/build_undo.test.py`, four mutation guards.
+- **Give back ONE part** (13/11/2026, `b89439a`): the same dialog lists what the build took with a
+  per-part *Give back* (some or all). `inventory.return_build_part` / `POST
+  /api/inventory/build/return-part` shrinks or deletes that consume row, keeps BUILT, and lowers a
+  build re-cost by `landed × q / sale qty` in the same transaction (BOM-costed line or unpriced part:
+  COGS left alone, reason returned; build-to-stock batch refused). Net: `build_return_part.test.py`.
+  Root cause it was born from: the OWB-CITADEL BOM books CGS PACKAGING per holster, so a
+  two-holster order in one box books two (813502).
 
 ## A SHELL'S IDENTITY INCLUDES ITS GUN (2026-09-05)
 
