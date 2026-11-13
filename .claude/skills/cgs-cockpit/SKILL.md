@@ -298,6 +298,25 @@ column (then "(Forts.)").
   No gun → no line; nothing registered → "... - DRAWER nicht erfasst (3D PRINTS)". Exact match
   means GLOCK "45" does NOT find the "19 / 19x / 45" jig.
 
+## JOB SHEET ON SCREEN — /jobsheet, tickable (13/11/2026)
+
+Sales → **On screen** (ticked orders; nothing ticked = every `processing` order) opens
+`/jobsheet` in a new tab: a full-screen page WITHOUT the app chrome (`main.tsx` switches on
+the path), made for René's XREAL glasses — 18 px base, 52 px tap boxes, card grid
+(1 col phone · 3 at 1920 · 8 at 3840). `backend/jobsheet_live.py` builds the cards from the
+PDF's OWN functions (`collect`, `batch_orders`, `check_labels`, `ADMIN`, `drawer_text`,
+`pay_label`) so screen and paper cannot drift.
+- Ticks live in `job_ticks` (cockpit.db), keyed **order key + POSITION + step**, never the
+  sale-line id: a full Woo re-sync gives lines new ids and would wipe every tick.
+- **COCKPIT BUILT** (line `build_status='built'`) and **COCKPIT SHIPPED** (a real, non-voided
+  Post label, `post_store.franked_orders`) tick THEMSELVES and cannot be unticked on the sheet.
+- `POST /api/jobsheet/tick` re-derives the position's real boxes (`valid_steps`) — a step it
+  does not print is a 400. Page re-reads on focus / every 30 s.
+- PDF office row (same day): `COCKPIT BUILT / COCKPIT SHIPPED / BOOKS` on its own row under the
+  bench boxes. Cost: small cards 3 per column instead of 4 (35 open orders: 11 → 12 pages).
+- Regression net: `backend/jobsheet_live.test.py` (2 mutants). Layout checked with same-origin
+  iframes at 412/1920/3840 px — René's Chrome window is maximised and will not resize.
+
 ## CUT BELT WINGS — a cut is one event (2026-09-13)
 
 Belt wings (`PancakeWing_38/45/50/55mm`) are CUT from `KYDEX_125_8x12` (12 per sheet), never
